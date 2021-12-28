@@ -1,0 +1,57 @@
+// Copyright 2019-2021 @polkadot/extension-ui authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
+import type { IconTheme } from '@polkadot/react-identicon/types';
+import type { ThemeProps } from '../types';
+
+import React from 'react';
+import styled from 'styled-components';
+
+import Icon from '@polkadot/react-identicon';
+
+interface Props {
+  className?: string;
+  iconTheme?: IconTheme;
+  isExternal?: boolean | null;
+  onCopy?: () => void;
+  prefix?: number;
+  value?: string | null;
+  size?: number;
+}
+
+function Identicon ({ className, iconTheme, onCopy, prefix, value, size }: Props): React.ReactElement<Props> {
+  return (
+    <div className={className}>
+      <Icon
+        className='icon'
+        onCopy={onCopy}
+        prefix={prefix}
+        size={size}
+        theme={iconTheme}
+        value={value}
+      />
+    </div>
+  );
+}
+
+export default styled(Identicon)(({ theme }: ThemeProps) => `
+  background: rgba(192, 192, 292, 0.25);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+
+  .container:before {
+    box-shadow: none;
+    background: ${theme.identiconBackground};
+  }
+
+  .icon {
+    cursor: pointer;
+  }
+
+  svg {
+    circle:first-of-type {
+      display: none;
+    }
+  }
+`);
