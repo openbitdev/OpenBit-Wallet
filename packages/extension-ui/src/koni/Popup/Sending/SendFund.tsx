@@ -79,7 +79,7 @@ function SendFund({className}: Props): React.ReactElement {
   const propSenderId = currentAccount?.address;
   const [amount, setAmount] = useState<BN | undefined>(BN_ZERO);
   const [hasAvailable] = useState(true);
-  const [isProtected, setIsProtected] = useState(true);
+  const [isProtected, setIsProtected] = useState(false);
   const [isAll, setIsAll] = useState(false);
   const [[maxTransfer, noFees], setMaxTransfer] = useState<[BN | null, boolean]>([null, false]);
   const [recipientId, setRecipientId] = useState<string | null>(null);
@@ -205,7 +205,7 @@ function SendFund({className}: Props): React.ReactElement {
         )
       }
       {isFunction(api.tx.balances.transferKeepAlive) && (
-        <div className={'kn-field -toggle'}>
+        <div className={'kn-field -toggle -toggle-1'}>
           <Toggle
             className='typeToggle'
             label={
@@ -219,7 +219,7 @@ function SendFund({className}: Props): React.ReactElement {
         </div>
       )}
       {canToggleAll && (
-        <div className={'kn-field -toggle'}>
+        <div className={'kn-field -toggle -toggle-2'}>
           <Toggle
             className='typeToggle'
             label={t<string>('Transfer the full account balance, reap the sender')}
@@ -239,26 +239,28 @@ function SendFund({className}: Props): React.ReactElement {
         </KoniWarning>
       )}
 
-      <TxButton
-        className={'kn-submit-btn'}
-        accountId={senderId}
-        isDisabled={!hasAvailable || !(recipientId) || !amount || !!recipientPhish}
-        label={t<string>('Make Transfer')}
-        params={
-          canToggleAll && isAll
-            ? isFunction(api.tx.balances.transferAll)
-              ? [recipientId, false]
-              : [recipientId, maxTransfer]
-            : [recipientId, amount]
-        }
-        tx={
-          canToggleAll && isAll && isFunction(api.tx.balances.transferAll)
-            ? api.tx.balances.transferAll
-            : isProtected
-              ? api.tx.balances.transferKeepAlive
-              : api.tx.balances.transfer
-        }
-      />
+      <div className={'kn-l-submit-wrapper'}>
+        <TxButton
+          className={'kn-submit-btn'}
+          accountId={senderId}
+          isDisabled={!hasAvailable || !(recipientId) || !amount || !!recipientPhish}
+          label={t<string>('Make Transfer')}
+          params={
+            canToggleAll && isAll
+              ? isFunction(api.tx.balances.transferAll)
+                ? [recipientId, false]
+                : [recipientId, maxTransfer]
+              : [recipientId, amount]
+          }
+          tx={
+            canToggleAll && isAll && isFunction(api.tx.balances.transferAll)
+              ? api.tx.balances.transferAll
+              : isProtected
+                ? api.tx.balances.transferKeepAlive
+                : api.tx.balances.transfer
+          }
+        />
+      </div>
     </div>
   );
 }
@@ -278,11 +280,11 @@ export default React.memo(styled(Wrapper)(({theme}: Props) => `
     flex: 1;
     padding-top: 25px;
     margin-top: -25px;
-    overflow-y: scroll;
+    overflow-y: auto;
 
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    // &::-webkit-scrollbar {
+    //   display: none;
+    // }
   }
 
   .kn-l-screen-content {
@@ -317,13 +319,23 @@ export default React.memo(styled(Wrapper)(({theme}: Props) => `
       display: flex;
       justify-content: flex-end;
     }
+
+    &.-field-4, &.-toggle-1 {
+        display: none !important;
+    }
   }
 
   .kn-l-warning {
     margin-top: 10px;
   }
 
-  .kn-submit-btn {
-    margin-top: 20px;
+  .kn-l-submit-wrapper {
+    position: sticky;
+    bottom: -15px;
+    padding: 15px;
+    margin-left: -15px;
+    margin-bottom: -15px;
+    margin-right: -15px;
+    background-color: ${theme.background};
   }
 `));

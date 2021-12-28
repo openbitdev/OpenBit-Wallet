@@ -329,7 +329,7 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
 }
 export default React.memo(styled(KoniAccountOverView)(({theme}: Props) => `
   height: calc(100vh - 2px);
-  overflow-y: scroll;
+  overflow-y: auto;
   margin-top: -25px;
   padding-top: 10px;
   scrollbar-width: none;

@@ -21,7 +21,7 @@ import {IconTheme} from "@polkadot/react-identicon/types";
 import useMetadata from "@polkadot/extension-ui/hooks/useMetadata";
 import AccountMenuSettings from "@polkadot/extension-ui/partials/AccountMenuSettings";
 import useGenesisHashOptions from "@polkadot/extension-ui/hooks/useGenesisHashOptions";
-import {editAccount, showAccount, tieAccount} from "@polkadot/extension-ui/messaging";
+import {editAccount, showAccount, tieAccount, windowOpen} from "@polkadot/extension-ui/messaging";
 import KoniNetworkMenu from "@polkadot/extension-ui/components/KoniNetworkMenu";
 import CopyToClipboard from "react-copy-to-clipboard";
 import useToast from "@polkadot/extension-ui/hooks/useToast";
@@ -38,6 +38,9 @@ import {Theme} from "../types";
 import RadioStatus from "@polkadot/extension-ui/components/koni/RadioStatus";
 import HeaderEditName from "@polkadot/extension-ui/partials/koni/HeaderEditName";
 import Identicon from "@polkadot/extension-ui/koni/react-components/Identicon";
+import ExpandLightIcon from '@polkadot/extension-ui/assets/icon/expand-light.svg';
+import ExpandDarkIcon from '@polkadot/extension-ui/assets/icon/expand-dark.svg';
+import useIsPopup from "@polkadot/extension-ui/hooks/useIsPopup";
 
 interface Props extends ThemeProps {
   children?: React.ReactNode;
@@ -113,6 +116,13 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   const setRef = useRef(null);
   const actionsRef = useRef(null);
   const netRef = useRef(null);
+  const extensionTheme = themeContext.id;
+  const isPopup = useIsPopup();
+
+  const _onWindowOpen = useCallback(
+    () => windowOpen('/').catch(console.error),
+    []
+  );
 
   useEffect((): void => {
     if (!currentAccount) {
@@ -247,6 +257,11 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
             />
           </div>
           <div className='koni-header-right-content'>
+            {isPopup && (<div className={'kn-l-expand-btn'} onClick={_onWindowOpen}>
+                <img src={extensionTheme === 'dark' ? ExpandLightIcon : ExpandDarkIcon}
+                     alt="Expand Icon"
+                     className='kn-l-expand-btn__icon'/>
+              </div>)}
             <div className='network-select-item' onClick={_toggleNetwork}>
               <div className='network-selected-dot'/>
               <div className='network-select-item__text'>
@@ -643,6 +658,23 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     display: flex;
     justify-content: flex-end;
     flex: 1;
+  }
+
+  .kn-l-expand-btn {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .kn-l-expand-btn__icon {
+    display: block;
+    width: 24px;
+    height: auto;
   }
 
   .more-button {

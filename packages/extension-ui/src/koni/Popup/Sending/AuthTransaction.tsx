@@ -20,6 +20,7 @@ import {AccountSigner} from "@polkadot/extension-ui/koni/Popup/Sending/signers";
 import {BackgroundWindow} from "@polkadot/extension-base/background/types";
 import KoniButton from "@polkadot/extension-ui/components/KoniButton";
 import {ThemeProps} from "@polkadot/extension-ui/types";
+import {ActionContext} from "@polkadot/extension-ui/components";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {keyring} = bWindow.pdotApi;
@@ -116,6 +117,7 @@ function AuthTransaction({ className, currentItem, requestAddress }: Props): Rea
   const [senderInfo, setSenderInfo] = useState<AddressProxy>(() => ({ isMultiCall: false, isUnlockCached: false, multiRoot: null, proxyRoot: null, signAddress: requestAddress, signPassword: '' }));
   const [{ innerHash }, setCallInfo] = useState<InnerTx>(EMPTY_INNER);
   const [tip, setTip] = useState(BN_ZERO);
+  const navigate = useContext(ActionContext);
 
   useEffect((): void => {
     setFlags(tryExtract(senderInfo.signAddress));
@@ -163,6 +165,7 @@ function AuthTransaction({ className, currentItem, requestAddress }: Props): Rea
 
         queueSetTxStatus(currentItem.id, status);
 
+        navigate('/');
         await signAndSend(queueSetTxStatus, currentItem, tx, pairOrAddress, options);
       }
     },
@@ -230,14 +233,16 @@ function AuthTransaction({ className, currentItem, requestAddress }: Props): Rea
         withCopy
       />
 
-      <KoniButton
-        className={'kn-l-submit-btn'}
-        isBusy={isBusy}
-        isDisabled={!senderInfo.signAddress || isRenderError}
-        onClick={_doStart}
-      >
-        {t<string>('Sign and Submit')}
-      </KoniButton>
+      <div className="kn-l-submit-wrapper">
+        <KoniButton
+          className={'kn-l-submit-btn'}
+          isBusy={isBusy}
+          isDisabled={!senderInfo.signAddress || isRenderError}
+          onClick={_doStart}
+        >
+          {t<string>('Sign and Submit')}
+        </KoniButton>
+      </div>
     </div>
   );
 }
@@ -247,6 +252,8 @@ export default React.memo(styled(AuthTransaction)(({ theme }: ThemeProps) => `
   padding-right: 15px;
   padding-bottom: 15px;
   padding-top: 25px;
+  height: 100%;
+  overflow-y: auto;
 
   .kn-l-transaction-info-block {
     margin-bottom: 20px;
@@ -260,7 +267,13 @@ export default React.memo(styled(AuthTransaction)(({ theme }: ThemeProps) => `
     margin-top: 20px;
   }
 
-  .kn-l-submit-btn {
-    margin-top: 20px;
+  .kn-l-submit-wrapper {
+    position: sticky;
+    bottom: -15px;
+    padding: 15px;
+    margin-left: -15px;
+    margin-bottom: -15px;
+    margin-right: -15px;
+    background-color: ${theme.background};
   }
 `));

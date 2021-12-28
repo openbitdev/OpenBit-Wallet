@@ -231,7 +231,7 @@ export default React.memo(styled(AccountMenuSettings)(({ theme }: Props) => `
 
   .accountsContainer {
     max-height: 148px;
-    overflow-y: scroll;
+    overflow-y: auto;
     scrollbar-width: none;
     padding: 0 15px;
     margin-bottom: 8px;

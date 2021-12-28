@@ -185,7 +185,7 @@ export default React.memo(styled(Signer)(({ theme }: ThemeProps) => `
 
   .kn-l-body {
     flex: 1;
-    overflow-y: scroll;
+    overflow-y: auto;
 
     &::-webkit-scrollbar {
       display: none;
