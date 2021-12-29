@@ -35,10 +35,13 @@ import defaultAvatar from "../assets/default-avatar.svg"
 import moreButtonDark from "@polkadot/extension-ui/assets/dots-three-vertical-dark.svg";
 import moreButtonLight from "@polkadot/extension-ui/assets/dots-three-vertical-light.svg";
 import {Theme} from "../types";
-import RadioStatus from "@polkadot/extension-ui/components/koni/RadioStatus";
 import HeaderEditName from "@polkadot/extension-ui/partials/koni/HeaderEditName";
 import Identicon from "@polkadot/extension-ui/koni/react-components/Identicon";
 import ExpandLightIcon from '@polkadot/extension-ui/assets/icon/expand-light.svg';
+import EyeDarkIcon from '@polkadot/extension-ui/assets/icon/eye-dark.svg';
+import EyeLightIcon from '@polkadot/extension-ui/assets/icon/eye-light.svg';
+import EyeSlashDarkIcon from '@polkadot/extension-ui/assets/icon/eye-slash-dark.svg';
+import EyeSlashLightIcon from '@polkadot/extension-ui/assets/icon/eye-slash-light.svg';
 import ExpandDarkIcon from '@polkadot/extension-ui/assets/icon/expand-dark.svg';
 import useIsPopup from "@polkadot/extension-ui/hooks/useIsPopup";
 
@@ -116,7 +119,6 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   const setRef = useRef(null);
   const actionsRef = useRef(null);
   const netRef = useRef(null);
-  const extensionTheme = themeContext.id;
   const isPopup = useIsPopup();
 
   const _onWindowOpen = useCallback(
@@ -258,7 +260,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
           </div>
           <div className='koni-header-right-content'>
             {isPopup && (<div className={'kn-l-expand-btn'} onClick={_onWindowOpen}>
-                <img src={extensionTheme === 'dark' ? ExpandLightIcon : ExpandDarkIcon}
+                <img src={popupTheme === 'dark' ? ExpandLightIcon : ExpandDarkIcon}
                      alt="Expand Icon"
                      className='kn-l-expand-btn__icon'/>
               </div>)}
@@ -300,44 +302,52 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
         </div>
         {isWelcomeScreen && (<div className='only-top-container'/>)}
         {isContainDetailHeader && (
-            <div className='detail-header-container'>
-              <div className='connect-status-wrapper'>
-                <div className='connect-status' onClick={_toggleVisibility}>
-                  <RadioStatus className='connect-radio-status' checked={!currentAccount?.isHidden || false}/>
+            <div className='kn-l-detail-header'>
+              <div className='kn-l-detail-header__part-1'>
+                <div className='kn-l-connect-status-btn' onClick={_toggleVisibility}>
                   {currentAccount?.isHidden ?
                     (
-                      <span className='connect-status-text'>Not connected</span>
+                      <img src={popupTheme === 'dark' ? EyeSlashDarkIcon : EyeSlashLightIcon}
+                           alt="Connect Icon"
+                           className='kn-l-connect-status-btn__icon'/>
                     ) : (
-                      <span className='connect-status-text'>Connected</span>
+                      <img src={popupTheme === 'dark' ? EyeDarkIcon : EyeLightIcon}
+                           alt="Connect Icon"
+                           className='kn-l-connect-status-btn__icon'/>
                     )}
-
                 </div>
               </div>
 
-              <CopyToClipboard text={(formatted && formatted) || ''}>
-                <div className='account-info' onClick={_onCopy}>
-                  <span className='account-info-name'>{currentAccount?.name}</span>
-                  <div className='account-info-formatted-wrapper'>
-                    <span className='account-info-formatted'>{ellipsisCenterStr(formatted || currentAccount?.address)}</span>
-                    <img src={cloneLogo} alt="copy" className='account-info-copyIcon'/>
-                  </div>
-                </div>
-              </CopyToClipboard>
-              {isEditing && (
-                <HeaderEditName address={currentAccount?.address} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
-              )}
-              <div className='more-button-wrapper'>
-                <div className='more-button' onClick={_toggleAccountAction}>
+              <div className='kn-l-detail-header__part-2'>
+                {!isEditing && (
+                  <CopyToClipboard text={(formatted && formatted) || ''}>
+                    <div className='kn-l-account-info' onClick={_onCopy}>
+                      <span className='kn-l-account-info__name'>{currentAccount?.name}</span>
+                      <div className='kn-l-account-info__formatted-wrapper'>
+                        <span className='kn-l-account-info__formatted'>{ellipsisCenterStr(formatted || currentAccount?.address)}</span>
+                        <img src={cloneLogo} alt="copy" className='kn-l-account-info__copy-icon'/>
+                      </div>
+                    </div>
+                  </CopyToClipboard>
+                )}
+                {isEditing && (
+                  <HeaderEditName address={currentAccount?.address} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='kn-l-edit-name'/>
+                )}
+              </div>
+
+              <div className='kn-l-detail-header__part-3'>
+                <div className='kn-l-more-button' onClick={_toggleAccountAction}>
                   {popupTheme == 'dark' ?
                     (
-                      <img src={moreButtonDark} alt="more"/>
+                      <img src={moreButtonDark} alt="more" className={'kn-l-more-button__icon'}/>
                     ) : (
-                      <img src={moreButtonLight} alt="more"/>
+                      <img src={moreButtonLight} alt="more" className={'kn-l-more-button__icon'}/>
                     )
                   }
 
                 </div>
               </div>
+
               {isActionOpen && (
                 <KoniAccountAction reference={actionsRef} toggleEdit={_toggleEdit}/>
               )}
@@ -441,21 +451,6 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
         font-size: 20px;
         line-height: 27px;
       }
-    }
-  }
-
-  .edit-name {
-    position: absolute;
-    flex: 1;
-    left: calc(50% - 65px);
-    top: 0;
-    width: 130px;
-    height: 62px;
-    display: flex;
-    align-items: center;
-
-    > div {
-      margin-top: 0;
     }
   }
 
@@ -578,86 +573,104 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     }
   }
 
-  .detail-header-container {
-    margin: 0 20px;
+  .kn-l-detail-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding-bottom: 8px;
-    position: relative;
+    padding-top: 6px;
   }
 
-  .connect-status-wrapper {
-    display: flex;
+  .kn-l-detail-header__part-1 {
+    padding-left: 10px;
+  }
+
+  .kn-l-detail-header__part-2 {
     flex: 1;
+  }
+
+  .kn-l-detail-header__part-3 {
+    padding-right: 6px;
+  }
+
+  .kn-l-connect-status-btn {
+    min-width: 40px;
+    height: 40px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .kn-l-connect-status-btn__icon {
+    width: 22px;
+  }
+
+  .kn-l-account-info {
+    display: flex;
+    align-items: baseline;
+  }
+
+  .kn-l-account-info__name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-right: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+  }
+
+  .kn-l-account-info__formatted-wrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: ${theme.textColor2};
+  }
+
+  .kn-l-account-info__formatted {
+    margin-right: 8px;
+    font-size: 15px;
+  }
+
+  .kn-l-account-info__copy-icon {
+
+  }
+
+  .kn-l-more-button {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .kn-l-more-button__icon {
+    width: 32px;
+  }
+
+  .kn-l-edit-name {
+    > div {
+      margin-top: 0;
+    }
+
+    input {
+      margin-top: 0;
+      height: 40px;
+    }
   }
 
   .connect-status {
-    display: flex;
-    cursor: pointer;
-    align-items: center;
-
     &-text {
       font-family: ${theme.fontFamilyRegular};
-      padding-left: 8px;
-      white-space: nowrap;
-      font-size: 14px;
-      line-height: 26px;
       color: ${theme.textColor2};
     }
   }
-
-  .connect-radio-status {
-    .radio-status {
-      width: 10px;
-      height: 10px;
-    }
-
-    .radio-status__dot {
-      width: 8px;
-      height: 8px;
-    }
-  }
-
   .account-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 3px 8px;
-    cursor: pointer;
-    &-name {
-      font-size: 20px;
-      line-height: 30px;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      max-width: 130px;
-      font-weight: bold;
-    }
-
-    &-formatted-wrapper {
-      display: flex;
-      align-items: center;
-    }
-
     &-formatted {
       font-family: ${theme.fontFamilyRegular};
-      margin-right: 8px;
-      font-size: 15px;
-      line-height: 26px;
       color: ${theme.textColor2};
     }
-
-    &-copyIcon {
-      cursor: pointer;
-    }
-  }
-
-  .more-button-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    flex: 1;
   }
 
   .kn-l-expand-btn {

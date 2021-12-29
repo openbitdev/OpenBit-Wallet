@@ -105,6 +105,7 @@ function ChainBalanceItem({item, className}: Props): React.ReactElement<Props> {
           </div>
         </>
       )}
+      <div className='kn-chain-balance-item__separator'/>
 
       {isReceiveQrOpen && (
         <BuyToken className='' reference={receiveRef} closeModal={_closeModal}/>
@@ -114,14 +115,10 @@ function ChainBalanceItem({item, className}: Props): React.ReactElement<Props> {
 }
 
 export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
-  border: 2px solid ${theme.boxBorderColor};
+  //border: 2px solid ${theme.boxBorderColor};
   border-radius: 8px;
   color: ${theme.textColor2};
-  font-weight: 500;
-
-  & + & {
-    margin-top: 10px;
-  }
+  // font-weight: 500;
 
   .kn-chain-balance-item__main-area {
     display: flex;
@@ -147,12 +144,12 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
     flex: 1;
     display: flex;
     overflow: hidden;
-    padding-left: 12px;
+    padding-left: 15px;
   }
 
   .kn-chain-balance-item__main-area-part-2 {
     position: relative;
-    padding-right: 32px;
+    padding-right: 38px;
     text-align: right;
     cursor: pointer;
   }
@@ -206,16 +203,20 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
     border-style: solid;
     border-width: 0 2px 2px 0;
     display: inline-block;
-    padding: 4px;
+    padding: 3.5px;
     transform: rotate(45deg);
-    top: 5px;
-    right: 13px;
+    top: 7px;
+    right: 15px;
   }
 
   .kn-chain-balance-item__chain-name,
   .kn-balance-val__symbol,
   .kn-balance-val__prefix {
     color: ${theme.textColor};
+  }
+
+  .kn-balance-val {
+    font-weight: 700;
   }
 
   .kn-chain-balance-item__separator {

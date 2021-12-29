@@ -184,8 +184,6 @@ export default function Popup (): React.ReactElement {
           : wrapWithErrorBoundary(<KoniAccountOverView />, 'accounts')
     : wrapWithErrorBoundary(<KoniWelcome />, 'welcome');
 
-  console.log('load .... ', isWelcomeDone);
-
   return (
     <Loading>{accounts && authRequests && metaRequests && signRequests && (
       <ActionContext.Provider value={_onAction}><div id='tooltips' />

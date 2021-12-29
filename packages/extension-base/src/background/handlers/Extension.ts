@@ -131,8 +131,12 @@ export default class Extension {
     return true;
   }
 
-  private accountsCreateSuri ({ genesisHash, name, password, suri, type }: RequestAccountCreateSuri): boolean {
-    keyring.addUri(getSuri(suri, type), password, { genesisHash, name }, type);
+  private accountsCreateSuri ({ genesisHash, name, password, suri: _suri, type }: RequestAccountCreateSuri): boolean {
+    const suri = getSuri(_suri, type);
+    const address = keyring.createFromUri(suri, {}, type).address;
+    this._saveCurrentAccountAddress(address, () => {
+      keyring.addUri(suri, password, { genesisHash, name }, type);
+    });
 
     return true;
   }
@@ -325,7 +329,7 @@ export default class Extension {
     return true;
   }
 
-  private saveCurrentAccountAddress ({ address }: RequestCurrentAccountAddress): boolean {
+  private _saveCurrentAccountAddress (address: string, callback?: () => void) {
     this.#state.getCurrentAccount((accountInfo => {
       if (!accountInfo) {
         accountInfo = {
@@ -335,8 +339,12 @@ export default class Extension {
         accountInfo.address = address;
       }
 
-      this.#state.setCurrentAccount(accountInfo);
+      this.#state.setCurrentAccount(accountInfo, callback);
     }));
+  }
+
+  private saveCurrentAccountAddress ({ address }: RequestCurrentAccountAddress): boolean {
+    this._saveCurrentAccountAddress(address);
 
     return true;
   }
@@ -601,7 +609,11 @@ export default class Extension {
       suri
     });
 
-    keyring.addPair(childPair, password);
+    const address = childPair.address;
+
+    this._saveCurrentAccountAddress(address, () => {
+      keyring.addPair(childPair, password);
+    });
 
     return true;
   }

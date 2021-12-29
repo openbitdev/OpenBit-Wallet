@@ -191,6 +191,9 @@ function BuyToken({className, reference, closeModal}: Props): React.ReactElement
 }
 
 export default styled(BuyToken)(({theme}: ThemeProps) => `
+  .koni-modal {
+    max-width: 460px;
+  }
 
   .buy-token-container {
     position: relative;

@@ -1,12 +1,12 @@
-import type { ThemeProps } from '../types';
+import type {ThemeProps} from '../types';
 
-import React, { useCallback, useContext, useState } from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
+import React, {useCallback, useContext, useState} from 'react';
+import {RouteComponentProps, withRouter} from 'react-router';
 import styled from 'styled-components';
 
-import {AccountContext, ActionContext, CurrentAccountContext} from '../components';
+import {AccountContext, ActionContext} from '../components';
 import useTranslation from '../hooks/useTranslation';
-import { forgetAccount } from '../messaging';
+import {forgetAccount} from '../messaging';
 import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
 import KoniAccountInfo from "@polkadot/extension-ui/components/KoniAccountInfo";
 import KoniWarning from "@polkadot/extension-ui/components/KoniWarning";
@@ -22,7 +22,6 @@ function KoniForgetAccount ({ className, match: { params: { address } } }: Props
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
   const [isBusy, setIsBusy] = useState(false);
-  const { setCurrentAccount} = useContext(CurrentAccountContext);
   const { accounts } = useContext(AccountContext);
   const remainingAccount = accounts.filter(a => a.address !== address);
 
@@ -37,13 +36,9 @@ function KoniForgetAccount ({ className, match: { params: { address } } }: Props
       forgetAccount(address)
         .then(() => {
           if (remainingAccount && remainingAccount.length) {
-            localStorage.setItem('selectedAccAddress', remainingAccount[0].address);
-            setCurrentAccount(remainingAccount[0]);
             setIsBusy(false);
             onAction('/');
           } else {
-            localStorage.setItem('selectedAccAddress', '');
-            setCurrentAccount(null);
             setIsBusy(false);
             onAction('/account/add');
           }

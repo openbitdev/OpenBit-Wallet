@@ -63,7 +63,6 @@ function KoniAccountAction({ className, reference, toggleEdit }: Props): React.R
 }
 
 export default React.memo(styled(KoniAccountAction)(({ theme }: Props) => `
-  right: -15px;
   top: 5px;
 
   .actions-wrapper {

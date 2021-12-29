@@ -1,39 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import {ThemeProps} from "@polkadot/extension-ui/types";
 
 interface Props extends ThemeProps {
   className?: string;
-  onClickAssets?: () => void;
-  onClickActivity?: () => void;
+  activatedTab: number;
+  onSelect: (tab: number) => void;
 }
 
-
-function KoniTabs({ className, onClickAssets, onClickActivity }: Props): React.ReactElement<Props> {
-  const [active, setActive] = useState('assets');
-
-  const _clickAssets = function () {
-    if (onClickAssets) {
-      onClickAssets();
-    }
-    setActive('assets')
-  };
-
-  const _clickActivity = function () {
-    if (onClickActivity) {
-      onClickActivity();
-    }
-    setActive('activity')
-  }
-
+function KoniTabs({ className, activatedTab, onSelect }: Props): React.ReactElement<Props> {
   return (
     <>
       <div className={className}>
         <div className='koni-tabs'>
-            <button className={`koni-tab ${active == 'assets'? 'active' : ''}`} onClick={_clickAssets}>
+            <button className={`koni-tab ${activatedTab === 1? 'active' : ''}`} onClick={() => {onSelect(1)}}>
               Assets
             </button>
-            <button className={`koni-tab ${active == 'activity'? 'active' : ''}`} onClick={_clickActivity}>
+            <button className={`koni-tab ${activatedTab === 2? 'active' : ''}`} onClick={() => {onSelect(2)}}>
+              NFT
+            </button>
+            <button className={`koni-tab ${activatedTab === 3? 'active' : ''}`} onClick={() => {onSelect(3)}}>
               Activity
             </button>
         </div>
@@ -50,7 +36,7 @@ export default styled(KoniTabs)(({theme}: Props) => `
   .koni-tab {
     font-size: 16px;
     line-height: 26px;
-    padding: 5px 60px;
+    padding: 5px 12px;
     cursor: pointer;
     opacity: 0.6;
     display: flex;

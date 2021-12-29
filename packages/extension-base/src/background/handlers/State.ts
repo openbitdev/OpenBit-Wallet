@@ -465,8 +465,8 @@ export default class State {
     this.#currentAccountStore.get('currentAccountInfo', update);
   }
 
-  public setCurrentAccount (data: CurrentAccountInfo): void {
-    this.#currentAccountStore.set('currentAccountInfo', data);
+  public setCurrentAccount (data: CurrentAccountInfo, callback?: () => void): void {
+    this.#currentAccountStore.set('currentAccountInfo', data, callback);
   }
 
   public setNotification (notification: string): boolean {

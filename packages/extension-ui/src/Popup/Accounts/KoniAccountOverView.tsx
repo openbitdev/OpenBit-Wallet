@@ -73,7 +73,7 @@ function allSkippingErrors(promises: Promise<any>[]) {
 function KoniAccountOverView({className}: Props): React.ReactElement {
   const {t} = useTranslation();
   const [isBuyTokenScreenOpen, setBuyTokenScreenOpen] = useState(false);
-  const [isAssetsTabOpen, setAssetsTab] = useState(true);
+  const [activatedTab, setActivatedTab] = useState(1);
   const [isLoading, setLoading] = useState(false);
   const {network: {genesisHash, networkPrefix}} = useContext(CurrentNetworkContext)
   const {hierarchy} = useContext(AccountContext);
@@ -216,21 +216,12 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
     []
   )
 
-  const _clickAssets = useCallback(
-    (): void => setAssetsTab(true),
-    []
-  );
-
-  const _clickActivity = useCallback(
-    (): void => setAssetsTab(false),
-    []
-  );
   return (
     <>
       {(hierarchy.length === 0)
         ? <KoniAddAccount />
         : (
-          <>
+          <div className={className}>
             <KoniHeader
               showAdd
               showSearch
@@ -239,17 +230,14 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
               isContainDetailHeader={true}
             />
             { chainBalances[0] && !isLoading ? (
-                <div className={className}>
+                <div className={'kl-l-body'}>
                   <div className='overview-wrapper'>
                     <div className='account-balance'>
-                      <img src={chainBalances[0].chainIconUrl} className='overview-logo'/>
-                      <span className='account-balance__token'>
-                        <BalanceVal value={chainBalances[0].balanceValue} symbol={chainBalances[0].symbol}/>
-                      </span>
                       <span className='account-balance__money'>
                         <BalanceVal value={chainBalances[0].totalValue} symbol={'$'} startWithSymbol/>
                       </span>
                     </div>
+
                     <div className='account-buttons-wrapper'>
                       <div className='account-button-container'>
                         <div className='account-button' onClick={_toggleBuy}>
@@ -260,9 +248,7 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
                               <img src={buyIconLight} alt="buy"/>
                             )
                           }
-
                         </div>
-                        <span className='account-button-container__text'>Receive</span>
                       </div>
 
                       <KoniLink to={'/account/send-fund'} className={'account-button-container'}>
@@ -275,7 +261,6 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
                               )
                             }
                           </div>
-                          <span className='account-button-container__text'>Send</span>
                       </KoniLink>
 
                       <div className='account-button-container'>
@@ -287,94 +272,98 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
                               <img src={swapIconLight} alt="swap"/>
                             )
                           }
-
                         </div>
-                        <span className='account-button-container__text'>Swap</span>
                       </div>
                     </div>
                   </div>
-                  <KoniTabs onClickAssets={_clickAssets} onClickActivity={_clickActivity}/>
 
                   {isBuyTokenScreenOpen && (
                     <BuyToken className='' reference={buyRef} closeModal={_closeModal}/>
                   )}
 
-                  {isAssetsTabOpen ? (
-                    <>
-                      {chainBalances && !!chainBalances.length && (
-                        <>
-                          <div className='kn-chain-balance-item__separator'/>
-                          <div className='kn-chain-balance-item__detail-area'>
-                            {chainBalances.map((item) => (
-                              <ChainBalanceItem item={item} key={item.key} />
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <div className='overview-tab-activity'>Activity History</div>
-                    </>
-                  )}
+                  <KoniTabs activatedTab={activatedTab} onSelect={setActivatedTab}/>
 
+                  <div className={'kn-l-tab-content-wrapper'}>
+                    {activatedTab === 1 && (
+                      <>
+                        {chainBalances && !!chainBalances.length && (
+                            <div className='kn-l-chains-container'>
+                              <div className="kn-l-chains-container__body">
+                                {chainBalances.map((item) => (
+                                  <ChainBalanceItem item={item} key={item.key} />
+                                ))}
+                              </div>
+                              <div className="kn-l-chains-container__footer">
+                                <div>
+                                  <div className="kn-l-chains-container__footer-row-1">
+                                    Don't see your token?
+                                  </div>
+                                  <div className="kn-l-chains-container__footer-row-2">
+                                    <div className="kn-l-chains-container-action">Refresh list</div>
+                                    <span>&nbsp;or&nbsp;</span>
+                                    <div className="kn-l-chains-container-action">import tokens</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                        )}
+                      </>
+                    )}
+                    {activatedTab === 2 && (
+                      <>
+                        <div className='overview-tab-activity'>NFT</div>
+                      </>
+                    )}
+                    {activatedTab === 3 && (
+                      <>
+                        <div className='overview-tab-activity'>Activity History</div>
+                      </>
+                    )}
+                  </div>
                 </div>
               ) : <KoniLoading />
             }
-          </>
+          </div>
         )
       }
     </>
   );
 }
 export default React.memo(styled(KoniAccountOverView)(({theme}: Props) => `
-  height: calc(100vh - 2px);
-  overflow-y: auto;
-  margin-top: -25px;
-  padding-top: 10px;
-  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 
-  &::-webkit-scrollbar {
-    display: none;
+  .kl-l-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    margin-top: -25px;
+    flex-direction: column;
   }
 
   .overview-wrapper {
     display: flex;
     align-items: center;
-    margin: 20px 20px 10px 20px;
-    flex-direction: column;
+    margin: 22px 0 12px;
   }
 
   .account-balance {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 4px;
-
-    &__token {
-      font-size: 24px;
-      line-height: 36px;
-      font-weight: 700;
-    }
+    padding-left: 15px;
+    padding-right: 10px;
+    flex: 1;
   }
 
-    .account-balance__money {
-      font-size: 15px;
-      line-height: 26px;
-
-      color: ${theme.textColor2};
-
-      .kn-balance-val__symbol,
-      .kn-balance-val__prefix,
-      .kn-balance-val__postfix {
-        font-family: ${theme.fontFamilyRegular};
-      }
-    }
+  .account-balance__money {
+    font-size: 32px;
+    font-weight: 700;
+  }
 
   .account-buttons-wrapper {
     display: flex;
     align-items: center;
-    margin-top: 21px;
+    padding-right: 10px;
   }
 
   .overview-logo {
@@ -387,8 +376,8 @@ export default React.memo(styled(KoniAccountOverView)(({theme}: Props) => `
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-right: 25px;
-    margin-left: 25px;
+    margin-right: 5px;
+    margin-left: 5px;
 
     &__text {
       margin-top: 4px;
@@ -409,8 +398,45 @@ export default React.memo(styled(KoniAccountOverView)(({theme}: Props) => `
     cursor: pointer;
   }
 
-  .kn-chain-balance-item__detail-area, .overview-tab-activity {
+  .kn-l-tab-content-wrapper {
+    flex: 1;
+    overflow: hidden;
+  }
+
+ .overview-tab-activity {
     padding: 20px 15px;
   }
 
+  .kn-l-chains-container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .kn-l-chains-container__body {
+    overflow-y: auto;
+  }
+
+  .kn-l-chains-container__footer {
+    height: 90px;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    color: ${theme.textColor2};
+    display: none;
+  }
+
+  .kn-l-chains-container__footer-row-2 {
+    display: flex;
+  }
+
+  .kn-l-chains-container__footer-row-2 {
+    display: flex;
+  }
+
+  .kn-l-chains-container-action {
+    color: #04C1B7;
+    cursor: pointer;
+  }
 `));
