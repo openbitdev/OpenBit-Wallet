@@ -145,7 +145,11 @@ function KoniSeedAndPath ({ className, onAccountChange, onNextStep, type, accoun
 }
 
 export default styled(KoniSeedAndPath)(({ theme }: ThemeProps) => `
-  margin: 0 15px;
+  padding: 25px 15px 15px;
+  flex: 1;
+  margin-top: -25px;
+  overflow-y: auto;
+
   .advancedToggle {
     color: ${theme.textColor};
     cursor: pointer;
@@ -166,8 +170,6 @@ export default styled(KoniSeedAndPath)(({ theme }: ThemeProps) => `
   }
 
   .account-info-wrapper {
-     height: 382px;
-     overflow: auto;
   }
 
   .account-info {

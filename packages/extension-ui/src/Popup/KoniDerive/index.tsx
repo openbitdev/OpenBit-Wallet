@@ -75,38 +75,31 @@ function Derive ({ isLocked, className }: Props): React.ReactElement<Props> {
         text={t<string>('Add new account')}
         onBackClick={_onBackClick}
       />
-      <div className={className}>
-        <div className='drive-wrapper'>
-          {!account && (
-            <SelectParent
-              isLocked={isLocked}
-              onDerivationConfirmed={_onDerivationConfirmed}
-              parentAddress={parentAddress}
-              parentGenesis={parentGenesis}
-            />
-          )}
-          {account && (
-            <>
-              <AccountNamePasswordCreation
-                buttonLabel={t<string>('Create derived account')}
-                isBusy={isBusy}
-                onBackClick={_onBackClick}
-                onCreate={_onCreate}
-                onNameChange={setName}
-                address={account?.address}
-                genesis={parentGenesis}
-                className='koni-import-seed-content'
-              />
-            </>
-          )}
-        </div>
-      </div>
+      {!account && (
+        <SelectParent
+          isLocked={isLocked}
+          onDerivationConfirmed={_onDerivationConfirmed}
+          parentAddress={parentAddress}
+          parentGenesis={parentGenesis}
+        />
+      )}
+      {account && (
+        <>
+          <AccountNamePasswordCreation
+            buttonLabel={t<string>('Create derived account')}
+            isBusy={isBusy}
+            onBackClick={_onBackClick}
+            onCreate={_onCreate}
+            onNameChange={setName}
+            address={account?.address}
+            genesis={parentGenesis}
+            className='koni-import-seed-content'
+          />
+        </>
+      )}
     </>
   );
 }
 
 export default styled(React.memo(Derive))`
-  .drive-wrapper {
-    //margin: 0 15px;
-  }
 `;

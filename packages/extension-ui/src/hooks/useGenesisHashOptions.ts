@@ -13,6 +13,7 @@ interface Option {
   networkName: string;
   networkPrefix: number;
   icon: string;
+  group: string
 }
 
 const RELAY_CHAIN = 'Relay Chain';
@@ -47,23 +48,26 @@ export default function (): Option[] {
       value: '',
       networkName: '',
       networkPrefix: -1,
-      icon: 'substrate'
+      icon: 'substrate',
+      group: ""
     },
     // put the relay chains at the top
     ...chains.filter(({ chain }) => chain.includes(RELAY_CHAIN))
-      .map(({ chain, genesisHash, ss58Format , icon, networkName}) => ({
+      .map(({ chain, genesisHash, ss58Format , icon, networkName, group}) => ({
         text: chain,
         value: genesisHash,
         networkPrefix: ss58Format,
         networkName,
-        icon
+        icon,
+        group
       })),
-    ...chains.map(({ chain, genesisHash, ss58Format , icon, networkName}) => ({
+    ...chains.map(({ chain, genesisHash, ss58Format , icon, networkName, group}) => ({
       text: chain,
       value: genesisHash,
       networkPrefix: ss58Format,
       networkName,
-      icon
+      icon,
+      group
     }))
       // remove the relay chains, they are at the top already
       .filter(({ text }) => !text.includes(RELAY_CHAIN))

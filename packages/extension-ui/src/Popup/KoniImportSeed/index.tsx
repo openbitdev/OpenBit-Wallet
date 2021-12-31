@@ -72,37 +72,38 @@ function KoniImportSeed ({ className = '' }: Props): React.ReactElement {
   );
 
   return (
-    <div className={className}>
+    <>
       <KoniHeaderWithSteps
         step={step1 ? 1 : 2}
         text={t<string>('Import account')}
         onBackClick={_onBackClick}
       />
-        {step1
-          ? (
-            <KoniSeedAndPath
-              account={account}
-              className='import-seed-content-wrapper'
-              onAccountChange={setAccount}
-              onNextStep={_onNextStep}
-              type={type}
-              name={name}
-            />
-          )
-          : (
-            <AccountNamePasswordCreation
-              buttonLabel={t<string>('Add the account with the supplied seed')}
-              isBusy={isBusy}
-              onBackClick={_onBackClick}
-              onCreate={_onCreate}
-              onNameChange={setName}
-              address={account?.address}
-              genesis={account?.genesis}
-              className='koni-import-seed-content'
-            />
-          )
-        }
-    </div>
+      {step1
+        ? (
+          <KoniSeedAndPath
+            account={account}
+            className='import-seed-content-wrapper'
+            onAccountChange={setAccount}
+            onNextStep={_onNextStep}
+            type={type}
+            name={name}
+          />
+        )
+        : (
+          <AccountNamePasswordCreation
+            buttonLabel={t<string>('Add the account with the supplied seed')}
+            isBusy={isBusy}
+            onBackClick={_onBackClick}
+            onCreate={_onCreate}
+            onNameChange={setName}
+            address={account?.address}
+            genesis={account?.genesis}
+            className='koni-import-seed-content'
+          />
+        )
+      }
+    </>
+
   );
 }
 

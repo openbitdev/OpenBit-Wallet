@@ -22,9 +22,13 @@ const KoniButtonArea = function ({ children, className }: Props) {
 export default styled(KoniButtonArea)(({ theme }: ThemeProps) => `
   display: flex;
   flex-direction: row;
-  padding: 12px 0;
-  margin-left: 0;
-  margin-right: 0;
+  position: sticky;
+  bottom: -15px;
+  margin-left: -15px;
+  margin-right: -15px;
+  margin-bottom: -15px;
+  padding: 15px;
+  background-color: ${theme.background};
 
   & > button:not(:last-of-type) {
     margin-right: 8px;

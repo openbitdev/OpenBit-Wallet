@@ -64,7 +64,7 @@ function Mnemonic ({ onNextStep, seed, address, genesisHash, name, className }: 
           </KoniAccountInfo>
         </div>
 
-        <KoniButtonArea>
+        <KoniButtonArea className='kn-next-area'>
           <KoniNextStepButton
             isDisabled={!isMnemonicSaved}
             onClick={onNextStep}
@@ -79,10 +79,12 @@ function Mnemonic ({ onNextStep, seed, address, genesisHash, name, className }: 
 }
 
 export default React.memo(styled(Mnemonic)(({ theme }: Props) => `
-  margin: 0 15px;
+  padding: 25px 15px 15px;
+  flex: 1;
+  margin-top: -25px;
+  overflow-y: auto;
   .account-info-wrapper {
-    height: 382px;
-    overflow: auto;
+
   }
 
     .next-step-btn {

@@ -55,7 +55,8 @@ export interface MetadataDefBase {
   genesisHash: string;
   icon: string;
   ss58Format: number;
-  chainType?: 'substrate' | 'ethereum'
+  chainType?: 'substrate' | 'ethereum',
+  group: string
 }
 
 export interface MetadataDef extends MetadataDefBase {

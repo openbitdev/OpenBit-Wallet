@@ -9,6 +9,7 @@ import KoniButtonArea from "@polkadot/extension-ui/components/KoniButtonArea";
 import KoniNextStepButton from "@polkadot/extension-ui/components/KoniNextStepButton";
 import Name from "@polkadot/extension-ui/partials/koni/Name";
 import Password from "@polkadot/extension-ui/partials/koni/Password";
+import {ThemeProps} from "@polkadot/extension-ui/types";
 
 interface Props {
   buttonLabel: string;
@@ -58,7 +59,7 @@ function AccountNamePasswordCreation ({ buttonLabel, isBusy, onBackClick, onCrea
             <Password onChange={setPassword} />
           </KoniAccountInfo>
         </div>
-        <KoniButtonArea>
+        <KoniButtonArea className='kn-button-area'>
           <KoniNextStepButton
             data-button-action='add new root'
             isBusy={isBusy}
@@ -74,11 +75,12 @@ function AccountNamePasswordCreation ({ buttonLabel, isBusy, onBackClick, onCrea
   );
 }
 
-export default styled(AccountNamePasswordCreation)`
-  margin: 0 15px;
+export default styled(AccountNamePasswordCreation)(({ theme }: ThemeProps) => `
+  padding: 25px 15px 15px;
+  flex: 1;
+  margin-top: -25px;
+  overflow-y: auto;
   .account-info-wrapper {
-    height: 382px;
-    overflow: auto;
   }
 
   .account-info {
@@ -97,4 +99,4 @@ export default styled(AccountNamePasswordCreation)`
       justify-content: center;
     }
   }
-`;
+`);

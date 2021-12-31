@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import useIsMounted from '../../hooks/useIsMounted';
 import { Result, Validator } from '../../util/validators';
 import KoniWarning from "@polkadot/extension-ui/components/KoniWarning";
+import styled from "styled-components";
 
 interface BasicProps {
   isError?: boolean;
@@ -58,6 +59,7 @@ function ValidatedInput<T extends Record<string, unknown>> ({ className, compone
       />
       {Result.isError(validationResult) && (
         <KoniWarning
+          className='kn-validated-warning'
           isBelowInput
           isDanger
         >
@@ -68,4 +70,8 @@ function ValidatedInput<T extends Record<string, unknown>> ({ className, compone
   );
 }
 
-export default ValidatedInput;
+export default styled(ValidatedInput)`
+  .kn-validated-warning {
+    margin-top: 10px;
+  }
+`;

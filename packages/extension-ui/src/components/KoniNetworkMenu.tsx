@@ -1,5 +1,5 @@
 import type {ThemeProps} from '../types';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import styled from 'styled-components';
 import KoniMenu from "@polkadot/extension-ui/components/KoniMenu";
 import useGenesisHashOptions from "@polkadot/extension-ui/hooks/useGenesisHashOptions";
@@ -18,9 +18,41 @@ interface Props extends ThemeProps {
 
 function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork, isNotHaveAccount }: Props): React.ReactElement<Props> {
   let genesisOptions = useGenesisHashOptions();
+  const [filteredGenesisOptions, setFilteredGenesisOption] = useState(genesisOptions);
+  const [selectedFilter, setselectedFilter] = useState("");
+  const filterCategories = [
+    {
+      text: "All",
+      type: ""
+    },
+    {
+      text: "Relaychains",
+      type: "RELAY_CHAIN"
+    },
+    {
+      text: "DOT Chains",
+      type: "POLKADOT_PARACHAIN"
+    },
+    {
+      text: "KSM Chains",
+      type: "KUSAMA_PARACHAIN"
+    }
+  ]
   if (isNotHaveAccount) {
     genesisOptions = useGenesisHashOptions().slice(0, 1);
   }
+
+  const _selectFilter = useCallback(
+    (type): void => {
+      setselectedFilter(type);
+      if (type && type.length) {
+        setFilteredGenesisOption(filteredGenesisOptions.filter(f => f.group === type));
+      } else {
+        setFilteredGenesisOption(genesisOptions);
+      }
+    },
+    []
+  )
 
   return (
     <KoniMenu
@@ -30,8 +62,16 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
       <div className='network-item-list-header'>
         Network
       </div>
+      <div className='network-filter-list'>
+        {filterCategories.map(({text, type}) : React.ReactNode => (
+          <div key={text} onClick={() => {_selectFilter(type)}}
+               className={type === selectedFilter ? 'network-filter-item__selected-text' : 'network-filter-item__text'}>
+              {text}
+          </div>
+        ))}
+      </div>
       <div className='network-item-list'>
-        {genesisOptions.map(({ text, value , networkPrefix, icon, networkName}): React.ReactNode => (
+        {filteredGenesisOptions.map(({ text, value , networkPrefix, icon, networkName}): React.ReactNode => (
           <div key={value} className='network-item-container' onClick={() => {
             selectNetwork(value, networkPrefix, icon, networkName)
           }}>
@@ -68,6 +108,23 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
     line-height: 32px;
     font-weight: 700;
     border-bottom: 1px solid ${theme.inputBorderColor};
+  }
+
+  .network-filter-list {
+    display: flex;
+    padding: 10px;
+    justify-content: space-between;
+  }
+
+  .network-filter-item__text {
+    color: ${theme.textColor2};
+    cursor: pointer;
+  }
+
+  .network-filter-item__selected-text {
+    color: ${theme.textColor};
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   .network-item-list {

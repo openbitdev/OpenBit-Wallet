@@ -74,7 +74,7 @@ export interface NetWorkInfo {
   ss58Format: number;
   chainType?: 'substrate' | 'ethereum';
   provider: string;
-  // group: 'RELAY_CHAIN' | 'POLKADOT_PARACHAIN'| 'KUSAMA_PARACHAIN';
+  group: 'RELAY_CHAIN' | 'POLKADOT_PARACHAIN'| 'KUSAMA_PARACHAIN' | 'NOT_SURE';
 }
 
 export interface NetWorkMetadataDef extends MetadataDefBase {
