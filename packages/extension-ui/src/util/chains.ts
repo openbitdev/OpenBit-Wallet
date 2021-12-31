@@ -1,33 +1,33 @@
 // Copyright 2019-2021 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { MetadataDefBase } from '@polkadot/extension-inject/types';
+import NETWORKS from '@polkadot/extension-base/background/pDotApi/networks';
+import {NetWorkMetadataDef} from "@polkadot/extension-base/background/types";
 
-import { selectableNetworks } from '@polkadot/networks';
-import {customGenesisHashMap} from "@polkadot/extension-base/background/pDotApi";
+function getKnownHashes(): NetWorkMetadataDef[] {
+  const result: NetWorkMetadataDef[] = [];
 
-const knowHashes: MetadataDefBase[] = selectableNetworks
-  .filter(({ network }) => [
-    'karura',
-    'kusama',
-    'polkadot'
-  ].includes(network))
-  .map((network) => ({
-    chain: network.displayName,
-    genesisHash: network.genesisHash[0],
-    icon: network.icon,
-    ss58Format: network.prefix
-  }));
+  Object.keys(NETWORKS).forEach(networkKey => {
+    const {chain, genesisHash, icon, ss58Format} = NETWORKS[networkKey];
 
-const customHashes: MetadataDefBase[] = [
-  {
-    chain: 'Koni Test',
-    genesisHash: customGenesisHashMap['koni'],
-    icon: 'polkadot',
-    ss58Format: 42
-  }
-];
+    if (!genesisHash || genesisHash.toLowerCase() === 'unknown') {
+      return;
+    }
 
-const hashes = [...knowHashes, ...customHashes];
+    result.push({
+      chain,
+      networkName: networkKey,
+      genesisHash,
+      icon: icon || 'substrate',
+      ss58Format
+    });
+  });
+
+  return result;
+}
+
+const knowHashes: NetWorkMetadataDef[] = getKnownHashes();
+
+const hashes = [...knowHashes];
 
 export default hashes;

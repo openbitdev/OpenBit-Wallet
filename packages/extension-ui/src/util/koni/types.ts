@@ -37,9 +37,11 @@ export type BalanceSubInfo = {
 
 export type BalanceInfo = {
   key: string,
-  chainName: string,
-  chainIcon: string,
-  chainIconUrl: string,
+  networkName: string;
+  networkDisplayName: string;
+  networkPrefix: number;
+  networkLogo: string,
+  networkIconTheme: string,
   address: string,
   symbol: string,
   totalValue: BigN,

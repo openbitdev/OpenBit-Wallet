@@ -3,6 +3,8 @@ import {AccountInfoItem, BalanceInfo, BalanceSubInfo, ChainInfo} from './types';
 import BigN from 'bignumber.js';
 import {isEmptyArray, notDef} from "@polkadot/extension-ui/util/koni/support";
 import {getGenesis} from "@polkadot/extension-base/background/pDotApi";
+import LogosMap from "@polkadot/extension-ui/assets/logo";
+import NETWORKS from '@polkadot/extension-base/background/pDotApi/networks';
 
 // note: only use this object with sub.id APIs
 export const supportedNetworks = [
@@ -68,6 +70,10 @@ export function getIconUrl(icon: string): string {
 
 export function getBalanceApiUrl(subUrl: string): string {
   return `https://app.subsocial.network/subid/api/v1/${subUrl}`
+}
+
+function getLogo(network: string): string {
+  return LogosMap[network] || LogosMap['polkadot'];
 }
 
 export const getChainBalanceInfo = async (account: string, network: string) => {
@@ -166,7 +172,7 @@ export const parseBalancesInfo = (chainsInfo: ChainInfo, tokenPrices: any[], bal
 
   const {network, info} = balanceInfo;
 
-  const {tokenDecimals, tokenSymbol, icon: chainIcon, name: chainName} = chainsInfo[network];
+  const {tokenDecimals, tokenSymbol, name: networkDisplayName} = chainsInfo[network];
 
   const decimals = tokenDecimals && !isEmptyArray(tokenDecimals) ? tokenDecimals[0] : 0;
   const symbol = tokenSymbol && !isEmptyArray(tokenSymbol) ? tokenSymbol[0] : '';
@@ -246,11 +252,19 @@ export const parseBalancesInfo = (chainsInfo: ChainInfo, tokenPrices: any[], bal
     comparableValue: symbol,
   })
 
+  let networkPrefix = NETWORKS[network]?.ss58Format;
+
+  if (networkPrefix == null) {
+    networkPrefix = -1
+  }
+
   return {
     key: network,
-    chainName,
-    chainIcon,
-    chainIconUrl: getIconUrl(chainIcon),
+    networkName: network,
+    networkDisplayName,
+    networkLogo: getLogo(network),
+    networkIconTheme: NETWORKS[network]?.icon || 'substrate',
+    networkPrefix,
     address: accountId,
     symbol,
     totalValue,

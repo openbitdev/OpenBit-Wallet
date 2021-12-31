@@ -84,7 +84,8 @@ function initAccountContext (accounts: AccountJson[]): AccountsContext {
 export default function Popup (): React.ReactElement {
   const [accounts, setAccounts] = useState<null | AccountJson[]>(null);
   const [currentAccount, setCurrentAccount] = useState<null | AccountJson>(null);
-  const [{networkPrefix, icon, genesisHash}, setNetwork] = useState<CurrentNetworkInfo>({networkPrefix: -1, icon: 'substrate', genesisHash: '' });
+  const [{networkPrefix, icon: networkIcon, networkName, genesisHash}, setNetwork]
+    = useState<CurrentNetworkInfo>({networkPrefix: -1, icon: 'substrate', genesisHash: '', networkName: ''});
   const [accountCtx, setAccountCtx] = useState<AccountsContext>({ accounts: [], hierarchy: [] });
   const [authRequests, setAuthRequests] = useState<null | AuthorizeRequest[]>(null);
   const [cameraOn, setCameraOn] = useState(startSettings.camera === 'on');
@@ -159,7 +160,8 @@ export default function Popup (): React.ReactElement {
       setNetwork({
         networkPrefix: networkSelected.networkPrefix,
         icon: networkSelected.icon,
-        genesisHash: networkSelected.value
+        genesisHash: networkSelected.value,
+        networkName: networkSelected.networkName
       });
     }
   }, [currentAccount?.genesisHash]);
@@ -190,7 +192,7 @@ export default function Popup (): React.ReactElement {
         <SettingsContext.Provider value={settingsCtx}>
           <AccountContext.Provider value={accountCtx}>
             <CurrentAccountContext.Provider value={{currentAccount, setCurrentAccount}}>
-              <CurrentNetworkContext.Provider value={{network: {networkPrefix, icon, genesisHash}, setNetwork}}>
+              <CurrentNetworkContext.Provider value={{network: {networkPrefix, icon: networkIcon, networkName, genesisHash}, setNetwork}}>
                 <Queue><Api
                   isWelcomeDone={isWelcomeDone}
                   genesisHash={genesisHash}

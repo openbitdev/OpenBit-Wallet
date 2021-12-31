@@ -1,18 +1,12 @@
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import styled from 'styled-components';
 import {ThemeProps} from "@polkadot/extension-ui/types";
 import KoniModal from "@polkadot/extension-ui/components/KoniModal";
-import {AccountContext, CurrentAccountContext, SettingsContext} from "@polkadot/extension-ui/components";
-import useMetadata from "@polkadot/extension-ui/hooks/useMetadata";
 import {IconTheme} from "@polkadot/react-identicon/types";
-import {AccountJson, AccountWithChildren} from "@polkadot/extension-base/background/types";
-import {Chain} from "@polkadot/extension-chains/types";
-import {SettingsStruct} from "@polkadot/ui-settings/types";
-import {decodeAddress, encodeAddress} from "@polkadot/util-crypto";
 import pencil from '../assets/pencil.svg';
 import QRCode from "react-qr-code";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import {faTimes} from "@fortawesome/free-solid-svg-icons";
 import KoniLink from "@polkadot/extension-ui/components/KoniLink";
 import cloneLogo from '../assets/clone.svg';
 import useToast from "@polkadot/extension-ui/hooks/useToast";
@@ -21,18 +15,20 @@ import CopyToClipboard from "react-copy-to-clipboard";
 import HeaderEditName from "@polkadot/extension-ui/partials/koni/HeaderEditName";
 import {editAccount} from "@polkadot/extension-ui/messaging";
 import Identicon from "@polkadot/extension-ui/koni/react-components/Identicon";
+import {KeypairType} from "@polkadot/util-crypto/types";
+import reformatAddress from "@polkadot/extension-ui/util/koni/reformatAddress";
 
 
 interface Props extends ThemeProps {
   className?: string;
   reference: React.MutableRefObject<null>;
-  onFilter?: (filter: string) => void;
   closeModal?: () => void;
-}
-
-interface Recoded {
-  formatted: string | null;
-  prefix?: number;
+  accountType?: KeypairType;
+  accountName: string | undefined | null;
+  address: string;
+  networkPrefix: number;
+  networkName: string;
+  iconTheme: string;
 }
 
 interface EditState {
@@ -40,72 +36,73 @@ interface EditState {
   toggleActions: number;
 }
 
-function findSubstrateAccount(accounts: AccountJson[], publicKey: Uint8Array): AccountJson | null {
-  const pkStr = publicKey.toString();
+const subscanByNetworkName: Record<string, string> = {
+  'acala': 'https://acala.subscan.io',
+  // 'altair': 'https://altair.subscan.io',
+  'astar': 'https://astar.subscan.io',
+  // 'basilisk': 'https://basilisk.subscan.io',
+  'bifrost': 'https://bifrost.subscan.io',
+  'calamari': 'https://calamari.subscan.io',
+  'clover': 'https://clover.subscan.io',
+  // 'genshiro': 'https://genshiro.subscan.io',
+  'heiko': 'https://parallel-heiko.subscan.io',
+  'hydradx': 'https://hydradx.subscan.io',
+  'karura': 'https://karura.subscan.io',
+  'khala': 'https://khala.subscan.io',
+  'kilt': 'https://spiritnet.subscan.io',
+  // 'kintsugi': 'https://kintsugi.subscan.io',
+  'kusama': 'https://kusama.subscan.io',
+  'moonbeam': 'https://moonbeam.subscan.io',
+  'moonriver': 'https://moonriver.subscan.io',
+  'parallel': 'https://parallel.subscan.io',
+  // 'picasso': 'https://picasso.subscan.io',
+  // 'pioneer': 'https://pioneer.subscan.io',
+  'polkadot': 'https://polkadot.subscan.io',
+  'quartz': 'https://quartz.subscan.io',
+  'sakura': 'https://sakura.subscan.io',
+  // 'shadow': 'https://shadow.subscan.io',
+  'shiden': 'https://shiden.subscan.io',
+  'statemine': 'https://statemine.subscan.io',
+  // 'statemint': 'https://statemint.subscan.io',
+  // 'subsocial': 'https://subsocial.subscan.io',
+  // 'zeitgeist': 'https://zeitgeist.subscan.io',
+};
 
-  return accounts.find(({address}): boolean =>
-    decodeAddress(address).toString() === pkStr
-  ) || null;
+function isSupportSubscan(networkName: string): boolean {
+  return !!subscanByNetworkName[networkName];
 }
 
-function recodeAddress(address: string, accounts: AccountWithChildren[], chain: Chain | null, settings: SettingsStruct): Recoded {
-  // decode and create a shortcut for the encoded address
-  const publicKey = decodeAddress(address);
-  // find our account using the actual publicKey, and then find the associated chain
-  const account = findSubstrateAccount(accounts, publicKey);
-  const prefix = chain ? chain.ss58Format : (settings.prefix === -1 ? 42 : settings.prefix);
-
-  // always allow the actual settings to override the display
-  return {
-    formatted: account?.type === 'ethereum'
-      ? address
-      : encodeAddress(publicKey, prefix),
-    prefix
-  };
+function getSubscanUrl(networkName: string, address: string): string {
+  return `${subscanByNetworkName[networkName]}/account/${address}`;
 }
 
-const defaultRecoded = {formatted: null, prefix: 42};
+const toShortAddress = (_address: string | null , halfLength?: number) => {
+  const address = (_address || '').toString()
 
-function BuyToken({className, reference, closeModal}: Props): React.ReactElement<Props> {
+  const addressLength = halfLength ? halfLength : 7
+
+  return address.length > 13 ? `${address.slice(0, addressLength)}…${address.slice(-addressLength)}` : address
+}
+
+function BuyToken({
+                    className, reference, closeModal,
+                    accountType,
+                    address,
+                    accountName,
+                    iconTheme,
+                    networkPrefix,
+                    networkName,
+                  }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const {currentAccount} = useContext(CurrentAccountContext)
-  const chain = useMetadata(currentAccount?.genesisHash, true);
-  const settings = useContext(SettingsContext);
-  const {accounts} = useContext(AccountContext);
-  const [{formatted, prefix}, setRecoded] = useState<Recoded>(defaultRecoded);
   const { show } = useToast();
-  const [editedName, setName] = useState<string | undefined | null>(currentAccount?.name);
+  const [editedName, setName] = useState<string | undefined | null>(accountName);
   const [{isEditing}, setEditing] = useState<EditState>({ isEditing: false, toggleActions: 0 });
 
   const theme = (
-    currentAccount?.type === 'ethereum'
+    accountType === 'ethereum'
       ? 'ethereum'
-      : (chain?.icon || 'polkadot')
+      : (iconTheme || 'polkadot')
   ) as IconTheme;
-
-  useEffect((): void => {
-    if (!currentAccount?.address) {
-      setRecoded(defaultRecoded);
-
-      return;
-    }
-
-    setRecoded(
-      (
-        chain?.definition.chainType === 'ethereum' ||
-        currentAccount?.type === 'ethereum'
-      )
-        ? {formatted: currentAccount?.address}
-        : recodeAddress(currentAccount?.address, accounts, chain, settings));
-  }, [accounts, currentAccount?.address, chain, settings]);
-
-  const toShortAddress = (_address: string | null , halfLength?: number) => {
-    const address = (_address || '').toString()
-
-    const addressLength = halfLength ? halfLength : 7
-
-    return address.length > 13 ? `${address.slice(0, addressLength)}…${address.slice(-addressLength)}` : address
-  }
 
   const _toggleEdit = useCallback(
     (): void => {
@@ -116,19 +113,27 @@ function BuyToken({className, reference, closeModal}: Props): React.ReactElement
 
   const _saveChanges = useCallback(
     (): void => {
-      editedName && currentAccount &&
-      editAccount(currentAccount.address, editedName)
+      editedName && editAccount(address, editedName)
         .catch(console.error);
 
       _toggleEdit();
     },
-    [editedName, currentAccount?.address, _toggleEdit]
+    [editedName, address, _toggleEdit]
   );
 
   const _onCopy = useCallback(
     () => show(t('Copied')),
     [show, t]
   );
+
+  const formatted = useMemo(() => {
+   return reformatAddress(address, networkPrefix, accountType);
+  }, [address, networkPrefix, accountType]);
+
+  const _isSupportSubscan = isSupportSubscan(networkName);
+
+  const subscanUrl = _isSupportSubscan
+    && getSubscanUrl(networkName, formatted) || '#';
 
   return (
     <KoniModal className={className} reference={reference}>
@@ -145,27 +150,25 @@ function BuyToken({className, reference, closeModal}: Props): React.ReactElement
             className='koni-buy-token-account-logo'
             iconTheme={theme}
             isExternal={false}
-            prefix={prefix}
-            value={formatted || currentAccount?.address}
+            prefix={networkPrefix}
+            value={formatted}
             size={54}
           />
           <div className='koni-buy-token-name'>
             <div className='koni-buy-token-name__text'>
-              {currentAccount?.name}
+              {accountName}
             </div>
             <div className='koni-buy-token-name__edit-btn' onClick={_toggleEdit}>
               <img src={pencil} alt="edit"/>
             </div>
             {isEditing && (
-              <HeaderEditName address={currentAccount?.address} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
+              <HeaderEditName address={formatted} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
             )}
           </div>
           <div className='koni-buy-token-qr-code'>
-            {formatted && (
-              <QRCode value={formatted} size={140}/>
-            )}
+            <QRCode value={formatted} size={140}/>
           </div>
-          <CopyToClipboard text={(formatted && formatted) || ''}>
+          <CopyToClipboard text={formatted || ''}>
             <div className='koni-buy-token-address' onClick={_onCopy}>
               <div className='koni-buy-token-address__text'>
                 {toShortAddress(formatted, 13)}
@@ -174,12 +177,21 @@ function BuyToken({className, reference, closeModal}: Props): React.ReactElement
             </div>
           </CopyToClipboard>
 
-          <a className='koni-buy-token-button' href='https://www.subscan.io/' target="_blank">
-            <div className='koni-buy-token-button__text'>
-              View Account on Subscan
-            </div>
-          </a>
-          <KoniLink className='koni-buy-token-button' to={`/account/export/${currentAccount?.address}`}>
+          {_isSupportSubscan ? (
+            <a className='koni-buy-token-button' href={subscanUrl} target="_blank">
+              <div className='koni-buy-token-button__text'>
+                View Account on Subscan
+              </div>
+            </a>
+          ) : (
+            <span className='koni-buy-token-button -disabled'>
+              <div className='koni-buy-token-button__text'>
+                View Account on Subscan
+              </div>
+            </span>
+          )}
+
+          <KoniLink className='koni-buy-token-button' to={`/account/export/${formatted}`}>
             <div className='koni-buy-token-button__text'>
               Export Account
             </div>
@@ -301,6 +313,13 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     }
   }
 
+  .koni-buy-token-button.-disabled {
+    cursor: not-allowed;
+
+    .koni-buy-token-button__text {
+      opacity: 0.5;
+    }
+  }
 
   .edit-name {
     position: absolute;

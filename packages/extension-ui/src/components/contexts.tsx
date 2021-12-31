@@ -21,7 +21,7 @@ const noop = (): void => undefined;
 const AccountContext = React.createContext<AccountsContext>({ accounts: [], hierarchy: [], master: undefined });
 const CurrentAccountContext = React.createContext<CurrentAccContext>({currentAccount: null , setCurrentAccount: (a) => {}});
 const CurrentNetworkContext = React.createContext<AccNetworkContext>({
-  network: {networkPrefix: -1, icon: 'substrate', genesisHash: ''},
+  network: {networkPrefix: -1, icon: 'substrate', genesisHash: '', networkName: ''},
   setNetwork: (network) => {
   }
 });

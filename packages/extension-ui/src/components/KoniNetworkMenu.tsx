@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import KoniMenu from "@polkadot/extension-ui/components/KoniMenu";
 import useGenesisHashOptions from "@polkadot/extension-ui/hooks/useGenesisHashOptions";
 import check from "@polkadot/extension-ui/assets/check.svg";
-import RadioStatus from "@polkadot/extension-ui/components/koni/RadioStatus";
+import {getLogoByGenesisHash} from "@polkadot/extension-ui/util/koni/logoByGenesisHashMap";
 
 interface Props extends ThemeProps {
   className?: string;
@@ -12,7 +12,7 @@ interface Props extends ThemeProps {
   onFilter?: (filter: string) => void;
   closeSetting?: () => void;
   currentNetwork?: string;
-  selectNetwork: (genesisHash: string, networkPrefix: number, icon: String) => void;
+  selectNetwork: (genesisHash: string, networkPrefix: number, icon: String, networkName: string) => void;
   isNotHaveAccount?: boolean;
 }
 
@@ -31,13 +31,11 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
         Network
       </div>
       <div className='network-item-list'>
-        {genesisOptions.map(({ text, value , networkPrefix, icon}): React.ReactNode => (
+        {genesisOptions.map(({ text, value , networkPrefix, icon, networkName}): React.ReactNode => (
           <div key={value} className='network-item-container' onClick={() => {
-            selectNetwork(value, networkPrefix, icon)
+            selectNetwork(value, networkPrefix, icon, networkName)
           }}>
-            <div className='check-radio-wrapper'>
-              <RadioStatus className='network-selected-status' checked={value == currentNetwork}/>
-            </div>
+            <img src={getLogoByGenesisHash(value)} alt="logo" className={'network-logo'} />
 
             <span className={value == currentNetwork ? 'koni-network-text__selected': 'koni-network-text'}>{text}</span>
             {value == currentNetwork
@@ -75,12 +73,11 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
   .network-item-list {
     max-height: 275px;
     overflow-y: auto;
-    padding: 15px 15px 0 15px;
-    margin-bottom: 15px;
+    padding: 10px 10px 10px;
   }
 
   .network-item-container {
-    padding: 12px 0;
+    padding: 5px 0;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -90,6 +87,19 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
         color: ${theme.textColor};
       }
     }
+  }
+
+  .network-logo {
+    min-width: 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 100%;
+    overflow: hidden;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    border: 1px solid #fff;
+    background: #fff;
+    margin-right: 10px;
   }
 
   .koni-network-text {
@@ -103,8 +113,7 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
   }
 
   .checkIcon {
-    margin-left: 14px;
-
+    margin-left: 4px;
   }
 
   .uncheckedItem {

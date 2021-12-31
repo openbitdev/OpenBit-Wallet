@@ -44,6 +44,7 @@ import EyeSlashDarkIcon from '@polkadot/extension-ui/assets/icon/eye-slash-dark.
 import EyeSlashLightIcon from '@polkadot/extension-ui/assets/icon/eye-slash-light.svg';
 import ExpandDarkIcon from '@polkadot/extension-ui/assets/icon/expand-dark.svg';
 import useIsPopup from "@polkadot/extension-ui/hooks/useIsPopup";
+import {getLogoByGenesisHash} from "@polkadot/extension-ui/util/koni/logoByGenesisHashMap";
 
 interface Props extends ThemeProps {
   children?: React.ReactNode;
@@ -194,13 +195,14 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   ) as IconTheme;
 
   const _onChangeGenesis = useCallback(
-    (genesisHash: string, networkPrefix: number, icon: string): void => {
+    (genesisHash: string, networkPrefix: number, icon: string, networkName: string): void => {
 
       if (currentAccount) {
         setNetwork({
           networkPrefix,
           icon,
-          genesisHash
+          genesisHash,
+          networkName
         });
 
         tieAccount(currentAccount.address, genesisHash || null)
@@ -265,7 +267,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
                      className='kn-l-expand-btn__icon'/>
               </div>)}
             <div className='network-select-item' onClick={_toggleNetwork}>
-              <div className='network-selected-dot'/>
+              <img src={getLogoByGenesisHash(currentAccount?.genesisHash as string)} alt="logo" className={'network-logo'} />
               <div className='network-select-item__text'>
                 {getNetworkName(currentAccount?.genesisHash) || genesisOptions[0].text}
               </div>
@@ -320,15 +322,15 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
 
               <div className='kn-l-detail-header__part-2'>
                 {!isEditing && (
-                  <CopyToClipboard text={(formatted && formatted) || ''}>
-                    <div className='kn-l-account-info' onClick={_onCopy}>
-                      <span className='kn-l-account-info__name'>{currentAccount?.name}</span>
-                      <div className='kn-l-account-info__formatted-wrapper'>
-                        <span className='kn-l-account-info__formatted'>{ellipsisCenterStr(formatted || currentAccount?.address)}</span>
-                        <img src={cloneLogo} alt="copy" className='kn-l-account-info__copy-icon'/>
-                      </div>
-                    </div>
-                  </CopyToClipboard>
+                  <div className='kn-l-account-info'>
+                    <span className='kn-l-account-info__name'>{currentAccount?.name}</span>
+                      <CopyToClipboard text={(formatted && formatted) || ''}>
+                        <div className='kn-l-account-info__formatted-wrapper' onClick={_onCopy}>
+                          <span className='kn-l-account-info__formatted'>{ellipsisCenterStr(formatted || currentAccount?.address)}</span>
+                          <img src={cloneLogo} alt="copy" className='kn-l-account-info__copy-icon'/>
+                        </div>
+                      </CopyToClipboard>
+                  </div>
                 )}
                 {isEditing && (
                   <HeaderEditName address={currentAccount?.address} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='kn-l-edit-name'/>
@@ -543,6 +545,17 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     margin-left: 6px;
     background-color: ${theme.checkDotColor};
   }
+  .network-logo {
+    min-width: 22px;
+    width: 22px;
+    height: 22px;
+    border-radius: 100%;
+    overflow: hidden;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    border: 1px solid #fff;
+    background: #fff;
+  }
 
   .network-select-item {
     display: flex;
@@ -550,8 +563,8 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     border: 2px solid ${theme.inputBorderColor};
     border-radius: 8px;
     min-height: 25px;
-    width: 220px;
-    padding: 2px 4px;
+    width: 250px;
+    padding: 2px 6px;
     cursor: pointer;
     position: relative;
 

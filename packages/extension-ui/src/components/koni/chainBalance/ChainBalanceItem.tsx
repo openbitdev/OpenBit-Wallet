@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from "react";
+import React, {useCallback, useState} from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import cloneIcon from "@polkadot/extension-ui/assets/clone.svg";
 import receivedIcon from "@polkadot/extension-ui/assets/receive-icon.svg";
@@ -9,19 +9,19 @@ import {ThemeProps} from "@polkadot/extension-ui/types";
 import useToast from "@polkadot/extension-ui/hooks/useToast";
 import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import {BalanceInfo} from "@polkadot/extension-ui/util/koni/types";
-import BuyToken from "@polkadot/extension-ui/partials/BuyToken";
 
 interface Props extends ThemeProps {
   className?: string;
   item: BalanceInfo;
+  setBuyTokenScreenOpen: (visible: boolean) => void;
+  setBuyTokenScreenProps: (props: { buyTokenScreenNetworkPrefix: number, buyTokenScreenNetworkName: string, buyTokenScreenIconTheme: string }) => void;
 }
 
-function ChainBalanceItem({item, className}: Props): React.ReactElement<Props> {
+function ChainBalanceItem({item, className, setBuyTokenScreenOpen, setBuyTokenScreenProps}: Props): React.ReactElement<Props> {
+  const {networkName, address, networkPrefix, networkIconTheme} = item;
   const [toggleDetail, setToggleDetail] = useState(false);
-  const [isReceiveQrOpen, setReceiveQr] = useState(false);
   const { show } = useToast();
   const { t } = useTranslation();
-  const receiveRef = useRef(null);
 
   const _onCopy = useCallback(
     (e) => {
@@ -35,14 +35,17 @@ function ChainBalanceItem({item, className}: Props): React.ReactElement<Props> {
     setToggleDetail(toggleDetail => !toggleDetail);
   }, []);
 
-  const _toggleQr = useCallback(
-    (): void => setReceiveQr((isReceiveQrOpen) => !isReceiveQrOpen),
-    []
-  )
-
-  const _closeModal = useCallback(
-    (): void => setReceiveQr( false),
-    []
+  const _openQr = useCallback(
+    (e): void => {
+      e.stopPropagation();
+      setBuyTokenScreenProps({
+        buyTokenScreenNetworkPrefix: networkPrefix,
+        buyTokenScreenNetworkName: networkName,
+        buyTokenScreenIconTheme: networkIconTheme
+      });
+      setBuyTokenScreenOpen(true);
+    },
+    [networkPrefix, networkName, networkIconTheme]
   )
 
   const toShortAddress = (_address: string, halfLength?: number) => {
@@ -57,18 +60,18 @@ function ChainBalanceItem({item, className}: Props): React.ReactElement<Props> {
     <div className={`${className} ${toggleDetail ? '-show-detail': ''}`} onClick={_onToggleDetail}>
       <div className='kn-chain-balance-item__main-area'>
         <div className='kn-chain-balance-item__main-area-part-1'>
-          <img src={item.chainIconUrl} alt={'Logo'} className='kn-chain-balance-item__logo'/>
+          <img src={item.networkLogo} alt={'Logo'} className='kn-chain-balance-item__logo'/>
 
           <div className='kn-chain-balance-item__meta-wrapper'>
-            <div className='kn-chain-balance-item__chain-name'>{item.chainName}</div>
+            <div className='kn-chain-balance-item__chain-name'>{item.networkDisplayName}</div>
             <div className='kn-chain-balance-item__bottom-area'>
-              <CopyToClipboard text={item.address}>
+              <CopyToClipboard text={address}>
                 <div className='kn-chain-balance-item__address' onClick={_onCopy}>
-                  <span className='kn-chain-balance-item__address-text'>{toShortAddress(item.address)}</span>
+                  <span className='kn-chain-balance-item__address-text'>{toShortAddress(address)}</span>
                   <img src={cloneIcon} alt="copy" className='kn-chain-balance-item__copy'/>
                 </div>
               </CopyToClipboard>
-              <img src={receivedIcon} alt="receive" className='kn-chain-balance-item__receive' onClick={_toggleQr}/>
+              <img src={receivedIcon} alt="receive" className='kn-chain-balance-item__receive' onClick={_openQr}/>
             </div>
           </div>
         </div>
@@ -106,10 +109,6 @@ function ChainBalanceItem({item, className}: Props): React.ReactElement<Props> {
         </>
       )}
       <div className='kn-chain-balance-item__separator'/>
-
-      {isReceiveQrOpen && (
-        <BuyToken className='' reference={receiveRef} closeModal={_closeModal}/>
-      )}
     </div>
   )
 }

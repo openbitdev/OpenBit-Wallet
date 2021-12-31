@@ -19,8 +19,9 @@ import {
   getChainBalanceInfo,
   getChainsInfo,
   getTokenPrice,
+  networkGenesisHashMap,
   overriddenChainNames,
-  parseBalancesInfo, networkGenesisHashMap
+  parseBalancesInfo
 } from "@polkadot/extension-ui/util/koni";
 import {BalanceVal} from "@polkadot/extension-ui/components/koni/balance";
 import useGenesisHashOptions from "@polkadot/extension-ui/hooks/useGenesisHashOptions";
@@ -32,6 +33,7 @@ import {decodeAddress, encodeAddress} from "@polkadot/util-crypto";
 import useMetadata from "@polkadot/extension-ui/hooks/useMetadata";
 import KoniLoading from "@polkadot/extension-ui/components/KoniLoading";
 import KoniLink from "@polkadot/extension-ui/components/KoniLink";
+import LogosMap from "@polkadot/extension-ui/assets/logo";
 
 interface Recoded {
   formatted: string;
@@ -72,10 +74,9 @@ function allSkippingErrors(promises: Promise<any>[]) {
 
 function KoniAccountOverView({className}: Props): React.ReactElement {
   const {t} = useTranslation();
-  const [isBuyTokenScreenOpen, setBuyTokenScreenOpen] = useState(false);
   const [activatedTab, setActivatedTab] = useState(1);
   const [isLoading, setLoading] = useState(false);
-  const {network: {genesisHash, networkPrefix}} = useContext(CurrentNetworkContext)
+  const {network: {genesisHash, networkPrefix, networkName, icon: networkIcon}} = useContext(CurrentNetworkContext)
   const {hierarchy} = useContext(AccountContext);
   const {currentAccount} = useContext(CurrentAccountContext);
   const buyRef = useRef(null);
@@ -86,7 +87,13 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
   const { accounts } = useContext(AccountContext);
   const chain = useMetadata(currentAccount?.genesisHash, true);
   const settings = useContext(SettingsContext);
-
+  const [isBuyTokenScreenOpen, setBuyTokenScreenOpen] = useState(false);
+  const [{buyTokenScreenNetworkPrefix, buyTokenScreenNetworkName, buyTokenScreenIconTheme}, setBuyTokenScreenProps]
+    = useState({
+    buyTokenScreenNetworkPrefix: networkPrefix,
+    buyTokenScreenNetworkName: networkName,
+    buyTokenScreenIconTheme: networkIcon
+  });
 
   useEffect(() => {
     let isSync = true;
@@ -112,9 +119,11 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
         const mockChains: BalanceInfo[] = [
           {
             key: selectedNetWork ? selectedNetWork.text : '',
-            chainName: selectedNetWork? selectedNetWork.text : '',
-            chainIcon: 'mock.svg',
-            chainIconUrl: 'https://app.subsocial.network/subid/icons/polkadot.svg',
+            networkName: selectedNetWork?.networkName || '',
+            networkDisplayName: selectedNetWork?.text || '',
+            networkLogo: LogosMap['default'],
+            networkPrefix: selectedNetWork && selectedNetWork.networkPrefix != null ? selectedNetWork.networkPrefix : -1,
+            networkIconTheme: 'substrate',
             address: mockAddress,
             childrenBalances: [],
             symbol: '',
@@ -205,10 +214,16 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
     }
   }, [currentAccount?.address, chain, genesisHash]);
 
-
   const _toggleBuy = useCallback(
-    (): void => setBuyTokenScreenOpen((isBuyTokenScreenOpen) => !isBuyTokenScreenOpen),
-    []
+    (): void => {
+      setBuyTokenScreenProps({
+        buyTokenScreenNetworkPrefix: networkPrefix,
+        buyTokenScreenNetworkName: networkName,
+        buyTokenScreenIconTheme: networkIcon
+      });
+      setBuyTokenScreenOpen((isBuyTokenScreenOpen) => !isBuyTokenScreenOpen);
+    },
+    [networkPrefix, networkName, networkIcon]
   )
 
   const _closeModal = useCallback(
@@ -277,8 +292,18 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
                     </div>
                   </div>
 
-                  {isBuyTokenScreenOpen && (
-                    <BuyToken className='' reference={buyRef} closeModal={_closeModal}/>
+                  {isBuyTokenScreenOpen && currentAccount && (
+                    <BuyToken
+                      className=''
+                      reference={buyRef}
+                      closeModal={_closeModal}
+                      address={currentAccount.address}
+                      accountType={currentAccount.type}
+                      accountName={currentAccount.name}
+                      networkPrefix={buyTokenScreenNetworkPrefix}
+                      networkName={buyTokenScreenNetworkName}
+                      iconTheme={buyTokenScreenIconTheme}
+                    />
                   )}
 
                   <KoniTabs activatedTab={activatedTab} onSelect={setActivatedTab}/>
@@ -290,7 +315,11 @@ function KoniAccountOverView({className}: Props): React.ReactElement {
                             <div className='kn-l-chains-container'>
                               <div className="kn-l-chains-container__body">
                                 {chainBalances.map((item) => (
-                                  <ChainBalanceItem item={item} key={item.key} />
+                                  <ChainBalanceItem
+                                    item={item} key={item.key}
+                                    setBuyTokenScreenProps={setBuyTokenScreenProps}
+                                    setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+                                  />
                                 ))}
                               </div>
                               <div className="kn-l-chains-container__footer">

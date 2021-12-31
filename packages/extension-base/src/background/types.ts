@@ -3,7 +3,7 @@
 
 /* eslint-disable no-use-before-define */
 
-import type { InjectedAccount, InjectedMetadataKnown, MetadataDef, ProviderList, ProviderMeta } from '@polkadot/extension-inject/types';
+import type { InjectedAccount, InjectedMetadataKnown, MetadataDef, ProviderList, ProviderMeta, MetadataDefBase } from '@polkadot/extension-inject/types';
 import type { KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@polkadot/keyring/types';
 import type { JsonRpcResponse } from '@polkadot/rpc-provider/types';
 import type {Registry, SignerPayloadJSON, SignerPayloadRaw} from '@polkadot/types/types';
@@ -67,6 +67,20 @@ export interface ApiState {
   defaultFormatBalance: DefaultFormatBalance;
 }
 
+export interface NetWorkInfo {
+  chain: string;
+  genesisHash: string;
+  icon?: string;
+  ss58Format: number;
+  chainType?: 'substrate' | 'ethereum';
+  provider: string;
+  // group: 'RELAY_CHAIN' | 'POLKADOT_PARACHAIN'| 'KUSAMA_PARACHAIN';
+}
+
+export interface NetWorkMetadataDef extends MetadataDefBase {
+  networkName: string;
+}
+
 export interface ApiProps extends ApiState {
   api: ApiPromise;
   apiError?: string;
@@ -113,6 +127,7 @@ export type CurrentAccContext = {
 }
 
 export type CurrentNetworkInfo = {
+  networkName: string;
   networkPrefix: number;
   icon: string;
   genesisHash: string;

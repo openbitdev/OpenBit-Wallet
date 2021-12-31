@@ -10,6 +10,7 @@ import useTranslation from './useTranslation';
 interface Option {
   text: string;
   value: string;
+  networkName: string;
   networkPrefix: number;
   icon: string;
 }
@@ -39,25 +40,29 @@ export default function (): Option[] {
       mounted.current = false;
     };
   }, []);
+
   const hashes = useMemo(() => [
     {
       text: t('Allow use on any chain'),
       value: '',
+      networkName: '',
       networkPrefix: -1,
       icon: 'substrate'
     },
     // put the relay chains at the top
     ...chains.filter(({ chain }) => chain.includes(RELAY_CHAIN))
-      .map(({ chain, genesisHash, ss58Format , icon}) => ({
+      .map(({ chain, genesisHash, ss58Format , icon, networkName}) => ({
         text: chain,
         value: genesisHash,
         networkPrefix: ss58Format,
+        networkName,
         icon
       })),
-    ...chains.map(({ chain, genesisHash, ss58Format , icon}) => ({
+    ...chains.map(({ chain, genesisHash, ss58Format , icon, networkName}) => ({
       text: chain,
       value: genesisHash,
       networkPrefix: ss58Format,
+      networkName,
       icon
     }))
       // remove the relay chains, they are at the top already
