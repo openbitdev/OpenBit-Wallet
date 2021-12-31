@@ -27,7 +27,7 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
   const filterCategories = [
     {
       text: "All",
-      type: "AllCHAINS"
+      type: ""
     },
     {
       text: "Relaychains",
@@ -88,14 +88,14 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
       <div className='network-item-list-header'>
         <span>Network</span>
         <KoniInputFilter
-          className='inputFilter'
           onChange={_onChangeFilter}
-          placeholder={t<string>('Search by name or network...')}
+          placeholder={t<string>('Search network...')}
           value={filteredNetwork}
           withReset
         />
       </div>
       <div className='network-filter-list'>
+
         {filterCategories.map(({text, type}) : React.ReactNode => (
           <div key={text} onClick={() => {_selectGroup(type)}}
                className={type === selectedGroup ? 'network-filter-item__selected-text' : 'network-filter-item__text'}>
@@ -104,23 +104,27 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
         ))}
       </div>
       <div className='network-item-list'>
-        {filteredGenesisOptions.map(({ text, value , networkPrefix, icon, networkName}): React.ReactNode => (
-          <div key={value} className='network-item-container' onClick={() => {
-            selectNetwork(value, networkPrefix, icon, networkName)
-          }}>
-            <img src={getLogoByGenesisHash(value)} alt="logo" className={'network-logo'} />
+        {
+          filteredGenesisOptions && filteredGenesisOptions.length ?
+            filteredGenesisOptions.map(({ text, value , networkPrefix, icon, networkName}): React.ReactNode => (
+              <div key={value} className='network-item-container' onClick={() => {
+                selectNetwork(value, networkPrefix, icon, networkName)
+              }}>
+                <img src={getLogoByGenesisHash(value)} alt="logo" className={'network-logo'} />
 
-            <span className={value == currentNetwork ? 'koni-network-text__selected': 'koni-network-text'}>{text}</span>
-            {value == currentNetwork
-              ?
-              (
-                <img src={check} alt="check" className='checkIcon'/>
-              ) : (
-                <div className='uncheckedItem'/>
-              )
-            }
-          </div>
-        ))}
+                <span className={value == currentNetwork ? 'koni-network-text__selected': 'koni-network-text'}>{text}</span>
+                {value == currentNetwork
+                  ?
+                  (
+                    <img src={check} alt="check" className='checkIcon'/>
+                  ) : (
+                    <div className='uncheckedItem'/>
+                  )
+                }
+              </div>
+            )) :
+            <div className='kn-no-result'>No results</div>
+        }
       </div>
     </KoniMenu>
   );
@@ -159,6 +163,11 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
     color: ${theme.textColor};
     text-decoration: underline;
     cursor: pointer;
+  }
+
+  .kn-no-result {
+    color: ${theme.textColor2};
+    text-align: center;
   }
 
   .network-item-list {

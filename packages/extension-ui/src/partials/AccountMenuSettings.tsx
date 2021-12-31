@@ -87,7 +87,7 @@ function AccountMenuSettings ({ className, reference, onFilter, closeSetting }: 
         <KoniInputFilter
           className='inputFilter'
           onChange={_onChangeFilter}
-          placeholder={t<string>('Search by name or network...')}
+          placeholder={t<string>('Search by name or net...')}
           value={filter}
           withReset
         />

@@ -32,6 +32,7 @@ function KoniInputFilter ({ className, onChange, placeholder, value, withReset =
   return (
     <div className={className}>
       <KoniInput
+        className='kn-input-filter'
         autoCapitalize='off'
         autoCorrect='off'
         autoFocus
@@ -56,10 +57,17 @@ function KoniInputFilter ({ className, onChange, placeholder, value, withReset =
 export default styled(KoniInputFilter)(({ theme }: Props) => `
   position: relative;
 
+  .kn-input-filter {
+    margin-top: 0;
+    padding-right: 2rem;
+  }
+
   .resetIcon {
     position: absolute;
-    right: 28px;
-    top: 12px;
+    right: 10px;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
     color: ${theme.iconNeutralColor};
     cursor: pointer;
   }

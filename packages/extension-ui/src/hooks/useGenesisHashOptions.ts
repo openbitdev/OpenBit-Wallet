@@ -49,7 +49,7 @@ export default function (): Option[] {
       networkName: '',
       networkPrefix: -1,
       icon: 'substrate',
-      group: "AllCHAINS"
+      group: ""
     },
     // put the relay chains at the top
     ...chains.filter(({ chain }) => chain.includes(RELAY_CHAIN))
