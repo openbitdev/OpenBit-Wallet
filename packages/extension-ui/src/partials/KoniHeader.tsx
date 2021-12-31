@@ -284,6 +284,8 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
                     prefix={prefix}
                     value={formatted || currentAccount?.address}
                     size={44}
+                    showLogo
+                    genesisHash={currentAccount?.genesisHash as string}
                   />
                 ) : (
                   <img src={defaultAvatar} alt="default-img" className='default-avatar'/>

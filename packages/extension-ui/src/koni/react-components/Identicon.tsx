@@ -9,6 +9,7 @@ import styled from 'styled-components';
 
 import Icon from '@polkadot/react-identicon';
 import {ThemeProps} from "@polkadot/extension-ui/types";
+import {getLogoByGenesisHash} from "@polkadot/extension-ui/util/koni/logoByGenesisHashMap";
 
 interface Props {
   className?: string;
@@ -18,9 +19,11 @@ interface Props {
   prefix?: number;
   value?: string | null;
   size?: number;
+  showLogo?: boolean;
+  genesisHash?: string;
 }
 
-function Identicon ({ className, iconTheme, onCopy, prefix, value, size }: Props): React.ReactElement<Props> {
+function Identicon ({ className, iconTheme, onCopy, prefix, value, size, showLogo, genesisHash }: Props): React.ReactElement<Props> {
   return (
     <div className={className}>
       <Icon
@@ -31,6 +34,9 @@ function Identicon ({ className, iconTheme, onCopy, prefix, value, size }: Props
         theme={iconTheme}
         value={value}
       />
+      {showLogo && genesisHash && (
+        <img src={getLogoByGenesisHash(genesisHash)} alt="logo" className={'koni-network-logo'} />
+      )}
     </div>
   );
 }
@@ -41,10 +47,25 @@ export default styled(Identicon)(({ theme }: ThemeProps) => `
   display: flex;
   justify-content: center;
   padding: 2px;
+  position: relative;
 
   .container:before {
     box-shadow: none;
     background: ${theme.identiconBackground};
+  }
+
+  .koni-network-logo {
+    width: 40%;
+    height: 40%;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    position: absolute;
+    background-color: #fff;
   }
 
   .icon {

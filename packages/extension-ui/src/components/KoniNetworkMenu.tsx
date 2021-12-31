@@ -1,10 +1,12 @@
 import type {ThemeProps} from '../types';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import styled from 'styled-components';
 import KoniMenu from "@polkadot/extension-ui/components/KoniMenu";
 import useGenesisHashOptions from "@polkadot/extension-ui/hooks/useGenesisHashOptions";
 import check from "@polkadot/extension-ui/assets/check.svg";
 import {getLogoByGenesisHash} from "@polkadot/extension-ui/util/koni/logoByGenesisHashMap";
+import KoniInputFilter from "@polkadot/extension-ui/components/KoniInputFilter";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 
 interface Props extends ThemeProps {
   className?: string;
@@ -16,14 +18,16 @@ interface Props extends ThemeProps {
   isNotHaveAccount?: boolean;
 }
 
-function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork, isNotHaveAccount }: Props): React.ReactElement<Props> {
+function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork, isNotHaveAccount, onFilter }: Props): React.ReactElement<Props> {
+  const { t } = useTranslation();
   let genesisOptions = useGenesisHashOptions();
   const [filteredGenesisOptions, setFilteredGenesisOption] = useState(genesisOptions);
-  const [selectedFilter, setselectedFilter] = useState("");
+  const [filteredNetwork, setFilteredNetwork] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState('');
   const filterCategories = [
     {
       text: "All",
-      type: ""
+      type: "AllCHAINS"
     },
     {
       text: "Relaychains",
@@ -42,9 +46,31 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
     genesisOptions = useGenesisHashOptions().slice(0, 1);
   }
 
-  const _selectFilter = useCallback(
+  useEffect(() => {
+    if (filteredNetwork) {
+      if (selectedGroup && selectedGroup.length) {
+        setFilteredGenesisOption(genesisOptions.filter(network => network.text.toLowerCase().includes(filteredNetwork) && network.group === selectedGroup))
+      } else {
+        setFilteredGenesisOption(genesisOptions.filter(network => network.text.toLowerCase().includes(filteredNetwork)))
+      }
+
+    } else {
+      if (selectedGroup && selectedGroup.length) {
+        setFilteredGenesisOption(genesisOptions.filter(network => network.group === selectedGroup));
+      } else {
+        setFilteredGenesisOption(genesisOptions);
+      }
+    }
+  }, [filteredNetwork])
+
+  const _onChangeFilter = useCallback((filter: string) => {
+    setFilteredNetwork(filter);
+    onFilter && onFilter(filter);
+  }, [onFilter])
+
+  const _selectGroup = useCallback(
     (type): void => {
-      setselectedFilter(type);
+      setSelectedGroup(type);
       if (type && type.length) {
         setFilteredGenesisOption(filteredGenesisOptions.filter(f => f.group === type));
       } else {
@@ -60,12 +86,19 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
       reference={reference}
     >
       <div className='network-item-list-header'>
-        Network
+        <span>Network</span>
+        <KoniInputFilter
+          className='inputFilter'
+          onChange={_onChangeFilter}
+          placeholder={t<string>('Search by name or network...')}
+          value={filteredNetwork}
+          withReset
+        />
       </div>
       <div className='network-filter-list'>
         {filterCategories.map(({text, type}) : React.ReactNode => (
-          <div key={text} onClick={() => {_selectFilter(type)}}
-               className={type === selectedFilter ? 'network-filter-item__selected-text' : 'network-filter-item__text'}>
+          <div key={text} onClick={() => {_selectGroup(type)}}
+               className={type === selectedGroup ? 'network-filter-item__selected-text' : 'network-filter-item__text'}>
               {text}
           </div>
         ))}
@@ -100,10 +133,11 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
   border-radius: 8px;
 
   .network-item-list-header {
-    padding: 10px 0;
+    padding: 10px;
     width: 350px;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     font-size: 20px;
     line-height: 32px;
     font-weight: 700;
