@@ -1,8 +1,8 @@
 # Polkadot Explorer
 **A library for querying info from DotSama chains through RPCs**
 
-This library use community-defined chain RPCs. All chains metadata can be found in: `/src/endpoints/`
-You can find chainId mappings in `/src/endpoints/manifest.json`
+This library use community-defined chain RPCs. All chains metadata can be found in: `/src/endpoints/`<br/>
+You can find chainId mappings in `/src/endpoints/manifest.json`<br/>
 **Example**: Metadata of Acala which lives on Polkadot can be found at /endpoints/0/2000/manifest.json (0 is Polkadot chainId and 2000 is Acala paraId)
 
 ####  Usage
