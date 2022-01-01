@@ -1,0 +1,18 @@
+{
+  "name": "Bit.Country Pioneer",
+  "description": "The Platform for User-created Metaverses & Games with Opportunities to Earn.",
+  "nativeToken": "NEER",
+  "tokenDecimals": 18,
+  "links": {
+    "Website": "https://bit.country/",
+    "Twitter": "https://twitter.com/BitDotCountry",
+    "Telegram": "https://t.me/BitCountryOfficialTG",
+    "Medium": "https://bitcountry.medium.com/",
+    "Github": "https://github.com/bit-country",
+    "Discord": "https://discord.com/invite/PaMAXZZ59N"
+  },
+  "isRelay": false,
+  "rpcs": [
+    "wss://pioneer-1-rpc.bit.country"
+  ]
+}
