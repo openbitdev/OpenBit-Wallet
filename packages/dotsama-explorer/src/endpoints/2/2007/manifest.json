@@ -1,0 +1,18 @@
+{
+  "name": "Shiden",
+  "description": "Shiden Network is a multi-chain decentralized application layer on Kusama Network. ",
+  "nativeToken": "SDN",
+  "tokenDecimals": 18,
+  "links": {
+    "Website": "https://crowdloan.plasmnet.io/",
+    "Twitter": "https://twitter.com/ShidenNetwork",
+    "Telegram": "https://t.me/PlasmOfficial",
+    "Discord": "https://discord.com/invite/Dnfn5eT"
+  },
+  "isRelay": false,
+  "rpcs": [
+    "wss://shiden.api.onfinality.io/public-ws",
+    "wss://rpc.shiden.plasmnet.io",
+    "wss://rpc.pinknode.io/shiden/explorer"
+  ]
+}
