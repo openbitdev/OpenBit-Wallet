@@ -1,26 +1,23 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import cloneIcon from '@polkadot/extension-ui/assets/clone.svg';
 import receivedIcon from '@polkadot/extension-ui/assets/receive-icon.svg';
-import { BalanceVal } from '@polkadot/extension-ui/components/koni/balance';
-import ChainBalanceItemRow from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItemRow';
 import styled from 'styled-components';
 import { ThemeProps } from '@polkadot/extension-ui/types';
 import useToast from '@polkadot/extension-ui/hooks/useToast';
 import useTranslation from '@polkadot/extension-ui/hooks/useTranslation';
-import { AccountInfoByNetwork, BalanceInfo } from '@polkadot/extension-ui/util/koni/types';
+import { AccountInfoByNetwork } from '@polkadot/extension-ui/util/koni/types';
+import KoniLoading from '@polkadot/extension-ui/components/KoniLoading';
 
 interface Props extends ThemeProps {
   className?: string;
   accountInfo: AccountInfoByNetwork;
-  balanceInfo: BalanceInfo;
   setBuyTokenScreenOpen: (visible: boolean) => void;
   setBuyTokenScreenProps: (props: { buyTokenScreenNetworkPrefix: number, buyTokenScreenNetworkName: string, buyTokenScreenIconTheme: string }) => void;
 }
 
-function ChainBalanceItem({accountInfo, balanceInfo, className, setBuyTokenScreenOpen, setBuyTokenScreenProps}: Props): React.ReactElement<Props> {
+function ChainBalancePlaceholderItem({accountInfo, className, setBuyTokenScreenOpen, setBuyTokenScreenProps}: Props): React.ReactElement<Props> {
   const {networkName, address, networkPrefix, networkIconTheme} = accountInfo;
-  const [toggleDetail, setToggleDetail] = useState(false);
   const {show} = useToast();
   const {t} = useTranslation();
 
@@ -31,10 +28,6 @@ function ChainBalanceItem({accountInfo, balanceInfo, className, setBuyTokenScree
     },
     [show, t]
   );
-
-  const _onToggleDetail = useCallback(() => {
-    setToggleDetail(toggleDetail => !toggleDetail);
-  }, []);
 
   const _openQr = useCallback(
     (e): void => {
@@ -58,7 +51,7 @@ function ChainBalanceItem({accountInfo, balanceInfo, className, setBuyTokenScree
   };
 
   return (
-    <div className={`${className} ${toggleDetail ? '-show-detail' : ''}`} onClick={_onToggleDetail}>
+    <div className={className}>
       <div className='kn-chain-balance-item__main-area'>
         <div className='kn-chain-balance-item__main-area-part-1'>
           <img src={accountInfo.networkLogo} alt={'Logo'} className='kn-chain-balance-item__logo' />
@@ -78,53 +71,20 @@ function ChainBalanceItem({accountInfo, balanceInfo, className, setBuyTokenScree
         </div>
 
         <div className='kn-chain-balance-item__main-area-part-2'>
-          <div className="kn-chain-balance-item__balance">
-            <BalanceVal value={balanceInfo.balanceValue} symbol={balanceInfo.symbol} />
-          </div>
-          <div className="kn-chain-balance-item__value">
-            <BalanceVal value={balanceInfo.totalValue} symbol={'$'} startWithSymbol />
-          </div>
-          <div className="kn-chain-balance-item__toggle" />
+          <KoniLoading />
         </div>
       </div>
 
-      {toggleDetail && !!balanceInfo.detailBalances.length && (
-        <>
-          <div className='kn-chain-balance-item__separator' />
-          <div className='kn-chain-balance-item__detail-area'>
-            {balanceInfo.detailBalances.map((d) => (
-              <ChainBalanceItemRow item={d} key={d.key} />
-            ))}
-          </div>
-        </>
-      )}
-
-      {toggleDetail && !!balanceInfo.childrenBalances.length && (
-        <>
-          <div className='kn-chain-balance-item__separator' />
-          <div className='kn-chain-balance-item__detail-area'>
-            {balanceInfo.childrenBalances.map((c) => (
-              <ChainBalanceItemRow item={c} key={c.key} />
-            ))}
-          </div>
-        </>
-      )}
       <div className='kn-chain-balance-item__separator' />
     </div>
   );
 }
 
-export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
+export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) => `
   //border: 2px solid ${theme.boxBorderColor};
   border-radius: 8px;
   color: ${theme.textColor2};
   // font-weight: 500;
-
-  .kn-chain-balance-item__main-area {
-    display: flex;
-    align-items: center;
-    font-size: 15px;
-  }
 
   .kn-chain-balance-item__main-area {
     display: flex;
@@ -149,9 +109,15 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
 
   .kn-chain-balance-item__main-area-part-2 {
     position: relative;
-    padding-right: 38px;
-    text-align: right;
-    cursor: pointer;
+    min-width: 80px;
+    
+    .loader.loader {
+      width: 32px;
+      height: 32px;
+      border-width: 4px;
+      border-color: transparent;
+      border-left-color: ${theme.textColor2};
+    }
   }
 
   .kn-chain-balance-item__logo {

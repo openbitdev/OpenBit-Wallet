@@ -46,10 +46,10 @@ export default function (): Option[] {
     {
       text: t('Allow use on any chain'),
       value: '',
-      networkName: '',
+      networkName: 'all',
       networkPrefix: -1,
       icon: 'substrate',
-      group: ""
+      group: ''
     },
     // put the relay chains at the top
     ...chains.filter(({ chain }) => chain.includes(RELAY_CHAIN))

@@ -103,18 +103,18 @@ export default class Extension {
     this.#state = state;
   }
 
-  private apiInit ({ genesisHash }: RequestApi): ApiInitStatus {
+  private apiInit ({ networkName }: RequestApi): ApiInitStatus {
     const {apisMap} =  bWindow.pdotApi;
 
-    if (!rpcsMap.hasOwnProperty(genesisHash) || !rpcsMap[genesisHash]) {
+    if (!rpcsMap.hasOwnProperty(networkName) || !rpcsMap[networkName]) {
       return ApiInitStatus.NOT_SUPPORT;
     }
 
-    if (!!apisMap[genesisHash]) {
+    if (!!apisMap[networkName]) {
       return ApiInitStatus.ALREADY_EXIST;
     }
 
-    apisMap[genesisHash] = initApi(rpcsMap[genesisHash]);
+    apisMap[networkName] = initApi(rpcsMap[networkName]);
 
     return ApiInitStatus.SUCCESS;
   }

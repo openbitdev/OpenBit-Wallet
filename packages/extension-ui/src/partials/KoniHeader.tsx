@@ -149,7 +149,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
 
   const getNetworkName = useCallback(
     (genesisHash) => {
-      let networkName = ''
+      let networkName = '';
       if (currentAccount) {
         genesisHash = genesisHash ? genesisHash : '';
         const currentNetwork = genesisOptions.find(opt => opt.value == genesisHash);
@@ -157,7 +157,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
       }
       return networkName
     }, [currentAccount?.genesisHash]
-  )
+  );
 
   const ellipsisCenterStr = useCallback(
     (str: string | undefined) => {

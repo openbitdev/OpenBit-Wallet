@@ -238,7 +238,7 @@ export interface RequestAuthorizeTab {
 }
 
 export interface RequestApi {
-  genesisHash: string;
+  networkName: string;
 }
 
 export interface RequestAuthorizeApprove {

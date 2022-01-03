@@ -1,23 +1,22 @@
-import React, {useEffect, useState} from 'react';
-import {ApiProvider} from './ApiContext';
-import {ApiProps, BackgroundWindow} from "@polkadot/extension-base/background/types";
-import {initApi} from "@polkadot/extension-ui/messaging";
-import {ApiInitStatus} from "@polkadot/extension-base/background/pDotApi";
-import {formatBalance} from '@polkadot/util';
-import {TokenUnit} from "@polkadot/extension-ui/koni/react-components/InputNumber";
+import React, { useEffect, useState } from 'react';
+import { ApiProvider } from './ApiContext';
+import { ApiProps, BackgroundWindow } from '@polkadot/extension-base/background/types';
+import { initApi } from '@polkadot/extension-ui/messaging';
+import { ApiInitStatus } from '@polkadot/extension-base/background/pDotApi';
+import { formatBalance } from '@polkadot/util';
+import { TokenUnit } from '@polkadot/extension-ui/koni/react-components/InputNumber';
 
 interface Props {
   children: React.ReactNode;
-  genesisHash: string;
+  networkName: string;
   currentAccountAddress?: string;
-  isWelcomeDone: boolean
 }
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {apisMap} = bWindow.pdotApi;
 
 
-function setupDefaultFormatBalance (apiProps: ApiProps, genesisHash: string) {
+function setupDefaultFormatBalance(apiProps: ApiProps, networkName: string) {
   const {defaultFormatBalance} = apiProps;
   const {decimals, unit} = defaultFormatBalance;
 
@@ -29,7 +28,7 @@ function setupDefaultFormatBalance (apiProps: ApiProps, genesisHash: string) {
   TokenUnit.setAbbr(unit as string);
 }
 
-function Api({genesisHash, currentAccountAddress, children}: Props): React.ReactElement<Props> | null {
+function Api({networkName, currentAccountAddress, children}: Props): React.ReactElement<Props> | null {
   const [value, setValue] = useState({isApiReady: false} as ApiProps);
 
   useEffect(() => {
@@ -37,18 +36,18 @@ function Api({genesisHash, currentAccountAddress, children}: Props): React.React
 
     (async () => {
 
-      let apiInfo = apisMap[genesisHash];
+      let apiInfo = apisMap[networkName];
 
       if (apiInfo) {
         if (apiInfo.isApiReady) {
           if (isSync) {
-            setupDefaultFormatBalance(apiInfo, genesisHash);
+            setupDefaultFormatBalance(apiInfo, networkName);
             setValue(apiInfo);
           }
         } else {
           await apiInfo.isReady;
           if (isSync) {
-            setupDefaultFormatBalance(apiInfo, genesisHash);
+            setupDefaultFormatBalance(apiInfo, networkName);
             setValue(apiInfo);
           }
         }
@@ -56,7 +55,7 @@ function Api({genesisHash, currentAccountAddress, children}: Props): React.React
         return;
       }
 
-      const apiInitiationStatus = await initApi(genesisHash);
+      const apiInitiationStatus = await initApi(networkName);
 
       if ([
         ApiInitStatus.NOT_SUPPORT.valueOf()
@@ -73,10 +72,10 @@ function Api({genesisHash, currentAccountAddress, children}: Props): React.React
         setValue({isApiReady: false} as ApiProps);
       }
 
-      apiInfo = apisMap[genesisHash];
+      apiInfo = apisMap[networkName];
 
       if (isSync && apiInfo && apiInfo.isApiReady) {
-        setupDefaultFormatBalance(apiInfo, genesisHash);
+        setupDefaultFormatBalance(apiInfo, networkName);
         setValue(apiInfo);
 
         return;
@@ -85,15 +84,15 @@ function Api({genesisHash, currentAccountAddress, children}: Props): React.React
       await apiInfo.isReady;
 
       if (isSync) {
-        setupDefaultFormatBalance(apiInfo, genesisHash);
+        setupDefaultFormatBalance(apiInfo, networkName);
         setValue(apiInfo);
       }
-    })()
+    })();
 
     return () => {
       isSync = false;
-    }
-  }, [genesisHash, currentAccountAddress]);
+    };
+  }, [networkName, currentAccountAddress]);
 
   return (
     <ApiProvider value={value}>
@@ -102,10 +101,10 @@ function Api({genesisHash, currentAccountAddress, children}: Props): React.React
   );
 }
 
-function compareProps(prevProps: Props, nextProps: Props) {
-  return (prevProps.genesisHash === nextProps.genesisHash)
-    && (prevProps.currentAccountAddress === nextProps.currentAccountAddress)
-    && (prevProps.isWelcomeDone === nextProps.isWelcomeDone);
-}
+// function compareProps(prevProps: Props, nextProps: Props) {
+//   return (prevProps.genesisHash === nextProps.genesisHash)
+//     && (prevProps.currentAccountAddress === nextProps.currentAccountAddress)
+//     && (prevProps.isWelcomeDone === nextProps.isWelcomeDone);
+// }
 
-export default React.memo(Api, compareProps);
+export default React.memo(Api);

@@ -88,8 +88,8 @@ function sendMessage<TMessageType extends MessageTypes> (message: TMessageType, 
   });
 }
 
-export async function initApi (genesisHash: string): Promise<ApiInitStatus> {
-  return sendMessage('pri(api.init)', { genesisHash });
+export async function initApi (networkName: string): Promise<ApiInitStatus> {
+  return sendMessage('pri(api.init)', { networkName });
 }
 
 export async function editAccount (address: string, name: string): Promise<boolean> {

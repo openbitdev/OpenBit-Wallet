@@ -85,7 +85,7 @@ export default function Popup (): React.ReactElement {
   const [accounts, setAccounts] = useState<null | AccountJson[]>(null);
   const [currentAccount, setCurrentAccount] = useState<null | AccountJson>(null);
   const [{networkPrefix, icon: networkIcon, networkName, genesisHash}, setNetwork]
-    = useState<CurrentNetworkInfo>({networkPrefix: -1, icon: 'substrate', genesisHash: '', networkName: ''});
+    = useState<CurrentNetworkInfo>({networkPrefix: -1, icon: 'substrate', genesisHash: '', networkName: 'all'});
   const [accountCtx, setAccountCtx] = useState<AccountsContext>({ accounts: [], hierarchy: [] });
   const [authRequests, setAuthRequests] = useState<null | AuthorizeRequest[]>(null);
   const [cameraOn, setCameraOn] = useState(startSettings.camera === 'on');
@@ -125,7 +125,7 @@ export default function Popup (): React.ReactElement {
         setCurrentAccount(selectedAcc);
       }
     }
-  }
+  };
 
   useEffect((): void => {
     Promise.all([
@@ -194,8 +194,7 @@ export default function Popup (): React.ReactElement {
             <CurrentAccountContext.Provider value={{currentAccount, setCurrentAccount}}>
               <CurrentNetworkContext.Provider value={{network: {networkPrefix, icon: networkIcon, networkName, genesisHash}, setNetwork}}>
                 <Queue><Api
-                  isWelcomeDone={isWelcomeDone}
-                  genesisHash={genesisHash}
+                  networkName={networkName}
                   currentAccountAddress={currentAccount?.address}>
                 <AuthorizeReqContext.Provider value={authRequests}>
                   <MediaContext.Provider value={cameraOn && mediaAllowed}>

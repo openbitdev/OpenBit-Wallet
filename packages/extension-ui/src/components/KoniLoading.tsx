@@ -22,8 +22,11 @@ function KoniLoading ({ children, className }: Props): React.ReactElement<Props>
 export default React.memo(styled(KoniLoading)(({theme}: Props) => `
   .loader {
     position: absolute;
-    top: 50%;
-    left: calc(50% - 40px);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
     width: 60px;
     height: 60px;
     border: 8px solid ${theme.loadingBackground1};

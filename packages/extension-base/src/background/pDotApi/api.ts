@@ -1,11 +1,11 @@
-import {TypeRegistry} from '@polkadot/types/create';
-import type {ChainProperties, ChainType} from '@polkadot/types/interfaces';
-import {ApiPromise, WsProvider} from "@polkadot/api";
-import {Registry} from "@polkadot/types/types";
-import {ApiProps, ApiState} from "@polkadot/extension-base/background/types";
+import { TypeRegistry } from '@polkadot/types/create';
+import { ChainProperties, ChainType } from '@polkadot/types/interfaces';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { Registry } from '@polkadot/types/types';
+import { ApiProps, ApiState } from '@polkadot/extension-base/background/types';
 // import {settings as } from '@polkadot/ui-settings';
-import {formatBalance, isTestChain, objectSpread, stringify} from '@polkadot/util';
-import {defaults as addressDefaults} from '@polkadot/util-crypto/address/defaults';
+import { formatBalance, isTestChain, objectSpread, stringify } from '@polkadot/util';
+import { defaults as addressDefaults } from '@polkadot/util-crypto/address/defaults';
 
 export enum ApiInitStatus {
   SUCCESS,
@@ -64,7 +64,7 @@ async function loadOnReady(registry: Registry, api: ApiPromise): Promise<ApiStat
   const defaultFormatBalance = {
     decimals: tokenDecimals.map((b) => b.toNumber()),
     unit: tokenSymbol[0].toString()
-  }
+  };
 
   const defaultSection = Object.keys(api.tx)[0];
   const defaultMethod = Object.keys(api.tx[defaultSection])[0];
@@ -104,11 +104,11 @@ export function initApi(apiUrl: string): ApiProps {
     isApiInitialized: true,
     isApiReady: false,
     registry,
-    specName: "",
-    specVersion: "",
-    systemChain: "",
-    systemName: "",
-    systemVersion: "",
+    specName: '',
+    specVersion: '',
+    systemChain: '',
+    systemName: '',
+    systemVersion: '',
     get isReady() {
       const self = this as unknown as ApiProps;
 
@@ -132,7 +132,7 @@ export function initApi(apiUrl: string): ApiProps {
 
       return f();
     }
-  }) as unknown as ApiProps
+  }) as unknown as ApiProps;
 
   api.once('connected', () => {
     result.isApiConnected = true;
@@ -140,7 +140,7 @@ export function initApi(apiUrl: string): ApiProps {
 
   api.once('disconnected', () => {
     result.isApiConnected = false;
-  })
+  });
 
   api.once('ready', () => {
     loadOnReady(registry, api)
@@ -148,7 +148,7 @@ export function initApi(apiUrl: string): ApiProps {
         objectSpread(result, rs);
       })
       .catch((error): void => {
-        result.apiError = (error as Error).message
+        result.apiError = (error as Error).message;
       });
   });
 

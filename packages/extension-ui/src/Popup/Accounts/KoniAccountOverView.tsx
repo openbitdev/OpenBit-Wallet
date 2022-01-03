@@ -1,364 +1,390 @@
-import type {Theme, ThemeProps} from '../../types';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import styled, {ThemeContext} from 'styled-components';
-import buyIconDark from '../../assets/buy-icon-dark.svg'
-import buyIconLight from '../../assets/buy-icon-light.svg'
-import sendIconDark from '../../assets/send-icon-dark.svg'
-import sendIconLight from '../../assets/send-icon-light.svg'
-import swapIconDark from '../../assets/swap-icon-dark.svg'
-import swapIconLight from '../../assets/swap-icon-light.svg'
-import {AccountContext, CurrentAccountContext, CurrentNetworkContext, SettingsContext} from '../../components';
+import { Theme, ThemeProps } from '../../types';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import styled, { ThemeContext } from 'styled-components';
+import buyIconDark from '../../assets/buy-icon-dark.svg';
+import buyIconLight from '../../assets/buy-icon-light.svg';
+import sendIconDark from '../../assets/send-icon-dark.svg';
+import sendIconLight from '../../assets/send-icon-light.svg';
+import swapIconDark from '../../assets/swap-icon-dark.svg';
+import swapIconLight from '../../assets/swap-icon-light.svg';
+import { AccountContext, CurrentAccountContext, CurrentNetworkContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';
-import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
-import KoniTabs from "@polkadot/extension-ui/components/KoniTabs";
-import BuyToken from "@polkadot/extension-ui/partials/BuyToken";
-import KoniAddAccount from "@polkadot/extension-ui/Popup/Accounts/KoniAddAccount";
-import ChainBalanceItem from "@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem";
-import {BalanceInfo} from "@polkadot/extension-ui/util/koni/types";
-import {
-  getChainBalanceInfo,
-  getChainsInfo,
-  getTokenPrice,
-  networkGenesisHashMap,
-  overriddenChainNames,
-  parseBalancesInfo
-} from "@polkadot/extension-ui/util/koni";
-import {BalanceVal} from "@polkadot/extension-ui/components/koni/balance";
-import useGenesisHashOptions from "@polkadot/extension-ui/hooks/useGenesisHashOptions";
-import BigN from "bignumber.js";
-import {AccountJson, AccountWithChildren} from "@polkadot/extension-base/background/types";
-import {Chain} from "@polkadot/extension-chains/types";
-import {SettingsStruct} from "@polkadot/ui-settings/types";
-import {decodeAddress, encodeAddress} from "@polkadot/util-crypto";
-import useMetadata from "@polkadot/extension-ui/hooks/useMetadata";
-import KoniLoading from "@polkadot/extension-ui/components/KoniLoading";
-import KoniLink from "@polkadot/extension-ui/components/KoniLink";
-import LogosMap from "@polkadot/extension-ui/assets/logo";
+import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
+import KoniTabs from '@polkadot/extension-ui/components/KoniTabs';
+import BuyToken from '@polkadot/extension-ui/partials/BuyToken';
+import KoniAddAccount from '@polkadot/extension-ui/Popup/Accounts/KoniAddAccount';
+import { AccountInfoByNetwork, BalanceInfo } from '@polkadot/extension-ui/util/koni/types';
+import { BalanceVal } from '@polkadot/extension-ui/components/koni/balance';
+import useGenesisHashOptions from '@polkadot/extension-ui/hooks/useGenesisHashOptions';
+import BigN from 'bignumber.js';
+import { AccountJson, BackgroundWindow, CurrentNetworkInfo } from '@polkadot/extension-base/background/types';
+import KoniLink from '@polkadot/extension-ui/components/KoniLink';
+import NETWORKS from '@polkadot/extension-base/background/pDotApi/networks';
+import { getLogoByGenesisHash } from '@polkadot/extension-ui/util/koni/logoByGenesisHashMap';
+import reformatAddress from '@polkadot/extension-ui/util/koni/reformatAddress';
+import { KeypairType } from '@polkadot/util-crypto/types';
+import ChainBalancePlaceholderItem
+  from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalancePlaceholderItem';
+import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
+import { getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap } from '@polkadot/extension-ui/util/koni';
 
-interface Recoded {
-  formatted: string;
+const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
+const {apisMap} = bWindow.pdotApi;
+
+interface WrapperProps extends ThemeProps {
+  className?: string;
 }
 
 interface Props extends ThemeProps {
   className?: string;
+  currentAccount: AccountJson;
+  network: CurrentNetworkInfo;
 }
 
-function findSubstrateAccount (accounts: AccountJson[], publicKey: Uint8Array): AccountJson | null {
-  const pkStr = publicKey.toString();
 
-  return accounts.find(({ address }): boolean =>
-    decodeAddress(address).toString() === pkStr
-  ) || null;
+// function allSkippingErrors(promises: Promise<any>[]) {
+//   return Promise.all(
+//       promises.map((p: Promise<any>) => p.catch(error => null))
+//   )
+// }
+
+function getShowedNetworks(genesisOptions: any[], networkName: string): string[] {
+  if (!networkName) {
+    return [];
+  }
+
+  if (networkName === 'all') {
+    return genesisOptions.filter(i => (i.networkName) && (i.networkName !== 'all')).map(i => i.networkName);
+  }
+
+  return [networkName];
 }
 
-function recodeAddress (address: string, accounts: AccountWithChildren[], chain: Chain | null, settings: SettingsStruct): Recoded {
-  // decode and create a shortcut for the encoded address
-  const publicKey = decodeAddress(address);
-  // find our account using the actual publicKey, and then find the associated chain
-  const account = findSubstrateAccount(accounts, publicKey);
-  const prefix = chain ? chain.ss58Format : (settings.prefix === -1 ? 42 : settings.prefix);
+function getAccountInfoByNetwork(address: string, networkName: string, accountType?: KeypairType): AccountInfoByNetwork {
+  const networkInfo = NETWORKS[networkName];
 
-  // always allow the actual settings to override the display
   return {
-    formatted: account?.type === 'ethereum'
-      ? address
-      : encodeAddress(publicKey, prefix),
-  };
+    key: networkName,
+    networkName,
+    networkDisplayName: networkInfo.chain,
+    networkPrefix: networkInfo.ss58Format,
+    networkLogo: getLogoByGenesisHash(networkInfo.genesisHash),
+    networkIconTheme: networkInfo.icon || 'substrate',
+    address: reformatAddress(address, networkInfo.ss58Format, accountType)
+    // address: ''
+  }
 }
 
-function allSkippingErrors(promises: Promise<any>[]) {
-  return Promise.all(
-    promises.map((p: Promise<any>) => p.catch(error => null))
-  )
+function getAccountInfoByNetworkMap(address: string, networkNames: string[], accountType?: KeypairType): Record<string, AccountInfoByNetwork> {
+  const result: Record<string, AccountInfoByNetwork> = {};
+
+  networkNames.forEach(n => {
+    result[n] = getAccountInfoByNetwork(address, n, accountType);
+  });
+
+  return result;
 }
 
-function KoniAccountOverView({className}: Props): React.ReactElement {
-  const {t} = useTranslation();
-  const [activatedTab, setActivatedTab] = useState(1);
-  const [isLoading, setLoading] = useState(false);
-  const {network: {genesisHash, networkPrefix, networkName, icon: networkIcon}} = useContext(CurrentNetworkContext)
+function Wrapper({className, theme}: WrapperProps): React.ReactElement {
   const {hierarchy} = useContext(AccountContext);
   const {currentAccount} = useContext(CurrentAccountContext);
+  const {network} = useContext(CurrentNetworkContext);
+
+  if (!hierarchy.length) {
+    return (<KoniAddAccount/>);
+  }
+
+  if(!currentAccount
+    || (currentAccount.genesisHash
+      && (currentAccount.genesisHash !== network.genesisHash))) {
+    return (<></>);
+  }
+
+  return (<KoniAccountOverView
+    className={className}
+    currentAccount={currentAccount}
+    network={network}
+    theme={theme} />);
+}
+
+function KoniAccountOverView({className, currentAccount, network}: Props): React.ReactElement {
+  const {t} = useTranslation();
+  const {address} = currentAccount;
+  const [activatedTab, setActivatedTab] = useState(1);
+  // map of the loaded network balances
+  const {networkPrefix, networkName, icon: networkIcon} = network;
   const buyRef = useRef(null);
   const themeContext = useContext(ThemeContext as React.Context<Theme>);
   const theme = themeContext.id;
   const genesisOptions = useGenesisHashOptions();
-  const [chainBalances, setChainBalances] = useState<BalanceInfo[]>([]);
-  const { accounts } = useContext(AccountContext);
-  const chain = useMetadata(currentAccount?.genesisHash, true);
-  const settings = useContext(SettingsContext);
+  const [chainBalanceMaps, setChainBalanceMaps] = useState<Record<string, BalanceInfo>>({});
   const [isBuyTokenScreenOpen, setBuyTokenScreenOpen] = useState(false);
   const [{buyTokenScreenNetworkPrefix, buyTokenScreenNetworkName, buyTokenScreenIconTheme}, setBuyTokenScreenProps]
-    = useState({
+      = useState({
     buyTokenScreenNetworkPrefix: networkPrefix,
     buyTokenScreenNetworkName: networkName,
     buyTokenScreenIconTheme: networkIcon
   });
+  const [tokenPrices, setTokenPrices] = useState<any[]>([]);
+  const [totalValue, setTotalValue] = useState<BigN>(new BigN(0));
+
+  const showedNetworks: string[] = useMemo(() => {
+    return getShowedNetworks(genesisOptions, networkName);
+  }, [networkName, genesisOptions]);
+
+  const accountInfoByNetworkMap = useMemo(() => {
+    return getAccountInfoByNetworkMap(address, showedNetworks, currentAccount?.type);
+  }, [showedNetworks, genesisOptions, address]);
 
   useEffect(() => {
-    let isSync = true;
+    if (!genesisOptions || !genesisOptions.length) {
+      return;
+    }
 
-    (async () => {
-      let selectedNetWork = genesisOptions.find(opt => opt.value == genesisHash);
-      let networkName = Object.keys(networkGenesisHashMap).find(key => !!networkGenesisHashMap[key] && (networkGenesisHashMap[key] === genesisHash));
-      let chains: any[] = [];
-      let mockAddress: string = '';
-      if (isSync) {
-        setLoading(true);
-      }
-      if (currentAccount?.address) {
-        mockAddress = recodeAddress(currentAccount.address, accounts, chain, settings).formatted ? recodeAddress(currentAccount?.address, accounts, chain, settings).formatted : '';
-      }
+    const priceParams: string[] = [];
+    const allNetworks = getShowedNetworks(genesisOptions, 'all');
 
-      if (networkName) {
-        chains.push(networkName);
-      } else if (networkPrefix === -1) {
-        // chains.push('polkadot', 'kusama', 'karura', 'bifrost', 'centrifuge', 'edgeware');
-        chains.push('polkadot', 'kusama', 'karura');
+    allNetworks.forEach(networkName => {
+      if (priceParamByNetworkNameMap[networkName]) {
+        priceParams.push(priceParamByNetworkNameMap[networkName]);
+      }
+    });
+
+    getTokenPrice(priceParams.toString()).then(res => {
+      if (res) {
+        // res.push({'symbol': 'unit', current_price: '1'});
+
+        setTokenPrices(res);
       } else {
-        const mockChains: BalanceInfo[] = [
-          {
-            key: selectedNetWork ? selectedNetWork.text : '',
-            networkName: selectedNetWork?.networkName || '',
-            networkDisplayName: selectedNetWork?.text || '',
-            networkLogo: LogosMap['default'],
-            networkPrefix: selectedNetWork && selectedNetWork.networkPrefix != null ? selectedNetWork.networkPrefix : -1,
-            networkIconTheme: 'substrate',
-            address: mockAddress,
-            childrenBalances: [],
-            symbol: '',
-            totalValue: new BigN(0),
-            balanceValue: new BigN(0),
-            detailBalances: [
-              {
-                key: 'free',
-                label: 'Transferable',
-                symbol: '',
-                totalValue: new BigN(0),
-                balanceValue: new BigN(0),
-              },
-              {
-                key: 'reserved',
-                label: 'Transferable',
-                symbol: '',
-                totalValue: new BigN(0),
-                balanceValue: new BigN(0),
-              },
-              {
-                key: 'locked',
-                label: 'Reserved balance',
-                symbol: '',
-                totalValue: new BigN(0),
-                balanceValue: new BigN(0),
-              },
-              {
-                key: 'frozen',
-                label: 'Frozen fee',
-                symbol: '',
-                totalValue: new BigN(0),
-                balanceValue: new BigN(0),
-              }
-            ]
-          }
-        ];
-        if (isSync) {
-          setChainBalances(mockChains);
-          setLoading(false);
-        }
-        return;
+        setTokenPrices([]);
       }
-      const [chainsInfo, tokenPrice] = await allSkippingErrors([
-        getChainsInfo(),
-        getTokenPrice(chains.map((c) => overriddenChainNames[c] || c).join(','))
-      ]);
+    })
 
-      if (!chainsInfo || !tokenPrice) {
+  }, [genesisOptions]);
+
+  useEffect(() => {
+      if (!tokenPrices || !tokenPrices.length) {
         return;
       }
 
-      const address = currentAccount?.address;
+      const unsubMap: Record<string, any> = {};
+      const syncMap: Record<string, boolean> = {};
 
-      if (!address) {
-        if (isSync) {
-          setChainBalances([]);
-          setLoading(false);
-        }
-
-        return;
-      }
-
-      const chainBalances: BalanceInfo[] = [];
-
-      const chainBalanceApis: Promise<any>[] = chains.map(c => getChainBalanceInfo(address, c));
-      const chainBalanceInfoItems = await allSkippingErrors(chainBalanceApis);
-
-      chainBalanceInfoItems.forEach(item => {
-        if (!item) {
-          return;
-        }
-
-        const chainBalance = parseBalancesInfo(chainsInfo, tokenPrice, item);
-        if (chainBalance) {
-          chainBalances.push(chainBalance);
-        }
+      showedNetworks.forEach(networkName => {
+        syncMap[networkName] = true;
       });
 
-      if (isSync) {
-        setChainBalances(chainBalances);
-        setLoading(false);
-      }
-    })();
+      showedNetworks.forEach(async networkName => {
+        const apiInfo = apisMap[networkName];
 
-    return () => {
-      isSync = false;
+        if (!apiInfo.isApiReady) {
+          await apiInfo.isReady;
+        }
+
+        const {api} = apiInfo;
+
+        unsubMap[networkName] = await api.query.system.account(address, ({data: balance, nonce: nonce, registry}) => {
+          if (syncMap[networkName]) {
+            setChainBalanceMaps(chainBalanceMaps => ({
+              ...chainBalanceMaps,
+              [networkName]: parseBalancesInfo(tokenPrices, {
+                network: networkName,
+                tokenDecimals: registry.chainDecimals,
+                tokenSymbol: registry.chainTokens,
+                info: {
+                  [registry.chainTokens[0]]: {
+                    totalBalance: balance.free.toString(),
+                    freeBalance: balance.free.toString(),
+                    frozenFee: balance.feeFrozen.toString(),
+                    reservedBalance: balance.reserved.toString(),
+                    frozenMisc: balance.miscFrozen.toString(),
+                  }
+                }
+              })
+            }));
+          }
+        });
+      });
+
+      return () => {
+        Object.keys(unsubMap).forEach(networkName => {
+          unsubMap[networkName]();
+        });
+
+        Object.keys(syncMap).forEach(networkName => {
+          syncMap[networkName] = false;
+        });
+
+        setChainBalanceMaps({});
+      }
+    },
+    [tokenPrices, networkName, address]);
+
+  useEffect(() => {
+    let totalValue = new BigN(0);
+
+    Object.keys(chainBalanceMaps).forEach(networkName => {
+      totalValue = totalValue.plus(chainBalanceMaps[networkName].totalValue);
+    });
+
+    setTotalValue(totalValue);
+  }, [chainBalanceMaps]);
+
+  const renderChainBalanceItem = (network: string) => {
+    const info = accountInfoByNetworkMap[network];
+
+    if (chainBalanceMaps[network]) {
+      return (
+        <ChainBalanceItem
+          accountInfo={info} key={info.key}
+          balanceInfo={chainBalanceMaps[network]}
+          setBuyTokenScreenProps={setBuyTokenScreenProps}
+          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+        />
+      );
+    } else {
+      return (
+        <ChainBalancePlaceholderItem
+          accountInfo={info} key={info.key}
+          setBuyTokenScreenProps={setBuyTokenScreenProps}
+          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+        />
+      );
     }
-  }, [currentAccount?.address, chain, genesisHash]);
+  };
 
   const _toggleBuy = useCallback(
-    (): void => {
-      setBuyTokenScreenProps({
-        buyTokenScreenNetworkPrefix: networkPrefix,
-        buyTokenScreenNetworkName: networkName,
-        buyTokenScreenIconTheme: networkIcon
-      });
-      setBuyTokenScreenOpen((isBuyTokenScreenOpen) => !isBuyTokenScreenOpen);
-    },
-    [networkPrefix, networkName, networkIcon]
-  )
+      (): void => {
+        setBuyTokenScreenProps({
+          buyTokenScreenNetworkPrefix: networkPrefix,
+          buyTokenScreenNetworkName: networkName,
+          buyTokenScreenIconTheme: networkIcon
+        });
+        setBuyTokenScreenOpen((isBuyTokenScreenOpen) => !isBuyTokenScreenOpen);
+      },
+      [networkPrefix, networkName, networkIcon]
+  );
 
   const _closeModal = useCallback(
-    (): void => setBuyTokenScreenOpen( false),
-    []
-  )
+      (): void => setBuyTokenScreenOpen(false),
+      []
+  );
 
   return (
-    <>
-      {(hierarchy.length === 0)
-        ? <KoniAddAccount />
-        : (
-          <div className={className}>
-            <KoniHeader
+      <>
+        <div className={className}>
+          <KoniHeader
               showAdd
               showSearch
               showSettings
               text={t<string>('Accounts')}
               isContainDetailHeader={true}
-            />
-            { chainBalances[0] && !isLoading ? (
-                <div className={'kl-l-body'}>
-                  <div className='overview-wrapper'>
-                    <div className='account-balance'>
-                      <span className='account-balance__money'>
-                        <BalanceVal value={chainBalances[0].totalValue} symbol={'$'} startWithSymbol/>
-                      </span>
-                    </div>
+          />
+          <div className={'kl-l-body'}>
+            <div className='overview-wrapper'>
+              <div className='account-balance'>
+                  <span className='account-balance__money'>
+                    <BalanceVal value={totalValue} symbol={'$'} startWithSymbol/>
+                  </span>
+              </div>
 
-                    <div className='account-buttons-wrapper'>
-                      <div className='account-button-container'>
-                        <div className='account-button' onClick={_toggleBuy}>
-                          {theme == 'dark' ?
-                            (
-                              <img src={buyIconDark} alt="buy"/>
-                            ) : (
-                              <img src={buyIconLight} alt="buy"/>
-                            )
-                          }
-                        </div>
-                      </div>
-
-                      <KoniLink to={'/account/send-fund'} className={'account-button-container'}>
-                          <div className='account-button'>
-                            {theme == 'dark' ?
-                              (
-                                <img src={sendIconDark} alt="send"/>
-                              ) : (
-                                <img src={sendIconLight} alt="send"/>
-                              )
-                            }
-                          </div>
-                      </KoniLink>
-
-                      <div className='account-button-container'>
-                        <div className='account-button'>
-                          {theme == 'dark' ?
-                            (
-                              <img src={swapIconDark} alt="swap"/>
-                            ) : (
-                              <img src={swapIconLight} alt="swap"/>
-                            )
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {isBuyTokenScreenOpen && currentAccount && (
-                    <BuyToken
-                      className=''
-                      reference={buyRef}
-                      closeModal={_closeModal}
-                      address={currentAccount.address}
-                      accountType={currentAccount.type}
-                      accountName={currentAccount.name}
-                      networkPrefix={buyTokenScreenNetworkPrefix}
-                      networkName={buyTokenScreenNetworkName}
-                      iconTheme={buyTokenScreenIconTheme}
-                    />
-                  )}
-
-                  <KoniTabs activatedTab={activatedTab} onSelect={setActivatedTab}/>
-
-                  <div className={'kn-l-tab-content-wrapper'}>
-                    {activatedTab === 1 && (
-                      <>
-                        {chainBalances && !!chainBalances.length && (
-                            <div className='kn-l-chains-container'>
-                              <div className="kn-l-chains-container__body">
-                                {chainBalances.map((item) => (
-                                  <ChainBalanceItem
-                                    item={item} key={item.key}
-                                    setBuyTokenScreenProps={setBuyTokenScreenProps}
-                                    setBuyTokenScreenOpen={setBuyTokenScreenOpen}
-                                  />
-                                ))}
-                              </div>
-                              <div className="kn-l-chains-container__footer">
-                                <div>
-                                  <div className="kn-l-chains-container__footer-row-1">
-                                    Don't see your token?
-                                  </div>
-                                  <div className="kn-l-chains-container__footer-row-2">
-                                    <div className="kn-l-chains-container-action">Refresh list</div>
-                                    <span>&nbsp;or&nbsp;</span>
-                                    <div className="kn-l-chains-container-action">import tokens</div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                        )}
-                      </>
-                    )}
-                    {activatedTab === 2 && (
-                      <>
-                        <div className='overview-tab-activity'>NFT</div>
-                      </>
-                    )}
-                    {activatedTab === 3 && (
-                      <>
-                        <div className='overview-tab-activity'>Activity History</div>
-                      </>
-                    )}
+              <div className='account-buttons-wrapper'>
+                <div className='account-button-container'>
+                  <div className='account-button' onClick={_toggleBuy}>
+                    {theme == 'dark' ?
+                        (
+                            <img src={buyIconDark} alt="buy"/>
+                        ) : (
+                            <img src={buyIconLight} alt="buy"/>
+                        )
+                    }
                   </div>
                 </div>
-              ) : <KoniLoading />
-            }
+
+                <KoniLink to={'/account/send-fund'} className={'account-button-container'}>
+                  <div className='account-button'>
+                    {theme == 'dark' ?
+                        (
+                            <img src={sendIconDark} alt="send"/>
+                        ) : (
+                            <img src={sendIconLight} alt="send"/>
+                        )
+                    }
+                  </div>
+                </KoniLink>
+
+                <div className='account-button-container'>
+                  <div className='account-button'>
+                    {theme == 'dark' ?
+                        (
+                            <img src={swapIconDark} alt="swap"/>
+                        ) : (
+                            <img src={swapIconLight} alt="swap"/>
+                        )
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {isBuyTokenScreenOpen && currentAccount && (
+                <BuyToken
+                    className=''
+                    reference={buyRef}
+                    closeModal={_closeModal}
+                    address={address}
+                    accountType={currentAccount.type}
+                    accountName={currentAccount.name}
+                    networkPrefix={buyTokenScreenNetworkPrefix}
+                    networkName={buyTokenScreenNetworkName}
+                    iconTheme={buyTokenScreenIconTheme}
+                />
+            )}
+
+            <KoniTabs activatedTab={activatedTab} onSelect={setActivatedTab}/>
+
+            <div className={'kn-l-tab-content-wrapper'}>
+              {activatedTab === 1 && (
+                  <>
+                    {showedNetworks && (
+                        <div className='kn-l-chains-container'>
+                          <div className="kn-l-chains-container__body">
+                            {showedNetworks.map((item) => renderChainBalanceItem(item))}
+                          </div>
+                          <div className="kn-l-chains-container__footer">
+                            <div>
+                              <div className="kn-l-chains-container__footer-row-1">
+                                Don't see your token?
+                              </div>
+                              <div className="kn-l-chains-container__footer-row-2">
+                                <div className="kn-l-chains-container-action">Refresh list</div>
+                                <span>&nbsp;or&nbsp;</span>
+                                <div className="kn-l-chains-container-action">import tokens</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                    )}
+                  </>
+              )}
+              {activatedTab === 2 && (
+                  <>
+                    <div className='overview-tab-activity'>NFT</div>
+                  </>
+              )}
+              {activatedTab === 3 && (
+                  <>
+                    <div className='overview-tab-activity'>Activity History</div>
+                  </>
+              )}
+            </div>
           </div>
-        )
-      }
-    </>
+        </div>
+      </>
   );
 }
-export default React.memo(styled(KoniAccountOverView)(({theme}: Props) => `
+
+export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -440,6 +466,7 @@ export default React.memo(styled(KoniAccountOverView)(({theme}: Props) => `
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    max-height: 100%;
   }
 
   .kn-l-chains-container__body {

@@ -1,5 +1,6 @@
-import {BackgroundWindow} from "@polkadot/extension-base/background/types";
+import { ApiProps, BackgroundWindow } from '@polkadot/extension-base/background/types';
 import NETWORKS from './networks';
+import { initApi } from '@polkadot/extension-base/background/pDotApi/api';
 
 export * from './api';
 
@@ -25,7 +26,7 @@ function getRpcsMap(): Record<string, string> {
       return;
     }
 
-    result[networkInfo.genesisHash] = networkInfo.provider;
+    result[networkKey] = networkInfo.provider;
   });
 
   return result;
@@ -34,9 +35,19 @@ function getRpcsMap(): Record<string, string> {
 // todo: each network has some rpc urls, think about how to handle those urls
 export const rpcsMap: Record<string, string> = getRpcsMap();
 
+function initapisMap(): Record<string, ApiProps> {
+  const apisMap: Record<string, ApiProps> = {};
+
+  Object.keys(rpcsMap).forEach(networkName => {
+    apisMap[networkName] = initApi(rpcsMap[networkName]);
+  });
+
+  return apisMap;
+}
+
 export function initBackgroundWindow(keyring: any) {
   (window as any as BackgroundWindow).pdotApi = {
     keyring,
-    apisMap: {}
+    apisMap: initapisMap()
   };
 }

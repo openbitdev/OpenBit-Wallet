@@ -1,7 +1,6 @@
 import BigN from "bignumber.js";
 
 export type AccountInfoByChain = {
-  accountId: string
   totalBalance: string
   freeBalance: string
   frozenFee: string
@@ -10,8 +9,10 @@ export type AccountInfoByChain = {
 }
 
 export type AccountInfoItem = {
-  network: string
-  info: Record<string, AccountInfoByChain>
+  network: string;
+  tokenDecimals: number[];
+  tokenSymbol: string[];
+  info: Record<string, AccountInfoByChain>;
 }
 
 export type Info = {
@@ -27,25 +28,27 @@ export type ChainInfo = {
 }
 
 export type BalanceSubInfo = {
-  key: string,
-  label: string,
-  symbol: string,
-  totalValue: BigN,
-  balanceValue: BigN
+  key: string;
+  label: string;
+  symbol: string;
+  totalValue: BigN;
+  balanceValue: BigN;
 }
 
-
-export type BalanceInfo = {
-  key: string,
+export type AccountInfoByNetwork = {
+  key: string;
   networkName: string;
   networkDisplayName: string;
   networkPrefix: number;
-  networkLogo: string,
-  networkIconTheme: string,
-  address: string,
-  symbol: string,
-  totalValue: BigN,
-  balanceValue: BigN,
-  detailBalances: BalanceSubInfo[],
-  childrenBalances: BalanceSubInfo[]
+  networkLogo: string;
+  networkIconTheme: string;
+  address: string;
+}
+
+export type BalanceInfo = {
+  symbol: string;
+  totalValue: BigN;
+  balanceValue: BigN;
+  detailBalances: BalanceSubInfo[];
+  childrenBalances: BalanceSubInfo[];
 }
