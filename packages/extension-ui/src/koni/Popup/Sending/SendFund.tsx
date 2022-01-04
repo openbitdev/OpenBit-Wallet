@@ -142,7 +142,7 @@ function SendFund({className}: Props): React.ReactElement {
         label={t<string>('Send from account')}
         labelExtra={
           <Available
-            label={t<string>('Transferrable')}
+            label={t<string>('Transferable')}
             params={senderId}
           />
         }
@@ -158,7 +158,7 @@ function SendFund({className}: Props): React.ReactElement {
         label={t<string>('Send to address')}
         labelExtra={
           <Available
-            label={t<string>('Transferrable')}
+            label={t<string>('Transferable')}
             params={recipientId}
           />
         }
@@ -179,7 +179,7 @@ function SendFund({className}: Props): React.ReactElement {
             help={t<string>('The full account balance to be transferred, minus the transaction fees')}
             isDisabled
             key={maxTransfer?.toString()}
-            label={t<string>('transferrable minus fees')}
+            label={t<string>('transferable minus fees')}
           />
         )
         : (

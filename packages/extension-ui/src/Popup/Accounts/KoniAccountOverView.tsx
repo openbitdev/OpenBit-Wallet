@@ -1,5 +1,5 @@
 import { Theme, ThemeProps } from '../../types';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import buyIconDark from '../../assets/buy-icon-dark.svg';
 import buyIconLight from '../../assets/buy-icon-light.svg';
@@ -27,6 +27,7 @@ import ChainBalancePlaceholderItem
   from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalancePlaceholderItem';
 import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
 import { getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap } from '@polkadot/extension-ui/util/koni';
+import Tooltip from "@polkadot/extension-ui/koni/react-components/Tooltip";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {apisMap} = bWindow.pdotApi;
@@ -39,6 +40,13 @@ interface Props extends ThemeProps {
   className?: string;
   currentAccount: AccountJson;
   network: CurrentNetworkInfo;
+}
+
+interface OverviewProps {
+  className: string;
+  onClick?: any;
+  children: React.ReactNode;
+  help?: string;
 }
 
 
@@ -105,6 +113,25 @@ function Wrapper({className, theme}: WrapperProps): React.ReactElement {
     currentAccount={currentAccount}
     network={network}
     theme={theme} />);
+}
+
+let tooltipId = 0;
+
+function OverViewButton({className, onClick, children, help}: OverviewProps): React.ReactElement {
+  const [trigger] = useState(() => `overview-btn-${++tooltipId}`);
+
+  return (
+    <>
+      <div className={className} onClick={onClick} data-for={trigger} data-tip={true}>
+        {children}
+      </div>
+      <Tooltip
+        text={help}
+        trigger={trigger}
+      />
+    </>
+
+  );
 }
 
 function KoniAccountOverView({className, currentAccount, network}: Props): React.ReactElement {
@@ -290,19 +317,19 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
 
               <div className='account-buttons-wrapper'>
                 <div className='account-button-container'>
-                  <div className='account-button' onClick={_toggleBuy}>
-                    {theme == 'dark' ?
+                  <OverViewButton className='account-button' onClick={_toggleBuy} help={t<string>('Receive')}>
+                      {theme == 'dark' ?
                         (
-                            <img src={buyIconDark} alt="buy"/>
+                          <img src={buyIconDark} alt="buy"/>
                         ) : (
-                            <img src={buyIconLight} alt="buy"/>
+                          <img src={buyIconLight} alt="buy"/>
                         )
-                    }
-                  </div>
+                      }
+                  </OverViewButton>
                 </div>
 
                 <KoniLink to={'/account/send-fund'} className={'account-button-container'}>
-                  <div className='account-button'>
+                  <OverViewButton className='account-button' help={t<string>('Send')}>
                     {theme == 'dark' ?
                         (
                             <img src={sendIconDark} alt="send"/>
@@ -310,11 +337,11 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                             <img src={sendIconLight} alt="send"/>
                         )
                     }
-                  </div>
+                  </OverViewButton>
                 </KoniLink>
 
                 <div className='account-button-container'>
-                  <div className='account-button'>
+                  <OverViewButton className='account-button' help={t<string>('Swap (coming soon...)')}>
                     {theme == 'dark' ?
                         (
                             <img src={swapIconDark} alt="swap"/>
@@ -322,7 +349,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                             <img src={swapIconLight} alt="swap"/>
                         )
                     }
-                  </div>
+                  </OverViewButton>
                 </div>
               </div>
             </div>
@@ -369,7 +396,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               )}
               {activatedTab === 2 && (
                   <>
-                    <div className='overview-tab-activity'>NFT</div>
+                    <div className='overview-tab-activity tab-nft'>Coming Soon...</div>
                   </>
               )}
               {activatedTab === 3 && (
@@ -494,5 +521,12 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   .kn-l-chains-container-action {
     color: #04C1B7;
     cursor: pointer;
+  }
+
+  .tab-nft {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
   }
 `));
