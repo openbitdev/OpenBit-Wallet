@@ -13120,6 +13120,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"polkadot-explorer@workspace:packages/dotsama-explorer":
+  version: 0.0.0-use.local
+  resolution: "polkadot-explorer@workspace:packages/dotsama-explorer"
+  dependencies:
+    "@polkadot/api": latest
+    "@polkadot/keyring": latest
+    "@polkadot/util": latest
+    requirejs: ^2.3.6
+  languageName: unknown
+  linkType: soft
+
 "popper.js@npm:^1.14.4":
   version: 1.16.1
   resolution: "popper.js@npm:1.16.1"
@@ -14173,7 +14184,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"requirejs@npm:^2.3.5":
+"requirejs@npm:^2.3.5, requirejs@npm:^2.3.6":
   version: 2.3.6
   resolution: "requirejs@npm:2.3.6"
   bin:

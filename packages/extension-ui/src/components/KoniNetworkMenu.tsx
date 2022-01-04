@@ -61,23 +61,25 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
         setFilteredGenesisOption(genesisOptions);
       }
     }
-  }, [filteredNetwork])
+  }, [filteredNetwork, selectedGroup])
 
   const _onChangeFilter = useCallback((filter: string) => {
     setFilteredNetwork(filter);
     onFilter && onFilter(filter);
-  }, [onFilter])
+  }, [])
+
+
 
   const _selectGroup = useCallback(
     (type): void => {
       setSelectedGroup(type);
       if (type && type.length) {
-        setFilteredGenesisOption(filteredGenesisOptions.filter(f => f.group === type));
+        setFilteredGenesisOption(genesisOptions.filter(f => f.group === type && f.text.toLowerCase().includes(filteredNetwork)));
       } else {
-        setFilteredGenesisOption(genesisOptions);
+        setFilteredGenesisOption(genesisOptions.filter(f => f.text.toLowerCase().includes(filteredNetwork)));
       }
     },
-    []
+    [selectedGroup]
   )
 
   return (

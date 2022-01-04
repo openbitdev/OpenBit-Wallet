@@ -9,7 +9,8 @@ import styled from 'styled-components';
 import { AuthUrlInfo } from '@polkadot/extension-base/background/handlers/State';
 
 import useTranslation from '../../hooks/useTranslation';
-import Switch from "@polkadot/extension-ui/components/koni/Switch";
+import HorizontalLabelToggle from "@polkadot/extension-ui/koni/react-components/HorizontalLabelToggle";
+
 
 interface Props extends ThemeProps {
   className?: string;
@@ -30,12 +31,12 @@ function WebsiteEntry ({ className = '', info, toggleAuth, url }: Props): React.
       <div className='url'>
         {url}
       </div>
-      <Switch
-        checked={info.isAllowed}
+      <HorizontalLabelToggle
         checkedLabel={t<string>('allowed')}
-        className='info'
-        onChange={switchAccess}
         uncheckedLabel={t<string>('denied')}
+        value={info.isAllowed}
+        className='info'
+        toggleFunc={switchAccess}
       />
     </div>
   );
@@ -52,6 +53,8 @@ export default styled(WebsiteEntry)(({ theme }: Props) => `
   }
 
   .info {
+    display: flex;
+    align-items: center;
     .lightLabel {
       font-size: 15px;
       line-height: 32px;
