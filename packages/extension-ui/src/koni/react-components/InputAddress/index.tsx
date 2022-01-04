@@ -405,6 +405,7 @@ const ExportedComponent = withMulti(
     height: 100%;
     display: flex;
     align-items: center;
+    border-radius: 8px;
     background-color: ${theme.background};
 
     .ui--KeyPair-icon {

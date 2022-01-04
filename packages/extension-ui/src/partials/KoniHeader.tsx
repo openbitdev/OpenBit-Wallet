@@ -162,7 +162,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   const ellipsisCenterStr = useCallback(
     (str: string | undefined) => {
       if (str && str.length > 35) {
-        return str.substr(0, 5) + '...' + str.substr(str.length-4, str.length)
+        return str.substr(0, 4) + '...' + str.substr(str.length-4, str.length)
       }
       return str;
     },

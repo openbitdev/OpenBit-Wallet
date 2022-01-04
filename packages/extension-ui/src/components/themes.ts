@@ -161,7 +161,9 @@ export function chooseTheme (): AvailableThemes {
       : 'light';
   }
 
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
-    ? 'light'
-    : 'dark';
+  // return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+  //   ? 'light'
+  //   : 'dark';
+
+  return 'dark';
 }

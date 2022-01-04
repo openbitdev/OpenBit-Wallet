@@ -45,7 +45,7 @@ function ChainBalancePlaceholderItem({accountInfo, className, setBuyTokenScreenO
   const toShortAddress = (_address: string, halfLength?: number) => {
     const address = (_address || '').toString();
 
-    const addressLength = halfLength ? halfLength : 7;
+    const addressLength = halfLength ? halfLength : 4;
 
     return address.length > 13 ? `${address.slice(0, addressLength)}…${address.slice(-addressLength)}` : address;
   };
@@ -110,7 +110,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   .kn-chain-balance-item__main-area-part-2 {
     position: relative;
     min-width: 80px;
-    
+
     .loader.loader {
       width: 32px;
       height: 32px;
@@ -150,6 +150,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
     flex: 1;
     margin-right: 12px;
     font-family: ${theme.fontFamilyRegular};
+    min-width: 130px;
   }
 
   .kn-chain-balance-item__copy {

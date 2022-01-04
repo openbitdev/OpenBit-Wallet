@@ -370,12 +370,6 @@ export default styled(KoniAddress)(({ theme }: ThemeProps) => `
     align-items: center;
   }
 
-  img {
-    max-width: 50px;
-    max-height: 50px;
-    border-radius: 50%;
-  }
-
   .name {
     font-size: 15px;
     line-height: 24px;
