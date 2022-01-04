@@ -341,7 +341,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                 </KoniLink>
 
                 <div className='account-button-container'>
-                  <OverViewButton className='account-button' help={t<string>('Swap (coming soon...)')}>
+                  <OverViewButton className='account-button' help={t<string>('Swap')}>
                     {theme == 'dark' ?
                         (
                             <img src={swapIconDark} alt="swap"/>

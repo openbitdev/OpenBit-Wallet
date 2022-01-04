@@ -52,7 +52,7 @@ function ChainBalanceItem({accountInfo, balanceInfo, className, setBuyTokenScree
   const toShortAddress = (_address: string, halfLength?: number) => {
     const address = (_address || '').toString();
 
-    const addressLength = halfLength ? halfLength : 4;
+    const addressLength = halfLength ? halfLength : 6;
 
     return address.length > 13 ? `${address.slice(0, addressLength)}…${address.slice(-addressLength)}` : address;
   };
@@ -184,7 +184,7 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
     flex: 1;
     margin-right: 12px;
     font-family: ${theme.fontFamilyRegular};
-    min-width: 130px;
+    min-width: 112px;
   }
 
   .kn-chain-balance-item__copy {
