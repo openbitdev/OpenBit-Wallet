@@ -90,7 +90,7 @@ function KoniSettings({className}: Props): React.ReactElement {
         <KoniHeader
           showBackArrow
           showSubHeader
-          subHeaderName='Setting'
+          subHeaderName={t<string>('Setting')}
         />
         <MenuItem
           className='setting'

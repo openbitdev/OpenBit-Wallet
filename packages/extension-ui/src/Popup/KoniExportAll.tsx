@@ -69,7 +69,7 @@ function KoniExportAll ({ className }: Props): React.ReactElement<Props> {
       <KoniHeader
         showBackArrow
         showSubHeader
-        subHeaderName='All account'
+        subHeaderName={t<string>('All account')}
       />
       <div className={className}>
         <div className='actionArea'>

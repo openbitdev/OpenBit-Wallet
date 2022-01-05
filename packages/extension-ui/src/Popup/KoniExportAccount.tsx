@@ -70,8 +70,7 @@ function KoniExportAccount ({ className, match: { params: { address } } }: Props
       <KoniHeader
         showBackArrow
         showSubHeader
-        subHeaderName='Export account'
-        text={t<string>('Export account')}
+        subHeaderName={t<string>('Export account')}
       />
       <div className={className}>
         <KoniAccountInfo address={address}>

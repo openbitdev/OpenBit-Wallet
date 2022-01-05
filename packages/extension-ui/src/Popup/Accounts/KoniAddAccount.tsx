@@ -28,7 +28,7 @@ function AddAccount ({ className }: Props): React.ReactElement<Props> {
         showSettings
         showSubHeader
         isNotHaveAccount
-        subHeaderName='Add Account'
+        subHeaderName={t<string>("Add Account")}
       />
       <div className={className}>
         <div className='koni-add-account-image-wrapper'>

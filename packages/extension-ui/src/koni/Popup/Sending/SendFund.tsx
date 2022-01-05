@@ -53,7 +53,7 @@ function Wrapper(props: Props): React.ReactElement<Props> {
         showSearch
         showSettings
         showSubHeader
-        subHeaderName={'Send fund'}
+        subHeaderName={t<string>('Send fund')}
         showCancelButton
       />
 

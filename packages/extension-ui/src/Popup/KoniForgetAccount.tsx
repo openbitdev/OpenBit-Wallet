@@ -56,7 +56,7 @@ function KoniForgetAccount ({ className, match: { params: { address } } }: Props
     <>
       <KoniHeader
         showSubHeader
-        subHeaderName='Forget Account'
+        subHeaderName={t<string>('Forget Account')}
       />
       <div className={className}>
         <KoniAccountInfo address={address}>

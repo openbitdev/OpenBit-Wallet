@@ -43,7 +43,7 @@ function AuthManagement ({ className }: Props): React.ReactElement<Props> {
       <KoniHeader
         showBackArrow
         showSubHeader
-        subHeaderName='Manage Website Access'
+        subHeaderName={t<string>('Manage Website Access')}
         smallMargin
       />
       <>
