@@ -61,6 +61,8 @@ interface Props extends ThemeProps {
   showCancelButton?: boolean;
   isWelcomeScreen?: boolean;
   isNotHaveAccount?: boolean;
+  isShowZeroBalance?: boolean;
+  toggleZeroBalance?: () => void;
 }
 
 interface Recoded {
@@ -100,7 +102,7 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
 
 const defaultRecoded = { formatted: null, prefix: 42 };
 
-function KoniHeader({children, className = '', showBackArrow, showSubHeader, subHeaderName, showCancelButton, smallMargin = false, isContainDetailHeader, isWelcomeScreen, isNotHaveAccount}: Props): React.ReactElement<Props> {
+function KoniHeader({children, className = '', showBackArrow, showSubHeader, subHeaderName, showCancelButton, smallMargin = false, isContainDetailHeader, isWelcomeScreen, isNotHaveAccount, isShowZeroBalance, toggleZeroBalance}: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [isSettingsOpen, setShowSettings] = useState(false);
   const [isActionOpen, setShowAccountAction] = useState(false);
@@ -162,7 +164,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   const ellipsisCenterStr = useCallback(
     (str: string | undefined) => {
       if (str && str.length > 35) {
-        return str.substr(0, 4) + '...' + str.substr(str.length-4, str.length)
+        return str.substr(0, 6) + '...' + str.substr(str.length-6, str.length)
       }
       return str;
     },
@@ -175,6 +177,14 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
       setShowAccountAction(false);
     },
     [isEditing]
+  );
+
+  const _toggleZeroBalance = useCallback(
+    (): void => {
+      toggleZeroBalance && toggleZeroBalance();
+      setShowAccountAction(false);
+    },
+    [toggleZeroBalance]
   );
 
   const _saveChanges = useCallback(
@@ -353,7 +363,12 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
               </div>
 
               {isActionOpen && (
-                <KoniAccountAction reference={actionsRef} toggleEdit={_toggleEdit}/>
+                <KoniAccountAction
+                  reference={actionsRef}
+                  toggleEdit={_toggleEdit}
+                  isShowZeroBalance={isShowZeroBalance}
+                  toggleZeroBalance={toggleZeroBalance ? _toggleZeroBalance : undefined}
+                />
               )}
             </div>
           )

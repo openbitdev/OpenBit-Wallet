@@ -131,6 +131,8 @@ function SendFund({className}: Props): React.ReactElement {
     : true;
   const canToggleAll = !isProtected && balances && balances.accountId.eq(senderId) && maxTransfer && noReference;
 
+  const amountGtAvailableBalance = amount && balances && amount.gt(balances.availableBalance);
+
   return (
     <div className={`${className} -main-content`}>
       <InputAddress
@@ -152,7 +154,7 @@ function SendFund({className}: Props): React.ReactElement {
       <InputAddress
         withEllipsis
         className={'kn-field -field-2'}
-        // defaultValue={propRecipientId}
+        autoPrefill={false}
         help={t<string>('Select a contact or paste the address you want to send funds to.')}
         // isDisabled={!!propRecipientId}
         label={t<string>('Send to address')}
@@ -194,6 +196,11 @@ function SendFund({className}: Props): React.ReactElement {
               maxValue={maxTransfer}
               onChange={setAmount}
             />
+            {amountGtAvailableBalance && (
+              <KoniWarning isDanger className={'kn-l-warning'}>
+                {t<string>('The amount you want to transfer is greater than your available balance.')}
+              </KoniWarning>
+            )}
             <InputBalance
               className={'kn-field -field-4'}
               defaultValue={api.consts.balances.existentialDeposit}
@@ -229,12 +236,12 @@ function SendFund({className}: Props): React.ReactElement {
         </div>
       )}
       {!isProtected && !noReference && (
-        <KoniWarning class={'kn-l-warning'}>
+        <KoniWarning className={'kn-l-warning'}>
           {t<string>('There is an existing reference count on the sender account. As such the account cannot be reaped from the state.')}
         </KoniWarning>
       )}
-      {noFees && (
-        <KoniWarning class={'kn-l-warning'}>
+      {!amountGtAvailableBalance && noFees && (
+        <KoniWarning className={'kn-l-warning'}>
           {t<string>('The transaction, after application of the transfer fees, will drop the available balance below the existential deposit. As such the transfer will fail. The account needs more free funds to cover the transaction fees.')}
         </KoniWarning>
       )}
@@ -243,7 +250,7 @@ function SendFund({className}: Props): React.ReactElement {
         <TxButton
           className={'kn-submit-btn'}
           accountId={senderId}
-          isDisabled={!hasAvailable || !(recipientId) || !amount || !!recipientPhish}
+          isDisabled={!hasAvailable || !(recipientId) || !amount || amountGtAvailableBalance || !!recipientPhish}
           label={t<string>('Make Transfer')}
           params={
             canToggleAll && isAll
@@ -327,6 +334,7 @@ export default React.memo(styled(Wrapper)(({theme}: Props) => `
 
   .kn-l-warning {
     margin-top: 10px;
+    margin-bottom: 10px;
   }
 
   .kn-l-submit-wrapper {

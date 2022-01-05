@@ -1,5 +1,5 @@
 import { Theme, ThemeProps } from '../../types';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import styled, { ThemeContext } from 'styled-components';
 import buyIconDark from '../../assets/buy-icon-dark.svg';
 import buyIconLight from '../../assets/buy-icon-light.svg';
@@ -26,7 +26,7 @@ import { KeypairType } from '@polkadot/util-crypto/types';
 import ChainBalancePlaceholderItem
   from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalancePlaceholderItem';
 import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
-import { getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap } from '@polkadot/extension-ui/util/koni';
+import {BN_ZERO, getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap} from '@polkadot/extension-ui/util/koni';
 import Tooltip from "@polkadot/extension-ui/koni/react-components/Tooltip";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
@@ -134,6 +134,14 @@ function OverViewButton({className, onClick, children, help}: OverviewProps): Re
   );
 }
 
+function isAllowToShow(isShowZeroBalance: boolean, currentNetworkName: string, network: string, chainBalance?: BalanceInfo): boolean {
+  if (currentNetworkName !== 'all' || ['polkadot', 'kusama'].includes(network)) {
+    return true;
+  }
+
+  return isShowZeroBalance || !!(chainBalance && chainBalance.balanceValue.gt(BN_ZERO));
+}
+
 function KoniAccountOverView({className, currentAccount, network}: Props): React.ReactElement {
   const {t} = useTranslation();
   const {address} = currentAccount;
@@ -154,6 +162,9 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
   });
   const [tokenPrices, setTokenPrices] = useState<any[]>([]);
   const [totalValue, setTotalValue] = useState<BigN>(new BigN(0));
+  const [isShowZeroBalance, setShowZeroBalance] = useState<boolean>(
+    window.localStorage.getItem('show_zero_balance') === '1'
+  );
 
   const showedNetworks: string[] = useMemo(() => {
     return getShowedNetworks(genesisOptions, networkName);
@@ -179,7 +190,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
 
     getTokenPrice(priceParams.toString()).then(res => {
       if (res) {
-        // res.push({'symbol': 'unit', current_price: '1'});
+        res.push({'symbol': 'unit', current_price: '1'});
 
         setTokenPrices(res);
       } else {
@@ -212,23 +223,40 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
 
         unsubMap[networkName] = await api.query.system.account(address, ({data: balance, nonce: nonce, registry}) => {
           if (syncMap[networkName]) {
-            setChainBalanceMaps(chainBalanceMaps => ({
-              ...chainBalanceMaps,
-              [networkName]: parseBalancesInfo(tokenPrices, {
-                network: networkName,
-                tokenDecimals: registry.chainDecimals,
-                tokenSymbol: registry.chainTokens,
-                info: {
-                  [registry.chainTokens[0]]: {
-                    totalBalance: balance.free.toString(),
-                    freeBalance: balance.free.toString(),
-                    frozenFee: balance.feeFrozen.toString(),
-                    reservedBalance: balance.reserved.toString(),
-                    frozenMisc: balance.miscFrozen.toString(),
-                  }
+            setChainBalanceMaps(chainBalanceMaps => {
+
+              let info = {
+                [registry.chainTokens[0]]: {
+                  totalBalance: balance.free.toString(),
+                  freeBalance: balance.free.toString(),
+                  frozenFee: balance.feeFrozen.toString(),
+                  reservedBalance: balance.reserved.toString(),
+                  frozenMisc: balance.miscFrozen.toString(),
                 }
-              })
-            }));
+              };
+              //
+              // if (['unit', 'bsx', 'aca'].includes(registry.chainTokens[0].toLowerCase())) {
+              //   info = {
+              //     [registry.chainTokens[0]]: {
+              //       totalBalance: '1000000000000000',
+              //       freeBalance: '10000000000000000',
+              //       frozenFee: balance.feeFrozen.toString(),
+              //       reservedBalance: balance.reserved.toString(),
+              //       frozenMisc: balance.miscFrozen.toString(),
+              //     }
+              //   }
+              // }
+
+              return {
+                ...chainBalanceMaps,
+                [networkName]: parseBalancesInfo(tokenPrices, {
+                  network: networkName,
+                  tokenDecimals: registry.chainDecimals,
+                  tokenSymbol: registry.chainTokens,
+                  info
+                })
+              }
+            });
           }
         });
       });
@@ -257,29 +285,6 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
     setTotalValue(totalValue);
   }, [chainBalanceMaps]);
 
-  const renderChainBalanceItem = (network: string) => {
-    const info = accountInfoByNetworkMap[network];
-
-    if (chainBalanceMaps[network]) {
-      return (
-        <ChainBalanceItem
-          accountInfo={info} key={info.key}
-          balanceInfo={chainBalanceMaps[network]}
-          setBuyTokenScreenProps={setBuyTokenScreenProps}
-          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
-        />
-      );
-    } else {
-      return (
-        <ChainBalancePlaceholderItem
-          accountInfo={info} key={info.key}
-          setBuyTokenScreenProps={setBuyTokenScreenProps}
-          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
-        />
-      );
-    }
-  };
-
   const _toggleBuy = useCallback(
       (): void => {
         setBuyTokenScreenProps({
@@ -297,6 +302,44 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
       []
   );
 
+  const _toggleZeroBalance = useCallback(
+    (): void => {
+      setShowZeroBalance(v => {
+        window.localStorage.setItem('show_zero_balance', v ? '0' : '1');
+        return !v;
+      });
+    },
+    []
+  );
+
+  const renderChainBalanceItem = (network: string) => {
+    const info = accountInfoByNetworkMap[network];
+    const balanceInfo = chainBalanceMaps[network];
+
+    if (!isAllowToShow(isShowZeroBalance, networkName, network, balanceInfo)) {
+      return (<Fragment key={info.key} />)
+    }
+
+    if (balanceInfo) {
+      return (
+        <ChainBalanceItem
+          accountInfo={info} key={info.key}
+          balanceInfo={balanceInfo}
+          setBuyTokenScreenProps={setBuyTokenScreenProps}
+          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+        />
+      );
+    } else {
+      return (
+        <ChainBalancePlaceholderItem
+          accountInfo={info} key={info.key}
+          setBuyTokenScreenProps={setBuyTokenScreenProps}
+          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+        />
+      );
+    }
+  };
+
   return (
       <>
         <div className={className}>
@@ -304,6 +347,8 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               showAdd
               showSearch
               showSettings
+              isShowZeroBalance={isShowZeroBalance}
+              toggleZeroBalance={_toggleZeroBalance}
               text={t<string>('Accounts')}
               isContainDetailHeader={true}
           />

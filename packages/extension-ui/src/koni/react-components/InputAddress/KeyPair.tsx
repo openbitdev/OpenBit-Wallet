@@ -17,7 +17,7 @@ interface Props {
   style?: Record<string, string>;
 }
 
-function getShortenText(text: string, cut?: number =  6) {
+function getShortenText(text: string, cut: number =  6) {
   return `${text.slice(0, cut)}…${text.slice(-cut)}`;
 }
 

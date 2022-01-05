@@ -1,20 +1,25 @@
 // Copyright 2017-2021 @polkadot/react-components authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { KeyringOption$Type, KeyringOptions, KeyringSectionOption, KeyringSectionOptions } from '@polkadot/ui-keyring/options/types';
-import type { Option } from './types';
+import type {
+  KeyringOption$Type,
+  KeyringOptions,
+  KeyringSectionOption,
+  KeyringSectionOptions
+} from '@polkadot/ui-keyring/options/types';
+import type {Option} from './types';
 
 import React from 'react';
 import store from 'store';
 import styled from 'styled-components';
 
-import { withMulti, withObservable } from '../../react-api/hoc';
-import { createOptionItem } from '@polkadot/ui-keyring/options/item';
-import { isNull, isUndefined } from '@polkadot/util';
+import {withMulti, withObservable} from '../../react-api/hoc';
+import {createOptionItem} from '@polkadot/ui-keyring/options/item';
+import {isNull, isUndefined} from '@polkadot/util';
 
 import Dropdown from '../Dropdown';
 import Static from '../Static';
-import { getAddressName, toAddress } from '../util';
+import {toAddress} from '../util';
 import createHeader from './createHeader';
 import createItem from './createItem';
 import {BackgroundWindow} from "@polkadot/extension-base/background/types";
@@ -32,7 +37,7 @@ interface Props {
   isDisabled?: boolean;
   isError?: boolean;
   isInput?: boolean;
-  isMultiple?: boolean;
+  autoPrefill?: boolean;
   label?: React.ReactNode;
   labelExtra?: React.ReactNode;
   onChange?: (value: string | null) => void;
@@ -58,7 +63,6 @@ interface State {
 
 const STORAGE_KEY = 'options:InputAddress';
 const DEFAULT_TYPE = 'all';
-const MULTI_DEFAULT: string[] = [];
 
 function transformToAddress (value?: string | Uint8Array | null): string | null {
   try {
@@ -137,7 +141,7 @@ class InputAddress extends React.PureComponent<Props, State> {
   }
 
   public override render (): React.ReactNode {
-    const { className = '', defaultValue, help, hideAddress = false, isDisabled = false, isError, isMultiple, label, labelExtra, options, optionsAll, placeholder, type = DEFAULT_TYPE, withEllipsis, withLabel } = this.props;
+    const { className = '', defaultValue, help, hideAddress = false, isDisabled = false, isError, label, labelExtra, options, optionsAll, placeholder, type = DEFAULT_TYPE, withEllipsis, withLabel, autoPrefill = true } = this.props;
 
     const hasOptions = (options && options.length !== 0) || (optionsAll && Object.keys(optionsAll[type]).length !== 0);
 
@@ -171,7 +175,7 @@ class InputAddress extends React.PureComponent<Props, State> {
       : isDisabled && actualValue
         ? [createOption(actualValue)]
         : this.getFiltered();
-    const _defaultValue = (isMultiple || !isUndefined(value))
+    const _defaultValue = ((!autoPrefill && !isDisabled) || !isUndefined(value))
       ? undefined
       : actualValue;
 
@@ -182,41 +186,19 @@ class InputAddress extends React.PureComponent<Props, State> {
         help={help}
         isDisabled={isDisabled}
         isError={isError}
-        isMultiple={isMultiple}
         label={label}
         labelExtra={labelExtra}
         dropdownClassName='ui--AddressSearch'
-        onChange={
-          isMultiple
-            ? this.onChangeMulti
-            : this.onChange
-        }
+        onChange={this.onChange}
         onSearch={this.onSearch}
         options={actualOptions}
         placeholder={placeholder}
-        renderLabel={
-          isMultiple
-            ? this.renderLabel
-            : undefined
-        }
-        value={
-          isMultiple && !value
-            ? MULTI_DEFAULT
-            : value
-        }
+        value={value}
         withEllipsis={withEllipsis}
         withLabel={withLabel}
       />
     );
   }
-
-  private renderLabel = ({ value }: KeyringSectionOption): React.ReactNode => {
-    if (!value) {
-      return undefined;
-    }
-
-    return getAddressName(value);
-  };
 
   private getLastOptionValue (): KeyringSectionOption | undefined {
     const available = this.getFiltered();
@@ -248,18 +230,6 @@ class InputAddress extends React.PureComponent<Props, State> {
         ? transformToAccountId(address)
         : null
     );
-  };
-
-  private onChangeMulti = (addresses: string[]): void => {
-    const { onChangeMulti } = this.props;
-
-    if (onChangeMulti) {
-      onChangeMulti(
-        addresses
-          .map(transformToAccountId)
-          .filter((address) => address as string) as string[]
-      );
-    }
   };
 
   private onSearch = (filteredOptions: KeyringSectionOptions, _query: string): KeyringSectionOptions => {
@@ -311,7 +281,7 @@ const ExportedComponent = withMulti(
 
   > label, .labelExtra {
     position: relative;
-    z-index: 3;
+    z-index: 4;
   }
 
   > label {
@@ -389,6 +359,19 @@ const ExportedComponent = withMulti(
     &.filtered {
       display: none;
     }
+
+    &:before {
+      content: '';
+      height: 42px;
+      width: 42px;
+      display: block;
+      position: absolute;
+      z-index: -1;
+      top: 10px;
+      left: 10px;
+      border-radius: 100%;
+      background: ${theme.backgroundAccountAddress};
+    }
   }
 
   .ui--KeyPair {
@@ -433,7 +416,6 @@ const ExportedComponent = withMulti(
   }
 
   .ui--AddressSearch.visible {
-    background: ${theme.background};
     z-index: 3;
 
     > .text {

@@ -41,14 +41,13 @@ function KoniLink ({ children, className = '', isDisabled, onClick, title, to }:
       </RouterLink>
     )
     : (
-      <a
+      <span
         className={className}
-        href='#'
         onClick={onClick}
         title={title}
       >
         {children}
-      </a>
+      </span>
     );
 }
 
@@ -59,6 +58,7 @@ export default styled(KoniLink)(({ isDanger, theme }: Props & ThemeProps) => `
   opacity: 0.85;
   text-decoration: none;
   vertical-align: middle;
+  cursor: pointer;
 
   &:hover {
     color: ${isDanger ? theme.textColor3 : theme.textColor};

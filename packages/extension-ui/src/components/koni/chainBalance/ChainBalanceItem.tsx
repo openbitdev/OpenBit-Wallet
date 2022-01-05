@@ -184,7 +184,7 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
     flex: 1;
     margin-right: 12px;
     font-family: ${theme.fontFamilyRegular};
-    min-width: 112px;
+    min-width: 130px;
   }
 
   .kn-chain-balance-item__copy {
