@@ -67,6 +67,7 @@ export default React.memo(styled(KoniHeaderWithSteps)(({ theme }: Props) => `
     font-size: 20px;
     line-height: 30px;
     color: ${theme.textColor};
+    font-weight: 500;
   }
 
   .koni-header-with-steps-left-content {

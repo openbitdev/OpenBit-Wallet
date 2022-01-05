@@ -244,7 +244,7 @@ export default React.memo(styled(AccountMenuSettings)(({ theme }: Props) => `
   .logoText {
     font-size: 20px;
     line-height: 32px;
-    font-weight: 700;
+    font-weight: 500;
     color: ${theme.textColor};
   }
 
@@ -327,7 +327,7 @@ export default React.memo(styled(AccountMenuSettings)(({ theme }: Props) => `
       line-height: 30px;
       color: ${theme.textColor2};
       > span {
-        font-family: ${theme.fontFamilyRegular};
+        font-weight: 400;
       }
     }
   }

@@ -49,7 +49,7 @@ export default styled(WebsiteEntry)(({ theme }: Props) => `
   .url{
     flex: 1;
     color: ${theme.manageWebsiteAccessColor};
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
   }
 
   .info {

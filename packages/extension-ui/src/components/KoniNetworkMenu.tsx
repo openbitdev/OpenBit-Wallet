@@ -146,7 +146,7 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
     align-items: center;
     font-size: 20px;
     line-height: 32px;
-    font-weight: 700;
+    font-weight: 500;
     border-bottom: 1px solid ${theme.inputBorderColor};
   }
 

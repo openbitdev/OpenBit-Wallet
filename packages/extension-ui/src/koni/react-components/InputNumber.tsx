@@ -328,6 +328,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
   > label {
     font-size: 15px;
     line-height: 24px;
+    font-weight: 400
   }
 
   .ui--Input > input {
@@ -367,7 +368,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
   }
 
   .ui--SiDropdown > .text {
-    font-weight: 700;
+    font-weight: 500;
     color: ${theme.textColor};
   }
 
@@ -420,7 +421,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
   .ui--SiDropdown .menu .item.selected {
     background: rgba(0,0,0,.03);
     color: ${theme.textColor};
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .ui--SiDropdown .menu .item:hover {

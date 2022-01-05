@@ -13,7 +13,7 @@ import { xxhashAsHex } from '@polkadot/util-crypto';
 import {ActionStatus} from "@polkadot/extension-ui/koni/react-components/Status/types";
 import {Status as StatusDisplay, StatusContext} from "@polkadot/extension-ui/koni/react-components";
 import {useApi, useCall} from "@polkadot/extension-ui/koni/react-hooks";
-import {useTranslation} from "react-i18next";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import {AccountContext} from "@polkadot/extension-ui/components";
 
 interface Props {

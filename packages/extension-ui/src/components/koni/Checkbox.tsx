@@ -55,7 +55,7 @@ export default styled(Checkbox)(({ theme }: ThemeProps) => `
     color: ${theme.textColor2};
     font-size: ${theme.fontSize2};
     line-height: ${theme.lineHeight2};
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
 
     & input {
       position: absolute;

@@ -52,7 +52,7 @@ export default React.memo(styled(KoniWarning)<Props>(({ isDanger, theme }: Props
     font-size: 15px;
     line-height: 24px;
     align-items: center;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     color: ${theme.textColor};
   }
 

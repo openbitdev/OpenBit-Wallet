@@ -4,7 +4,7 @@ import React, {useContext, useEffect, useState} from "react";
 import styled from "styled-components";
 import {InputAddress, Toggle} from "@polkadot/extension-ui/koni/react-components";
 import {Available} from "@polkadot/extension-ui/koni/react-query";
-import {useTranslation} from "react-i18next";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
 import InputBalance from "@polkadot/extension-ui/koni/react-components/InputBalance";
 import {useApi, useCall} from "@polkadot/extension-ui/koni/react-hooks";

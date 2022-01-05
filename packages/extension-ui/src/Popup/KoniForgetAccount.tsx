@@ -98,7 +98,7 @@ export default withRouter(styled(KoniForgetAccount)(({ theme }: Props) => `
     margin: auto;
     > span {
       color: ${theme.textColor3};
-      font-weight: 700;
+      font-weight: 500;
       font-size: 16px;
       line-height: 26px;
     }

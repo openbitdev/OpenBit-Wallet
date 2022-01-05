@@ -333,7 +333,7 @@ const ExportedComponent = withMulti(
   }
 
   .ui--FormatBalance {
-    font-weight: 700;
+    font-weight: 500;
     font-size: 15px;
     color: ${theme.textColor};
   }
@@ -424,11 +424,12 @@ const ExportedComponent = withMulti(
       flex: 1;
       font-size: 18px;
       color: ${theme.textColor};
-      font-weight: 700;
+      font-weight: 500;
     }
 
     .address {
       color: ${theme.textColor2};
+      font-weight: 400
     }
   }
 
@@ -473,7 +474,7 @@ const ExportedComponent = withMulti(
     padding: 8px 16px;
     text-transform: uppercase;
     color: ${theme.textColor};
-    font-weight: 700;
+    font-weight: 500;
     background-color: ${theme.background};
   }
 
@@ -490,7 +491,7 @@ const ExportedComponent = withMulti(
   .ui--AddressSearch .menu .item.selected {
     background: ${theme.backgroundAccountAddress};
     color: ${theme.textColor};
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .ui--AddressSearch .menu .item:hover {
@@ -506,6 +507,7 @@ const ExportedComponent = withMulti(
 
     .ui--KeyPair-icon {
       min-width: 24px;
+      width: 24px;
       height: 24px;
       margin-right: 16px;
     }
@@ -518,7 +520,7 @@ const ExportedComponent = withMulti(
   .ui--AddressSearch .menu .item.selected {
     .ui--KeyPair .name {
       color: ${theme.textColor2};
-      font-weight: 700;
+      font-weight: 500;
     }
   }
 

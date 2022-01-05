@@ -50,6 +50,7 @@ import SendFund from "@polkadot/extension-ui/koni/Popup/Sending/SendFund";
 import Queue from "@polkadot/extension-ui/koni/react-components/Status/Queue";
 import StatusWrapper from "@polkadot/extension-ui/koni/react-components/StatusWrapper";
 import Signer from "@polkadot/extension-ui/koni/Popup/Sending/Signer";
+import SendFundStatus from "@polkadot/extension-ui/koni/Popup/Sending/SendFundStatus";
 
 const startSettings = uiSettings.get();
 
@@ -216,6 +217,7 @@ export default function Popup (): React.ReactElement {
                             <Route path='/account/derive/:address/locked'>{wrapWithErrorBoundary(<Derive isLocked />, 'derived-address-locked')}</Route>
                             <Route path='/account/derive/:address'>{wrapWithErrorBoundary(<Derive />, 'derive-address')}</Route>
                             <Route path='/account/send-fund'>{wrapWithErrorBoundary(<Signer><SendFund /></Signer>, 'send-fund')}</Route>
+                            <Route path='/account/send-fund-status'>{wrapWithErrorBoundary(<SendFundStatus />, 'send-fund-status')}</Route>
                             <Route path={`${PHISHING_PAGE_REDIRECT}/:website`}>{wrapWithErrorBoundary(<PhishingDetected />, 'phishing-page-redirect')}</Route>
                             <Route
                               exact

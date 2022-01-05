@@ -246,7 +246,7 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     &__text {
       font-size: 18px;
       line-height: 30px;
-      font-weight: 700;
+      font-weight: 500;
       margin-right: 5px;
       max-width: 200px;
       text-overflow: ellipsis;
@@ -308,7 +308,7 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     &__text {
       font-size: 16px;
       line-height: 26px;
-      font-weight: 700;
+      font-weight: 500;
       color: ${theme.buttonTextColor2};
     }
   }

@@ -31,6 +31,7 @@ export default styled(Main)(({ theme }: ThemeProps) => `
 
   * {
     font-family: ${theme.fontFamily};
+    font-weight: 400;
   }
 
   // > * {

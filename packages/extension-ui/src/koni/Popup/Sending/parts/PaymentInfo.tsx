@@ -79,7 +79,7 @@ function PaymentInfo ({ accountId, className = '', extrinsic }: Props): React.Re
 export default React.memo(styled(Wrapper)(({ theme }: ThemeProps) => `
   .kn-l-fee-info {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 500;
     color: ${theme.textColor};
   }
 
