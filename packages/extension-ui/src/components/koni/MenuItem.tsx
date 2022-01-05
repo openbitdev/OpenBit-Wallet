@@ -38,7 +38,7 @@ export default styled(MenuItem)(({ theme }: ThemeProps) => `
     letter-spacing: 0.03em;
     text-transform: uppercase;
     color: ${theme.textColor2};
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 500;
   }
 
   // &+&.isTitled {

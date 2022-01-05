@@ -131,7 +131,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   }
 
   .kn-chain-balance-item__chain-name {
-    font-weight: 700;
+    font-weight: 500;
     font-size: 18px;
   }
 
@@ -149,7 +149,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   .kn-chain-balance-item__address-text {
     flex: 1;
     margin-right: 12px;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     min-width: 130px;
   }
 
@@ -183,7 +183,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   }
 
   .kn-balance-val {
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .kn-chain-balance-item__separator {

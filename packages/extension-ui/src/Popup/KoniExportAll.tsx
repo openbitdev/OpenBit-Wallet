@@ -124,7 +124,7 @@ export default withRouter(styled(KoniExportAll)(({ theme }: Props) => `
     margin-top: 10px;
     > span {
       color: ${theme.textColor3};
-      font-weight: 700;
+      font-weight: 500;
       font-size: 16px;
       line-height: 26px;
     }

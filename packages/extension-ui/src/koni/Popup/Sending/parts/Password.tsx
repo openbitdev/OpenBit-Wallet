@@ -7,7 +7,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import styled from 'styled-components';
 
 
-import {useTranslation} from "react-i18next";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import Password from "@polkadot/extension-ui/koni/react-components/Password";
 import {Toggle} from "@polkadot/extension-ui/koni/react-components";
 import {BackgroundWindow} from "@polkadot/extension-base/background/types";

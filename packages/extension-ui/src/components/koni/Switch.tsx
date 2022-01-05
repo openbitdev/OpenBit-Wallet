@@ -81,17 +81,17 @@ export default styled(Switch)(({ theme }: ThemeProps) => `
   }
 
   .lightLabel {
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     color: ${theme.labelLightThemeColor};
-    font-weight: 700;
+    font-weight: 500;
     font-size: 18px;
     line-height: 30px;
   }
 
   .darkLabel {
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     color: ${theme.labelDarkThemeColor};
-    font-weight: 700;
+    font-weight: 500;
     font-size: 18px;
     line-height: 30px;
   }

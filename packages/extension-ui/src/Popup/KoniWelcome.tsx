@@ -67,7 +67,7 @@ export default styled(KoniWelcome)(({ theme }: Props) => `
     font-size: 32px;
     line-height: 44px;
     color: ${theme.textColor};
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .welcome-subtitle {

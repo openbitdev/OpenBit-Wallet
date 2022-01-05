@@ -68,7 +68,7 @@ export default React.memo(styled(KoniDropdown)(({ isError, label, theme }: Props
   label {
     color: ${theme.textColor2};
     line-height: 26px;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 500;
   }
 
   select {

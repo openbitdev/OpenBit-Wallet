@@ -426,12 +426,12 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                           <div className="kn-l-chains-container__footer">
                             <div>
                               <div className="kn-l-chains-container__footer-row-1">
-                                Don't see your token?
+                                {t<string>("Don't see your token?")}
                               </div>
                               <div className="kn-l-chains-container__footer-row-2">
-                                <div className="kn-l-chains-container-action">Refresh list</div>
-                                <span>&nbsp;or&nbsp;</span>
-                                <div className="kn-l-chains-container-action">import tokens</div>
+                                <div className="kn-l-chains-container-action">{t<string>("Refresh list")}</div>
+                                <span>&nbsp;{t<string>("or")}&nbsp;</span>
+                                <div className="kn-l-chains-container-action">{t<string>("import tokens")}</div>
                               </div>
                             </div>
                           </div>
@@ -484,7 +484,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
 
   .account-balance__money {
     font-size: 32px;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .account-buttons-wrapper {

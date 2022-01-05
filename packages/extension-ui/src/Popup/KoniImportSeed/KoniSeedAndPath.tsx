@@ -165,7 +165,7 @@ export default styled(KoniSeedAndPath)(({ theme }: ThemeProps) => `
       margin-left: .5rem;
       vertical-align: middle;
       color: ${theme.textColor2};
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
     }
   }
 

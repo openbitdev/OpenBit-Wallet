@@ -90,7 +90,7 @@ function KoniSettings({className}: Props): React.ReactElement {
         <KoniHeader
           showBackArrow
           showSubHeader
-          subHeaderName={t<string>('Setting')}
+          subHeaderName={t<string>('Settings')}
         />
         <MenuItem
           className='setting'
@@ -190,7 +190,7 @@ export default styled(KoniSettings)(({ theme }: Props) => `
       font-size: 16px;
       line-height: 26px;
       color: ${theme.textColor2};
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
     }
   }
 

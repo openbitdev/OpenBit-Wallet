@@ -2,7 +2,7 @@ import {QueueTx, QueueTxMessageSetStatus} from "@polkadot/extension-ui/koni/reac
 import React, {useCallback, useContext, useEffect, useState} from "react";
 import styled from "styled-components";
 import {StatusContext} from "@polkadot/extension-ui/koni/react-components";
-import {useTranslation} from "react-i18next";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import {useApi, useToggle} from "@polkadot/extension-ui/koni/react-hooks";
 import {assert, BN_ZERO} from '@polkadot/util';
 import type {SignerOptions} from '@polkadot/api/submittable/types';

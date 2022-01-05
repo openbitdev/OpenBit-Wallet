@@ -498,7 +498,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     &__text {
       font-size: 20px;
       line-height: 30px;
-      font-weight: 700;
+      font-weight: 500;
       color: ${theme.textColor};
     }
   }
@@ -642,7 +642,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
 
   .kn-l-account-info__name {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 500;
     margin-right: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -660,6 +660,8 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   .kn-l-account-info__formatted {
     margin-right: 8px;
     font-size: 15px;
+    font-weight: 400;
+    font-weight: 400;
   }
 
   .kn-l-account-info__copy-icon {
@@ -692,13 +694,13 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
 
   .connect-status {
     &-text {
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
       color: ${theme.textColor2};
     }
   }
   .account-info {
     &-formatted {
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
       color: ${theme.textColor2};
     }
   }

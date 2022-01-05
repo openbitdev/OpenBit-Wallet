@@ -8,11 +8,11 @@ import Password from './Password';
 import {AddressFlags, AddressProxy} from "@polkadot/extension-ui/koni/Popup/Sending/types";
 import {extractExternal} from "@polkadot/extension-ui/koni/Popup/Sending/util";
 import {InputAddress} from "@polkadot/extension-ui/koni/react-components";
-import {useTranslation} from "react-i18next";
 import {QueueTx} from "@polkadot/extension-ui/koni/react-components/Status/types";
 import {ThemeProps} from "@polkadot/extension-ui/types";
 import styled from "styled-components";
 import KoniWarning from "@polkadot/extension-ui/components/KoniWarning";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 
 interface Props extends ThemeProps {
   className?: string;

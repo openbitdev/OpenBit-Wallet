@@ -20,7 +20,7 @@ import {StatusContext} from "@polkadot/extension-ui/koni/react-components";
 import KoniModal from "@polkadot/extension-ui/components/KoniModal";
 import AuthTransaction from "@polkadot/extension-ui/koni/Popup/Sending/AuthTransaction";
 import {ThemeProps} from "@polkadot/extension-ui/types";
-import {useTranslation} from "react-i18next";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 
 export interface Props extends ThemeProps {
   children?: React.ReactNode;
@@ -199,7 +199,7 @@ export default React.memo(styled(Signer)(({ theme }: ThemeProps) => `
   .kn-l-header__part-2 {
     color: ${theme.textColor};
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .kn-l-header__part-3 {

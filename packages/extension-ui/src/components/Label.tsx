@@ -28,7 +28,6 @@ export default styled(Label)(({ theme }: ThemeProps) => `
     font-size: ${theme.inputLabelFontSize};
     line-height: 14px;
     letter-spacing: 0.04em;
-    opacity: 0.65;
     margin-bottom: 12px;
     text-transform: uppercase;
   }
