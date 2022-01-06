@@ -1,7 +1,8 @@
 // Copyright 2017-2021 @polkadot/react-signer authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { SignerResult } from '@polkadot/api/types';
+import { SignerResult } from '@polkadot/api/types';
+import { SubmittableResult } from '@polkadot/api';
 
 export interface AddressFlags {
   accountOffset: number;
@@ -17,12 +18,22 @@ export interface AddressFlags {
 }
 
 export interface AddressProxy {
-  isMultiCall: boolean;
   isUnlockCached: boolean;
-  multiRoot: string | null;
-  proxyRoot: string | null;
   signAddress: string | null;
   signPassword: string;
+}
+
+export interface TxHandler {
+  onTxStart?: () => void;
+  onTxUpdate?: (result: SubmittableResult) => void;
+  onTxSuccess?: (result: SubmittableResult) => void;
+  onTxFail?: (result: Error | SubmittableResult | null) => void;
+}
+
+export interface TxResult {
+  isShowTxResult: boolean;
+  isTxSuccess: boolean;
+  txError?: Error | SubmittableResult | null;
 }
 
 export interface QrState {

@@ -1,42 +1,35 @@
-import {QueueTx, QueueTxMessageSetStatus} from "@polkadot/extension-ui/koni/react-components/Status/types";
-import React, {useCallback, useContext, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import styled from "styled-components";
-import {StatusContext} from "@polkadot/extension-ui/koni/react-components";
 import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import {useApi, useToggle} from "@polkadot/extension-ui/koni/react-hooks";
 import {assert, BN_ZERO} from '@polkadot/util';
 import type {SignerOptions} from '@polkadot/api/submittable/types';
-import {AddressFlags, AddressProxy} from "@polkadot/extension-ui/koni/Popup/Sending/types";
+import {AddressProxy, TxHandler} from "@polkadot/extension-ui/koni/Popup/Sending/types";
 import Transaction from "@polkadot/extension-ui/koni/Popup/Sending/parts/Transaction";
 import Output from "@polkadot/extension-ui/koni/react-components/Output";
 import Tip from "@polkadot/extension-ui/koni/Popup/Sending/parts/Tip";
 import Address from "@polkadot/extension-ui/koni/Popup/Sending/parts/Address";
-import {ApiPromise} from "@polkadot/api";
+import {ApiPromise, SubmittableResult} from "@polkadot/api";
 import {SubmittableExtrinsic} from "@polkadot/api/types";
-import {cacheUnlock, extractExternal, handleTxResults} from "@polkadot/extension-ui/koni/Popup/Sending/util";
+import {cacheUnlock} from "@polkadot/extension-ui/koni/Popup/Sending/util";
 import {KeyringPair} from "@polkadot/keyring/types";
 import {addressEq} from "@polkadot/util-crypto";
 import {AccountSigner} from "@polkadot/extension-ui/koni/Popup/Sending/signers";
 import {BackgroundWindow} from "@polkadot/extension-base/background/types";
 import KoniButton from "@polkadot/extension-ui/components/KoniButton";
 import {ThemeProps} from "@polkadot/extension-ui/types";
-import {ActionContext} from "@polkadot/extension-ui/components";
+import KoniModal from "@polkadot/extension-ui/components/KoniModal";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {keyring} = bWindow.pdotApi;
 
 interface Props extends ThemeProps {
   className?: string;
-  currentItem: QueueTx;
+  extrinsic: SubmittableExtrinsic<'promise'>;
   requestAddress: string;
+  onCancel: () => void;
+  txHandler: TxHandler;
 }
-
-interface InnerTx {
-  innerHash: string | null;
-  innerTx: string | null;
-}
-
-const EMPTY_INNER: InnerTx = { innerHash: null, innerTx: null };
 
 function unlockAccount ({ isUnlockCached, signAddress, signPassword }: AddressProxy): string | null {
   let publicKey;
@@ -63,113 +56,114 @@ function unlockAccount ({ isUnlockCached, signAddress, signPassword }: AddressPr
   return null;
 }
 
-async function signAndSend (queueSetTxStatus: QueueTxMessageSetStatus, currentItem: QueueTx, tx: SubmittableExtrinsic<'promise'>, pairOrAddress: KeyringPair | string, options: Partial<SignerOptions>): Promise<void> {
-  currentItem.txStartCb && currentItem.txStartCb();
+export function handleTxResults({onTxUpdate, onTxSuccess, onTxFail}: TxHandler,
+                                unsubscribe: () => void): (result: SubmittableResult) => void {
+  return (result: SubmittableResult): void => {
+    if (!result || !result.status) {
+      return;
+    }
+
+    console.log(`: status :: ${JSON.stringify(result)}`);
+
+    onTxUpdate && onTxUpdate(result);
+
+    if (result.status.isFinalized || result.status.isInBlock) {
+      result.events
+        .filter(({ event: { section } }) => section === 'system')
+        .forEach(({ event: { method } }): void => {
+          if (method === 'ExtrinsicFailed') {
+            onTxFail && onTxFail(result);
+          } else if (method === 'ExtrinsicSuccess') {
+            onTxSuccess && onTxSuccess(result);
+          }
+        });
+    } else if (result.isError) {
+      onTxFail && onTxFail(result);
+    }
+
+    if (result.isCompleted) {
+      unsubscribe();
+    }
+  };
+}
+
+async function signAndSend (txHandler: TxHandler, tx: SubmittableExtrinsic<'promise'>, pairOrAddress: KeyringPair | string, options: Partial<SignerOptions>): Promise<void> {
+  txHandler.onTxStart && txHandler.onTxStart();
 
   try {
     await tx.signAsync(pairOrAddress, options);
 
     console.info('sending', tx.toHex());
 
-    queueSetTxStatus(currentItem.id, 'sending');
-
-    const unsubscribe = await tx.send(handleTxResults('signAndSend', queueSetTxStatus, currentItem, (): void => {
+    const unsubscribe = await tx.send(handleTxResults(txHandler, (): void => {
+      console.log('tx.hash.toHex()', tx.hash.toHex());
       unsubscribe();
     }));
   } catch (error) {
     console.error('signAndSend: error:', error);
-    queueSetTxStatus(currentItem.id, 'error', {}, error as Error);
 
-    currentItem.txFailedCb && currentItem.txFailedCb(error as Error);
+    txHandler.onTxFail && txHandler.onTxFail(error as Error);
   }
 }
 
-async function wrapTx (api: ApiPromise, currentItem: QueueTx, { isMultiCall, multiRoot, proxyRoot, signAddress }: AddressProxy): Promise<SubmittableExtrinsic<'promise'>> {
-  return currentItem.extrinsic as SubmittableExtrinsic<'promise'>;
-}
-
-async function extractParams (api: ApiPromise, address: string, options: Partial<SignerOptions>): Promise<['signing', string, Partial<SignerOptions>]> {
+async function extractParams (api: ApiPromise, address: string, options: Partial<SignerOptions>): Promise<[string, Partial<SignerOptions>]> {
   const pair = keyring.getPair(address);
 
   assert(addressEq(address, pair.address), `Unable to retrieve keypair for ${address}`);
 
-  return ['signing', address, { ...options, signer: new AccountSigner(api.registry, pair) }];
+  return [address, { ...options, signer: new AccountSigner(api.registry, pair) }];
 }
 
-function tryExtract (address: string | null): AddressFlags {
-  try {
-    return extractExternal(address);
-  } catch {
-    return {} as AddressFlags;
-  }
-}
-
-
-function AuthTransaction({ className, currentItem, requestAddress }: Props): React.ReactElement<Props> | null {
+function AuthTransaction({ className, extrinsic, onCancel, requestAddress, txHandler}: Props): React.ReactElement<Props> | null {
   const { t } = useTranslation();
   const { api } = useApi();
-  const { queueSetTxStatus } = useContext(StatusContext);
-  const [flags, setFlags] = useState(() => tryExtract(requestAddress));
   const [error, setError] = useState<Error | null>(null);
   const [isBusy, setBusy] = useState(false);
   const [isRenderError, toggleRenderError] = useToggle();
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [senderInfo, setSenderInfo] = useState<AddressProxy>(() => ({ isMultiCall: false, isUnlockCached: false, multiRoot: null, proxyRoot: null, signAddress: requestAddress, signPassword: '' }));
-  const [{ innerHash }, setCallInfo] = useState<InnerTx>(EMPTY_INNER);
+  const [senderInfo, setSenderInfo] = useState<AddressProxy>(() => ({isUnlockCached: false, signAddress: requestAddress, signPassword: '' }));
+  const [callHash, setCallHash] = useState<string | null>(null);
   const [tip, setTip] = useState(BN_ZERO);
-  const navigate = useContext(ActionContext);
 
   useEffect((): void => {
-    setFlags(tryExtract(senderInfo.signAddress));
     setPasswordError(null);
   }, [senderInfo]);
 
   // when we are sending the hash only, get the wrapped call for display (proxies if required)
   useEffect((): void => {
-    const method = currentItem.extrinsic && (currentItem.extrinsic).method;
+    const method = extrinsic.method;
 
-    setCallInfo(
-      method
-        ? {
-          innerHash: method.hash.toHex(),
-          innerTx: null
-        }
-        : EMPTY_INNER
-    );
-  }, [api, currentItem, senderInfo]);
+    setCallHash(method && method.hash.toHex() || null);
+
+  }, [api, extrinsic, senderInfo]);
 
   const _unlock = useCallback(
     async (): Promise<boolean> => {
       let passwordError: string | null = null;
 
       if (senderInfo.signAddress) {
-        if (flags.isUnlockable) {
           passwordError = unlockAccount(senderInfo);
-        }
       }
 
       setPasswordError(passwordError);
 
       return !passwordError;
     },
-    [flags, senderInfo, t]
+    [senderInfo, t]
   );
 
   const _onSend = useCallback(
-    async (queueSetTxStatus: QueueTxMessageSetStatus, currentItem: QueueTx, senderInfo: AddressProxy): Promise<void> => {
+    async (txHandler: TxHandler, extrinsic: SubmittableExtrinsic<'promise'>, senderInfo: AddressProxy): Promise<void> => {
       if (senderInfo.signAddress) {
-        const [tx, [status, pairOrAddress, options]] = await Promise.all([
-          wrapTx(api, currentItem, senderInfo),
+        const [tx, [pairOrAddress, options]] = await Promise.all([
+          extrinsic,
           extractParams(api, senderInfo.signAddress, { nonce: -1, tip })
         ]);
 
-        queueSetTxStatus(currentItem.id, status);
-
-        navigate('/');
-        await signAndSend(queueSetTxStatus, currentItem, tx, pairOrAddress, options);
+        await signAndSend(txHandler, tx, pairOrAddress, options);
       }
     },
-    [api, tip]
+    [api, tip, extrinsic]
   );
 
   const _doStart = useCallback(
@@ -187,7 +181,7 @@ function AuthTransaction({ className, currentItem, requestAddress }: Props): Rea
         _unlock()
           .then((isUnlocked): void => {
             if (isUnlocked) {
-              _onSend(queueSetTxStatus, currentItem, senderInfo).catch(errorHandler)
+              _onSend(txHandler, extrinsic, senderInfo).catch(errorHandler)
             } else {
               setBusy(false);
             }
@@ -197,7 +191,13 @@ function AuthTransaction({ className, currentItem, requestAddress }: Props): Rea
           });
       }, 0);
     },
-    [_onSend, _unlock, currentItem, queueSetTxStatus, senderInfo]
+    [_onSend, _unlock, extrinsic, txHandler, senderInfo]
+  );
+
+  const _onCancel = useCallback(() => {
+      onCancel();
+    },
+    [onCancel]
   );
 
   if (error) {
@@ -206,54 +206,125 @@ function AuthTransaction({ className, currentItem, requestAddress }: Props): Rea
 
   return (
     <div className={className}>
-      <div className={'kn-l-transaction-info-block'}>
-        <Transaction
-          accountId={senderInfo.signAddress}
-          currentItem={currentItem}
-          onError={toggleRenderError}
-        />
-      </div>
+      <KoniModal className={'kn-signer-modal'}>
+        <div className="kn-l-header">
+          <div className="kn-l-header__part-1" />
+          <div className="kn-l-header__part-2">
+            {t('Authorize Transaction')}
+          </div>
+          <div className="kn-l-header__part-3">
+            {isBusy ? (
+              <span className={'kn-l-close-btn -disabled'}>{t('Cancel')}</span>
+              ) : (
+                <span className={'kn-l-close-btn'} onClick={_onCancel}>{t('Cancel')}</span>
+              )
+            }
+          </div>
+        </div>
+        <div className="kn-l-body">
+          <div className={'kn-l-transaction-info-block'}>
+            <Transaction
+              accountId={senderInfo.signAddress}
+              extrinsic={extrinsic}
+              onError={toggleRenderError}
+            />
+          </div>
 
-      <Address
-        currentItem={currentItem}
-        onChange={setSenderInfo}
-        onEnter={_doStart}
-        passwordError={passwordError}
-        requestAddress={requestAddress}
-      />
+          <Address
+            onChange={setSenderInfo}
+            onEnter={_doStart}
+            passwordError={passwordError}
+            requestAddress={requestAddress}
+          />
 
-      <Tip className={'kn-l-tip-block'} onChange={setTip} />
+          <Tip className={'kn-l-tip-block'} onChange={setTip} />
 
-      <Output
-        isDisabled
-        isTrimmed
-        className={'kn-l-call-hash'}
-        label={t<string>('Call hash')}
-        value={innerHash}
-        withCopy
-      />
+          <Output
+            isDisabled
+            isTrimmed
+            className={'kn-l-call-hash'}
+            label={t<string>('Call hash')}
+            value={callHash}
+            withCopy
+          />
 
-      <div className="kn-l-submit-wrapper">
-        <KoniButton
-          className={'kn-l-submit-btn'}
-          isBusy={isBusy}
-          isDisabled={!senderInfo.signAddress || isRenderError}
-          onClick={_doStart}
-        >
-          {t<string>('Sign and Submit')}
-        </KoniButton>
-      </div>
+          <div className="kn-l-submit-wrapper">
+            <KoniButton
+              className={'kn-l-submit-btn'}
+              isBusy={isBusy}
+              isDisabled={!senderInfo.signAddress || isRenderError}
+              onClick={_doStart}
+            >
+              {t<string>('Sign and Submit')}
+            </KoniButton>
+          </div>
+        </div>
+      </KoniModal>
     </div>
   );
 }
 
 export default React.memo(styled(AuthTransaction)(({ theme }: ThemeProps) => `
-  padding-left: 15px;
-  padding-right: 15px;
-  padding-bottom: 15px;
-  padding-top: 25px;
-  height: 100%;
-  overflow-y: auto;
+  .koni-modal {
+    max-width: 460px;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .kn-l-header {
+    display: flex;
+    align-items: center;
+    height: 72px;
+    box-shadow: ${theme.headerBoxShadow};
+  }
+
+  .kn-l-body {
+    flex: 1;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-bottom: 15px;
+    padding-top: 25px;
+    overflow-y: auto;
+  }
+
+  .kn-l-header__part-1 {
+    flex: 1;
+  }
+
+  .kn-l-header__part-2 {
+    color: ${theme.textColor};
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .kn-l-header__part-3 {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .kn-l-close-btn {
+    padding-left: 16px;
+    padding-right: 16px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    color: #04C1B7;
+    font-weight: 500;
+    cursor: pointer;
+    
+    &.-disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
 
   .kn-l-transaction-info-block {
     margin-bottom: 20px;

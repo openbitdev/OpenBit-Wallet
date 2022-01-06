@@ -18,7 +18,7 @@ import {
 import {useApi} from "@polkadot/extension-ui/koni/react-hooks";
 import {StatusContext} from "@polkadot/extension-ui/koni/react-components";
 import KoniModal from "@polkadot/extension-ui/components/KoniModal";
-import AuthTransaction from "@polkadot/extension-ui/koni/Popup/Sending/AuthTransaction";
+import AuthTransaction from "@polkadot/extension-ui/koni/Popup/Sending/AuthTransactionBK";
 import {ThemeProps} from "@polkadot/extension-ui/types";
 import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 
