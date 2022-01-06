@@ -53,7 +53,7 @@ function KoniLink ({ children, className = '', isDisabled, onClick, title, to }:
 
 export default styled(KoniLink)(({ isDanger, theme }: Props & ThemeProps) => `
   align-items: center;
-  color: ${isDanger ? theme.textColor3 : theme.textColor2};
+  color: ${isDanger ? theme.buttonTextColor2 : theme.textColor2};
   display: flex;
   opacity: 0.85;
   text-decoration: none;
@@ -61,12 +61,12 @@ export default styled(KoniLink)(({ isDanger, theme }: Props & ThemeProps) => `
   cursor: pointer;
 
   &:hover {
-    color: ${isDanger ? theme.textColor3 : theme.textColor};
+    color: ${isDanger ? theme.buttonTextColor2 : theme.textColor};
     opacity: 1.0;
   }
 
   &:visited {
-    color: ${isDanger ? theme.textColor3 : theme.textColor};
+    color: ${isDanger ? theme.buttonTextColor2 : theme.textColor};
   }
 
   &.isDisabled {

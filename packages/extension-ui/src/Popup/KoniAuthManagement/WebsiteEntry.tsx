@@ -74,7 +74,7 @@ export default styled(WebsiteEntry)(({ theme }: Props) => `
     }
 
     .slider {
-      background-color: #04C1B7;
+      background-color: ${theme.buttonBackground2};
     }
 
     .slider:before {

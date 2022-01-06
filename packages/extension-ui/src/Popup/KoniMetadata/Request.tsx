@@ -105,7 +105,6 @@ export default styled(Request)(({ theme }: ThemeProps) => `
 
   .btnReject {
     margin: 8px 0 15px 0;
-    text-decoration: underline;
   }
 
   .icon {

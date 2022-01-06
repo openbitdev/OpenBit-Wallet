@@ -544,7 +544,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .kn-l-chains-container-action {
-    color: #04C1B7;
+    color: red;
     cursor: pointer;
   }
 

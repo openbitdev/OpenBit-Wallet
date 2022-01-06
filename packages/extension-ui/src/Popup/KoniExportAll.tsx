@@ -123,7 +123,7 @@ export default withRouter(styled(KoniExportAll)(({ theme }: Props) => `
     margin: auto;
     margin-top: 10px;
     > span {
-      color: ${theme.textColor3};
+      color: ${theme.buttonTextColor2};
       font-weight: 500;
       font-size: 16px;
       line-height: 26px;

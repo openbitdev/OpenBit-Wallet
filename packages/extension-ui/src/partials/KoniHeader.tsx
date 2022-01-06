@@ -517,7 +517,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   }
 
   .kn-l-cancel-btn {
-    color: #04C1B7;
+    color: ${theme.buttonTextColor2};
   }
 
   .arrowLeftIcon {

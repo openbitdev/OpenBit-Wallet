@@ -62,14 +62,13 @@ export default styled(KoniMnemonicSeed)(({ theme }: ThemeProps) => `
 
   .mnemonicDisplay {
     textarea {
-      color: ${theme.buttonTextColor2};
+      color: ${theme.textColor3};
       font-size: ${theme.fontSize};
       height: unset;
       letter-spacing: -0.01em;
       line-height: ${theme.lineHeight};
       margin-bottom: 10px;
       padding: 9px 16px;
-      font-weight: ${theme.fontFamilyRegular};
       background-color: ${theme.backgroundAccountAddress}
     }
   }

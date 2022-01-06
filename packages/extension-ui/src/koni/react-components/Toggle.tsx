@@ -88,7 +88,7 @@ export default React.memo(styled(Toggle)(({ theme }: ThemeProps) =>`
   &.isChecked {
     &:not(.isRadio) {
       .ui--Toggle-Slider {
-        background: #04C1B7;
+        background: ${theme.buttonBackground2};
       }
 
       .ui--Toggle-Slider:before {

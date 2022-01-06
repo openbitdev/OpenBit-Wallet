@@ -180,20 +180,20 @@ function BuyToken({
           {_isSupportSubscan ? (
             <a className='koni-buy-token-button' href={subscanUrl} target="_blank">
               <div className='koni-buy-token-button__text'>
-                View Account on Subscan
+                {t<string>('View Account on Subscan')}
               </div>
             </a>
           ) : (
             <span className='koni-buy-token-button -disabled'>
               <div className='koni-buy-token-button__text'>
-                View Account on Subscan
+                {t<string>('View Account on Subscan')}
               </div>
             </span>
           )}
 
           <KoniLink className='koni-buy-token-button' to={`/account/export/${formatted}`}>
             <div className='koni-buy-token-button__text'>
-              Export Account
+              {t<string>('Export Private Key')}
             </div>
           </KoniLink>
         </div>
@@ -310,7 +310,7 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
       font-size: 16px;
       line-height: 26px;
       font-weight: 500;
-      color: ${theme.buttonTextColor2};
+      color: ${theme.textColor3};
     }
   }
 

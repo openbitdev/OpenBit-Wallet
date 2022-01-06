@@ -74,7 +74,7 @@ export default styled(Switch)(({ theme }: ThemeProps) => `
       width: 22px;
       left: 4px;
       bottom: 3px;
-      background-color: ${theme.textColor3};
+      background-color: ${theme.buttonBackground2};
       transition: 0.4s;
       border-radius: 50%;
     }

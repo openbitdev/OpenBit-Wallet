@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 const colors = {
   primary1: '#004BFF',
-  primary2: '#04C1B7',
+  primary2: '#66E1B6',
 };
 
 const darkTheme = {
@@ -25,7 +25,7 @@ const darkTheme = {
   boxShadow: 'rgba(0, 0, 0, 0.86)',
   boxShadow2: '0px 0px 7px rgba(4, 193, 183, 0.4)',
   buttonBackground: colors.primary1,
-  buttonBackground2: '#66E1B6',
+  buttonBackground2: colors.primary2,
   buttonBackgroundDanger: '#AF1111',
   buttonBackground1: '#181E42',
   buttonBackgroundDangerHover: '#D93B3B',
@@ -73,7 +73,7 @@ const darkTheme = {
   textColor3: colors.primary2,
   textColorDanger: '#FF8686',
   checkDotColor: colors.primary1,
-  iconHoverColor: '#00DCD0',
+  iconHoverColor: colors.primary2,
   chainTextColor: '#ED843D',
   chainBackgroundColor: '#F0CAAE',
   checkboxColor: '#262C4A',
@@ -107,7 +107,7 @@ const lightTheme: Theme = {
   boxShadow2: '0px 0px 5px rgba(0, 0, 0, 0.05), 0px 20px 60px rgba(0, 0, 0, 0.15)',
   buttonBackground1: '#F0F4FF',
   buttonBackgroundDanger: '#B5131C',
-  buttonTextColor2: colors.primary1,
+  // buttonTextColor2: colors.primary1,
   tabContentBorderBottomColor: 'transparent',
   checkboxColor: '#F5F5F5',
   checkboxBorderColor: '#DDDDDD',
@@ -131,7 +131,7 @@ const lightTheme: Theme = {
   subTextColor: '#454545',
   textColor: '#00072D',
   textColor2: '#888888',
-  textColor3: colors.primary2,
+  textColor3: colors.primary1,
   textColorDanger: '#F24A4A',
   labelLightThemeColor: '#00072D',
   labelDarkThemeColor: '#888888',

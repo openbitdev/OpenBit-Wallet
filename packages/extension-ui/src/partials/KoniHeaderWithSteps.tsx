@@ -105,7 +105,7 @@ export default React.memo(styled(KoniHeaderWithSteps)(({ theme }: Props) => `
 
   .koni-header-with-steps-cancel-btn {
     span {
-      color: ${theme.textColor3};
+      color: ${theme.buttonTextColor2};
       font-size: 15px;
       line-height: 24px;
     }

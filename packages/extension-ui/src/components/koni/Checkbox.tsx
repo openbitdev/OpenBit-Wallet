@@ -5,7 +5,6 @@ import type { ThemeProps } from '../../types';
 
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
-import checkmark from "@polkadot/extension-ui/assets/checkmark.svg";
 
 interface Props {
   checked: boolean;
@@ -78,14 +77,14 @@ export default styled(Checkbox)(({ theme }: ThemeProps) => `
       &:after {
         content: '';
         display: none;
-        width: 11px;
-        height: 8px;
+        width: 5px;
+        height: 10px;
         position: absolute;
-        left: 1px;
-        top: 3px;
-        mask: url(${checkmark});
-        mask-size: cover;
-        background: ${theme.textColor3};
+        top: 0;
+        right: 3px;
+        border-bottom: 2px solid ${theme.buttonTextColor2};
+        border-right: 2px solid ${theme.buttonTextColor2};
+        transform: rotate(45deg);
       }
     }
 
