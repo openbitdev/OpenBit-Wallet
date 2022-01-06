@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import buyIcon from '../../assets/buy-icon.svg';
 import sendIcon from '../../assets/send-icon.svg';
 import swapIcon from '../../assets/swap-icon.svg';
+import nftComingSoon from '../../assets/nft-coming-soon.png';
+import transactionHistoryComingSoon from '../../assets/transaction-history-coming-soon.png';
 import { AccountContext, CurrentAccountContext, CurrentNetworkContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';
 import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
@@ -25,7 +27,6 @@ import ChainBalancePlaceholderItem
 import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
 import {BN_ZERO, getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap} from '@polkadot/extension-ui/util/koni';
 import Tooltip from "@polkadot/extension-ui/koni/react-components/Tooltip";
-import TransactionHistory from "@polkadot/extension-ui/components/koni/activityHistory/TransactionHistory";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {apisMap} = bWindow.pdotApi;
@@ -419,13 +420,19 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               )}
               {activatedTab === 2 && (
                   <>
-                    <div className='overview-tab-activity tab-nft'>Coming Soon...</div>
+                    <div className='kn-nft-coming-soon-wrapper'>
+                      <img src={nftComingSoon} alt="coming-soon"/>
+                      <div className='overview-tab-activity tab-nft'>Coming Soon...</div>
+                    </div>
                   </>
               )}
               {activatedTab === 3 && (
                   <>
-                    <TransactionHistory isReceived={true} />
-                    <TransactionHistory isReceived={false} />
+                    <div className='kn-nft-coming-soon-wrapper'>
+                      <img src={transactionHistoryComingSoon} alt="coming-soon"/>
+                      <div className='overview-tab-activity tab-transaction-history'>Transactions will appear here<br/>Coming Soon...</div>
+                    </div>
+
                   </>
               )}
             </div>
@@ -510,6 +517,13 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     overflow: hidden;
   }
 
+  .kn-nft-coming-soon-wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+  }
+
  .overview-tab-activity {
     padding: 20px 15px;
   }
@@ -544,7 +558,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .kn-l-chains-container-action {
-    color: red;
+    color: ${theme.buttonTextColor2};
     cursor: pointer;
   }
 
@@ -553,5 +567,16 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     height: 100%;
     align-items: center;
     justify-content: center;
+    padding-top: 0;
+  }
+
+  .tab-transaction-history {
+    font-size: 15px;
+    line-height: 26px;
+    position: absolute;
+    bottom: -20px;
+    text-align: center;
+    padding-bottom: 0;
+
   }
 `));
