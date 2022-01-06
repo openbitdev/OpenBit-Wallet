@@ -1,12 +1,9 @@
-import { Theme, ThemeProps } from '../../types';
+import { ThemeProps } from '../../types';
 import React, {Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import styled, { ThemeContext } from 'styled-components';
-import buyIconDark from '../../assets/buy-icon-dark.svg';
-import buyIconLight from '../../assets/buy-icon-light.svg';
-import sendIconDark from '../../assets/send-icon-dark.svg';
-import sendIconLight from '../../assets/send-icon-light.svg';
-import swapIconDark from '../../assets/swap-icon-dark.svg';
-import swapIconLight from '../../assets/swap-icon-light.svg';
+import styled from 'styled-components';
+import buyIcon from '../../assets/buy-icon.svg';
+import sendIcon from '../../assets/send-icon.svg';
+import swapIcon from '../../assets/swap-icon.svg';
 import { AccountContext, CurrentAccountContext, CurrentNetworkContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';
 import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
@@ -28,6 +25,7 @@ import ChainBalancePlaceholderItem
 import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
 import {BN_ZERO, getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap} from '@polkadot/extension-ui/util/koni';
 import Tooltip from "@polkadot/extension-ui/koni/react-components/Tooltip";
+import TransactionHistory from "@polkadot/extension-ui/components/koni/activityHistory/TransactionHistory";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {apisMap} = bWindow.pdotApi;
@@ -149,8 +147,6 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
   // map of the loaded network balances
   const {networkPrefix, networkName, icon: networkIcon} = network;
   const buyRef = useRef(null);
-  const themeContext = useContext(ThemeContext as React.Context<Theme>);
-  const theme = themeContext.id;
   const genesisOptions = useGenesisHashOptions();
   const [chainBalanceMaps, setChainBalanceMaps] = useState<Record<string, BalanceInfo>>({});
   const [isBuyTokenScreenOpen, setBuyTokenScreenOpen] = useState(false);
@@ -363,37 +359,19 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               <div className='account-buttons-wrapper'>
                 <div className='account-button-container'>
                   <OverViewButton className='account-button' onClick={_toggleBuy} help={t<string>('Receive')}>
-                      {theme == 'dark' ?
-                        (
-                          <img src={buyIconDark} alt="buy"/>
-                        ) : (
-                          <img src={buyIconLight} alt="buy"/>
-                        )
-                      }
+                    <img src={buyIcon} alt="buy"/>
                   </OverViewButton>
                 </div>
 
                 <KoniLink to={'/account/send-fund'} className={'account-button-container'}>
                   <OverViewButton className='account-button' help={t<string>('Send')}>
-                    {theme == 'dark' ?
-                        (
-                            <img src={sendIconDark} alt="send"/>
-                        ) : (
-                            <img src={sendIconLight} alt="send"/>
-                        )
-                    }
+                    <img src={sendIcon} alt="send"/>
                   </OverViewButton>
                 </KoniLink>
 
                 <div className='account-button-container'>
                   <OverViewButton className='account-button' help={t<string>('Swap')}>
-                    {theme == 'dark' ?
-                        (
-                            <img src={swapIconDark} alt="swap"/>
-                        ) : (
-                            <img src={swapIconLight} alt="swap"/>
-                        )
-                    }
+                    <img src={swapIcon} alt="swap"/>
                   </OverViewButton>
                 </div>
               </div>
@@ -446,7 +424,8 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               )}
               {activatedTab === 3 && (
                   <>
-                    <div className='overview-tab-activity'>Activity History</div>
+                    <TransactionHistory isReceived={true} />
+                    <TransactionHistory isReceived={false} />
                   </>
               )}
             </div>
@@ -505,6 +484,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     align-items: center;
     margin-right: 5px;
     margin-left: 5px;
+    opacity: 1;
 
     &__text {
       margin-top: 4px;
@@ -521,7 +501,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     justify-content: center;
     align-items: center;
     border-radius: 40%;
-    background-color: ${theme.buttonBackground1};
+    background-color: ${theme.buttonBackground};
     cursor: pointer;
   }
 

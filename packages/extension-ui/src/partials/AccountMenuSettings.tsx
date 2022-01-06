@@ -25,7 +25,7 @@ import KoniMenu from "@polkadot/extension-ui/components/KoniMenu";
 import {AccountWithChildren} from "@polkadot/extension-base/background/types";
 import getNetworkMap from "@polkadot/extension-ui/util/getNetworkMap";
 import KoniAccountsTree from "@polkadot/extension-ui/Popup/Accounts/KoniAccountsTree";
-import logo from "@polkadot/extension-ui/assets/KoniverseLogo.svg";
+import logo from "@polkadot/extension-ui/assets/sub-wallet-logo.svg";
 import KoniInputFilter from "@polkadot/extension-ui/components/KoniInputFilter";
 // import {faUsb} from "@fortawesome/free-brands-svg-icons";
 import KoniLink from "@polkadot/extension-ui/components/KoniLink";
