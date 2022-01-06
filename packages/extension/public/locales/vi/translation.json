@@ -8,7 +8,7 @@
   "Copy to clipboard": "",
   "Back": "",
   "Create new account (root or derived)": "",
-  "Create new account": "",
+  "Create new account": "Tạo tài khoản mới",
   "Import account from pre-existing seed": "",
   "Restore account from backup JSON file": "",
   "Attach external QR-signer account": "",
@@ -166,6 +166,5 @@
   "Click to select or drag and drop the file here": "",
   "Next Step": "",
   "Get started": "",
-  "Send fund": "",
-
+  "Send fund": ""
 }

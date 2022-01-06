@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import { ActionContext} from '../components';
 import useTranslation from '../hooks/useTranslation';
 import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
-import logo from '../assets/KoniverseLogo.svg'
+import logo from '../assets/sub-wallet-logo.svg'
 import KoniButtonArea from "@polkadot/extension-ui/components/KoniButtonArea";
 import KoniButton from "@polkadot/extension-ui/components/KoniButton";
 
@@ -35,7 +35,7 @@ function KoniWelcome ({ className }: Props): React.ReactElement<Props> {
         <div className='welcome-container'>
           <img src={logo} alt="logo" className='welcome-logo'/>
           <span className='welcome-title'>
-            Welcome to Koniverse
+            Welcome Back
           </span>
           <span className='welcome-subtitle'>
             The decentralized web awaits

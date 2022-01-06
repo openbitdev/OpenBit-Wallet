@@ -45,6 +45,7 @@ function WebsiteEntry ({ className = '', info, toggleAuth, url }: Props): React.
 export default styled(WebsiteEntry)(({ theme }: Props) => `
   display: flex;
   align-items: center;
+  margin-bottom: 10px;
 
   .url{
     flex: 1;

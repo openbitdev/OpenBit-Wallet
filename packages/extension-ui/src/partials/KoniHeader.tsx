@@ -8,7 +8,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import styled, {ThemeContext} from 'styled-components';
 import useTranslation from '../hooks/useTranslation';
-import logo from '../assets/KoniverseLogo.svg';
+import logo from '../assets/sub-wallet-logo.svg';
 import cloneLogo from '../assets/clone.svg';
 import useOutsideClick from '../hooks/useOutsideClick';
 import {

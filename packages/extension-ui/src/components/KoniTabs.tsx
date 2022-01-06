@@ -42,6 +42,7 @@ export default styled(KoniTabs)(({theme}: Props) => `
     display: flex;
     justify-content: center;
     flex: 1;
+    font-family: ${theme.fontFamily};
     font-weight: 500;
     box-shadow: 0px 4px 7px rgba(0, 0, 0, 0.05);
     background: ${theme.background};
