@@ -193,7 +193,7 @@ function SendFund({className}: Props): React.ReactElement {
               isError={!hasAvailable}
               isZeroable
               label={t<string>('amount')}
-              maxValue={maxTransfer}
+              // maxValue={maxTransfer}
               onChange={setAmount}
             />
             {amountGtAvailableBalance && (

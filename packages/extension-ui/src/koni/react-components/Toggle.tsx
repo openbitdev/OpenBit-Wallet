@@ -45,6 +45,7 @@ export default React.memo(styled(Toggle)(({ theme }: ThemeProps) =>`
   > label {
     display: inline-block;
     margin-right: 12px;
+    font-size: 15px;
   }
 
   > label,

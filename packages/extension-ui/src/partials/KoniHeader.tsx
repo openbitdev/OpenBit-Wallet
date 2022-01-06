@@ -61,8 +61,8 @@ interface Props extends ThemeProps {
   showCancelButton?: boolean;
   isWelcomeScreen?: boolean;
   isNotHaveAccount?: boolean;
-  isShowZeroBalance?: boolean;
-  toggleZeroBalance?: () => void;
+  isShowZeroBalances?: boolean;
+  toggleZeroBalances?: () => void;
 }
 
 interface Recoded {
@@ -102,7 +102,7 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
 
 const defaultRecoded = { formatted: null, prefix: 42 };
 
-function KoniHeader({children, className = '', showBackArrow, showSubHeader, subHeaderName, showCancelButton, smallMargin = false, isContainDetailHeader, isWelcomeScreen, isNotHaveAccount, isShowZeroBalance, toggleZeroBalance}: Props): React.ReactElement<Props> {
+function KoniHeader({children, className = '', showBackArrow, showSubHeader, subHeaderName, showCancelButton, smallMargin = false, isContainDetailHeader, isWelcomeScreen, isNotHaveAccount, isShowZeroBalances, toggleZeroBalances}: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [isSettingsOpen, setShowSettings] = useState(false);
   const [isActionOpen, setShowAccountAction] = useState(false);
@@ -179,12 +179,12 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
     [isEditing]
   );
 
-  const _toggleZeroBalance = useCallback(
+  const _toggleZeroBalances = useCallback(
     (): void => {
-      toggleZeroBalance && toggleZeroBalance();
+      toggleZeroBalances && toggleZeroBalances();
       setShowAccountAction(false);
     },
-    [toggleZeroBalance]
+    [toggleZeroBalances]
   );
 
   const _saveChanges = useCallback(
@@ -366,8 +366,8 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
                 <KoniAccountAction
                   reference={actionsRef}
                   toggleEdit={_toggleEdit}
-                  isShowZeroBalance={isShowZeroBalance}
-                  toggleZeroBalance={toggleZeroBalance ? _toggleZeroBalance : undefined}
+                  isShowZeroBalances={isShowZeroBalances}
+                  toggleZeroBalances={toggleZeroBalances ? _toggleZeroBalances : undefined}
                 />
               )}
             </div>

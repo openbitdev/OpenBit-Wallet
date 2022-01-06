@@ -13,11 +13,11 @@ interface Props extends ThemeProps {
   className?: string;
   reference: React.MutableRefObject<null>;
   toggleEdit?: () => void;
-  isShowZeroBalance?: boolean;
-  toggleZeroBalance?: () => void;
+  isShowZeroBalances?: boolean;
+  toggleZeroBalances?: () => void;
 }
 
-function KoniAccountAction({ className, reference, toggleEdit, isShowZeroBalance, toggleZeroBalance }: Props): React.ReactElement<Props>  {
+function KoniAccountAction({ className, reference, toggleEdit, isShowZeroBalances, toggleZeroBalances }: Props): React.ReactElement<Props>  {
   const { t } = useTranslation();
 
   const {currentAccount} = useContext(CurrentAccountContext);
@@ -62,14 +62,14 @@ function KoniAccountAction({ className, reference, toggleEdit, isShowZeroBalance
         </KoniLink>
       </div>
 
-      {(networkName === 'all') && !!toggleZeroBalance && (
+      {(networkName === 'all') && !!toggleZeroBalances && (
         <>
           <KoniMenuDivider />
 
           <div className='actions-wrapper'>
-            <KoniLink className={`menuItem kn-l-show-zero-balance ${isShowZeroBalance ? '-check': ''}`} onClick={toggleZeroBalance}>
+            <KoniLink className={`menuItem kn-l-show-zero-balance ${isShowZeroBalances ? '-check': ''}`} onClick={toggleZeroBalances}>
               <span>
-                {t<string>('Show Zero Balance')}
+                {t<string>('Show Zero Balances')}
               </span>
               <img src={check} alt="check" className='kn-l-check-icon'/>
             </KoniLink>

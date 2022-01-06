@@ -265,6 +265,7 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
 
   .koni-buy-token-qr-code {
     margin: 20px 0;
+    border: 2px solid #fff;
   }
 
   .koni-buy-token-address {

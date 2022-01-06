@@ -134,12 +134,12 @@ function OverViewButton({className, onClick, children, help}: OverviewProps): Re
   );
 }
 
-function isAllowToShow(isShowZeroBalance: boolean, currentNetworkName: string, network: string, chainBalance?: BalanceInfo): boolean {
+function isAllowToShow(isShowZeroBalances: boolean, currentNetworkName: string, network: string, chainBalance?: BalanceInfo): boolean {
   if (currentNetworkName !== 'all' || ['polkadot', 'kusama'].includes(network)) {
     return true;
   }
 
-  return isShowZeroBalance || !!(chainBalance && chainBalance.balanceValue.gt(BN_ZERO));
+  return isShowZeroBalances || !!(chainBalance && chainBalance.balanceValue.gt(BN_ZERO));
 }
 
 function KoniAccountOverView({className, currentAccount, network}: Props): React.ReactElement {
@@ -162,7 +162,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
   });
   const [tokenPrices, setTokenPrices] = useState<any[]>([]);
   const [totalValue, setTotalValue] = useState<BigN>(new BigN(0));
-  const [isShowZeroBalance, setShowZeroBalance] = useState<boolean>(
+  const [isShowZeroBalances, setShowZeroBalances] = useState<boolean>(
     window.localStorage.getItem('show_zero_balance') === '1'
   );
 
@@ -302,9 +302,9 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
       []
   );
 
-  const _toggleZeroBalance = useCallback(
+  const _toggleZeroBalances = useCallback(
     (): void => {
-      setShowZeroBalance(v => {
+      setShowZeroBalances(v => {
         window.localStorage.setItem('show_zero_balance', v ? '0' : '1');
         return !v;
       });
@@ -316,7 +316,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
     const info = accountInfoByNetworkMap[network];
     const balanceInfo = chainBalanceMaps[network];
 
-    if (!isAllowToShow(isShowZeroBalance, networkName, network, balanceInfo)) {
+    if (!isAllowToShow(isShowZeroBalances, networkName, network, balanceInfo)) {
       return (<Fragment key={info.key} />)
     }
 
@@ -347,8 +347,8 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               showAdd
               showSearch
               showSettings
-              isShowZeroBalance={isShowZeroBalance}
-              toggleZeroBalance={_toggleZeroBalance}
+              isShowZeroBalances={isShowZeroBalances}
+              toggleZeroBalances={_toggleZeroBalances}
               text={t<string>('Accounts')}
               isContainDetailHeader={true}
           />
