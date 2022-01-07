@@ -319,7 +319,7 @@ export default React.memo(styled(AuthTransaction)(({ theme }: ThemeProps) => `
     color: #04C1B7;
     font-weight: 500;
     cursor: pointer;
-    
+
     &.-disabled {
       cursor: not-allowed;
       opacity: 0.5;

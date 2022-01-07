@@ -162,7 +162,7 @@ function BuyToken({
               <img src={pencil} alt="edit"/>
             </div>
             {isEditing && (
-              <HeaderEditName address={formatted} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
+              <HeaderEditName address={address} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
             )}
           </div>
           <div className='koni-buy-token-qr-code'>

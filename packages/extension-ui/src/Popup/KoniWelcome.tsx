@@ -54,7 +54,7 @@ export default styled(KoniWelcome)(({ theme }: Props) => `
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 47px;
+    margin: 30px 47px;
   }
 
   .welcome-logo {
@@ -79,7 +79,7 @@ export default styled(KoniWelcome)(({ theme }: Props) => `
 
   .welcome-button-wrapper {
     width: 100%;
-    margin-top: 98px;
+    margin-top: 30px;
   }
 
   p {

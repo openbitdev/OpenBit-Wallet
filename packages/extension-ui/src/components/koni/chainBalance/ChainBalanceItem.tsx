@@ -155,18 +155,19 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
   }
 
   .kn-chain-balance-item__logo {
-    min-width: 48px;
-    height: 48px;
+    min-width: 32px;
+    height: 32px;
     border-radius: 100%;
     overflow: hidden;
     margin-right: 12px;
     background-color: #fff;
     border: 1px solid #fff;
+    margin-top:10px;
   }
 
   .kn-chain-balance-item__chain-name {
     font-weight: 500;
-    font-size: 18px;
+    font-size: 17px;
   }
 
   .kn-chain-balance-item__bottom-area {
@@ -184,7 +185,7 @@ export default React.memo(styled(ChainBalanceItem)(({theme}: Props) => `
     flex: 1;
     margin-right: 12px;
     font-family: 400;
-    min-width: 130px;
+    min-width: 120px;
   }
 
   .kn-chain-balance-item__copy {

@@ -422,7 +422,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                   <>
                     <div className='kn-nft-coming-soon-wrapper'>
                       <img src={nftComingSoon} alt="coming-soon"/>
-                      <div className='overview-tab-activity tab-nft'>Coming Soon...</div>
+                      <div className='overview-tab-activity tab-nft'>Your NFTs will appear here<br/>Coming Soon...</div>
                     </div>
                   </>
               )}
@@ -430,7 +430,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                   <>
                     <div className='kn-nft-coming-soon-wrapper'>
                       <img src={transactionHistoryComingSoon} alt="coming-soon"/>
-                      <div className='overview-tab-activity tab-transaction-history'>Transactions will appear here<br/>Coming Soon...</div>
+                      <div className='overview-tab-activity tab-transaction-history'>Your transactions will appear here<br/>Coming Soon...</div>
                     </div>
 
                   </>
@@ -459,7 +459,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   .overview-wrapper {
     display: flex;
     align-items: center;
-    margin: 22px 0 12px;
+    margin: 30px 0 20px;
   }
 
   .account-balance {
@@ -469,7 +469,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .account-balance__money {
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 500;
   }
 
@@ -502,8 +502,8 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .account-button {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -522,6 +522,12 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     align-items: center;
     flex-direction: column;
     position: relative;
+  }
+
+  .kn-nft-coming-soon-wrapper img {
+    width: 50%;
+    margin-top:25px;
+    margin-bottom:20px
   }
 
  .overview-tab-activity {
@@ -568,6 +574,8 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     align-items: center;
     justify-content: center;
     padding-top: 0;
+    text-align:center;
+    font-size:15px;
   }
 
   .tab-transaction-history {

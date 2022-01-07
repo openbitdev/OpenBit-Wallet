@@ -14,13 +14,13 @@ function KoniTabs({ className, activatedTab, onSelect }: Props): React.ReactElem
       <div className={className}>
         <div className='koni-tabs'>
             <button className={`koni-tab ${activatedTab === 1? 'active' : ''}`} onClick={() => {onSelect(1)}}>
-              Assets
+              Crypto
             </button>
             <button className={`koni-tab ${activatedTab === 2? 'active' : ''}`} onClick={() => {onSelect(2)}}>
-              NFT
+              NFTs
             </button>
             <button className={`koni-tab ${activatedTab === 3? 'active' : ''}`} onClick={() => {onSelect(3)}}>
-              Activity
+              Transactions
             </button>
         </div>
       </div>
@@ -38,7 +38,7 @@ export default styled(KoniTabs)(({theme}: Props) => `
     line-height: 26px;
     padding: 5px 12px;
     cursor: pointer;
-    opacity: 0.6;
+    opacity: 1;
     display: flex;
     justify-content: center;
     flex: 1;
@@ -53,8 +53,8 @@ export default styled(KoniTabs)(({theme}: Props) => `
   }
 
   .active {
-    border-bottom-color: ${theme.buttonTextColor2};
-    color: ${theme.buttonTextColor2};
+    border-bottom-color: ${theme.buttonBackground};
+    color: ${theme.textColor};
     opacity: 1;
   }
 `)

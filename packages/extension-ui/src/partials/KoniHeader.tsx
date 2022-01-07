@@ -224,8 +224,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   );
 
   useOutsideClick(setRef, (): void => {
-    // isSettingsOpen && setShowSettings(false);
-    console.log('111', isSettingsOpen)
+    isSettingsOpen && setShowSettings(false);
   });
 
   useOutsideClick(actionsRef, (): void => {
@@ -249,8 +248,8 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   );
 
   const _toggleNetwork = useCallback(
-    (): void => setShowNetworkSelect((isNetworkSelectOpen) => !isNetworkSelectOpen),
-    []
+    (): void => {setShowNetworkSelect(!isNetworkSelectOpen)},
+    [isNetworkSelectOpen]
   )
 
   const _onCopy = useCallback(
@@ -279,7 +278,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
                      alt="Expand Icon"
                      className='kn-l-expand-btn__icon'/>
               </div>)}
-            <div className='network-select-item' onClick={_toggleNetwork}>
+            <div className={`network-select-item ${isNetworkSelectOpen && 'pointer-events-none'}`} onClick={_toggleNetwork}>
               <img src={getLogoByGenesisHash(currentAccount?.genesisHash as string)} alt="logo" className={'network-logo'} />
               <div className='network-select-item__text'>
                 {getNetworkName(currentAccount?.genesisHash) || genesisOptions[0].text}
@@ -288,7 +287,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
             </div>
 
             {!isWelcomeScreen && (
-              <div className='setting-icon-wrapper' onClick={_toggleSettings}>
+              <div className={`setting-icon-wrapper ${isSettingsOpen && 'pointer-events-none'}`} onClick={_toggleSettings}>
                 {!!currentAccount ? (
                   <Identicon
                     className='identityIcon'
@@ -353,7 +352,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
               </div>
 
               <div className='kn-l-detail-header__part-3'>
-                <div className='kn-l-more-button' onClick={_toggleAccountAction}>
+                <div className={`kn-l-more-button ${isActionOpen && 'pointer-events-none'}`} onClick={_toggleAccountAction}>
                   {popupTheme == 'dark' ?
                     (
                       <img src={moreButtonDark} alt="more" className={'kn-l-more-button__icon'}/>
@@ -439,6 +438,10 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     margin-left: -100%;
     margin-right: -100%;
     text-align: center;
+  }
+
+  .pointer-events-none {
+    pointer-events: none;
   }
 
   .container {
@@ -566,9 +569,9 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     background-color: ${theme.checkDotColor};
   }
   .network-logo {
-    min-width: 22px;
-    width: 22px;
-    height: 22px;
+    min-width: 18px;
+    width: 18px;
+    height: 18px;
     border-radius: 100%;
     overflow: hidden;
     image-rendering: -webkit-optimize-contrast;
@@ -635,7 +638,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   }
 
   .kn-l-connect-status-btn__icon {
-    width: 22px;
+    width: 15px;
   }
 
   .kn-l-account-info {
@@ -644,7 +647,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   }
 
   .kn-l-account-info__name {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 500;
     margin-right: 12px;
     text-overflow: ellipsis;
@@ -662,7 +665,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
 
   .kn-l-account-info__formatted {
     margin-right: 8px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 400;
     font-weight: 400;
   }

@@ -19,13 +19,11 @@ interface Props extends ThemeProps {
   onChange?: (value: string) => void;
   options?: any;
   value?: string;
-  reference: any;
 }
 
-function Dropdown ({ className, defaultValue, isDisabled, isFocussed, label, onBlur, onChange, options, value, reference }: Props): React.ReactElement<Props> {
+function Dropdown ({ className, defaultValue, isDisabled, isFocussed, label, onBlur, onChange, options, value}: Props): React.ReactElement<Props> {
   const transformOptions = options.map((t: { text: any; value: any; }) => ({label: t.text, value: t.value}));
   const [selectedValue, setSelectedValue] = useState(value || transformOptions[0].value);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleChange = (e: { value: any }) => {
     onChange && onChange(e.value.trim());
@@ -57,11 +55,6 @@ function Dropdown ({ className, defaultValue, isDisabled, isFocussed, label, onB
           className='kn-dropdown-wrapper'
           classNamePrefix='kn-dropdown'
           onChange={handleChange}
-          ref={reference}
-
-          menuIsOpen={isMenuOpen}
-          onFocus={() => setIsMenuOpen(true)}
-          onBlur={() => setIsMenuOpen(false)}
         />
 
         {/*<select*/}
