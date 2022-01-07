@@ -191,6 +191,8 @@ function SendFund({className}: Props): React.ReactElement {
     _onCancelTx();
   }, []);
 
+  const isSameAddress = !!recipientId && !!senderId && (recipientId === senderId);
+
   return (
     <>
       {!isShowTxResult ? (
@@ -232,6 +234,11 @@ function SendFund({className}: Props): React.ReactElement {
               {t<string>('The recipient is associated with a known phishing site on {{url}}', {replace: {url: recipientPhish}})}
             </KoniWarning>
           )}
+          {isSameAddress && (
+            <KoniWarning isDanger className={'kn-l-warning'}>
+              {t<string>('The recipient address is the same as the sender address.')}
+            </KoniWarning>
+          )}
           {canToggleAll && isAll
             ? (
               <InputBalance
@@ -252,6 +259,7 @@ function SendFund({className}: Props): React.ReactElement {
                   help={t<string>('Type the amount you want to transfer. Note that you can select the unit on the right e.g sending 1 milli is equivalent to sending 0.001.')}
                   isError={!hasAvailable}
                   isZeroable
+                  placeholder={'0'}
                   label={t<string>('amount')}
                   // maxValue={maxTransfer}
                   onChange={setAmount}
@@ -300,7 +308,7 @@ function SendFund({className}: Props): React.ReactElement {
               {t<string>('There is an existing reference count on the sender account. As such the account cannot be reaped from the state.')}
             </KoniWarning>
           )}
-          {!amountGtAvailableBalance && noFees && (
+          {!amountGtAvailableBalance && !isSameAddress && noFees && (
             <KoniWarning className={'kn-l-warning'}>
               {t<string>('The transaction, after application of the transfer fees, will drop the available balance below the existential deposit. As such the transfer will fail. The account needs more free funds to cover the transaction fees.')}
             </KoniWarning>
@@ -309,7 +317,7 @@ function SendFund({className}: Props): React.ReactElement {
           <div className={'kn-l-submit-wrapper'}>
             <KoniButton
               className={'kn-submit-btn'}
-              isDisabled={!hasAvailable || !(recipientId) || !amount || amountGtAvailableBalance || !!recipientPhish}
+              isDisabled={isSameAddress || !hasAvailable || !(recipientId) || !amount || amountGtAvailableBalance || !!recipientPhish}
               onClick={_onSend}
             >
               {t<string>('Make Transfer')}

@@ -23,7 +23,7 @@ import {
   getAccountsWithCurrentAddress, saveCurrentAccountAddress,
   subscribeAuthorizeRequests,
   subscribeMetadataRequests,
-  subscribeSigningRequests
+  subscribeSigningRequests, tieAccount
 } from '../messaging';
 import { buildHierarchy } from '../util/buildHierarchy';
 import AuthList from './KoniAuthManagement';
@@ -148,21 +148,35 @@ export default function Popup (): React.ReactElement {
     setAccountCtx(initAccountContext(accounts || []));
   }, [accounts]);
 
-  useEffect(():void => {
-    let networkSelected;
-    if (!currentAccount?.genesisHash) {
-      networkSelected = genesisOptions[0];
-    } else {
-      networkSelected = genesisOptions.find(opt => opt.value == currentAccount?.genesisHash);
-    }
-    if (networkSelected) {
-      setNetwork({
-        networkPrefix: networkSelected.networkPrefix,
-        icon: networkSelected.icon,
-        genesisHash: networkSelected.value,
-        networkName: networkSelected.networkName
-      });
-    }
+  useEffect(() => {
+    let isSync = true;
+
+    (async () => {
+      let networkSelected;
+      if (!currentAccount || !currentAccount.genesisHash) {
+        networkSelected = genesisOptions[0];
+      } else {
+        networkSelected = genesisOptions.find(opt => opt.value == currentAccount.genesisHash);
+
+        if (!networkSelected) {
+          await tieAccount(currentAccount.address, null);
+          networkSelected = genesisOptions[0];
+        }
+      }
+
+      if (isSync && networkSelected) {
+        setNetwork({
+          networkPrefix: networkSelected.networkPrefix,
+          icon: networkSelected.icon,
+          genesisHash: networkSelected.value,
+          networkName: networkSelected.networkName
+        });
+      }
+    })();
+
+    return () => {
+      isSync = false;
+    };
   }, [currentAccount?.genesisHash]);
 
   useEffect((): void => {
