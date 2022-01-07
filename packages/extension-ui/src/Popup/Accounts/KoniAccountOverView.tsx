@@ -101,9 +101,10 @@ function Wrapper({className, theme}: WrapperProps): React.ReactElement {
     return (<KoniAddAccount/>);
   }
 
-  if(!currentAccount
-    || (currentAccount.genesisHash
-      && (currentAccount.genesisHash !== network.genesisHash))) {
+  // console.log('currentAccount===========', currentAccount);
+  // console.log('network', network);
+
+  if(!currentAccount) {
     return (<></>);
   }
 

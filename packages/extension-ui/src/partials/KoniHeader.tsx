@@ -205,18 +205,17 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   ) as IconTheme;
 
   const _onChangeGenesis = useCallback(
-    (genesisHash: string, networkPrefix: number, icon: string, networkName: string): void => {
+    async (genesisHash: string, networkPrefix: number, icon: string, networkName: string): Promise<void> => {
 
       if (currentAccount) {
+        await tieAccount(currentAccount.address, genesisHash || null);
+
         setNetwork({
           networkPrefix,
           icon,
           genesisHash,
           networkName
         });
-
-        tieAccount(currentAccount.address, genesisHash || null)
-          .catch(console.error);
       }
       setShowNetworkSelect(false);
     },

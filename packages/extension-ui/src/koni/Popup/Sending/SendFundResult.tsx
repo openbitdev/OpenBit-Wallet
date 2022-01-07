@@ -50,8 +50,6 @@ function SendFundResult({className, txResult: {isTxSuccess, txError}, setTxResul
 
   const errorMessage = getErrorMessage(txError);
 
-  console.log('txError', txError);
-
   return (
     <div className={`kn-send-fund-result-wrapper ${className}`}>
       {isTxSuccess ?
@@ -81,9 +79,9 @@ function SendFundResult({className, txResult: {isTxSuccess, txError}, setTxResul
         <div className='kn-send-fund-result'>
           <img className='kn-status-img' src={failStatus} alt="fail" />
           <div className='kn-stt-text'>{t<string>('Send Fund Fail')}</div>
-          <div className='kn-stt-subtext'>{t<string>('there was a problem with your request. Here is the detail:')}
+          <div className='kn-stt-subtext'>{t<string>('There was a problem with your request.')}
             {errorMessage && (
-              <div>{errorMessage}</div>
+              <div className={'kn-l-text-danger'}>{errorMessage}</div>
             )}
           </div>
 
@@ -130,7 +128,10 @@ export default React.memo(styled(SendFundResult)(({theme}: ThemeProps) => `
 
   .kn-send-fund-stt-btn {
     margin-bottom: 10px;
+  }
 
+  .kn-l-text-danger {
+    color: ${theme.iconDangerColor};
   }
 
   .kn-send-fund-stt-btn > .children {
