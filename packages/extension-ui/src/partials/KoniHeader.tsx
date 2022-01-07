@@ -224,7 +224,8 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   );
 
   useOutsideClick(setRef, (): void => {
-    isSettingsOpen && setShowSettings(!isSettingsOpen);
+    // isSettingsOpen && setShowSettings(false);
+    console.log('111', isSettingsOpen)
   });
 
   useOutsideClick(actionsRef, (): void => {
@@ -241,7 +242,9 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   );
 
   const _toggleSettings = useCallback(
-    (): void => setShowSettings((isSettingsOpen) => !isSettingsOpen),
+    (): void => {
+      setShowSettings((isSettingsOpen) => !isSettingsOpen);
+    },
     []
   );
 
@@ -307,7 +310,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
 
           {isNetworkSelectOpen && (
             <KoniNetworkMenu reference={netRef} currentNetwork={currentAccount?.genesisHash ? currentAccount?.genesisHash : ''}
-                             selectNetwork={_onChangeGenesis}/>
+                             selectNetwork={_onChangeGenesis} />
           )}
 
           {isSettingsOpen && (

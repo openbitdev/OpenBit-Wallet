@@ -13,12 +13,12 @@ import {Theme} from "../../types";
 import useIsPopup from "@polkadot/extension-ui/hooks/useIsPopup";
 import getLanguageOptions from "@polkadot/extension-ui/util/getLanguageOptions";
 import {setNotification, windowOpen} from "@polkadot/extension-ui/messaging";
-import KoniDropdown from "@polkadot/extension-ui/components/KoniDropdown";
 import MenuItem from "@polkadot/extension-ui/components/koni/MenuItem";
 import Checkbox from "@polkadot/extension-ui/components/koni/Checkbox";
 import KoniActionText from "@polkadot/extension-ui/components/KoniActionText";
 import KoniMenuDivider from "@polkadot/extension-ui/components/KoniMenuDivider";
 import HorizontalLabelToggle from "@polkadot/extension-ui/koni/react-components/HorizontalLabelToggle";
+import SimpleDropdown from "@polkadot/extension-ui/components/SimpleDropdown";
 
 interface Props extends ThemeProps {
   className?: string;
@@ -108,7 +108,7 @@ function KoniSettings({className}: Props): React.ReactElement {
           className='setting'
           title={t<string>('Language')}
         >
-          <KoniDropdown
+          <SimpleDropdown
             className='dropdown'
             label=''
             onChange={_onChangeLang}
@@ -120,7 +120,7 @@ function KoniSettings({className}: Props): React.ReactElement {
           className='setting'
           title={t<string>('Notifications')}
         >
-          <KoniDropdown
+          <SimpleDropdown
             className='dropdown'
             label=''
             onChange={_onChangeNotification}

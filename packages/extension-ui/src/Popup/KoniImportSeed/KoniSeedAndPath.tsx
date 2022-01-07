@@ -16,12 +16,12 @@ import { objectSpread } from '@polkadot/util';
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useTranslation from '../../hooks/useTranslation';
 import KoniWarning from "@polkadot/extension-ui/components/KoniWarning";
-import KoniDropdown from "@polkadot/extension-ui/components/KoniDropdown";
 import KoniTextAreaWithLabel from "@polkadot/extension-ui/components/KoniTextAreaWithLabel";
 import KoniInputWithLabel from "@polkadot/extension-ui/components/KoniInputWithLabel";
 import KoniAccountInfo from "@polkadot/extension-ui/components/KoniAccountInfo";
 import KoniButtonArea from "@polkadot/extension-ui/components/KoniButtonArea";
 import KoniNextStepButton from "@polkadot/extension-ui/components/KoniNextStepButton";
+import {Dropdown} from "@polkadot/extension-ui/components";
 
 interface Props {
   className?: string;
@@ -98,7 +98,7 @@ function KoniSeedAndPath ({ className, onAccountChange, onNextStep, type, accoun
                 {t<string>('Mnemonic needs to contain 12, 15, 18, 21, 24 words')}
               </KoniWarning>
             )}
-            <KoniDropdown
+            <Dropdown
               className='genesisSelection'
               label={t<string>('Network')}
               onChange={setGenesis}
