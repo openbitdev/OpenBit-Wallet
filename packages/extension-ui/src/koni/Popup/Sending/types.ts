@@ -26,14 +26,15 @@ export interface AddressProxy {
 export interface TxHandler {
   onTxStart?: () => void;
   onTxUpdate?: (result: SubmittableResult) => void;
-  onTxSuccess?: (result: SubmittableResult) => void;
-  onTxFail?: (result: Error | SubmittableResult | null) => void;
+  onTxSuccess?: (result: SubmittableResult, extrinsicHash?: string) => void;
+  onTxFail?: (result: Error | SubmittableResult | null, extrinsicHash?: string) => void;
 }
 
 export interface TxResult {
   isShowTxResult: boolean;
   isTxSuccess: boolean;
   txError?: Error | SubmittableResult | null;
+  extrinsicHash?: string;
 }
 
 export interface QrState {

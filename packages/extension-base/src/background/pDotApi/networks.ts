@@ -17,6 +17,14 @@ const networks: Record<string, NetWorkInfo> = {
     "provider": "wss://kusama.api.onfinality.io/public-ws",
     "group": "RELAY_CHAIN",
   },
+  "westend": {
+    "chain": "Westend Relay Chain",
+    "genesisHash": "0xe143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+    "icon": "polkadot",
+    "ss58Format": 42,
+    "provider": "wss://westend.api.onfinality.io/public-ws",
+    "group": "RELAY_CHAIN",
+  },
   "koni": {
     "chain": "Koni test",
     "genesisHash": "0x7a48390870728092c951aaf4e1632c849a74489d9cee0bf51d3527b33983fc0a",

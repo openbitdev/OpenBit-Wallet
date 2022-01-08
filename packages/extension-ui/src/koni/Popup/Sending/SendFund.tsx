@@ -1,31 +1,36 @@
 import BN from 'bn.js';
-import { ThemeProps } from '@polkadot/extension-ui/types';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import {ThemeProps} from '@polkadot/extension-ui/types';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { InputAddress, Toggle } from '@polkadot/extension-ui/koni/react-components';
-import { Available } from '@polkadot/extension-ui/koni/react-query';
+import {InputAddress, Toggle} from '@polkadot/extension-ui/koni/react-components';
+import {Available} from '@polkadot/extension-ui/koni/react-query';
 import useTranslation from '@polkadot/extension-ui/hooks/useTranslation';
 import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
 import InputBalance from '@polkadot/extension-ui/koni/react-components/InputBalance';
-import { useApi, useCall } from '@polkadot/extension-ui/koni/react-hooks';
-import { BN_HUNDRED, BN_ZERO, isFunction } from '@polkadot/util';
-import { DeriveBalancesAll } from '@polkadot/api-derive/types';
+import {useApi, useCall} from '@polkadot/extension-ui/koni/react-hooks';
+import {BN_HUNDRED, BN_ZERO, isFunction} from '@polkadot/util';
+import {DeriveBalancesAll} from '@polkadot/api-derive/types';
 // import {useApi} from "@polkadot/extension-ui/koni/react-hooks";
-import { checkAddress } from '@polkadot/phishing';
-import { AccountInfoWithProviders, AccountInfoWithRefCount } from '@polkadot/types/interfaces';
-import { CurrentAccContext } from '@polkadot/extension-base/background/types';
-import { CurrentAccountContext } from '@polkadot/extension-ui/components';
+import {checkAddress} from '@polkadot/phishing';
+import {AccountInfoWithProviders, AccountInfoWithRefCount} from '@polkadot/types/interfaces';
+import {AccNetworkContext, CurrentAccContext} from '@polkadot/extension-base/background/types';
+import {CurrentAccountContext, CurrentNetworkContext} from '@polkadot/extension-ui/components';
 import KoniWarning from '@polkadot/extension-ui/components/KoniWarning';
 import KoniLoading from '@polkadot/extension-ui/components/KoniLoading';
 import KoniButton from '@polkadot/extension-ui/components/KoniButton';
-import { SubmittableExtrinsic } from '@polkadot/api/types';
+import {SubmittableExtrinsic} from '@polkadot/api/types';
 import AuthTransaction from '@polkadot/extension-ui/koni/Popup/Sending/AuthTransaction';
-import { TxResult } from '@polkadot/extension-ui/koni/Popup/Sending/types';
-import { SubmittableResult } from '@polkadot/api';
+import {TxResult} from '@polkadot/extension-ui/koni/Popup/Sending/types';
+import {SubmittableResult} from '@polkadot/api';
 import SendFundResult from '@polkadot/extension-ui/koni/Popup/Sending/SendFundResult';
 
 interface Props extends ThemeProps {
   className?: string;
+}
+
+interface ContentProps extends ThemeProps {
+  className?: string;
+  setWrapperClass: (classname: string) => void
 }
 
 function isRefcount(accountInfo: AccountInfoWithProviders | AccountInfoWithRefCount): accountInfo is AccountInfoWithRefCount {
@@ -45,14 +50,13 @@ async function checkPhishing(_senderId: string | null, recipientId: string | nul
   ];
 }
 
-function Wrapper(props: Props): React.ReactElement<Props> {
+function Wrapper({className, theme}: Props): React.ReactElement<Props> {
   const {t} = useTranslation();
   const {isApiReady, isNotSupport} = useApi();
-
-  //todo: handle when remove All account or no account
+  const [wrapperClass, setWrapperClass] = useState<string>('');
 
   return (
-    <div className={`-wrapper ${props.className}`}>
+    <div className={`-wrapper ${className} ${wrapperClass}`}>
       <KoniHeader
         showAdd
         showSearch
@@ -62,7 +66,7 @@ function Wrapper(props: Props): React.ReactElement<Props> {
         showCancelButton
       />
 
-      {isApiReady ? (<SendFund {...props} />)
+      {isApiReady ? (<SendFund theme={theme} setWrapperClass={setWrapperClass} className={'send-fund-container'} />)
         : isNotSupport
           ? (
             <div className={'kn-l-screen-content'}>
@@ -77,10 +81,11 @@ function Wrapper(props: Props): React.ReactElement<Props> {
   );
 }
 
-function SendFund({className}: Props): React.ReactElement {
+function SendFund({className, setWrapperClass}: ContentProps): React.ReactElement {
   const {t} = useTranslation();
   const {api, apiUrl} = useApi();
   const {currentAccount} = useContext<CurrentAccContext>(CurrentAccountContext);
+  const {network: {networkName}} = useContext<AccNetworkContext>(CurrentNetworkContext);
   const propSenderId = currentAccount?.address;
   const [amount, setAmount] = useState<BN | undefined>(BN_ZERO);
   const [hasAvailable] = useState(true);
@@ -172,24 +177,40 @@ function SendFund({className}: Props): React.ReactElement {
     setShowTxModal(true);
   }, []);
 
-  const _onTxSuccess = useCallback((result: SubmittableResult) => {
+  const _onTxSuccess = useCallback((result: SubmittableResult, extrinsicHash?: string) => {
+    setWrapperClass('-disable-header-action');
+
     setTxResult({
       isShowTxResult: true,
-      isTxSuccess: true
+      isTxSuccess: true,
+      extrinsicHash
     });
 
     _onCancelTx();
   }, []);
 
-  const _onTxFail = useCallback((result: Error | SubmittableResult | null) => {
+  const _onTxFail = useCallback((result: Error | SubmittableResult | null, extrinsicHash?: string) => {
+    setWrapperClass('-disable-header-action');
+
     setTxResult({
       isShowTxResult: true,
       isTxSuccess: false,
-      txError: result
+      txError: result,
+      extrinsicHash
     });
 
     _onCancelTx();
   }, []);
+
+  const _onResend = () => {
+    setTxResult({
+      isTxSuccess: false,
+      isShowTxResult: false,
+      txError: undefined
+    });
+
+    setWrapperClass('');
+  }
 
   const isSameAddress = !!recipientId && !!senderId && (recipientId === senderId);
 
@@ -326,8 +347,9 @@ function SendFund({className}: Props): React.ReactElement {
         </div>
       ) : (
         <SendFundResult
+          networkName={networkName}
           txResult={txResult}
-          setTxResult={setTxResult}
+          onResend={_onResend}
         />
       )}
 
@@ -347,14 +369,26 @@ function SendFund({className}: Props): React.ReactElement {
 }
 
 export default React.memo(styled(Wrapper)(({theme}: Props) => `
-  &.-wrapper {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+
+  &.-disable-header-action {
+    .koni-header-right-content .kn-l-expand-btn,
+    .network-select-item,
+    .setting-icon-wrapper {
+      cursor: not-allowed;
+      opacity: 0.5;
+      pointer-events: none !important;
+    }
+
+    .subheader-container__part-3 .kn-l-cancel-btn {
+      display: none;
+    }
   }
 
-  &.-main-content {
+  .send-fund-container {
     padding-left: 15px;
     padding-right: 15px;
     padding-bottom: 15px;

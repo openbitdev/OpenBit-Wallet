@@ -191,8 +191,6 @@ function InputNumber ({ autoFocus, bitLength = DEFAULT_BITLENGTH, children, clas
     getValues(api, propsValue || defaultValue, si, bitLength, isZeroable, maxValue, siDecimals)
   );
 
-  console.log('[value, valueBn, isValid]', [value, valueBn, isValid]);
-
   const [isPreKeyDown, setIsPreKeyDown] = useState(false);
 
   const siOptions = useMemo(

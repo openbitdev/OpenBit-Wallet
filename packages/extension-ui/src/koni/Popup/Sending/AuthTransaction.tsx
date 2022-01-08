@@ -56,7 +56,8 @@ function unlockAccount ({ isUnlockCached, signAddress, signPassword }: AddressPr
   return null;
 }
 
-export function handleTxResults({onTxUpdate, onTxSuccess, onTxFail}: TxHandler,
+export function handleTxResults(tx: SubmittableExtrinsic<'promise'>,
+                                {onTxUpdate, onTxSuccess, onTxFail}: TxHandler,
                                 unsubscribe: () => void): (result: SubmittableResult) => void {
   return (result: SubmittableResult): void => {
     if (!result || !result.status) {
@@ -64,6 +65,8 @@ export function handleTxResults({onTxUpdate, onTxSuccess, onTxFail}: TxHandler,
     }
 
     console.log(`: status :: ${JSON.stringify(result)}`);
+    console.log(`result============`, result);
+    console.log(`tx.toHash()`, tx.hash.toHex());
 
     onTxUpdate && onTxUpdate(result);
 
@@ -71,10 +74,12 @@ export function handleTxResults({onTxUpdate, onTxSuccess, onTxFail}: TxHandler,
       result.events
         .filter(({ event: { section } }) => section === 'system')
         .forEach(({ event: { method } }): void => {
+          const extrinsicHash = tx.hash.toHex();
+
           if (method === 'ExtrinsicFailed') {
-            onTxFail && onTxFail(result);
+            onTxFail && onTxFail(result, extrinsicHash);
           } else if (method === 'ExtrinsicSuccess') {
-            onTxSuccess && onTxSuccess(result);
+            onTxSuccess && onTxSuccess(result, extrinsicHash);
           }
         });
     } else if (result.isError) {
@@ -95,8 +100,7 @@ async function signAndSend (txHandler: TxHandler, tx: SubmittableExtrinsic<'prom
 
     console.info('sending', tx.toHex());
 
-    const unsubscribe = await tx.send(handleTxResults(txHandler, (): void => {
-      console.log('tx.hash.toHex()', tx.hash.toHex());
+    const unsubscribe = await tx.send(handleTxResults(tx, txHandler, (): void => {
       unsubscribe();
     }));
   } catch (error) {

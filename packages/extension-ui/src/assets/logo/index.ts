@@ -30,6 +30,7 @@ const LogosMap: Record<string, string> = {
   'subsocial': require('./subsocial.svg'),
   'zeitgeist': require('./zeitgeist.png'),
   'koni': require('./koni.svg'),
+  'westend': require('./westend.svg'),
   'default': require('./default.svg'),
 };
 
