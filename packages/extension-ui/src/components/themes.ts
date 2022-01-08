@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 const colors = {
   primary1: '#004BFF',
-  primary2: '#66E1B6',
+  primary2: '#04C1B7',
 };
 
 const darkTheme = {
@@ -43,7 +43,7 @@ const darkTheme = {
   highlightedAreaBackground: '#EFEFEF',
   headerBoxShadow: '0px 5px 40px #030d42',
   iconDangerColor: '#AF1111',
-  iconNeutralColor: 'rgba(136, 136, 136, 0.2)',
+  iconNeutralColor: 'rgba(136, 136, 136, 0.8)',
   iconWarningColor: '#FF7D01',
   id: 'dark',
   identiconBackground: '#F4F5F8',
@@ -130,12 +130,12 @@ const lightTheme: Theme = {
   readonlyInputBackground: '#FFF',
   subTextColor: '#454545',
   textColor: '#00072D',
-  textColor2: '#888888',
+  textColor2: '#666666',
   textColor3: colors.primary1,
   textColorDanger: '#F24A4A',
   labelLightThemeColor: '#00072D',
-  labelDarkThemeColor: '#888888',
-  manageWebsiteAccessColor: '#888888',
+  labelDarkThemeColor: '#666666',
+  manageWebsiteAccessColor: '#666666',
   warningBackgroundColor: 'rgba(231, 185, 23, 0.1)',
   dangerBackgroundColor: 'rgba(175, 17, 17, 0.1)',
   loadingBackground1: '#F0F4FF',

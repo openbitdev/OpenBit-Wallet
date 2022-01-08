@@ -207,11 +207,12 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
   }
 
   .koni-network-logo {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border: 1px solid #fff;
     border-radius: 50%;
     margin-right: 10px;
+    background-color: #fff;
   }
 
   .koni-buy-token-name {

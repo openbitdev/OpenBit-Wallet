@@ -118,15 +118,8 @@ function KoniCreateAccount ({ className, defaultClassName }: Props): React.React
                   address={address}
                   genesis={genesisHash}
                 >
-                  {/*<KoniDropdown*/}
-                  {/*  className='create-account-network-dropdown'*/}
-                  {/*  label={t<string>('Network')}*/}
-                  {/*  onChange={_onChangeNetwork}*/}
-                  {/*  options={options}*/}
-                  {/*  value={genesisHash}*/}
-                  {/*/>*/}
-
                   <Dropdown
+                    className='create-account-network-select'
                     label={t<string>('Network')}
                     onChange={_onChangeNetwork}
                     options={options}
@@ -144,6 +137,10 @@ function KoniCreateAccount ({ className, defaultClassName }: Props): React.React
 
 export default styled(KoniCreateAccount)`
   margin-bottom: 16px;
+
+  .create-account-network-select {
+    font-weight: 500;
+  }
 
   .create-account-network-dropdown {
     margin-bottom: 10px;
