@@ -257,12 +257,12 @@ export async function jsonGetAccountInfo (json: KeyringPair$Json): Promise<Respo
   return sendMessage('pri(json.account.info)', json);
 }
 
-export async function jsonRestore (file: KeyringPair$Json, password: string): Promise<void> {
-  return sendMessage('pri(json.restore)', { file, password });
+export async function jsonRestore (file: KeyringPair$Json, password: string, address: string): Promise<void> {
+  return sendMessage('pri(json.restore)', { file, password, address });
 }
 
-export async function batchRestore (file: KeyringPairs$Json, password: string): Promise<void> {
-  return sendMessage('pri(json.batchRestore)', { file, password });
+export async function batchRestore (file: KeyringPairs$Json, password: string, address: string): Promise<void> {
+  return sendMessage('pri(json.batchRestore)', { file, password, address });
 }
 
 export async function setNotification (notification: string): Promise<boolean> {

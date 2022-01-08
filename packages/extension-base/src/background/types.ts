@@ -477,11 +477,13 @@ export interface RequestSign {
 export interface RequestJsonRestore {
   file: KeyringPair$Json;
   password: string;
+  address: string;
 }
 
 export interface RequestBatchRestore {
   file: KeyringPairs$Json;
   password: string;
+  address: string;
 }
 
 export interface ResponseJsonRestore {

@@ -383,17 +383,23 @@ export default class Extension {
     return true;
   }
 
-  private jsonRestore ({ file, password }: RequestJsonRestore): void {
+  private jsonRestore ({ file, password, address }: RequestJsonRestore): void {
     try {
-      keyring.restoreAccount(file, password);
+      this._saveCurrentAccountAddress(address, () => {
+        keyring.restoreAccount(file, password);
+      })
+
     } catch (error) {
       throw new Error((error as Error).message);
     }
   }
 
-  private batchRestore ({ file, password }: RequestBatchRestore): void {
+  private batchRestore ({ file, password, address }: RequestBatchRestore): void {
     try {
-      keyring.restoreAccounts(file, password);
+      this._saveCurrentAccountAddress(address, () => {
+        keyring.restoreAccounts(file, password);
+      })
+
     } catch (error) {
       throw new Error((error as Error).message);
     }

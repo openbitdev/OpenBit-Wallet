@@ -1,24 +1,25 @@
 // Copyright 2019-2021 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ResponseJsonGetAccountInfo } from '@polkadot/extension-base/background/types';
-import type { KeyringPair$Json } from '@polkadot/keyring/types';
-import type { KeyringPairs$Json } from '@polkadot/ui-keyring/types';
+import type {ResponseJsonGetAccountInfo} from '@polkadot/extension-base/background/types';
+import type {KeyringPair$Json} from '@polkadot/keyring/types';
+import type {KeyringPairs$Json} from '@polkadot/ui-keyring/types';
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { u8aToString } from '@polkadot/util';
-import { AccountContext, ActionContext} from '../components';
+import {u8aToString} from '@polkadot/util';
+import {AccountContext, ActionContext} from '../components';
 import useTranslation from '../hooks/useTranslation';
-import { batchRestore, jsonGetAccountInfo, jsonRestore } from '../messaging';
-import { DEFAULT_TYPE } from '../util/defaultType';
-import { isKeyringPairs$Json } from '../util/typeGuards';
+import {batchRestore, jsonGetAccountInfo, jsonRestore} from '../messaging';
+import {DEFAULT_TYPE} from '../util/defaultType';
+import {isKeyringPairs$Json} from '../util/typeGuards';
 import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
 import KoniWarning from "@polkadot/extension-ui/components/KoniWarning";
 import KoniInputWithLabel from "@polkadot/extension-ui/components/KoniInputWithLabel";
 import KoniButton from "@polkadot/extension-ui/components/KoniButton";
 import KoniInputFileWithLabel from "@polkadot/extension-ui/components/KoniInputFileWithLabel";
 import KoniAccountInfo from "@polkadot/extension-ui/components/KoniAccountInfo";
+import KoniButtonArea from "@polkadot/extension-ui/components/KoniButtonArea";
 
 const acceptedFormats = ['application/json', 'text/plain'].join(', ');
 
@@ -26,9 +27,9 @@ interface Props {
   className?: string;
 }
 
-function Upload ({ className }: Props): React.ReactElement {
-  const { t } = useTranslation();
-  const { accounts } = useContext(AccountContext);
+function Upload({className}: Props): React.ReactElement {
+  const {t} = useTranslation();
+  const {accounts} = useContext(AccountContext);
   const onAction = useContext(ActionContext);
   const [isBusy, setIsBusy] = useState(false);
   const [accountsInfo, setAccountsInfo] = useState<ResponseJsonGetAccountInfo[]>([]);
@@ -90,6 +91,8 @@ function Upload ({ className }: Props): React.ReactElement {
     }, []
   );
 
+  console.log('123', accountsInfo)
+
   const _onRestore = useCallback(
     (): void => {
       if (!file) {
@@ -102,11 +105,11 @@ function Upload ({ className }: Props): React.ReactElement {
 
       setIsBusy(true);
 
-      (isKeyringPairs$Json(file) ? batchRestore(file, password) : jsonRestore(file, password))
+      (isKeyringPairs$Json(file) ? batchRestore(file, password, accountsInfo[0].address) : jsonRestore(file, password, accountsInfo[0].address))
         .then(() => {
           onAction('/');
         }).catch(
-          (e) => {
+        (e) => {
           console.error(e);
           setIsBusy(false);
           setIsPasswordError(true);
@@ -125,7 +128,7 @@ function Upload ({ className }: Props): React.ReactElement {
       />
       <div className={className}>
         <div className='restore-from-json-wrapper'>
-          {accountsInfo.map(({ address, genesisHash, name, type = DEFAULT_TYPE }, index) => (
+          {accountsInfo.map(({address, genesisHash, name, type = DEFAULT_TYPE}, index) => (
             <KoniAccountInfo
               address={address}
               genesisHash={genesisHash}
@@ -167,6 +170,8 @@ function Upload ({ className }: Props): React.ReactElement {
               )}
             </div>
           )}
+        </div>
+        <KoniButtonArea>
           <KoniButton
             className='restoreButton'
             isBusy={isBusy}
@@ -175,22 +180,25 @@ function Upload ({ className }: Props): React.ReactElement {
           >
             {t<string>('Restore')}
           </KoniButton>
-        </div>
+        </KoniButtonArea>
       </div>
     </>
   );
 }
 
 export default styled(Upload)`
+  padding: 25px 15px 15px;
+  flex: 1;
+  margin-top: -25px;
+  overflow-y: auto;
   .restore-from-json-wrapper {
-    margin: 0 15px;
+
   }
 
   .account-info {
-    margin: 0;
+    margin-bottom: 10px;
   }
 
   .restoreButton {
-    margin-top: 18px;
   }
 `;
