@@ -19,7 +19,6 @@ import KoniInputWithLabel from "@polkadot/extension-ui/components/KoniInputWithL
 import KoniButton from "@polkadot/extension-ui/components/KoniButton";
 import KoniInputFileWithLabel from "@polkadot/extension-ui/components/KoniInputFileWithLabel";
 import KoniAccountInfo from "@polkadot/extension-ui/components/KoniAccountInfo";
-import KoniButtonArea from "@polkadot/extension-ui/components/KoniButtonArea";
 
 const acceptedFormats = ['application/json', 'text/plain'].join(', ');
 
@@ -138,61 +137,57 @@ function Upload({className}: Props): React.ReactElement {
               className='account-info'
             />
           ))}
-          <KoniInputFileWithLabel
-            accept={acceptedFormats}
-            isError={isFileError}
-            label={t<string>('backup file')}
-            onChange={_onChangeFile}
-            withLabel
-          />
-          {isFileError && (
-            <KoniWarning
-              isDanger
-            >
-              {t<string>('Invalid Json file')}
-            </KoniWarning>
-          )}
-          {requirePassword && (
-            <div>
-              <KoniInputWithLabel
-                isError={isPasswordError}
-                label={t<string>('Password for this file')}
-                onChange={_onChangePass}
-                type='password'
-              />
-              {isPasswordError && (
-                <KoniWarning
-                  isBelowInput
-                  isDanger
-                >
-                  {t<string>('Unable to decode using the supplied passphrase')}
-                </KoniWarning>
-              )}
-            </div>
-          )}
         </div>
-        <KoniButtonArea>
-          <KoniButton
-            className='restoreButton'
-            isBusy={isBusy}
-            isDisabled={isFileError || isPasswordError}
-            onClick={_onRestore}
+        <KoniInputFileWithLabel
+          accept={acceptedFormats}
+          isError={isFileError}
+          label={t<string>('backup file')}
+          onChange={_onChangeFile}
+          withLabel
+        />
+        {isFileError && (
+          <KoniWarning
+            isDanger
           >
-            {t<string>('Restore')}
-          </KoniButton>
-        </KoniButtonArea>
+            {t<string>('Invalid Json file')}
+          </KoniWarning>
+        )}
+        {requirePassword && (
+          <div>
+            <KoniInputWithLabel
+              isError={isPasswordError}
+              label={t<string>('Password for this file')}
+              onChange={_onChangePass}
+              type='password'
+            />
+            {isPasswordError && (
+              <KoniWarning
+                isBelowInput
+                isDanger
+              >
+                {t<string>('Unable to decode using the supplied passphrase')}
+              </KoniWarning>
+            )}
+          </div>
+        )}
+        <KoniButton
+          className='restoreButton'
+          isBusy={isBusy}
+          isDisabled={isFileError || isPasswordError}
+          onClick={_onRestore}
+        >
+          {t<string>('Restore')}
+        </KoniButton>
       </div>
     </>
   );
 }
 
 export default styled(Upload)`
-  padding: 25px 15px 15px;
-  flex: 1;
-  margin-top: -25px;
-  overflow-y: auto;
+  padding: 0 15px;
   .restore-from-json-wrapper {
-
+    max-height: 200px;
+    overflow-y: auto;
   }
 
   .account-info {
@@ -200,5 +195,6 @@ export default styled(Upload)`
   }
 
   .restoreButton {
+    margin-top: 15px;
   }
 `;

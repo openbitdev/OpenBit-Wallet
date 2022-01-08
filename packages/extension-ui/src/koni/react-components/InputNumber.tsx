@@ -465,7 +465,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
 
   @media (max-width: 767px) {
     .ui--SiDropdown .menu {
-      max-height: 112px;
+      max-height: 130px;
     }
   }
 `));

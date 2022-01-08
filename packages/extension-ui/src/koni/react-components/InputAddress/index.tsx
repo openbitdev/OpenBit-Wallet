@@ -530,7 +530,7 @@ const ExportedComponent = withMulti(
 
     @media (max-width: 767px) {
       .ui--AddressSearch .menu {
-        max-height: 112px;
+        max-height: 130px;
       }
     }
   }
