@@ -96,7 +96,7 @@ export default React.memo(styled(KoniAccountAction)(({ theme }: Props) => `
     padding: 10px 16px;
 
     &:hover {
-      background-color: ${theme.buttonBackground1}
+      background-color: ${theme.accountHoverBackground}
     }
   }
 

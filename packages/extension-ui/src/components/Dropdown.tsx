@@ -38,7 +38,8 @@ function Dropdown ({ className, defaultValue, isDisabled, isFocussed, label, onB
         fontFamily: 'Lexend',
         fontSize: '15px'
       }
-    }
+    },
+    noOptionsMessage: (base: any) => ({...base, textAlign: 'left', fontFamily: 'Lexend', fontSize: '15px'})
   }
   return (
     <>
@@ -100,7 +101,7 @@ export default React.memo(styled(Dropdown)(({ isError, label, theme }: Props) =>
   }
 
   .kn-dropdown__single-value {
-    color: ${theme.textColor};
+    color: ${theme.textColor2};
   }
 
   .kn-dropdown__indicator-separator {
@@ -108,12 +109,17 @@ export default React.memo(styled(Dropdown)(({ isError, label, theme }: Props) =>
   }
 
   .kn-dropdown__input-container {
-    color: ${theme.textColor};
+    color: ${theme.textColor2};
   }
 
   .kn-dropdown__menu-portal {
     text-align: left;
     font-size: 15px;
+  }
+
+  .kn-dropdown__menu-notice--no-options {
+    text-align: left;
+    font-family: ${theme.fontFamily};
   }
 
 `));
