@@ -390,6 +390,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                     networkPrefix={buyTokenScreenNetworkPrefix}
                     networkName={buyTokenScreenNetworkName}
                     iconTheme={buyTokenScreenIconTheme}
+                    genesisHash={currentAccount.genesisHash}
                 />
             )}
 

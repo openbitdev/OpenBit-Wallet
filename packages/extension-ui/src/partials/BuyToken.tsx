@@ -17,6 +17,7 @@ import {editAccount} from "@polkadot/extension-ui/messaging";
 import Identicon from "@polkadot/extension-ui/koni/react-components/Identicon";
 import {KeypairType} from "@polkadot/util-crypto/types";
 import reformatAddress from "@polkadot/extension-ui/util/koni/reformatAddress";
+import {getLogoByGenesisHash} from "@polkadot/extension-ui/util/koni/logoByGenesisHashMap";
 
 
 interface Props extends ThemeProps {
@@ -29,6 +30,7 @@ interface Props extends ThemeProps {
   networkPrefix: number;
   networkName: string;
   iconTheme: string;
+  genesisHash?: any;
 }
 
 interface EditState {
@@ -92,6 +94,7 @@ function BuyToken({
                     iconTheme,
                     networkPrefix,
                     networkName,
+                    genesisHash
                   }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { show } = useToast();
@@ -171,6 +174,7 @@ function BuyToken({
           <CopyToClipboard text={formatted || ''}>
             <div className='koni-buy-token-address' onClick={_onCopy}>
               <div className='koni-buy-token-address__text'>
+                {genesisHash && <img src={getLogoByGenesisHash(genesisHash)} alt="logo" className={'koni-network-logo'} />}
                 {toShortAddress(formatted, 13)}
                 <img src={cloneLogo} alt="clone" className='clone-logo'/>
               </div>
@@ -235,6 +239,14 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     margin-top: 11px;
     width: 54px;
     height: 54px;
+  }
+
+  .koni-network-logo {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    margin-right: 10px;
   }
 
   .koni-buy-token-name {
