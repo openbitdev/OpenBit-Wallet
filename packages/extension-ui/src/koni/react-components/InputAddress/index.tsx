@@ -281,7 +281,6 @@ const ExportedComponent = withMulti(
 
   > label, .labelExtra {
     position: relative;
-    z-index: 4;
   }
 
   > label {
@@ -389,7 +388,7 @@ const ExportedComponent = withMulti(
     display: flex;
     align-items: center;
     border-radius: 8px;
-    background-color: ${theme.background};
+    background-color: transparent;
 
     .ui--KeyPair-icon {
       position: absolute;

@@ -317,7 +317,7 @@ function SendFund({className}: Props): React.ReactElement {
           <div className={'kn-l-submit-wrapper'}>
             <KoniButton
               className={'kn-submit-btn'}
-              isDisabled={isSameAddress || !hasAvailable || !(recipientId) || !amount || amountGtAvailableBalance || !!recipientPhish}
+              isDisabled={isSameAddress || !hasAvailable || !(recipientId) || (!amount && !isAll) || amountGtAvailableBalance || !!recipientPhish}
               onClick={_onSend}
             >
               {t<string>('Make Transfer')}

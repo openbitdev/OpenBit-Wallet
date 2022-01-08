@@ -99,7 +99,7 @@ function SendFundResult({className, txResult: {isTxSuccess, txError}, setTxResul
 }
 
 export default React.memo(styled(SendFundResult)(({theme}: ThemeProps) => `
-  margin: 0 45px;
+  margin: 20px 45px 0;
 
   .kn-send-fund-result {
     display: flex;
@@ -108,13 +108,13 @@ export default React.memo(styled(SendFundResult)(({theme}: ThemeProps) => `
   }
 
   .kn-status-img {
-    width: 130px;
+    width: 120px;
     margin-top: 10px;
     margin-bottom: 32px;
   }
 
   .kn-stt-text {
-    font-size: 24px;
+    font-size: 20px;
     line-height: 36px;
     color: ${theme.textColor};
     font-weight: 500;
@@ -124,6 +124,7 @@ export default React.memo(styled(SendFundResult)(({theme}: ThemeProps) => `
     color: ${theme.textColor};
     margin-bottom: 30px;
     text-align: center;
+    font-size: 14px;
   }
 
   .kn-send-fund-stt-btn {
