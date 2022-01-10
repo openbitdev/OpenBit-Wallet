@@ -19,6 +19,7 @@ import {SubmittableExtrinsicFunction} from "@polkadot/api/promise/types";
 import {ApiPromise} from "@polkadot/api";
 import {ApiInitStatus} from "@polkadot/extension-base/background/pDotApi";
 import {Keyring} from "@polkadot/ui-keyring";
+import BN from "bn.js";
 
 type KeysWithDefinedValues<T> = {
   [K in keyof T]: T[K] extends undefined ? never : K
@@ -501,4 +502,15 @@ export interface ResponseJsonGetAccountInfo {
 
 export interface ResponseAuthorizeList {
   list: AuthUrls;
+}
+
+export interface TransactionHistoryItem {
+  time: number;
+  networkName: string;
+  genesisHash: string;
+  change: BN;
+  fee?: BN;
+  isSuccess: boolean;
+  action: 'send' | 'received';
+  extrinsicHash: string
 }
