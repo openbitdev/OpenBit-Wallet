@@ -5,7 +5,6 @@ import buyIcon from '../../assets/buy-icon.svg';
 import sendIcon from '../../assets/send-icon.svg';
 import swapIcon from '../../assets/swap-icon.svg';
 import nftComingSoon from '../../assets/nft-coming-soon.png';
-import transactionHistoryComingSoon from '../../assets/transaction-history-coming-soon.png';
 import { AccountContext, CurrentAccountContext, CurrentNetworkContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';
 import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
@@ -27,6 +26,7 @@ import ChainBalancePlaceholderItem
 import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
 import {BN_ZERO, getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap} from '@polkadot/extension-ui/util/koni';
 import Tooltip from "@polkadot/extension-ui/koni/react-components/Tooltip";
+import TransactionHistory from "@polkadot/extension-ui/components/koni/activityHistory/TransactionHistory";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {apisMap} = bWindow.pdotApi;
@@ -430,11 +430,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               )}
               {activatedTab === 3 && (
                   <>
-                    <div className='kn-nft-coming-soon-wrapper'>
-                      <img src={transactionHistoryComingSoon} alt="coming-soon"/>
-                      <div className='overview-tab-activity tab-transaction-history'>Your transactions will appear here<br/>Coming Soon...</div>
-                    </div>
-
+                    <TransactionHistory />
                   </>
               )}
             </div>
