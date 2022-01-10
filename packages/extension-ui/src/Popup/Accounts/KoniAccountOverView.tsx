@@ -430,7 +430,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               )}
               {activatedTab === 3 && (
                   <>
-                    <TransactionHistory />
+                    <TransactionHistory address={address} networkName={networkName} />
                   </>
               )}
             </div>

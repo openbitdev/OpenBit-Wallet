@@ -50,7 +50,12 @@ import type {
   ResponseType,
   SigningRequest
 } from '../types';
-import {AccountsWithCurrentAddress, BackgroundWindow, RequestCurrentAccountAddress} from "../types";
+import {
+  AccountsWithCurrentAddress,
+  BackgroundWindow,
+  RequestCurrentAccountAddress, RequestTransactionHistoryAdd,
+  RequestTransactionHistoryGetAll
+} from "../types";
 
 import {ALLOWED_PATH, PASSWORD_EXPIRY_MS} from '@polkadot/extension-base/defaults';
 import chrome from '@polkadot/extension-inject/chrome';
@@ -628,6 +633,39 @@ export default class Extension {
     return { list: this.#state.toggleAuthorization(url) };
   }
 
+  private getTransactionHistory({address, networkName}: RequestTransactionHistoryGetAll, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(transaction.history.getAll)'>(id, port);
+
+    this.#state.getTransactionHistory(address, networkName, (items) => {
+
+      console.log('cb===========111111111111111111111=', items);
+      cb(items);
+      unsubscribe(id);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
+  private updateTransactionHistory({address, item, networkName}: RequestTransactionHistoryAdd, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(transaction.history.add)'>(id, port);
+
+    this.#state.setTransactionHistory(address, networkName, item, (items) => {
+      console.log('2222cb===========222222222222=', items);
+      cb(items);
+      unsubscribe(id);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
   // Weird thought, the eslint override is not needed in Tabs
   // eslint-disable-next-line @typescript-eslint/require-await
   public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], port: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
@@ -748,6 +786,12 @@ export default class Extension {
 
       case 'pri(window.open)':
         return this.windowOpen(request as AllowedPath);
+
+      case 'pri(transaction.history.getAll)':
+        return this.getTransactionHistory(request as RequestTransactionHistoryGetAll, id, port);
+
+      case 'pri(transaction.history.add)':
+        return this.updateTransactionHistory(request as RequestTransactionHistoryAdd, id, port);
 
       default:
         throw new Error(`Unable to handle message of type ${type}`);

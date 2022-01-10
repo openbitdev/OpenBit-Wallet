@@ -7,7 +7,6 @@ import failStatus from '@polkadot/extension-ui/assets/fail-status.svg';
 import KoniButton from '@polkadot/extension-ui/components/KoniButton';
 import {ActionContext} from '@polkadot/extension-ui/components';
 import {TxResult} from '@polkadot/extension-ui/koni/Popup/Sending/types';
-import {SubmittableResult} from '@polkadot/api';
 import {isSupportSubscan, subscanByNetworkName} from "@polkadot/extension-ui/util/koni";
 
 export interface Props extends ThemeProps {
@@ -17,13 +16,13 @@ export interface Props extends ThemeProps {
   onResend: () => void
 }
 
-function getErrorMessage(txError?: Error | SubmittableResult | null): string | null {
+function getErrorMessage(txError?: Error | null): string | null {
   if (!txError) {
     return null
   }
 
-  if ((txError as Error).message) {
-    return (txError as Error).message;
+  if (txError.message) {
+    return txError.message;
   }
 
   return null;
@@ -44,7 +43,6 @@ function SendFundResult({className, networkName, txResult: {isTxSuccess, txError
   );
 
   const viewTransactionBtn = (networkName: string, extrinsicHash: string) => {
-
     if (isSupportSubscan(networkName)) {
       return (
         <a href={getSubscanUrl(networkName, extrinsicHash)} target={'_blank'}
@@ -60,7 +58,7 @@ function SendFundResult({className, networkName, txResult: {isTxSuccess, txError
         {t<string>('View Transaction')}
       </span>
     )
-  }
+  };
 
   const errorMessage = getErrorMessage(txError);
 

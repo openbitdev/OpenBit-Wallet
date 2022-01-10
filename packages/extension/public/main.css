@@ -30,6 +30,10 @@ body ::-webkit-scrollbar-thumb:hover {
   background: rgba(128, 135, 139, .8)
 }
 
+a {
+  text-decoration: none;
+}
+
 .kn-sui-dropdown-base .menu {
   display: none;
   user-select: none;

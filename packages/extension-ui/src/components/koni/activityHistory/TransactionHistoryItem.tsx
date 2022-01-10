@@ -16,7 +16,7 @@ interface Props extends ThemeProps {
   isReceived?: boolean;
   itemValue: TransactionHistoryItem;
   registry: Registry;
-  isNotSupport: boolean;
+  isSupportSubscan: boolean;
 }
 
 const toShortAddress = (_address: string) => {
@@ -27,7 +27,7 @@ const toShortAddress = (_address: string) => {
 
 let tooltipId = 0;
 
-function TransactionHistoryItemEl({className, isReceived, itemValue, registry, isNotSupport=true}: Props): React.ReactElement<Props> {
+function TransactionHistoryItemEl({className, isReceived, itemValue, registry, isSupportSubscan= true}: Props): React.ReactElement<Props> {
   const {t} = useTranslation();
   const [trigger] = useState(() => `transaction-history-item-${++tooltipId}`);
   return (
@@ -66,21 +66,23 @@ function TransactionHistoryItemEl({className, isReceived, itemValue, registry, i
                 value={itemValue.change} />
             </div>
 
-            <div className='kn-history-item__balance'>
-              <span>{t<string>('Fee:')}</span>
-              <FormatBalance
-                className={className}
-                label={' '}
-                registry={registry}
-                value={itemValue.fee} />
-            </div>
+            {
+              !!itemValue.fee && (<div className='kn-history-item__balance'>
+	              <span>{t<string>('Fee:')}</span>
+	              <FormatBalance
+		              className={className}
+		              label={' '}
+		              registry={registry}
+		              value={itemValue.fee} />
+              </div>)
+            }
           </div>
         </div>
         <div className='kn-history-item__separator' />
       </div>
-      {isNotSupport ?
+      {!isSupportSubscan ?
         <Tooltip
-          text={t<string>('You can\'t view this transaction because current network isn\'t supported by Subscan')}
+          text={t<string>('You can\'t view this transaction because the current network isn\'t supported on Subscan')}
           trigger={trigger}
         /> :
         <></>

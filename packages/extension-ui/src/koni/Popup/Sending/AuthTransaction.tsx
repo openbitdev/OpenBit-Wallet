@@ -77,13 +77,13 @@ export function handleTxResults(tx: SubmittableExtrinsic<'promise'>,
           const extrinsicHash = tx.hash.toHex();
 
           if (method === 'ExtrinsicFailed') {
-            onTxFail && onTxFail(result, extrinsicHash);
+            onTxFail && onTxFail(result, null, extrinsicHash);
           } else if (method === 'ExtrinsicSuccess') {
             onTxSuccess && onTxSuccess(result, extrinsicHash);
           }
         });
     } else if (result.isError) {
-      onTxFail && onTxFail(result);
+      onTxFail && onTxFail(result, null);
     }
 
     if (result.isCompleted) {
@@ -106,7 +106,7 @@ async function signAndSend (txHandler: TxHandler, tx: SubmittableExtrinsic<'prom
   } catch (error) {
     console.error('signAndSend: error:', error);
 
-    txHandler.onTxFail && txHandler.onTxFail(error as Error);
+    txHandler.onTxFail && txHandler.onTxFail(null, error as Error);
   }
 }
 

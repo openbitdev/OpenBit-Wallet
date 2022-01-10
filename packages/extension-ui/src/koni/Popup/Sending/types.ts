@@ -27,13 +27,13 @@ export interface TxHandler {
   onTxStart?: () => void;
   onTxUpdate?: (result: SubmittableResult) => void;
   onTxSuccess?: (result: SubmittableResult, extrinsicHash?: string) => void;
-  onTxFail?: (result: Error | SubmittableResult | null, extrinsicHash?: string) => void;
+  onTxFail?: (result: SubmittableResult | null, error: Error | null, extrinsicHash?: string) => void;
 }
 
 export interface TxResult {
   isShowTxResult: boolean;
   isTxSuccess: boolean;
-  txError?: Error | SubmittableResult | null;
+  txError?: Error | null;
   extrinsicHash?: string;
 }
 

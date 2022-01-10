@@ -36,6 +36,7 @@ import { MetadataDef } from '@polkadot/extension-inject/types';
 import allChains from './util/chains';
 import { getSavedMeta, setSavedMeta } from './MetadataCache';
 import {ApiInitStatus} from "@polkadot/extension-base/background/pDotApi";
+import {TransactionHistoryItem} from "@polkadot/extension-base/background/types";
 
 interface Handler {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -267,4 +268,12 @@ export async function batchRestore (file: KeyringPairs$Json, password: string, a
 
 export async function setNotification (notification: string): Promise<boolean> {
   return sendMessage('pri(settings.notification)', notification);
+}
+
+export async function getTransactionHistory (address: string, networkName: string, callback: (items: TransactionHistoryItem[]) => void ): Promise<boolean> {
+  return sendMessage('pri(transaction.history.getAll)', {address, networkName}, callback);
+}
+
+export async function updateTransactionHistory (address: string, networkName: string, item: TransactionHistoryItem, callback: (items: TransactionHistoryItem[]) => void): Promise<boolean> {
+  return sendMessage('pri(transaction.history.add)', {address, networkName, item}, callback);
 }

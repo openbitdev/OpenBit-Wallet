@@ -4,7 +4,7 @@
 import BaseStore from './Base';
 import {TransactionHistoryItem} from "@polkadot/extension-base/background/types";
 
-export default class TransactionHistory extends BaseStore<TransactionHistoryItem[]> {
+export default class TransactionHistoryStore extends BaseStore<TransactionHistoryItem[]> {
   constructor() {
     super('koni_transaction_history_');
   }

@@ -1,28 +1,33 @@
 import BN from 'bn.js';
-import {ThemeProps} from '@polkadot/extension-ui/types';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import { ThemeProps } from '@polkadot/extension-ui/types';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import {InputAddress, Toggle} from '@polkadot/extension-ui/koni/react-components';
-import {Available} from '@polkadot/extension-ui/koni/react-query';
+import { InputAddress, Toggle } from '@polkadot/extension-ui/koni/react-components';
+import { Available } from '@polkadot/extension-ui/koni/react-query';
 import useTranslation from '@polkadot/extension-ui/hooks/useTranslation';
 import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
 import InputBalance from '@polkadot/extension-ui/koni/react-components/InputBalance';
-import {useApi, useCall} from '@polkadot/extension-ui/koni/react-hooks';
-import {BN_HUNDRED, BN_ZERO, isFunction} from '@polkadot/util';
-import {DeriveBalancesAll} from '@polkadot/api-derive/types';
+import { useApi, useCall } from '@polkadot/extension-ui/koni/react-hooks';
+import { BN_HUNDRED, BN_ZERO, isFunction } from '@polkadot/util';
+import { DeriveBalancesAll } from '@polkadot/api-derive/types';
 // import {useApi} from "@polkadot/extension-ui/koni/react-hooks";
-import {checkAddress} from '@polkadot/phishing';
-import {AccountInfoWithProviders, AccountInfoWithRefCount} from '@polkadot/types/interfaces';
-import {AccNetworkContext, CurrentAccContext} from '@polkadot/extension-base/background/types';
-import {CurrentAccountContext, CurrentNetworkContext} from '@polkadot/extension-ui/components';
+import { checkAddress } from '@polkadot/phishing';
+import { AccountInfoWithProviders, AccountInfoWithRefCount } from '@polkadot/types/interfaces';
+import {
+  AccNetworkContext,
+  CurrentAccContext,
+  TransactionHistoryItem
+} from '@polkadot/extension-base/background/types';
+import { CurrentAccountContext, CurrentNetworkContext } from '@polkadot/extension-ui/components';
 import KoniWarning from '@polkadot/extension-ui/components/KoniWarning';
 import KoniLoading from '@polkadot/extension-ui/components/KoniLoading';
 import KoniButton from '@polkadot/extension-ui/components/KoniButton';
-import {SubmittableExtrinsic} from '@polkadot/api/types';
+import { SubmittableExtrinsic } from '@polkadot/api/types';
 import AuthTransaction from '@polkadot/extension-ui/koni/Popup/Sending/AuthTransaction';
-import {TxResult} from '@polkadot/extension-ui/koni/Popup/Sending/types';
-import {SubmittableResult} from '@polkadot/api';
+import { TxResult } from '@polkadot/extension-ui/koni/Popup/Sending/types';
+import { SubmittableResult } from '@polkadot/api';
 import SendFundResult from '@polkadot/extension-ui/koni/Popup/Sending/SendFundResult';
+import { updateTransactionHistory } from '@polkadot/extension-ui/messaging';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -35,6 +40,43 @@ interface ContentProps extends ThemeProps {
 
 function isRefcount(accountInfo: AccountInfoWithProviders | AccountInfoWithRefCount): accountInfo is AccountInfoWithRefCount {
   return !!(accountInfo as AccountInfoWithRefCount).refcount;
+}
+
+type ExtractTxResultType = {
+  change: BN;
+  fee?: BN;
+}
+
+function extractTxResult(result: SubmittableResult): ExtractTxResultType {
+  let change = BN_ZERO;
+  let fee;
+
+  const {events} = result;
+
+  const transferEvent = events.find(e =>
+    e.event.section === 'balances' &&
+    e.event.method.toLowerCase() === 'transfer'
+  );
+
+  if (transferEvent) {
+    change = transferEvent.event.data[2] as unknown as BN;
+  }
+
+  const withdrawEvent = events.find(e =>
+    e.event.section === 'balances' &&
+    e.event.method.toLowerCase() === 'withdraw');
+
+  console.log('withdrawn+++++++++++++', withdrawEvent);
+
+  if (withdrawEvent) {
+    fee = withdrawEvent.event.data[1] as unknown as BN;
+    console.log('fee++++++++++++++', fee);
+  }
+
+  return {
+    change,
+    fee
+  }
 }
 
 async function checkPhishing(_senderId: string | null, recipientId: string | null): Promise<[string | null, string | null]> {
@@ -177,30 +219,70 @@ function SendFund({className, setWrapperClass}: ContentProps): React.ReactElemen
     setShowTxModal(true);
   }, []);
 
+  const onGetTxResult = (isTxSuccess: boolean, extrinsicHash?: string, txError?: Error | null) => {
+    setWrapperClass('-disable-header-action');
+
+    setTxResult({
+      isShowTxResult: true,
+      isTxSuccess,
+      txError,
+      extrinsicHash
+    });
+
+    _onCancelTx();
+  };
+
   const _onTxSuccess = useCallback((result: SubmittableResult, extrinsicHash?: string) => {
-    setWrapperClass('-disable-header-action');
+    if (!senderId) {
+      return;
+    }
 
-    setTxResult({
-      isShowTxResult: true,
-      isTxSuccess: true,
-      extrinsicHash
-    });
+    if (result && extrinsicHash) {
+      const {change, fee} = extractTxResult(result);
 
-    _onCancelTx();
-  }, []);
+      const item: TransactionHistoryItem = {
+        action: 'send',
+        change,
+        extrinsicHash,
+        fee,
+        isSuccess: true,
+        networkName,
+        time: Date.now()
+      };
 
-  const _onTxFail = useCallback((result: Error | SubmittableResult | null, extrinsicHash?: string) => {
-    setWrapperClass('-disable-header-action');
+      updateTransactionHistory(senderId, networkName, item, (items) => {
+        onGetTxResult(true, extrinsicHash);
+      }).catch(e => console.log('Error when update Transaction History', e));
+    } else {
+      onGetTxResult(true);
+    }
+  }, [senderId, networkName]);
 
-    setTxResult({
-      isShowTxResult: true,
-      isTxSuccess: false,
-      txError: result,
-      extrinsicHash
-    });
+  const _onTxFail = useCallback((result: SubmittableResult | null, error: Error | null, extrinsicHash?: string) => {
+    if (!senderId) {
+      return;
+    }
 
-    _onCancelTx();
-  }, []);
+    if (result && extrinsicHash) {
+      const {change, fee} = extractTxResult(result);
+
+      const item: TransactionHistoryItem = {
+        action: 'send',
+        change,
+        extrinsicHash,
+        fee,
+        isSuccess: false,
+        networkName,
+        time: Date.now()
+      };
+
+      updateTransactionHistory(senderId, networkName, item, (items) => {
+        onGetTxResult(false, extrinsicHash, error);
+      }).catch(e => console.log('Error when update Transaction History', e));
+    } else {
+      onGetTxResult(false, undefined, error);
+    }
+  }, [senderId, networkName]);
 
   const _onResend = () => {
     setTxResult({
@@ -210,7 +292,7 @@ function SendFund({className, setWrapperClass}: ContentProps): React.ReactElemen
     });
 
     setWrapperClass('');
-  }
+  };
 
   const isSameAddress = !!recipientId && !!senderId && (recipientId === senderId);
 

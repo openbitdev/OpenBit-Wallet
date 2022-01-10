@@ -1,27 +1,61 @@
-import React, {useState} from "react";
-import {ThemeProps} from "@polkadot/extension-ui/types";
-import styled from "styled-components";
-import {TransactionHistoryItem} from "@polkadot/extension-base/background/types";
-import BN from "bn.js";
-import TransactionHistoryItemEl from "./TransactionHistoryItem";
-import {useApi} from "@polkadot/extension-ui/koni/react-hooks";
+import React, { useEffect, useState } from 'react';
+import { ThemeProps } from '@polkadot/extension-ui/types';
+import styled from 'styled-components';
+import { TransactionHistoryItem } from '@polkadot/extension-base/background/types';
+import TransactionHistoryItemEl from './TransactionHistoryItem';
+import { useApi } from '@polkadot/extension-ui/koni/react-hooks';
 import transactionHistoryComingSoon from '../../../assets/transaction-history-coming-soon.png';
+import { ApiPromise } from '@polkadot/api';
+import { getTransactionHistory } from '@polkadot/extension-ui/messaging';
+import { isSupportSubscan, subscanByNetworkName } from '@polkadot/extension-ui/util/koni';
 
 interface Props extends ThemeProps {
   className?: string;
-  address?: string;
-  api?: any
+  networkName: string;
+  address: string;
 }
 
-function Wrapper({className, theme}: Props): React.ReactElement<Props> {
+interface ContentProp extends ThemeProps {
+  className?: string;
+  api: ApiPromise;
+  networkName: string;
+  items: TransactionHistoryItem[];
+}
+
+function getSubscanUrl(networkName: string, hash: string): string {
+  return `${subscanByNetworkName[networkName]}/extrinsic/${hash}`;
+}
+
+function Wrapper({className, theme, networkName, address}: Props): React.ReactElement<Props> {
   const {isApiReady, api} = useApi();
+  const [items, setItems] = useState<TransactionHistoryItem[]>([]);
+
+  useEffect(() => {
+    let isSync = true;
+
+    (async () => {
+      getTransactionHistory(address, networkName, (items) => {
+        if (isSync) {
+          setItems(items)
+        }
+      }).catch(e => console.log('Error when get Transaction History', e));
+    })();
+
+    return () => {
+      isSync = false;
+    };
+  }, [networkName, address]);
 
   return (
     <div className={`-wrapper ${className}`}>
-      {isApiReady ? (<TransactionHistory theme={theme} api={api}/>)
+      {isApiReady && items && items.length ? (<TransactionHistory
+          theme={theme}
+          items={items}
+          networkName={networkName}
+          api={api}/>)
       : (
         <div className='transaction-history-not-ready'>
-          <img src={transactionHistoryComingSoon} alt="coming-soon"/>
+          <img src={transactionHistoryComingSoon} alt="Empty"/>
         </div>
         )
       }
@@ -29,95 +63,37 @@ function Wrapper({className, theme}: Props): React.ReactElement<Props> {
   );
 }
 
-function TransactionHistory({className, address, api}: Props): React.ReactElement<Props> {
-  const mockApi: TransactionHistoryItem[] = [
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: true,
-      action: 'send',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    },
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: false,
-      action: 'send',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    },
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: true,
-      action: 'received',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    },
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: false,
-      action: 'received',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    },
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: false,
-      action: 'received',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    },
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: false,
-      action: 'received',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    },
-    {
-      time: 1641791009272,
-      networkName: '',
-      genesisHash: '',
-      change: new BN(0),
-      fee: new BN(0),
-      isSuccess: false,
-      action: 'received',
-      extrinsicHash: '0xce13114c5b4df56d9c6cfefed59d6bd785c28264fb6a63d54b51d6c9ccf4464a'
-    }
-  ];
-  const [isNotSupport, setIsNotSupport] = useState('false');
 
-  const renderChainBalanceItem = (item: any) => {
+function TransactionHistory({className, items, networkName, api}: ContentProp): React.ReactElement<ContentProp> {
+  const _isSupportSubscan = isSupportSubscan(networkName);
+
+  const renderChainBalanceItem = (item: TransactionHistoryItem, isSupportSubscan: boolean) => {
+    const {extrinsicHash} = item;
+
+    if (isSupportSubscan) {
+      return (
+	      <a href={getSubscanUrl(networkName, extrinsicHash)} target={'_blank'} key={extrinsicHash} className={'transaction-item-wrapper'}>
+          <TransactionHistoryItemEl
+            itemValue={item}
+            registry={api.registry}
+          />
+        </a>
+      )
+    }
+
     return (
-      <TransactionHistoryItemEl
-        isNotSupport={isNotSupport}
-        itemValue={item}
-        registry={api.registry}
-      />
+      <div key={extrinsicHash}>
+        <TransactionHistoryItemEl
+          itemValue={item}
+          isSupportSubscan={false}
+          registry={api.registry}
+        />
+      </div>
     )
-  }
+  };
   return (
     <>
-      <div className={className}>
-        {mockApi.map(item => renderChainBalanceItem(item))}
-      </div>
+        {items.map(item => renderChainBalanceItem(item, _isSupportSubscan))}
     </>
   );
 }
@@ -130,5 +106,10 @@ export default styled(Wrapper)(({theme}: Props) => `
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  
+  .transaction-item-wrapper {
+      color: inherit;
+      display: block;
   }
 `)

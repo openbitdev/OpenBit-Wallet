@@ -200,6 +200,8 @@ export interface RequestSignatures {
   'pri(signing.isLocked)': [RequestSigningIsLocked, ResponseSigningIsLocked];
   'pri(signing.requests)': [RequestSigningSubscribe, boolean, SigningRequest[]];
   'pri(window.open)': [AllowedPath, boolean];
+  'pri(transaction.history.getAll)': [RequestTransactionHistoryGetAll, boolean, TransactionHistoryItem[]];
+  'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItem[]];
   // public/external requests, i.e. from a page
   'pub(accounts.list)': [RequestAccountList, InjectedAccount[]];
   'pub(accounts.subscribe)': [RequestAccountSubscribe, boolean, InjectedAccount[]];
@@ -507,10 +509,20 @@ export interface ResponseAuthorizeList {
 export interface TransactionHistoryItem {
   time: number;
   networkName: string;
-  genesisHash: string;
   change: BN;
   fee?: BN;
   isSuccess: boolean;
   action: 'send' | 'received';
   extrinsicHash: string
+}
+
+export interface RequestTransactionHistoryGetAll {
+  address: string;
+  networkName: string;
+}
+
+export interface RequestTransactionHistoryAdd {
+  address: string;
+  networkName: string;
+  item: TransactionHistoryItem;
 }
