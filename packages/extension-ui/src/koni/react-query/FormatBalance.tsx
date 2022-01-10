@@ -2,21 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type BN from 'bn.js';
-import type { Compact } from '@polkadot/types';
-import type { Registry } from '@polkadot/types/types';
+import type {Compact} from '@polkadot/types';
+import type {Registry} from '@polkadot/types/types';
 
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import styled from 'styled-components';
+import {BN_ZERO, formatBalance} from '@polkadot/util';
 
-import { useApi } from '../react-hooks';
-import { formatBalance, BN_ZERO } from '@polkadot/util';
-
-import { useTranslation } from './translate';
-import {apiWrap} from "@polkadot/extension-ui/koni/react-components/util/apiWrap";
+import {useTranslation} from './translate';
 
 interface Props {
   children?: React.ReactNode;
   className?: string;
+  registry: Registry;
   format?: [number, string];
   formatIndex?: number;
   isShort?: boolean;
@@ -75,18 +73,12 @@ function applyFormat (value: Compact<any> | BN | string, [decimals, token]: [num
   return createElement(prefix, postfix, unitPost, labelPost, isShort);
 }
 
-function Wrapper(props: Props): React.ReactElement<Props> {
-  return apiWrap(props)(FormatBalance);
-}
-
-function FormatBalance ({ children, className = '', format, formatIndex, isShort, label, labelPost, value, valueFormatted, withCurrency, withSi }: Props): React.ReactElement<Props> {
-  const {api} = useApi();
-
+function FormatBalance ({ children, className = '', format, formatIndex, registry, isShort, label, labelPost, value, valueFormatted, withCurrency, withSi }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const formatInfo = useMemo(
-    () => format || getFormat(api.registry, formatIndex),
-    [api, format, formatIndex]
+    () => format || getFormat(registry, formatIndex),
+    [registry, format, formatIndex]
   );
 
   // labelPost here looks messy, however we ensure we have one less text node
@@ -109,6 +101,6 @@ function FormatBalance ({ children, className = '', format, formatIndex, isShort
   );
 }
 
-export default React.memo(styled(Wrapper)`
+export default React.memo(styled(FormatBalance)`
 
 `);
