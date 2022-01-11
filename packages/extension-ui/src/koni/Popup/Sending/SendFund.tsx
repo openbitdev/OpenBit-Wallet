@@ -43,12 +43,12 @@ function isRefcount(accountInfo: AccountInfoWithProviders | AccountInfoWithRefCo
 }
 
 type ExtractTxResultType = {
-  change: BN;
-  fee?: BN;
+  change: string;
+  fee?: string;
 }
 
 function extractTxResult(result: SubmittableResult): ExtractTxResultType {
-  let change = BN_ZERO;
+  let change = '0';
   let fee;
 
   const {events} = result;
@@ -59,18 +59,15 @@ function extractTxResult(result: SubmittableResult): ExtractTxResultType {
   );
 
   if (transferEvent) {
-    change = transferEvent.event.data[2] as unknown as BN;
+    change = transferEvent.event.data[2]?.toString() || '0';
   }
 
   const withdrawEvent = events.find(e =>
     e.event.section === 'balances' &&
     e.event.method.toLowerCase() === 'withdraw');
 
-  console.log('withdrawn+++++++++++++', withdrawEvent);
-
   if (withdrawEvent) {
-    fee = withdrawEvent.event.data[1] as unknown as BN;
-    console.log('fee++++++++++++++', fee);
+    fee = withdrawEvent.event.data[1]?.toString();
   }
 
   return {

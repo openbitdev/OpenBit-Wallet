@@ -486,6 +486,20 @@ export default class State {
     });
   }
 
+  public getTransactionHistoryByMultiNetworks (address: string, networkNames: string[], update: (items: TransactionHistoryItem[]) => void): void {
+    const keys: string[] = networkNames.map(n => this.getTransactionKey(address, n));
+
+    this.#transactionHistoryStore.getByMultiKeys(keys, (items) => {
+      if (!items) {
+        update([]);
+      } else {
+        items.sort((a, b) => b.time - a.time);
+
+        update(items);
+      }
+    });
+  }
+
   public setTransactionHistory (address: string, networkName: string, item: TransactionHistoryItem, callback?: (items: TransactionHistoryItem[]) => void): void {
     this.getTransactionHistory(address, networkName,(items) => {
       if (!items || !items.length) {

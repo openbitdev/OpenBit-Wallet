@@ -20,6 +20,10 @@ export default abstract class BaseStore <T> {
     this.#prefix = prefix ? `${prefix}:` : '';
   }
 
+  public getPrefix(): string {
+    return this.#prefix;
+  }
+
   public all (update: (key: string, value: T) => void): void {
     chrome.storage.local.get(null, (result: StoreValue): void => {
       lastError('all');

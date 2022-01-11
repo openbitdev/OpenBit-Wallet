@@ -271,7 +271,11 @@ export async function setNotification (notification: string): Promise<boolean> {
 }
 
 export async function getTransactionHistory (address: string, networkName: string, callback: (items: TransactionHistoryItem[]) => void ): Promise<boolean> {
-  return sendMessage('pri(transaction.history.getAll)', {address, networkName}, callback);
+  return sendMessage('pri(transaction.history.get)', {address, networkName}, callback);
+}
+
+export async function getTransactionHistoryByMultiNetworks (address: string, networkNames: string[], callback: (items: TransactionHistoryItem[]) => void ): Promise<boolean> {
+  return sendMessage('pri(transaction.history.getByMultiNetwork)', {address, networkNames}, callback);
 }
 
 export async function updateTransactionHistory (address: string, networkName: string, item: TransactionHistoryItem, callback: (items: TransactionHistoryItem[]) => void): Promise<boolean> {

@@ -81,7 +81,7 @@ function TransactionHistoryItemEl({className, item, registry, isSupportSubscan= 
       </div>
       {!isSupportSubscan ?
         <Tooltip
-          text={t<string>('You can\'t view this transaction because the current network isn\'t supported on Subscan')}
+          text={t<string>('You can\'t view this transaction because it isn\'t supported on Subscan')}
           trigger={trigger}
         /> :
         <></>

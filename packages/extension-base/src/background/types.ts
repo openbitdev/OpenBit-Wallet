@@ -19,7 +19,6 @@ import {SubmittableExtrinsicFunction} from "@polkadot/api/promise/types";
 import {ApiPromise} from "@polkadot/api";
 import {ApiInitStatus} from "@polkadot/extension-base/background/pDotApi";
 import {Keyring} from "@polkadot/ui-keyring";
-import BN from "bn.js";
 
 type KeysWithDefinedValues<T> = {
   [K in keyof T]: T[K] extends undefined ? never : K
@@ -200,7 +199,8 @@ export interface RequestSignatures {
   'pri(signing.isLocked)': [RequestSigningIsLocked, ResponseSigningIsLocked];
   'pri(signing.requests)': [RequestSigningSubscribe, boolean, SigningRequest[]];
   'pri(window.open)': [AllowedPath, boolean];
-  'pri(transaction.history.getAll)': [RequestTransactionHistoryGetAll, boolean, TransactionHistoryItem[]];
+  'pri(transaction.history.get)': [RequestTransactionHistoryGet, boolean, TransactionHistoryItem[]];
+  'pri(transaction.history.getByMultiNetwork)': [RequestTransactionHistoryGetByMultiNetworks, boolean, TransactionHistoryItem[]];
   'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItem[]];
   // public/external requests, i.e. from a page
   'pub(accounts.list)': [RequestAccountList, InjectedAccount[]];
@@ -509,16 +509,21 @@ export interface ResponseAuthorizeList {
 export interface TransactionHistoryItem {
   time: number;
   networkName: string;
-  change: BN;
-  fee?: BN;
+  change: string;
+  fee?: string;
   isSuccess: boolean;
   action: 'send' | 'received';
   extrinsicHash: string
 }
 
-export interface RequestTransactionHistoryGetAll {
+export interface RequestTransactionHistoryGet {
   address: string;
   networkName: string;
+}
+
+export interface RequestTransactionHistoryGetByMultiNetworks {
+  address: string;
+  networkNames: string[];
 }
 
 export interface RequestTransactionHistoryAdd {

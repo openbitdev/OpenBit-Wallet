@@ -37,7 +37,7 @@ import type {
   RequestSigningApprovePassword,
   RequestSigningApproveSignature,
   RequestSigningCancel,
-  RequestSigningIsLocked,
+  RequestSigningIsLocked, RequestTransactionHistoryGetByMultiNetworks,
   RequestTypes,
   ResponseAccountExport,
   ResponseAccountsExport,
@@ -54,7 +54,7 @@ import {
   AccountsWithCurrentAddress,
   BackgroundWindow,
   RequestCurrentAccountAddress, RequestTransactionHistoryAdd,
-  RequestTransactionHistoryGetAll
+  RequestTransactionHistoryGet
 } from "../types";
 
 import {ALLOWED_PATH, PASSWORD_EXPIRY_MS} from '@polkadot/extension-base/defaults';
@@ -633,12 +633,25 @@ export default class Extension {
     return { list: this.#state.toggleAuthorization(url) };
   }
 
-  private getTransactionHistory({address, networkName}: RequestTransactionHistoryGetAll, id: string, port: chrome.runtime.Port): boolean {
-    const cb = createSubscription<'pri(transaction.history.getAll)'>(id, port);
+  private getTransactionHistoryByMultiNetworks({address, networkNames}: RequestTransactionHistoryGetByMultiNetworks, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(transaction.history.getByMultiNetwork)'>(id, port);
+
+    this.#state.getTransactionHistoryByMultiNetworks(address, networkNames, (items) => {
+      cb(items);
+      unsubscribe(id);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
+  private getTransactionHistory({address, networkName}: RequestTransactionHistoryGet, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(transaction.history.get)'>(id, port);
 
     this.#state.getTransactionHistory(address, networkName, (items) => {
-
-      console.log('cb===========111111111111111111111=', items);
       cb(items);
       unsubscribe(id);
     });
@@ -787,8 +800,11 @@ export default class Extension {
       case 'pri(window.open)':
         return this.windowOpen(request as AllowedPath);
 
-      case 'pri(transaction.history.getAll)':
-        return this.getTransactionHistory(request as RequestTransactionHistoryGetAll, id, port);
+      case 'pri(transaction.history.get)':
+        return this.getTransactionHistory(request as RequestTransactionHistoryGet, id, port);
+
+      case 'pri(transaction.history.getByMultiNetwork)':
+        return this.getTransactionHistoryByMultiNetworks(request as RequestTransactionHistoryGetByMultiNetworks, id, port);
 
       case 'pri(transaction.history.add)':
         return this.updateTransactionHistory(request as RequestTransactionHistoryAdd, id, port);
