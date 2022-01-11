@@ -42,7 +42,7 @@ function Identicon ({ className, iconTheme, onCopy, prefix, value, size, showLog
 }
 
 export default styled(Identicon)(({ theme }: ThemeProps) => `
-  background: rgba(192, 192, 292, 0.25);
+  background: ${theme.backgroundAccountAddress};
   border-radius: 50%;
   display: flex;
   justify-content: center;

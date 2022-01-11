@@ -61,23 +61,25 @@ function KoniNetworkMenu ({ className, reference, currentNetwork, selectNetwork,
         setFilteredGenesisOption(genesisOptions);
       }
     }
-  }, [filteredNetwork])
+  }, [filteredNetwork, selectedGroup])
 
   const _onChangeFilter = useCallback((filter: string) => {
     setFilteredNetwork(filter);
     onFilter && onFilter(filter);
-  }, [onFilter])
+  }, [])
+
+
 
   const _selectGroup = useCallback(
     (type): void => {
       setSelectedGroup(type);
       if (type && type.length) {
-        setFilteredGenesisOption(filteredGenesisOptions.filter(f => f.group === type));
+        setFilteredGenesisOption(genesisOptions.filter(f => f.group === type && f.text.toLowerCase().includes(filteredNetwork)));
       } else {
-        setFilteredGenesisOption(genesisOptions);
+        setFilteredGenesisOption(genesisOptions.filter(f => f.text.toLowerCase().includes(filteredNetwork)));
       }
     },
-    []
+    [selectedGroup]
   )
 
   return (
@@ -144,7 +146,7 @@ export default React.memo(styled(KoniNetworkMenu)(({ theme }: Props) => `
     align-items: center;
     font-size: 20px;
     line-height: 32px;
-    font-weight: 700;
+    font-weight: 500;
     border-bottom: 1px solid ${theme.inputBorderColor};
   }
 

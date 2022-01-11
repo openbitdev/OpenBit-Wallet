@@ -26,6 +26,8 @@ export default function HeaderEditName ({ address, className, isFocused, label, 
 
   const account = accounts.find((account) => account.address === address);
   const startValue = value || account?.name;
+  console.log('accounts', accounts);
+  console.log('address', address);
 
   return (
     <ValidatedInput2

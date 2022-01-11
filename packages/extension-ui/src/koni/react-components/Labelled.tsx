@@ -5,8 +5,9 @@ import React from 'react';
 import styled from 'styled-components';
 
 import LabelHelp from './LabelHelp';
+import {ThemeProps} from "@polkadot/extension-ui/types";
 
-interface Props {
+interface Props extends ThemeProps {
   className?: string;
   help?: React.ReactNode;
   isHidden?: boolean;
@@ -45,11 +46,12 @@ function Labelled ({ className = '', children, help, isFull, isHidden, isOuter, 
   );
 }
 
-export default React.memo(styled(Labelled)`
+export default React.memo(styled(Labelled)(({theme}: Props) => `
   .withEllipsis {
     display: inline;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-weight: 400;
   }
-`);
+`));

@@ -28,10 +28,7 @@ export default styled(Main)(({ theme }: ThemeProps) => `
   font-size: ${theme.fontSize};
   line-height: ${theme.lineHeight};
   border: 1px solid ${theme.inputBorderColor};
-
-  * {
-    font-family: ${theme.fontFamily};
-  }
+  font-family: ${theme.fontFamily};
 
   // > * {
   //   padding-left: 24px;

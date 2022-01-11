@@ -70,8 +70,7 @@ function KoniExportAccount ({ className, match: { params: { address } } }: Props
       <KoniHeader
         showBackArrow
         showSubHeader
-        subHeaderName='Export account'
-        text={t<string>('Export account')}
+        subHeaderName={t<string>('Export account')}
       />
       <div className={className}>
         <KoniAccountInfo address={address}>
@@ -100,23 +99,24 @@ function KoniExportAccount ({ className, match: { params: { address } } }: Props
           </div>
 
           <div className='actionArea'>
-
-            <KoniButton
-              className='export-button'
-              data-export-button
-              isBusy={isBusy}
-              isDisabled={pass.length === 0 || !!error}
-              onClick={_onExportButtonClick}
-            >
-              {t<string>('I want to export this account')}
-            </KoniButton>
-            <KoniActionBar className='withMarginTop'>
-              <KoniActionText
-                className='cancel-button'
-                onClick={_goHome}
-                text={t<string>('Cancel')}
-              />
-            </KoniActionBar>
+            <div>
+              <KoniButton
+                className='export-button'
+                data-export-button
+                isBusy={isBusy}
+                isDisabled={pass.length === 0 || !!error}
+                onClick={_onExportButtonClick}
+              >
+                {t<string>('I want to export this account')}
+              </KoniButton>
+              <KoniActionBar className='withMarginTop'>
+                <KoniActionText
+                  className='cancel-button'
+                  onClick={_goHome}
+                  text={t<string>('Cancel')}
+                />
+              </KoniActionBar>
+            </div>
           </div>
         </KoniAccountInfo>
       </div>
@@ -131,7 +131,8 @@ export default withRouter(styled(KoniExportAccount)(({ theme }: Props) => `
     padding-top: 13px;
   }
   .actionArea {
-    padding: 0 70px;
+    display: flex;
+    justify-content: center;
   }
 
   .export-button {
@@ -154,8 +155,8 @@ export default withRouter(styled(KoniExportAccount)(({ theme }: Props) => `
     margin-top: 10px;
     margin: auto;
     > span {
-      color: ${theme.textColor3};
-      font-weight: 700;
+      color: ${theme.buttonTextColor2};
+      font-weight: 500;
       font-size: 16px;
       line-height: 26px;
   }

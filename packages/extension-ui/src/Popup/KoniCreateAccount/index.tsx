@@ -1,10 +1,10 @@
 // Copyright 2019-2021 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import styled from 'styled-components';
 
-import { ActionContext, Loading } from '../../components';
+import {ActionContext, Dropdown, Loading} from '../../components';
 import AccountNamePasswordCreation from '../../components/koni/AccountNamePasswordCreation';
 import useGenesisHashOptions from '../../hooks/useGenesisHashOptions';
 import useMetadata from '../../hooks/useMetadata';
@@ -13,7 +13,6 @@ import { createAccountSuri, createSeed, validateSeed } from '../../messaging';
 import { DEFAULT_TYPE } from '../../util/defaultType';
 import Mnemonic from './Mnemonic';
 import KoniHeaderWithSteps from "@polkadot/extension-ui/partials/KoniHeaderWithSteps";
-import KoniDropdown from "@polkadot/extension-ui/components/KoniDropdown";
 
 interface Props {
   className?: string;
@@ -32,6 +31,7 @@ function KoniCreateAccount ({ className, defaultClassName }: Props): React.React
   const options = useGenesisHashOptions();
   const [genesisHash, setGenesis] = useState('');
   const chain = useMetadata(genesisHash, true);
+  const networkRef = useRef(null);
 
   useEffect((): void => {
     createSeed(undefined)
@@ -118,12 +118,13 @@ function KoniCreateAccount ({ className, defaultClassName }: Props): React.React
                   address={address}
                   genesis={genesisHash}
                 >
-                  <KoniDropdown
-                    className='create-account-network-dropdown'
+                  <Dropdown
+                    className='create-account-network-select'
                     label={t<string>('Network')}
                     onChange={_onChangeNetwork}
                     options={options}
                     value={genesisHash}
+                    reference={networkRef}
                   />
                 </AccountNamePasswordCreation>
               </>
@@ -136,6 +137,10 @@ function KoniCreateAccount ({ className, defaultClassName }: Props): React.React
 
 export default styled(KoniCreateAccount)`
   margin-bottom: 16px;
+
+  .create-account-network-select {
+    font-weight: 500;
+  }
 
   .create-account-network-dropdown {
     margin-bottom: 10px;

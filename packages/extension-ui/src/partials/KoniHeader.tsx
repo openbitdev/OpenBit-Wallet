@@ -8,7 +8,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import styled, {ThemeContext} from 'styled-components';
 import useTranslation from '../hooks/useTranslation';
-import logo from '../assets/KoniverseLogo.svg';
+import logo from '../assets/sub-wallet-logo.svg';
 import cloneLogo from '../assets/clone.svg';
 import useOutsideClick from '../hooks/useOutsideClick';
 import {
@@ -61,6 +61,8 @@ interface Props extends ThemeProps {
   showCancelButton?: boolean;
   isWelcomeScreen?: boolean;
   isNotHaveAccount?: boolean;
+  isShowZeroBalances?: boolean;
+  toggleZeroBalances?: () => void;
 }
 
 interface Recoded {
@@ -100,7 +102,7 @@ function recodeAddress (address: string, accounts: AccountWithChildren[], chain:
 
 const defaultRecoded = { formatted: null, prefix: 42 };
 
-function KoniHeader({children, className = '', showBackArrow, showSubHeader, subHeaderName, showCancelButton, smallMargin = false, isContainDetailHeader, isWelcomeScreen, isNotHaveAccount}: Props): React.ReactElement<Props> {
+function KoniHeader({children, className = '', showBackArrow, showSubHeader, subHeaderName, showCancelButton, smallMargin = false, isContainDetailHeader, isWelcomeScreen, isNotHaveAccount, isShowZeroBalances, toggleZeroBalances}: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const [isSettingsOpen, setShowSettings] = useState(false);
   const [isActionOpen, setShowAccountAction] = useState(false);
@@ -162,7 +164,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   const ellipsisCenterStr = useCallback(
     (str: string | undefined) => {
       if (str && str.length > 35) {
-        return str.substr(0, 5) + '...' + str.substr(str.length-4, str.length)
+        return str.substr(0, 6) + '...' + str.substr(str.length-6, str.length)
       }
       return str;
     },
@@ -175,6 +177,14 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
       setShowAccountAction(false);
     },
     [isEditing]
+  );
+
+  const _toggleZeroBalances = useCallback(
+    (): void => {
+      toggleZeroBalances && toggleZeroBalances();
+      setShowAccountAction(false);
+    },
+    [toggleZeroBalances]
   );
 
   const _saveChanges = useCallback(
@@ -195,18 +205,17 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   ) as IconTheme;
 
   const _onChangeGenesis = useCallback(
-    (genesisHash: string, networkPrefix: number, icon: string, networkName: string): void => {
+    async (genesisHash: string, networkPrefix: number, icon: string, networkName: string): Promise<void> => {
 
       if (currentAccount) {
+        await tieAccount(currentAccount.address, genesisHash || null);
+
         setNetwork({
           networkPrefix,
           icon,
           genesisHash,
           networkName
         });
-
-        tieAccount(currentAccount.address, genesisHash || null)
-          .catch(console.error);
       }
       setShowNetworkSelect(false);
     },
@@ -214,7 +223,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   );
 
   useOutsideClick(setRef, (): void => {
-    isSettingsOpen && setShowSettings(!isSettingsOpen);
+    isSettingsOpen && setShowSettings(false);
   });
 
   useOutsideClick(actionsRef, (): void => {
@@ -231,13 +240,15 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
   );
 
   const _toggleSettings = useCallback(
-    (): void => setShowSettings((isSettingsOpen) => !isSettingsOpen),
+    (): void => {
+      setShowSettings((isSettingsOpen) => !isSettingsOpen);
+    },
     []
   );
 
   const _toggleNetwork = useCallback(
-    (): void => setShowNetworkSelect((isNetworkSelectOpen) => !isNetworkSelectOpen),
-    []
+    (): void => {setShowNetworkSelect(!isNetworkSelectOpen)},
+    [isNetworkSelectOpen]
   )
 
   const _onCopy = useCallback(
@@ -266,7 +277,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
                      alt="Expand Icon"
                      className='kn-l-expand-btn__icon'/>
               </div>)}
-            <div className='network-select-item' onClick={_toggleNetwork}>
+            <div className={`network-select-item ${isNetworkSelectOpen && 'pointer-events-none'}`} onClick={_toggleNetwork}>
               <img src={getLogoByGenesisHash(currentAccount?.genesisHash as string)} alt="logo" className={'network-logo'} />
               <div className='network-select-item__text'>
                 {getNetworkName(currentAccount?.genesisHash) || genesisOptions[0].text}
@@ -275,7 +286,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
             </div>
 
             {!isWelcomeScreen && (
-              <div className='setting-icon-wrapper' onClick={_toggleSettings}>
+              <div className={`setting-icon-wrapper ${isSettingsOpen && 'pointer-events-none'}`} onClick={_toggleSettings}>
                 {!!currentAccount ? (
                   <Identicon
                     className='identityIcon'
@@ -297,7 +308,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
 
           {isNetworkSelectOpen && (
             <KoniNetworkMenu reference={netRef} currentNetwork={currentAccount?.genesisHash ? currentAccount?.genesisHash : ''}
-                             selectNetwork={_onChangeGenesis}/>
+                             selectNetwork={_onChangeGenesis} />
           )}
 
           {isSettingsOpen && (
@@ -340,7 +351,7 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
               </div>
 
               <div className='kn-l-detail-header__part-3'>
-                <div className='kn-l-more-button' onClick={_toggleAccountAction}>
+                <div className={`kn-l-more-button ${isActionOpen && 'pointer-events-none'}`} onClick={_toggleAccountAction}>
                   {popupTheme == 'dark' ?
                     (
                       <img src={moreButtonDark} alt="more" className={'kn-l-more-button__icon'}/>
@@ -353,7 +364,12 @@ function KoniHeader({children, className = '', showBackArrow, showSubHeader, sub
               </div>
 
               {isActionOpen && (
-                <KoniAccountAction reference={actionsRef} toggleEdit={_toggleEdit}/>
+                <KoniAccountAction
+                  reference={actionsRef}
+                  toggleEdit={_toggleEdit}
+                  isShowZeroBalances={isShowZeroBalances}
+                  toggleZeroBalances={toggleZeroBalances ? _toggleZeroBalances : undefined}
+                />
               )}
             </div>
           )
@@ -423,6 +439,10 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     text-align: center;
   }
 
+  .pointer-events-none {
+    pointer-events: none;
+  }
+
   .container {
     background-color: ${theme.background};
     box-shadow: ${theme.headerBoxShadow};
@@ -483,7 +503,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     &__text {
       font-size: 20px;
       line-height: 30px;
-      font-weight: 700;
+      font-weight: 500;
       color: ${theme.textColor};
     }
   }
@@ -502,7 +522,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   }
 
   .kn-l-cancel-btn {
-    color: #04C1B7;
+    color: ${theme.buttonTextColor2};
   }
 
   .arrowLeftIcon {
@@ -548,9 +568,9 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
     background-color: ${theme.checkDotColor};
   }
   .network-logo {
-    min-width: 22px;
-    width: 22px;
-    height: 22px;
+    min-width: 18px;
+    width: 18px;
+    height: 18px;
     border-radius: 100%;
     overflow: hidden;
     image-rendering: -webkit-optimize-contrast;
@@ -617,7 +637,7 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   }
 
   .kn-l-connect-status-btn__icon {
-    width: 22px;
+    width: 15px;
   }
 
   .kn-l-account-info {
@@ -626,8 +646,8 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
   }
 
   .kn-l-account-info__name {
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 500;
     margin-right: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -644,7 +664,9 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
 
   .kn-l-account-info__formatted {
     margin-right: 8px;
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 400;
+    font-weight: 400;
   }
 
   .kn-l-account-info__copy-icon {
@@ -677,13 +699,13 @@ export default React.memo(styled(KoniHeader)(({theme}: Props) => `
 
   .connect-status {
     &-text {
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
       color: ${theme.textColor2};
     }
   }
   .account-info {
     &-formatted {
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
       color: ${theme.textColor2};
     }
   }

@@ -17,6 +17,8 @@ import {editAccount} from "@polkadot/extension-ui/messaging";
 import Identicon from "@polkadot/extension-ui/koni/react-components/Identicon";
 import {KeypairType} from "@polkadot/util-crypto/types";
 import reformatAddress from "@polkadot/extension-ui/util/koni/reformatAddress";
+import {getLogoByGenesisHash} from "@polkadot/extension-ui/util/koni/logoByGenesisHashMap";
+import {isSupportSubscan, subscanByNetworkName} from "@polkadot/extension-ui/util/koni";
 
 
 interface Props extends ThemeProps {
@@ -29,47 +31,12 @@ interface Props extends ThemeProps {
   networkPrefix: number;
   networkName: string;
   iconTheme: string;
+  genesisHash?: any;
 }
 
 interface EditState {
   isEditing: boolean;
   toggleActions: number;
-}
-
-const subscanByNetworkName: Record<string, string> = {
-  'acala': 'https://acala.subscan.io',
-  // 'altair': 'https://altair.subscan.io',
-  'astar': 'https://astar.subscan.io',
-  // 'basilisk': 'https://basilisk.subscan.io',
-  'bifrost': 'https://bifrost.subscan.io',
-  'calamari': 'https://calamari.subscan.io',
-  'clover': 'https://clover.subscan.io',
-  // 'genshiro': 'https://genshiro.subscan.io',
-  'heiko': 'https://parallel-heiko.subscan.io',
-  'hydradx': 'https://hydradx.subscan.io',
-  'karura': 'https://karura.subscan.io',
-  'khala': 'https://khala.subscan.io',
-  'kilt': 'https://spiritnet.subscan.io',
-  // 'kintsugi': 'https://kintsugi.subscan.io',
-  'kusama': 'https://kusama.subscan.io',
-  'moonbeam': 'https://moonbeam.subscan.io',
-  'moonriver': 'https://moonriver.subscan.io',
-  'parallel': 'https://parallel.subscan.io',
-  // 'picasso': 'https://picasso.subscan.io',
-  // 'pioneer': 'https://pioneer.subscan.io',
-  'polkadot': 'https://polkadot.subscan.io',
-  'quartz': 'https://quartz.subscan.io',
-  'sakura': 'https://sakura.subscan.io',
-  // 'shadow': 'https://shadow.subscan.io',
-  'shiden': 'https://shiden.subscan.io',
-  'statemine': 'https://statemine.subscan.io',
-  // 'statemint': 'https://statemint.subscan.io',
-  // 'subsocial': 'https://subsocial.subscan.io',
-  // 'zeitgeist': 'https://zeitgeist.subscan.io',
-};
-
-function isSupportSubscan(networkName: string): boolean {
-  return !!subscanByNetworkName[networkName];
 }
 
 function getSubscanUrl(networkName: string, address: string): string {
@@ -92,6 +59,7 @@ function BuyToken({
                     iconTheme,
                     networkPrefix,
                     networkName,
+                    genesisHash
                   }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { show } = useToast();
@@ -162,7 +130,7 @@ function BuyToken({
               <img src={pencil} alt="edit"/>
             </div>
             {isEditing && (
-              <HeaderEditName address={formatted} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
+              <HeaderEditName address={address} isFocused label={' '} onBlur={_saveChanges} onChange={setName} className='edit-name'/>
             )}
           </div>
           <div className='koni-buy-token-qr-code'>
@@ -171,6 +139,7 @@ function BuyToken({
           <CopyToClipboard text={formatted || ''}>
             <div className='koni-buy-token-address' onClick={_onCopy}>
               <div className='koni-buy-token-address__text'>
+                {genesisHash && <img src={getLogoByGenesisHash(genesisHash)} alt="logo" className={'koni-network-logo'} />}
                 {toShortAddress(formatted, 13)}
                 <img src={cloneLogo} alt="clone" className='clone-logo'/>
               </div>
@@ -180,20 +149,20 @@ function BuyToken({
           {_isSupportSubscan ? (
             <a className='koni-buy-token-button' href={subscanUrl} target="_blank">
               <div className='koni-buy-token-button__text'>
-                View Account on Subscan
+                {t<string>('View Account on Subscan')}
               </div>
             </a>
           ) : (
             <span className='koni-buy-token-button -disabled'>
               <div className='koni-buy-token-button__text'>
-                View Account on Subscan
+                {t<string>('View Account on Subscan')}
               </div>
             </span>
           )}
 
           <KoniLink className='koni-buy-token-button' to={`/account/export/${formatted}`}>
             <div className='koni-buy-token-button__text'>
-              Export Account
+              {t<string>('Export Private Key')}
             </div>
           </KoniLink>
         </div>
@@ -237,6 +206,15 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     height: 54px;
   }
 
+  .koni-network-logo {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: #fff;
+  }
+
   .koni-buy-token-name {
     margin-top: 3px;
     display: flex;
@@ -246,7 +224,7 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     &__text {
       font-size: 18px;
       line-height: 30px;
-      font-weight: 700;
+      font-weight: 500;
       margin-right: 5px;
       max-width: 200px;
       text-overflow: ellipsis;
@@ -265,6 +243,7 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
 
   .koni-buy-token-qr-code {
     margin: 20px 0;
+    border: 2px solid #fff;
   }
 
   .koni-buy-token-address {
@@ -308,8 +287,8 @@ export default styled(BuyToken)(({theme}: ThemeProps) => `
     &__text {
       font-size: 16px;
       line-height: 26px;
-      font-weight: 700;
-      color: ${theme.buttonTextColor2};
+      font-weight: 500;
+      color: ${theme.textColor3};
     }
   }
 

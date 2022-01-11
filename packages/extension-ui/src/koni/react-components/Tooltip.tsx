@@ -1,10 +1,11 @@
 // Copyright 2017-2021 @polkadot/react-components authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import ReactDOM from 'react-dom';
 import ReactTooltip from 'react-tooltip';
-import styled from 'styled-components';
+import styled, {ThemeContext} from 'styled-components';
+import {Theme} from "@polkadot/extension-ui/components";
 
 function rootElement () {
   return typeof document === 'undefined'
@@ -29,6 +30,8 @@ interface Props {
 }
 
 function Tooltip ({ className = '', clickable = false, effect = 'solid', offset, place = 'top', text, trigger }: Props): React.ReactElement<Props> | null {
+  const themeContext = useContext(ThemeContext as React.Context<Theme>);
+  const theme = themeContext.id;
   const [tooltipContainer] = useState(
     typeof document === 'undefined'
       ? {} as HTMLElement // This hack is required for server side rendering
@@ -53,6 +56,8 @@ function Tooltip ({ className = '', clickable = false, effect = 'solid', offset,
       id={trigger}
       offset={offset}
       place={place}
+      backgroundColor={theme == 'dark' ? '#fff' : ''}
+      textColor={theme == 'dark'? '#00072D': ''}
     >
       {className?.includes('address') ? <div>{text}</div> : text}
     </ReactTooltip>,

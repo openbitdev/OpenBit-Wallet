@@ -63,6 +63,12 @@ export default styled(KoniButton)(({ isDanger, theme }: Props) => `
   position: relative;
   text-align: center;
 
+
+  .children {
+    font-family: ${theme.fontFamily};
+    font-weight: 500;
+  }
+
   &:disabled {
     cursor: default;
   }

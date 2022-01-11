@@ -14,7 +14,8 @@ import { assert } from '@polkadot/util';
 
 import { MetadataStore } from '../../stores';
 import CurrentAccountStore from "@polkadot/extension-base/stores/CurrentAccount";
-import {CurrentAccountInfo} from "../types";
+import {CurrentAccountInfo, TransactionHistoryItem} from "../types";
+import TransactionHistoryStore from "@polkadot/extension-base/stores/TransactionHistory";
 
 interface Resolver <T> {
   reject: (error: Error) => void;
@@ -100,6 +101,8 @@ export default class State {
   readonly #metaStore = new MetadataStore();
 
   readonly #currentAccountStore = new CurrentAccountStore();
+
+  readonly #transactionHistoryStore = new TransactionHistoryStore();
 
   // Map of providers currently injected in tabs
   readonly #injectedProviders = new Map<chrome.runtime.Port, ProviderInterface>();
@@ -467,6 +470,34 @@ export default class State {
 
   public setCurrentAccount (data: CurrentAccountInfo, callback?: () => void): void {
     this.#currentAccountStore.set('currentAccountInfo', data, callback);
+  }
+
+  private getTransactionKey (address: string, networkName: string): string {
+    return `${address}_${networkName}`
+  }
+
+  public getTransactionHistory (address: string, networkName: string, update: (items: TransactionHistoryItem[]) => void): void {
+    this.#transactionHistoryStore.get(this.getTransactionKey(address, networkName), (items) => {
+      if (!items) {
+        update([]);
+      } else {
+        update(items);
+      }
+    });
+  }
+
+  public setTransactionHistory (address: string, networkName: string, item: TransactionHistoryItem, callback?: (items: TransactionHistoryItem[]) => void): void {
+    this.getTransactionHistory(address, networkName,(items) => {
+      if (!items || !items.length) {
+        items = [item];
+      } else {
+        items.unshift(item);
+      }
+
+      this.#transactionHistoryStore.set(this.getTransactionKey(address, networkName), items, () => {
+        callback && callback(items);
+      });
+    })
   }
 
   public setNotification (notification: string): boolean {

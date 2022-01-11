@@ -142,7 +142,7 @@ export default styled(Request)(({ theme }: Props) => `
     text-decoration: underline;
 
     a {
-        color: ${theme.textColor3};
+        color: ${theme.buttonTextColor2};
     }
   }
 `);

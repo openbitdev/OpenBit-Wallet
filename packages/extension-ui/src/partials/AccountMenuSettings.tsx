@@ -25,7 +25,7 @@ import KoniMenu from "@polkadot/extension-ui/components/KoniMenu";
 import {AccountWithChildren} from "@polkadot/extension-base/background/types";
 import getNetworkMap from "@polkadot/extension-ui/util/getNetworkMap";
 import KoniAccountsTree from "@polkadot/extension-ui/Popup/Accounts/KoniAccountsTree";
-import logo from "@polkadot/extension-ui/assets/KoniverseLogo.svg";
+import logo from "@polkadot/extension-ui/assets/sub-wallet-logo.svg";
 import KoniInputFilter from "@polkadot/extension-ui/components/KoniInputFilter";
 // import {faUsb} from "@fortawesome/free-brands-svg-icons";
 import KoniLink from "@polkadot/extension-ui/components/KoniLink";
@@ -244,7 +244,7 @@ export default React.memo(styled(AccountMenuSettings)(({ theme }: Props) => `
   .logoText {
     font-size: 20px;
     line-height: 32px;
-    font-weight: 700;
+    font-weight: 500;
     color: ${theme.textColor};
   }
 
@@ -327,7 +327,7 @@ export default React.memo(styled(AccountMenuSettings)(({ theme }: Props) => `
       line-height: 30px;
       color: ${theme.textColor2};
       > span {
-        font-family: ${theme.fontFamilyRegular};
+        font-weight: 400;
       }
     }
   }

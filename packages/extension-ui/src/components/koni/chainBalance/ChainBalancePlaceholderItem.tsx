@@ -45,7 +45,7 @@ function ChainBalancePlaceholderItem({accountInfo, className, setBuyTokenScreenO
   const toShortAddress = (_address: string, halfLength?: number) => {
     const address = (_address || '').toString();
 
-    const addressLength = halfLength ? halfLength : 7;
+    const addressLength = halfLength ? halfLength : 4;
 
     return address.length > 13 ? `${address.slice(0, addressLength)}…${address.slice(-addressLength)}` : address;
   };
@@ -88,7 +88,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
 
   .kn-chain-balance-item__main-area {
     display: flex;
-    font-size: 15px;
+    font-size: 14px;
     padding-top: 10px;
     padding-bottom: 10px;
   }
@@ -110,7 +110,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   .kn-chain-balance-item__main-area-part-2 {
     position: relative;
     min-width: 80px;
-    
+
     .loader.loader {
       width: 32px;
       height: 32px;
@@ -121,17 +121,18 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   }
 
   .kn-chain-balance-item__logo {
-    min-width: 48px;
-    height: 48px;
+    min-width: 32px;
+    height: 32px;
     border-radius: 100%;
     overflow: hidden;
     margin-right: 12px;
     background-color: #fff;
     border: 1px solid #fff;
+    margin-top:10px;
   }
 
   .kn-chain-balance-item__chain-name {
-    font-weight: 700;
+    font-weight: 500;
     font-size: 18px;
   }
 
@@ -149,7 +150,8 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   .kn-chain-balance-item__address-text {
     flex: 1;
     margin-right: 12px;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
+    min-width: 120px;
   }
 
   .kn-chain-balance-item__copy {
@@ -182,7 +184,7 @@ export default React.memo(styled(ChainBalancePlaceholderItem)(({theme}: Props) =
   }
 
   .kn-balance-val {
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .kn-chain-balance-item__separator {

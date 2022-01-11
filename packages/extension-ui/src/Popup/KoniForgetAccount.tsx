@@ -56,7 +56,7 @@ function KoniForgetAccount ({ className, match: { params: { address } } }: Props
     <>
       <KoniHeader
         showSubHeader
-        subHeaderName='Forget Account'
+        subHeaderName={t<string>('Forget Account')}
       />
       <div className={className}>
         <KoniAccountInfo address={address}>
@@ -97,8 +97,8 @@ export default withRouter(styled(KoniForgetAccount)(({ theme }: Props) => `
     margin-top: 10px;
     margin: auto;
     > span {
-      color: ${theme.textColor3};
-      font-weight: 700;
+      color: ${theme.buttonTextColor2};
+      font-weight: 500;
       font-size: 16px;
       line-height: 26px;
     }

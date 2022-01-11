@@ -1,33 +1,85 @@
-import type BN from 'bn.js';
-import {ThemeProps} from "@polkadot/extension-ui/types";
-import React, {useContext, useEffect, useState} from "react";
-import styled from "styled-components";
-import {InputAddress, Toggle} from "@polkadot/extension-ui/koni/react-components";
-import {Available} from "@polkadot/extension-ui/koni/react-query";
-import {useTranslation} from "react-i18next";
-import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
-import InputBalance from "@polkadot/extension-ui/koni/react-components/InputBalance";
-import {useApi, useCall} from "@polkadot/extension-ui/koni/react-hooks";
-import {BN_HUNDRED, BN_ZERO, isFunction} from '@polkadot/util';
-import {DeriveBalancesAll} from "@polkadot/api-derive/types";
+import BN from 'bn.js';
+import { ThemeProps } from '@polkadot/extension-ui/types';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import styled from 'styled-components';
+import { InputAddress, Toggle } from '@polkadot/extension-ui/koni/react-components';
+import { Available } from '@polkadot/extension-ui/koni/react-query';
+import useTranslation from '@polkadot/extension-ui/hooks/useTranslation';
+import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
+import InputBalance from '@polkadot/extension-ui/koni/react-components/InputBalance';
+import { useApi, useCall } from '@polkadot/extension-ui/koni/react-hooks';
+import { BN_HUNDRED, BN_ZERO, isFunction } from '@polkadot/util';
+import { DeriveBalancesAll } from '@polkadot/api-derive/types';
 // import {useApi} from "@polkadot/extension-ui/koni/react-hooks";
-import {checkAddress} from '@polkadot/phishing';
-import type {AccountInfoWithProviders, AccountInfoWithRefCount} from '@polkadot/types/interfaces';
-import TxButton from "@polkadot/extension-ui/koni/react-components/TxButton";
-import {CurrentAccContext} from "@polkadot/extension-base/background/types";
-import {CurrentAccountContext} from "@polkadot/extension-ui/components";
-import KoniWarning from "@polkadot/extension-ui/components/KoniWarning";
-import KoniLoading from "@polkadot/extension-ui/components/KoniLoading";
+import { checkAddress } from '@polkadot/phishing';
+import { AccountInfoWithProviders, AccountInfoWithRefCount } from '@polkadot/types/interfaces';
+import {
+  AccNetworkContext,
+  CurrentAccContext,
+  TransactionHistoryItem
+} from '@polkadot/extension-base/background/types';
+import { CurrentAccountContext, CurrentNetworkContext } from '@polkadot/extension-ui/components';
+import KoniWarning from '@polkadot/extension-ui/components/KoniWarning';
+import KoniLoading from '@polkadot/extension-ui/components/KoniLoading';
+import KoniButton from '@polkadot/extension-ui/components/KoniButton';
+import { SubmittableExtrinsic } from '@polkadot/api/types';
+import AuthTransaction from '@polkadot/extension-ui/koni/Popup/Sending/AuthTransaction';
+import { TxResult } from '@polkadot/extension-ui/koni/Popup/Sending/types';
+import { SubmittableResult } from '@polkadot/api';
+import SendFundResult from '@polkadot/extension-ui/koni/Popup/Sending/SendFundResult';
+import { updateTransactionHistory } from '@polkadot/extension-ui/messaging';
 
 interface Props extends ThemeProps {
   className?: string;
 }
 
-function isRefcount (accountInfo: AccountInfoWithProviders | AccountInfoWithRefCount): accountInfo is AccountInfoWithRefCount {
+interface ContentProps extends ThemeProps {
+  className?: string;
+  setWrapperClass: (classname: string) => void
+}
+
+function isRefcount(accountInfo: AccountInfoWithProviders | AccountInfoWithRefCount): accountInfo is AccountInfoWithRefCount {
   return !!(accountInfo as AccountInfoWithRefCount).refcount;
 }
 
-async function checkPhishing (_senderId: string | null, recipientId: string | null): Promise<[string | null, string | null]> {
+type ExtractTxResultType = {
+  change: BN;
+  fee?: BN;
+}
+
+function extractTxResult(result: SubmittableResult): ExtractTxResultType {
+  let change = BN_ZERO;
+  let fee;
+
+  const {events} = result;
+
+  const transferEvent = events.find(e =>
+    e.event.section === 'balances' &&
+    e.event.method.toLowerCase() === 'transfer'
+  );
+
+  if (transferEvent) {
+    change = transferEvent.event.data[2] as unknown as BN;
+  }
+
+  const withdrawEvent = events.find(e =>
+    e.event.section === 'balances' &&
+    e.event.method.toLowerCase() === 'withdraw');
+
+  console.log('withdrawn+++++++++++++', withdrawEvent);
+
+  if (withdrawEvent) {
+    fee = withdrawEvent.event.data[1] as unknown as BN;
+    console.log('fee++++++++++++++', fee);
+  }
+
+  return {
+    change,
+    fee
+  }
+}
+
+async function checkPhishing(_senderId: string | null, recipientId: string | null): Promise<[string | null, string | null]> {
   return [
     // not being checked atm
     // senderId
@@ -40,24 +92,23 @@ async function checkPhishing (_senderId: string | null, recipientId: string | nu
   ];
 }
 
-function Wrapper(props: Props): React.ReactElement<Props> {
-  const { t } = useTranslation();
-  const { isApiReady, isNotSupport } = useApi();
-
-  //todo: handle when remove All account or no account
+function Wrapper({className, theme}: Props): React.ReactElement<Props> {
+  const {t} = useTranslation();
+  const {isApiReady, isNotSupport} = useApi();
+  const [wrapperClass, setWrapperClass] = useState<string>('');
 
   return (
-    <div className={`-wrapper ${props.className}`}>
+    <div className={`-wrapper ${className} ${wrapperClass}`}>
       <KoniHeader
         showAdd
         showSearch
         showSettings
         showSubHeader
-        subHeaderName={'Send fund'}
+        subHeaderName={t<string>('Send fund')}
         showCancelButton
       />
 
-      {isApiReady ? (<SendFund {...props} />)
+      {isApiReady ? (<SendFund theme={theme} setWrapperClass={setWrapperClass} className={'send-fund-container'} />)
         : isNotSupport
           ? (
             <div className={'kn-l-screen-content'}>
@@ -72,10 +123,11 @@ function Wrapper(props: Props): React.ReactElement<Props> {
   );
 }
 
-function SendFund({className}: Props): React.ReactElement {
-  const { t } = useTranslation();
-  const { api, apiUrl } = useApi();
+function SendFund({className, setWrapperClass}: ContentProps): React.ReactElement {
+  const {t} = useTranslation();
+  const {api, apiUrl} = useApi();
   const {currentAccount} = useContext<CurrentAccContext>(CurrentAccountContext);
+  const {network: {networkName}} = useContext<AccNetworkContext>(CurrentNetworkContext);
   const propSenderId = currentAccount?.address;
   const [amount, setAmount] = useState<BN | undefined>(BN_ZERO);
   const [hasAvailable] = useState(true);
@@ -87,6 +139,10 @@ function SendFund({className}: Props): React.ReactElement {
   const [[, recipientPhish], setPhishing] = useState<[string | null, string | null]>([null, null]);
   const balances = useCall<DeriveBalancesAll>(api.derive.balances?.all, [senderId], undefined, apiUrl);
   const accountInfo = useCall<AccountInfoWithProviders | AccountInfoWithRefCount>(api.query.system.account, [senderId], undefined, apiUrl);
+  const [extrinsic, setExtrinsic] = useState<SubmittableExtrinsic<'promise'> | null>(null);
+  const [isShowTxModal, setShowTxModal] = useState<boolean>(false);
+  const [txResult, setTxResult] = useState<TxResult>({isShowTxResult: false, isTxSuccess: false});
+  const {isShowTxResult} = txResult;
 
   useEffect((): void => {
     const fromId = senderId as string;
@@ -98,7 +154,7 @@ function SendFund({className}: Props): React.ReactElement {
           api.tx.balances
             .transfer(toId, balances.availableBalance)
             .paymentInfo(fromId)
-            .then(({ partialFee }): void => {
+            .then(({partialFee}): void => {
               const adjFee = partialFee.muln(110).div(BN_HUNDRED);
               const maxTransfer = balances.availableBalance.sub(adjFee);
 
@@ -131,149 +187,290 @@ function SendFund({className}: Props): React.ReactElement {
     : true;
   const canToggleAll = !isProtected && balances && balances.accountId.eq(senderId) && maxTransfer && noReference;
 
+  const amountGtAvailableBalance = amount && balances && amount.gt(balances.availableBalance);
+
+  const txParams: unknown[] | (() => unknown[]) | null =
+    canToggleAll && isAll
+      ? isFunction(api.tx.balances.transferAll)
+      ? [recipientId, false]
+      : [recipientId, maxTransfer]
+      : [recipientId, amount];
+
+  const tx: ((...args: any[]) => SubmittableExtrinsic<'promise'>) | null = canToggleAll && isAll && isFunction(api.tx.balances.transferAll)
+    ? api.tx.balances.transferAll
+    : isProtected
+      ? api.tx.balances.transferKeepAlive
+      : api.tx.balances.transfer;
+
+  const _onSend = useCallback(() => {
+    if (tx) {
+      setExtrinsic(tx(...(
+        isFunction(txParams)
+          ? txParams()
+          : (txParams || [])
+      )) as SubmittableExtrinsic<'promise'>);
+
+      setShowTxModal(true);
+    }
+  }, [txParams, tx]);
+
+  const _onCancelTx = useCallback(() => {
+    setExtrinsic(null);
+    setShowTxModal(true);
+  }, []);
+
+  const onGetTxResult = (isTxSuccess: boolean, extrinsicHash?: string, txError?: Error | null) => {
+    setWrapperClass('-disable-header-action');
+
+    setTxResult({
+      isShowTxResult: true,
+      isTxSuccess,
+      txError,
+      extrinsicHash
+    });
+
+    _onCancelTx();
+  };
+
+  const _onTxSuccess = useCallback((result: SubmittableResult, extrinsicHash?: string) => {
+    if (!senderId) {
+      return;
+    }
+
+    if (result && extrinsicHash) {
+      const {change, fee} = extractTxResult(result);
+
+      const item: TransactionHistoryItem = {
+        action: 'send',
+        change,
+        extrinsicHash,
+        fee,
+        isSuccess: true,
+        networkName,
+        time: Date.now()
+      };
+
+      updateTransactionHistory(senderId, networkName, item, (items) => {
+        onGetTxResult(true, extrinsicHash);
+      }).catch(e => console.log('Error when update Transaction History', e));
+    } else {
+      onGetTxResult(true);
+    }
+  }, [senderId, networkName]);
+
+  const _onTxFail = useCallback((result: SubmittableResult | null, error: Error | null, extrinsicHash?: string) => {
+    if (!senderId) {
+      return;
+    }
+
+    if (result && extrinsicHash) {
+      const {change, fee} = extractTxResult(result);
+
+      const item: TransactionHistoryItem = {
+        action: 'send',
+        change,
+        extrinsicHash,
+        fee,
+        isSuccess: false,
+        networkName,
+        time: Date.now()
+      };
+
+      updateTransactionHistory(senderId, networkName, item, (items) => {
+        onGetTxResult(false, extrinsicHash, error);
+      }).catch(e => console.log('Error when update Transaction History', e));
+    } else {
+      onGetTxResult(false, undefined, error);
+    }
+  }, [senderId, networkName]);
+
+  const _onResend = () => {
+    setTxResult({
+      isTxSuccess: false,
+      isShowTxResult: false,
+      txError: undefined
+    });
+
+    setWrapperClass('');
+  };
+
+  const isSameAddress = !!recipientId && !!senderId && (recipientId === senderId);
+
   return (
-    <div className={`${className} -main-content`}>
-      <InputAddress
-        withEllipsis
-        className={'kn-field -field-1'}
-        defaultValue={propSenderId}
-        help={t<string>('The account you will send funds from.')}
-        // isDisabled={!!propSenderId}
-        label={t<string>('Send from account')}
-        labelExtra={
-          <Available
-            label={t<string>('Transferrable')}
-            params={senderId}
-          />
-        }
-        onChange={setSenderId}
-        type='account'
-      />
-      <InputAddress
-        withEllipsis
-        className={'kn-field -field-2'}
-        // defaultValue={propRecipientId}
-        help={t<string>('Select a contact or paste the address you want to send funds to.')}
-        // isDisabled={!!propRecipientId}
-        label={t<string>('Send to address')}
-        labelExtra={
-          <Available
-            label={t<string>('Transferrable')}
-            params={recipientId}
-          />
-        }
-        onChange={setRecipientId}
-        type='allPlus'
-      />
-      {recipientPhish && (
-        <KoniWarning isDanger className={'kn-l-warning'}>
-          {t<string>('The recipient is associated with a known phishing site on {{url}}', { replace: { url: recipientPhish } })}
-        </KoniWarning>
-      )}
-      {canToggleAll && isAll
-        ? (
-          <InputBalance
-            className={'kn-field -field-3'}
-            autoFocus
-            defaultValue={maxTransfer}
-            help={t<string>('The full account balance to be transferred, minus the transaction fees')}
-            isDisabled
-            key={maxTransfer?.toString()}
-            label={t<string>('transferrable minus fees')}
-          />
-        )
-        : (
-          <>
-            <InputBalance
-              className={'kn-field -field-3'}
-              autoFocus
-              help={t<string>('Type the amount you want to transfer. Note that you can select the unit on the right e.g sending 1 milli is equivalent to sending 0.001.')}
-              isError={!hasAvailable}
-              isZeroable
-              label={t<string>('amount')}
-              maxValue={maxTransfer}
-              onChange={setAmount}
-            />
-            <InputBalance
-              className={'kn-field -field-4'}
-              defaultValue={api.consts.balances.existentialDeposit}
-              help={t<string>('The minimum amount that an account should have to be deemed active')}
-              isDisabled
-              label={t<string>('existential deposit')}
-            />
-          </>
-        )
-      }
-      {isFunction(api.tx.balances.transferKeepAlive) && (
-        <div className={'kn-field -toggle -toggle-1'}>
-          <Toggle
-            className='typeToggle'
-            label={
-              isProtected
-                ? t<string>('Transfer with account keep-alive checks')
-                : t<string>('Normal transfer without keep-alive checks')
+    <>
+      {!isShowTxResult ? (
+        <div className={`${className} -main-content`}>
+          <InputAddress
+            withEllipsis
+            className={'kn-field -field-1'}
+            defaultValue={propSenderId}
+            help={t<string>('The account you will send funds from.')}
+            // isDisabled={!!propSenderId}
+            label={t<string>('Send from account')}
+            labelExtra={
+              <Available
+                label={t<string>('Transferable')}
+                params={senderId}
+              />
             }
-            onChange={setIsProtected}
-            value={isProtected}
+            onChange={setSenderId}
+            type='account'
           />
-        </div>
-      )}
-      {canToggleAll && (
-        <div className={'kn-field -toggle -toggle-2'}>
-          <Toggle
-            className='typeToggle'
-            label={t<string>('Transfer the full account balance, reap the sender')}
-            onChange={setIsAll}
-            value={isAll}
+          <InputAddress
+            withEllipsis
+            className={'kn-field -field-2'}
+            autoPrefill={false}
+            help={t<string>('Select a contact or paste the address you want to send funds to.')}
+            // isDisabled={!!propRecipientId}
+            label={t<string>('Send to address')}
+            labelExtra={
+              <Available
+                label={t<string>('Transferable')}
+                params={recipientId}
+              />
+            }
+            onChange={setRecipientId}
+            type='allPlus'
           />
+          {recipientPhish && (
+            <KoniWarning isDanger className={'kn-l-warning'}>
+              {t<string>('The recipient is associated with a known phishing site on {{url}}', {replace: {url: recipientPhish}})}
+            </KoniWarning>
+          )}
+          {isSameAddress && (
+            <KoniWarning isDanger className={'kn-l-warning'}>
+              {t<string>('The recipient address is the same as the sender address.')}
+            </KoniWarning>
+          )}
+          {canToggleAll && isAll
+            ? (
+              <InputBalance
+                className={'kn-field -field-3'}
+                autoFocus
+                defaultValue={maxTransfer}
+                help={t<string>('The full account balance to be transferred, minus the transaction fees')}
+                isDisabled
+                key={maxTransfer?.toString()}
+                label={t<string>('transferable minus fees')}
+              />
+            )
+            : (
+              <>
+                <InputBalance
+                  className={'kn-field -field-3'}
+                  autoFocus
+                  help={t<string>('Type the amount you want to transfer. Note that you can select the unit on the right e.g sending 1 milli is equivalent to sending 0.001.')}
+                  isError={!hasAvailable}
+                  isZeroable
+                  placeholder={'0'}
+                  label={t<string>('amount')}
+                  // maxValue={maxTransfer}
+                  onChange={setAmount}
+                />
+                {amountGtAvailableBalance && (
+                  <KoniWarning isDanger className={'kn-l-warning'}>
+                    {t<string>('The amount you want to transfer is greater than your available balance.')}
+                  </KoniWarning>
+                )}
+                <InputBalance
+                  className={'kn-field -field-4'}
+                  defaultValue={api.consts.balances.existentialDeposit}
+                  help={t<string>('The minimum amount that an account should have to be deemed active')}
+                  isDisabled
+                  label={t<string>('existential deposit')}
+                />
+              </>
+            )
+          }
+          {isFunction(api.tx.balances.transferKeepAlive) && (
+            <div className={'kn-field -toggle -toggle-1'}>
+              <Toggle
+                className='typeToggle'
+                label={
+                  isProtected
+                    ? t<string>('Transfer with account keep-alive checks')
+                    : t<string>('Normal transfer without keep-alive checks')
+                }
+                onChange={setIsProtected}
+                value={isProtected}
+              />
+            </div>
+          )}
+          {canToggleAll && (
+            <div className={'kn-field -toggle -toggle-2'}>
+              <Toggle
+                className='typeToggle'
+                label={t<string>('Transfer the full account balance, reap the sender')}
+                onChange={setIsAll}
+                value={isAll}
+              />
+            </div>
+          )}
+          {!isProtected && !noReference && (
+            <KoniWarning className={'kn-l-warning'}>
+              {t<string>('There is an existing reference count on the sender account. As such the account cannot be reaped from the state.')}
+            </KoniWarning>
+          )}
+          {!amountGtAvailableBalance && !isSameAddress && noFees && (
+            <KoniWarning className={'kn-l-warning'}>
+              {t<string>('The transaction, after application of the transfer fees, will drop the available balance below the existential deposit. As such the transfer will fail. The account needs more free funds to cover the transaction fees.')}
+            </KoniWarning>
+          )}
+
+          <div className={'kn-l-submit-wrapper'}>
+            <KoniButton
+              className={'kn-submit-btn'}
+              isDisabled={isSameAddress || !hasAvailable || !(recipientId) || (!amount && !isAll) || amountGtAvailableBalance || !!recipientPhish}
+              onClick={_onSend}
+            >
+              {t<string>('Make Transfer')}
+            </KoniButton>
+          </div>
         </div>
-      )}
-      {!isProtected && !noReference && (
-        <KoniWarning class={'kn-l-warning'}>
-          {t<string>('There is an existing reference count on the sender account. As such the account cannot be reaped from the state.')}
-        </KoniWarning>
-      )}
-      {noFees && (
-        <KoniWarning class={'kn-l-warning'}>
-          {t<string>('The transaction, after application of the transfer fees, will drop the available balance below the existential deposit. As such the transfer will fail. The account needs more free funds to cover the transaction fees.')}
-        </KoniWarning>
+      ) : (
+        <SendFundResult
+          networkName={networkName}
+          txResult={txResult}
+          onResend={_onResend}
+        />
       )}
 
-      <div className={'kn-l-submit-wrapper'}>
-        <TxButton
-          className={'kn-submit-btn'}
-          accountId={senderId}
-          isDisabled={!hasAvailable || !(recipientId) || !amount || !!recipientPhish}
-          label={t<string>('Make Transfer')}
-          params={
-            canToggleAll && isAll
-              ? isFunction(api.tx.balances.transferAll)
-                ? [recipientId, false]
-                : [recipientId, maxTransfer]
-              : [recipientId, amount]
-          }
-          tx={
-            canToggleAll && isAll && isFunction(api.tx.balances.transferAll)
-              ? api.tx.balances.transferAll
-              : isProtected
-                ? api.tx.balances.transferKeepAlive
-                : api.tx.balances.transfer
-          }
+      {extrinsic && isShowTxModal && (
+        <AuthTransaction
+          extrinsic={extrinsic}
+          requestAddress={senderId}
+          onCancel={_onCancelTx}
+          txHandler={{
+            onTxSuccess: _onTxSuccess,
+            onTxFail: _onTxFail
+          }}
         />
-      </div>
-    </div>
+      )}
+    </>
   );
 }
 
 export default React.memo(styled(Wrapper)(({theme}: Props) => `
-  &.-wrapper {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+
+  &.-disable-header-action {
+    .koni-header-right-content .kn-l-expand-btn,
+    .network-select-item,
+    .setting-icon-wrapper {
+      cursor: not-allowed;
+      opacity: 0.5;
+      pointer-events: none !important;
+    }
+
+    .subheader-container__part-3 .kn-l-cancel-btn {
+      display: none;
+    }
   }
 
-  &.-main-content {
+  .send-fund-container {
     padding-left: 15px;
     padding-right: 15px;
     padding-bottom: 15px;
@@ -327,6 +524,7 @@ export default React.memo(styled(Wrapper)(({theme}: Props) => `
 
   .kn-l-warning {
     margin-top: 10px;
+    margin-bottom: 10px;
   }
 
   .kn-l-submit-wrapper {

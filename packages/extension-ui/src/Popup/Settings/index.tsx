@@ -13,12 +13,12 @@ import {Theme} from "../../types";
 import useIsPopup from "@polkadot/extension-ui/hooks/useIsPopup";
 import getLanguageOptions from "@polkadot/extension-ui/util/getLanguageOptions";
 import {setNotification, windowOpen} from "@polkadot/extension-ui/messaging";
-import Switch from "@polkadot/extension-ui/components/koni/Switch";
-import KoniDropdown from "@polkadot/extension-ui/components/KoniDropdown";
 import MenuItem from "@polkadot/extension-ui/components/koni/MenuItem";
 import Checkbox from "@polkadot/extension-ui/components/koni/Checkbox";
 import KoniActionText from "@polkadot/extension-ui/components/KoniActionText";
 import KoniMenuDivider from "@polkadot/extension-ui/components/KoniMenuDivider";
+import HorizontalLabelToggle from "@polkadot/extension-ui/koni/react-components/HorizontalLabelToggle";
+import SimpleDropdown from "@polkadot/extension-ui/components/SimpleDropdown";
 
 interface Props extends ThemeProps {
   className?: string;
@@ -90,24 +90,25 @@ function KoniSettings({className}: Props): React.ReactElement {
         <KoniHeader
           showBackArrow
           showSubHeader
-          subHeaderName='Setting'
+          subHeaderName={t<string>('Settings')}
         />
         <MenuItem
           className='setting'
           title='Theme'
         >
-          <Switch
-            checked={themeContext.id === themes.dark.id}
+          <HorizontalLabelToggle
             checkedLabel={t<string>('Dark')}
-            onChange={_onChangeTheme}
             uncheckedLabel={t<string>('Light')}
+            value={themeContext.id === themes.dark.id}
+            className='kn-theme-setting'
+            toggleFunc={_onChangeTheme}
           />
         </MenuItem>
         <MenuItem
           className='setting'
           title={t<string>('Language')}
         >
-          <KoniDropdown
+          <SimpleDropdown
             className='dropdown'
             label=''
             onChange={_onChangeLang}
@@ -119,7 +120,7 @@ function KoniSettings({className}: Props): React.ReactElement {
           className='setting'
           title={t<string>('Notifications')}
         >
-          <KoniDropdown
+          <SimpleDropdown
             className='dropdown'
             label=''
             onChange={_onChangeNotification}
@@ -168,6 +169,13 @@ export default styled(KoniSettings)(({ theme }: Props) => `
   margin-top: -25px;
   padding-top: 25px;
 
+  .kn-theme-setting {
+    .kn-label {
+      font-size: 18px;
+      line-height: 30px;
+    }
+  }
+
   .menu-items-wrapper {
     display: flex;
     align-items: center;
@@ -182,7 +190,7 @@ export default styled(KoniSettings)(({ theme }: Props) => `
       font-size: 16px;
       line-height: 26px;
       color: ${theme.textColor2};
-      font-family: ${theme.fontFamilyRegular};
+      font-weight: 400;
     }
   }
 

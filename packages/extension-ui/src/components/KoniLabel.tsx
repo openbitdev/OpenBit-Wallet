@@ -30,6 +30,6 @@ export default styled(KoniLabel)(({ theme }: ThemeProps) => `
     letter-spacing: 0.04em;
     margin-bottom: 12px;
     text-transform: uppercase;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 500;
   }
 `);

@@ -83,6 +83,11 @@ export default styled(AccountNamePasswordCreation)(({ theme }: ThemeProps) => `
   .account-info-wrapper {
   }
 
+  .create-account-network-select label {
+    color: ${theme.textColor2};
+    font-weight: 500;
+  }
+
   .account-info {
     padding-bottom: 15px;
   }

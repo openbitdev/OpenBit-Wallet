@@ -296,16 +296,10 @@ export default styled(KoniAccountInfo)(({ theme }: ThemeProps) => `
     border-radius: 4px;
   }
 
-  img {
-    max-width: 50px;
-    max-height: 50px;
-    border-radius: 50%;
-  }
-
   .name {
     font-size: 18px;
     line-height: 30px;
-    font-weight: 700;
+    font-weight: 500;
     color: ${theme.textColor};
     margin: 2px 0;
     overflow: hidden;
@@ -336,7 +330,7 @@ export default styled(KoniAccountInfo)(({ theme }: ThemeProps) => `
     color: ${theme.textColor2};
     font-size: 15px;
     line-height: 24px;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
   }
 
   .account-info-copyIcon {

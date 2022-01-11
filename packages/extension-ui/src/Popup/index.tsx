@@ -23,7 +23,7 @@ import {
   getAccountsWithCurrentAddress, saveCurrentAccountAddress,
   subscribeAuthorizeRequests,
   subscribeMetadataRequests,
-  subscribeSigningRequests
+  subscribeSigningRequests, tieAccount
 } from '../messaging';
 import { buildHierarchy } from '../util/buildHierarchy';
 import AuthList from './KoniAuthManagement';
@@ -49,7 +49,6 @@ import {Api} from "@polkadot/extension-ui/koni/react-api";
 import SendFund from "@polkadot/extension-ui/koni/Popup/Sending/SendFund";
 import Queue from "@polkadot/extension-ui/koni/react-components/Status/Queue";
 import StatusWrapper from "@polkadot/extension-ui/koni/react-components/StatusWrapper";
-import Signer from "@polkadot/extension-ui/koni/Popup/Sending/Signer";
 
 const startSettings = uiSettings.get();
 
@@ -149,21 +148,35 @@ export default function Popup (): React.ReactElement {
     setAccountCtx(initAccountContext(accounts || []));
   }, [accounts]);
 
-  useEffect(():void => {
-    let networkSelected;
-    if (!currentAccount?.genesisHash) {
-      networkSelected = genesisOptions[0];
-    } else {
-      networkSelected = genesisOptions.find(opt => opt.value == currentAccount?.genesisHash);
-    }
-    if (networkSelected) {
-      setNetwork({
-        networkPrefix: networkSelected.networkPrefix,
-        icon: networkSelected.icon,
-        genesisHash: networkSelected.value,
-        networkName: networkSelected.networkName
-      });
-    }
+  useEffect(() => {
+    let isSync = true;
+
+    (async () => {
+      let networkSelected;
+      if (!currentAccount || !currentAccount.genesisHash) {
+        networkSelected = genesisOptions[0];
+      } else {
+        networkSelected = genesisOptions.find(opt => opt.value == currentAccount.genesisHash);
+
+        if (!networkSelected) {
+          await tieAccount(currentAccount.address, null);
+          networkSelected = genesisOptions[0];
+        }
+      }
+
+      if (isSync && networkSelected) {
+        setNetwork({
+          networkPrefix: networkSelected.networkPrefix,
+          icon: networkSelected.icon,
+          genesisHash: networkSelected.value,
+          networkName: networkSelected.networkName
+        });
+      }
+    })();
+
+    return () => {
+      isSync = false;
+    };
   }, [currentAccount?.genesisHash]);
 
   useEffect((): void => {
@@ -215,7 +228,7 @@ export default function Popup (): React.ReactElement {
                             <Route path='/account/restore-json'>{wrapWithErrorBoundary(<KoniRestoreJson />, 'restore-json')}</Route>
                             <Route path='/account/derive/:address/locked'>{wrapWithErrorBoundary(<Derive isLocked />, 'derived-address-locked')}</Route>
                             <Route path='/account/derive/:address'>{wrapWithErrorBoundary(<Derive />, 'derive-address')}</Route>
-                            <Route path='/account/send-fund'>{wrapWithErrorBoundary(<Signer><SendFund /></Signer>, 'send-fund')}</Route>
+                            <Route path='/account/send-fund'>{wrapWithErrorBoundary(<SendFund />, 'send-fund')}</Route>
                             <Route path={`${PHISHING_PAGE_REDIRECT}/:website`}>{wrapWithErrorBoundary(<PhishingDetected />, 'phishing-page-redirect')}</Route>
                             <Route
                               exact

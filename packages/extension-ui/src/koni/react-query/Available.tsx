@@ -31,6 +31,7 @@ function AvailableDisplay ({ children, className = '', label, params }: Props): 
     <FormatBalance
       className={className}
       label={label}
+      registry={api.registry}
       value={allBalances?.availableBalance}
     >
       {children}

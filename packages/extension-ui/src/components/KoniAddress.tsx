@@ -296,7 +296,7 @@ export default styled(KoniAddress)(({ theme }: ThemeProps) => `
     padding: 0 8px;
     right: 15px;
     z-index: 1;
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
   }
 
   .addressDisplay {
@@ -331,7 +331,7 @@ export default styled(KoniAddress)(({ theme }: ThemeProps) => `
 
   .koni-address-text {
     color: ${theme.textColor2};
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     font-size: 14px;
   }
 
@@ -370,32 +370,23 @@ export default styled(KoniAddress)(({ theme }: ThemeProps) => `
     align-items: center;
   }
 
-  img {
-    max-width: 50px;
-    max-height: 50px;
-    border-radius: 50%;
-  }
-
   .name {
     font-size: 15px;
     line-height: 24px;
-    font-weight: 700;
+
     margin: 2px 0;
     overflow: hidden;
     text-overflow: ellipsis;
     width: 150px;
     white-space: nowrap;
 
+    > span {
+      font-weight: 500;
+    }
+
     &.displaced {
       padding-top: 10px;
     }
-  }
-
-  .koni-address-token {
-    font-size: 15px;
-    line-height: 24px;
-    font-weight: 700;
-    color: ${theme.textColor2};
   }
 
   .parentName {

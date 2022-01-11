@@ -2,23 +2,26 @@ import React, { useContext } from 'react';
 import styled from 'styled-components';
 import {ThemeProps} from "@polkadot/extension-ui/types";
 import KoniMenu from "@polkadot/extension-ui/components/KoniMenu";
-import {CurrentAccountContext} from "@polkadot/extension-ui/components";
+import {CurrentAccountContext, CurrentNetworkContext} from "@polkadot/extension-ui/components";
 import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import KoniMenuDivider from "@polkadot/extension-ui/components/KoniMenuDivider";
 import {canDerive} from "@polkadot/extension-base/utils";
 import KoniLink from "@polkadot/extension-ui/components/KoniLink";
+import check from "@polkadot/extension-ui/assets/check.svg";
 
 interface Props extends ThemeProps {
   className?: string;
   reference: React.MutableRefObject<null>;
-  toggleEdit?: () => void
+  toggleEdit?: () => void;
+  isShowZeroBalances?: boolean;
+  toggleZeroBalances?: () => void;
 }
 
-function KoniAccountAction({ className, reference, toggleEdit }: Props): React.ReactElement<Props>  {
+function KoniAccountAction({ className, reference, toggleEdit, isShowZeroBalances, toggleZeroBalances }: Props): React.ReactElement<Props>  {
   const { t } = useTranslation();
 
   const {currentAccount} = useContext(CurrentAccountContext);
-
+  const {network: {networkName}} = useContext(CurrentNetworkContext);
 
   return (
     <KoniMenu className={className} reference={reference}>
@@ -58,6 +61,21 @@ function KoniAccountAction({ className, reference, toggleEdit }: Props): React.R
           {t<string>('Forget Account')}
         </KoniLink>
       </div>
+
+      {(networkName === 'all') && !!toggleZeroBalances && (
+        <>
+          <KoniMenuDivider />
+
+          <div className='actions-wrapper'>
+            <KoniLink className={`menuItem kn-l-show-zero-balance ${isShowZeroBalances ? '-check': ''}`} onClick={toggleZeroBalances}>
+              <span>
+                {t<string>('Show Zero Balances')}
+              </span>
+              <img src={check} alt="check" className='kn-l-check-icon'/>
+            </KoniLink>
+          </div>
+        </>
+      )}
     </KoniMenu>
   )
 }
@@ -78,8 +96,22 @@ export default React.memo(styled(KoniAccountAction)(({ theme }: Props) => `
     padding: 10px 16px;
 
     &:hover {
-      background-color: ${theme.buttonBackground1}
+      background-color: ${theme.accountHoverBackground}
     }
+  }
+
+  .kn-l-show-zero-balance {
+    display: flex;
+    align-items: center;
+  }
+
+  .kn-l-check-icon {
+    margin-left: 4px;
+    opacity: 0;
+  }
+
+  .kn-l-show-zero-balance.-check .kn-l-check-icon {
+    opacity: 1;
   }
 `));
 

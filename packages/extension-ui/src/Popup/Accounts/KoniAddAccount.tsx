@@ -6,8 +6,8 @@ import React, { useCallback, useContext } from 'react';
 import styled from 'styled-components';
 import { ActionContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';
-import addAccountImg from '../../assets/add-account.svg';
 import KoniHeader from "@polkadot/extension-ui/partials/KoniHeader";
+import KoniButton from "@polkadot/extension-ui/components/KoniButton";
 
 interface Props extends ThemeProps {
   className?: string;
@@ -16,8 +16,18 @@ interface Props extends ThemeProps {
 function AddAccount ({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
-  const _onClick = useCallback(
+  const _createNewAccount = useCallback(
     () => onAction('/account/create'),
+    [onAction]
+  );
+
+  const _importAccount = useCallback(
+    () => onAction('/account/import-seed'),
+    [onAction]
+  );
+
+  const _restoreAccount = useCallback(
+    () => onAction('/account/restore-json'),
     [onAction]
   );
 
@@ -28,16 +38,37 @@ function AddAccount ({ className }: Props): React.ReactElement<Props> {
         showSettings
         showSubHeader
         isNotHaveAccount
-        subHeaderName='Add Account'
+        subHeaderName={t<string>("Add Account")}
       />
       <div className={className}>
-        <div className='koni-add-account-image-wrapper'>
-          <div className='koni-add-account-image' onClick={_onClick}>
-            <img src={addAccountImg} alt="add-account"/>
+        <div className='koni-add-account-wrapper'>
+          <div className='no-accounts'>
+            <p>{t<string>("You currently don't have any accounts. Create your first account or import another account to get started.")}</p>
           </div>
-        </div>
-        <div className='no-accounts'>
-          <p>{t<string>("You currently don't have any accounts. Create your first account to get started.")}</p>
+
+          <KoniButton
+            className='kn-add-account-btn create-account'
+            data-export-button
+            onClick={_createNewAccount}
+          >
+            {t<string>('Create new account')}
+          </KoniButton>
+
+          <KoniButton
+            className='kn-add-account-btn'
+            data-export-button
+            onClick={_importAccount}
+          >
+            {t<string>('Import account from pre-existing seed')}
+          </KoniButton>
+
+          <KoniButton
+            className='kn-add-account-btn'
+            data-export-button
+            onClick={_restoreAccount}
+          >
+            {t<string>('Restore account from backup JSON file')}
+          </KoniButton>
         </div>
       </div>
     </>
@@ -48,18 +79,17 @@ export default React.memo(styled(AddAccount)(({ theme }: Props) => `
   color: ${theme.textColor};
   height: 100%;
 
-  .koni-add-account-image-wrapper {
-    display: flex;
-    justify-content: center;
-    margin: 35px 0 40px 0;
+  .koni-add-account-wrapper {
+    margin: 0 40px;
   }
 
-  .koni-add-account-image {
-    width: 172px;
-    height: 172px;
-    border-radius: 50%;
-    position: relative;
-    cursor: pointer;
+  .kn-add-account-btn {
+    margin-bottom: 15px;
+  }
+
+  .create-account {
+    background-color: ${theme.buttonBackground2};
+    color: ${theme.buttonTextColor3};
   }
 
   h3 {
@@ -76,11 +106,14 @@ export default React.memo(styled(AddAccount)(({ theme }: Props) => `
     justify-content: center;
   }
 
-  > .no-accounts p {
+  .no-accounts {
+    margin: 20px 0 50px;
+  }
+
+  .no-accounts p {
     text-align: center;
     font-size: 15px;
     line-height: 24px;
-    margin: 0 51px;
     color: ${theme.textColor};
   }
 `));

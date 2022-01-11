@@ -143,7 +143,7 @@ function inputToBn (api: ApiPromise, input: string, si: SiDef | null, bitLength:
 
   return [
     result,
-    isValidNumber(result, bitLength, isZeroable, maxValue)
+    input === '' ? false : isValidNumber(result, bitLength, isZeroable, maxValue)
   ];
 }
 
@@ -172,7 +172,7 @@ function getValuesFromBn (valueBn: BN, si: SiDef | null, isZeroable: boolean, _d
   ];
 }
 
-function getValues (api: ApiPromise, value: BN | string = BN_ZERO, si: SiDef | null, bitLength: BitLength, isZeroable: boolean, maxValue?: BN, decimals?: number): [string, BN, boolean] {
+function getValues (api: ApiPromise, value: BN | string = '', si: SiDef | null, bitLength: BitLength, isZeroable: boolean, maxValue?: BN, decimals?: number): [string, BN, boolean] {
   return isBn(value)
     ? getValuesFromBn(value, si, isZeroable, decimals)
     : getValuesFromString(api, value, si, bitLength, isZeroable, maxValue, decimals);
@@ -190,6 +190,7 @@ function InputNumber ({ autoFocus, bitLength = DEFAULT_BITLENGTH, children, clas
   const [[value, valueBn, isValid], setValues] = useState<[string, BN, boolean]>(() =>
     getValues(api, propsValue || defaultValue, si, bitLength, isZeroable, maxValue, siDecimals)
   );
+
   const [isPreKeyDown, setIsPreKeyDown] = useState(false);
 
   const siOptions = useMemo(
@@ -328,6 +329,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
   > label {
     font-size: 15px;
     line-height: 24px;
+    font-weight: 400
   }
 
   .ui--Input > input {
@@ -367,7 +369,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
   }
 
   .ui--SiDropdown > .text {
-    font-weight: 700;
+    font-weight: 500;
     color: ${theme.textColor};
   }
 
@@ -420,7 +422,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
   .ui--SiDropdown .menu .item.selected {
     background: rgba(0,0,0,.03);
     color: ${theme.textColor};
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .ui--SiDropdown .menu .item:hover {
@@ -463,7 +465,7 @@ export default React.memo(styled(InputNumber)(({ theme }: ThemeProps) =>`
 
   @media (max-width: 767px) {
     .ui--SiDropdown .menu {
-      max-height: 112px;
+      max-height: 130px;
     }
   }
 `));

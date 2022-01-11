@@ -6,7 +6,7 @@ import type BN from 'bn.js';
 import React, {useEffect, useState} from 'react';
 
 import {BN_ZERO} from '@polkadot/util';
-import {useTranslation} from "react-i18next";
+import useTranslation from "@polkadot/extension-ui/hooks/useTranslation";
 import {Toggle} from "@polkadot/extension-ui/koni/react-components";
 import InputBalance from "@polkadot/extension-ui/koni/react-components/InputBalance";
 import {ThemeProps} from "@polkadot/extension-ui/types";

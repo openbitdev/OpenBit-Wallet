@@ -34,10 +34,9 @@ function Toggle ({ className = '', isDisabled, isOverlay, isRadio, label, onChan
   return (
     <div
       className={`ui--Toggle${value ? ' isChecked' : ''}${isDisabled ? ' isDisabled' : ''}${isOverlay ? ' isOverlay' : ''}${isRadio ? ' isRadio' : ''} ${className}`}
-      onClick={_onClick}
     >
       {label && <label>{label}</label>}
-      <div className={`ui--Toggle-Slider${isRadio ? ' highlight--before-border' : ''}`} />
+      <div onClick={_onClick} className={`ui--Toggle-Slider${isRadio ? ' highlight--before-border' : ''}`} />
     </div>
   );
 }
@@ -46,6 +45,7 @@ export default React.memo(styled(Toggle)(({ theme }: ThemeProps) =>`
   > label {
     display: inline-block;
     margin-right: 12px;
+    font-size: 15px;
   }
 
   > label,
@@ -82,14 +82,13 @@ export default React.memo(styled(Toggle)(({ theme }: ThemeProps) =>`
 
     > label {
       color: ${theme.textColor2};
-      cursor: pointer;
     }
   }
 
   &.isChecked {
     &:not(.isRadio) {
       .ui--Toggle-Slider {
-        background: #04C1B7;
+        background: ${theme.buttonBackground2};
       }
 
       .ui--Toggle-Slider:before {

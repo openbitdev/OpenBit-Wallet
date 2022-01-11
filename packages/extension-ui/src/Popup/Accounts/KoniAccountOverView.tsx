@@ -1,12 +1,10 @@
-import { Theme, ThemeProps } from '../../types';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import styled, { ThemeContext } from 'styled-components';
-import buyIconDark from '../../assets/buy-icon-dark.svg';
-import buyIconLight from '../../assets/buy-icon-light.svg';
-import sendIconDark from '../../assets/send-icon-dark.svg';
-import sendIconLight from '../../assets/send-icon-light.svg';
-import swapIconDark from '../../assets/swap-icon-dark.svg';
-import swapIconLight from '../../assets/swap-icon-light.svg';
+import { ThemeProps } from '../../types';
+import React, {Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import styled from 'styled-components';
+import buyIcon from '../../assets/buy-icon.svg';
+import sendIcon from '../../assets/send-icon.svg';
+import swapIcon from '../../assets/swap-icon.svg';
+import nftComingSoon from '../../assets/nft-coming-soon.png';
 import { AccountContext, CurrentAccountContext, CurrentNetworkContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';
 import KoniHeader from '@polkadot/extension-ui/partials/KoniHeader';
@@ -26,7 +24,9 @@ import { KeypairType } from '@polkadot/util-crypto/types';
 import ChainBalancePlaceholderItem
   from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalancePlaceholderItem';
 import ChainBalanceItem from '@polkadot/extension-ui/components/koni/chainBalance/ChainBalanceItem';
-import { getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap } from '@polkadot/extension-ui/util/koni';
+import {BN_ZERO, getTokenPrice, parseBalancesInfo, priceParamByNetworkNameMap} from '@polkadot/extension-ui/util/koni';
+import Tooltip from "@polkadot/extension-ui/koni/react-components/Tooltip";
+import TransactionHistory from "@polkadot/extension-ui/components/koni/activityHistory/TransactionHistory";
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const {apisMap} = bWindow.pdotApi;
@@ -39,6 +39,13 @@ interface Props extends ThemeProps {
   className?: string;
   currentAccount: AccountJson;
   network: CurrentNetworkInfo;
+}
+
+interface OverviewProps {
+  className: string;
+  onClick?: any;
+  children: React.ReactNode;
+  help?: string;
 }
 
 
@@ -94,9 +101,10 @@ function Wrapper({className, theme}: WrapperProps): React.ReactElement {
     return (<KoniAddAccount/>);
   }
 
-  if(!currentAccount
-    || (currentAccount.genesisHash
-      && (currentAccount.genesisHash !== network.genesisHash))) {
+  // console.log('currentAccount===========', currentAccount);
+  // console.log('network', network);
+
+  if(!currentAccount) {
     return (<></>);
   }
 
@@ -107,6 +115,33 @@ function Wrapper({className, theme}: WrapperProps): React.ReactElement {
     theme={theme} />);
 }
 
+let tooltipId = 0;
+
+function OverViewButton({className, onClick, children, help}: OverviewProps): React.ReactElement {
+  const [trigger] = useState(() => `overview-btn-${++tooltipId}`);
+
+  return (
+    <>
+      <div className={className} onClick={onClick} data-for={trigger} data-tip={true}>
+        {children}
+      </div>
+      <Tooltip
+        text={help}
+        trigger={trigger}
+      />
+    </>
+
+  );
+}
+
+function isAllowToShow(isShowZeroBalances: boolean, currentNetworkName: string, network: string, chainBalance?: BalanceInfo): boolean {
+  if (currentNetworkName !== 'all' || ['polkadot', 'kusama'].includes(network)) {
+    return true;
+  }
+
+  return isShowZeroBalances || !!(chainBalance && chainBalance.balanceValue.gt(BN_ZERO));
+}
+
 function KoniAccountOverView({className, currentAccount, network}: Props): React.ReactElement {
   const {t} = useTranslation();
   const {address} = currentAccount;
@@ -114,8 +149,6 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
   // map of the loaded network balances
   const {networkPrefix, networkName, icon: networkIcon} = network;
   const buyRef = useRef(null);
-  const themeContext = useContext(ThemeContext as React.Context<Theme>);
-  const theme = themeContext.id;
   const genesisOptions = useGenesisHashOptions();
   const [chainBalanceMaps, setChainBalanceMaps] = useState<Record<string, BalanceInfo>>({});
   const [isBuyTokenScreenOpen, setBuyTokenScreenOpen] = useState(false);
@@ -127,6 +160,9 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
   });
   const [tokenPrices, setTokenPrices] = useState<any[]>([]);
   const [totalValue, setTotalValue] = useState<BigN>(new BigN(0));
+  const [isShowZeroBalances, setShowZeroBalances] = useState<boolean>(
+    window.localStorage.getItem('show_zero_balance') === '1'
+  );
 
   const showedNetworks: string[] = useMemo(() => {
     return getShowedNetworks(genesisOptions, networkName);
@@ -152,7 +188,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
 
     getTokenPrice(priceParams.toString()).then(res => {
       if (res) {
-        // res.push({'symbol': 'unit', current_price: '1'});
+        res.push({'symbol': 'unit', current_price: '1'});
 
         setTokenPrices(res);
       } else {
@@ -185,23 +221,40 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
 
         unsubMap[networkName] = await api.query.system.account(address, ({data: balance, nonce: nonce, registry}) => {
           if (syncMap[networkName]) {
-            setChainBalanceMaps(chainBalanceMaps => ({
-              ...chainBalanceMaps,
-              [networkName]: parseBalancesInfo(tokenPrices, {
-                network: networkName,
-                tokenDecimals: registry.chainDecimals,
-                tokenSymbol: registry.chainTokens,
-                info: {
-                  [registry.chainTokens[0]]: {
-                    totalBalance: balance.free.toString(),
-                    freeBalance: balance.free.toString(),
-                    frozenFee: balance.feeFrozen.toString(),
-                    reservedBalance: balance.reserved.toString(),
-                    frozenMisc: balance.miscFrozen.toString(),
-                  }
+            setChainBalanceMaps(chainBalanceMaps => {
+
+              let info = {
+                [registry.chainTokens[0]]: {
+                  totalBalance: balance.free.toString(),
+                  freeBalance: balance.free.toString(),
+                  frozenFee: balance.feeFrozen.toString(),
+                  reservedBalance: balance.reserved.toString(),
+                  frozenMisc: balance.miscFrozen.toString(),
                 }
-              })
-            }));
+              };
+              //
+              // if (['unit', 'bsx', 'aca'].includes(registry.chainTokens[0].toLowerCase())) {
+              //   info = {
+              //     [registry.chainTokens[0]]: {
+              //       totalBalance: '1000000000000000',
+              //       freeBalance: '10000000000000000',
+              //       frozenFee: balance.feeFrozen.toString(),
+              //       reservedBalance: balance.reserved.toString(),
+              //       frozenMisc: balance.miscFrozen.toString(),
+              //     }
+              //   }
+              // }
+
+              return {
+                ...chainBalanceMaps,
+                [networkName]: parseBalancesInfo(tokenPrices, {
+                  network: networkName,
+                  tokenDecimals: registry.chainDecimals,
+                  tokenSymbol: registry.chainTokens,
+                  info
+                })
+              }
+            });
           }
         });
       });
@@ -230,29 +283,6 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
     setTotalValue(totalValue);
   }, [chainBalanceMaps]);
 
-  const renderChainBalanceItem = (network: string) => {
-    const info = accountInfoByNetworkMap[network];
-
-    if (chainBalanceMaps[network]) {
-      return (
-        <ChainBalanceItem
-          accountInfo={info} key={info.key}
-          balanceInfo={chainBalanceMaps[network]}
-          setBuyTokenScreenProps={setBuyTokenScreenProps}
-          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
-        />
-      );
-    } else {
-      return (
-        <ChainBalancePlaceholderItem
-          accountInfo={info} key={info.key}
-          setBuyTokenScreenProps={setBuyTokenScreenProps}
-          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
-        />
-      );
-    }
-  };
-
   const _toggleBuy = useCallback(
       (): void => {
         setBuyTokenScreenProps({
@@ -270,6 +300,44 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
       []
   );
 
+  const _toggleZeroBalances = useCallback(
+    (): void => {
+      setShowZeroBalances(v => {
+        window.localStorage.setItem('show_zero_balance', v ? '0' : '1');
+        return !v;
+      });
+    },
+    []
+  );
+
+  const renderChainBalanceItem = (network: string) => {
+    const info = accountInfoByNetworkMap[network];
+    const balanceInfo = chainBalanceMaps[network];
+
+    if (!isAllowToShow(isShowZeroBalances, networkName, network, balanceInfo)) {
+      return (<Fragment key={info.key} />)
+    }
+
+    if (balanceInfo) {
+      return (
+        <ChainBalanceItem
+          accountInfo={info} key={info.key}
+          balanceInfo={balanceInfo}
+          setBuyTokenScreenProps={setBuyTokenScreenProps}
+          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+        />
+      );
+    } else {
+      return (
+        <ChainBalancePlaceholderItem
+          accountInfo={info} key={info.key}
+          setBuyTokenScreenProps={setBuyTokenScreenProps}
+          setBuyTokenScreenOpen={setBuyTokenScreenOpen}
+        />
+      );
+    }
+  };
+
   return (
       <>
         <div className={className}>
@@ -277,6 +345,8 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               showAdd
               showSearch
               showSettings
+              isShowZeroBalances={isShowZeroBalances}
+              toggleZeroBalances={_toggleZeroBalances}
               text={t<string>('Accounts')}
               isContainDetailHeader={true}
           />
@@ -290,39 +360,21 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
 
               <div className='account-buttons-wrapper'>
                 <div className='account-button-container'>
-                  <div className='account-button' onClick={_toggleBuy}>
-                    {theme == 'dark' ?
-                        (
-                            <img src={buyIconDark} alt="buy"/>
-                        ) : (
-                            <img src={buyIconLight} alt="buy"/>
-                        )
-                    }
-                  </div>
+                  <OverViewButton className='account-button' onClick={_toggleBuy} help={t<string>('Receive')}>
+                    <img src={buyIcon} alt="buy"/>
+                  </OverViewButton>
                 </div>
 
                 <KoniLink to={'/account/send-fund'} className={'account-button-container'}>
-                  <div className='account-button'>
-                    {theme == 'dark' ?
-                        (
-                            <img src={sendIconDark} alt="send"/>
-                        ) : (
-                            <img src={sendIconLight} alt="send"/>
-                        )
-                    }
-                  </div>
+                  <OverViewButton className='account-button' help={t<string>('Send')}>
+                    <img src={sendIcon} alt="send"/>
+                  </OverViewButton>
                 </KoniLink>
 
                 <div className='account-button-container'>
-                  <div className='account-button'>
-                    {theme == 'dark' ?
-                        (
-                            <img src={swapIconDark} alt="swap"/>
-                        ) : (
-                            <img src={swapIconLight} alt="swap"/>
-                        )
-                    }
-                  </div>
+                  <OverViewButton className='account-button' help={t<string>('Swap')}>
+                    <img src={swapIcon} alt="swap"/>
+                  </OverViewButton>
                 </div>
               </div>
             </div>
@@ -338,6 +390,7 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                     networkPrefix={buyTokenScreenNetworkPrefix}
                     networkName={buyTokenScreenNetworkName}
                     iconTheme={buyTokenScreenIconTheme}
+                    genesisHash={currentAccount.genesisHash}
                 />
             )}
 
@@ -354,12 +407,12 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
                           <div className="kn-l-chains-container__footer">
                             <div>
                               <div className="kn-l-chains-container__footer-row-1">
-                                Don't see your token?
+                                {t<string>("Don't see your token?")}
                               </div>
                               <div className="kn-l-chains-container__footer-row-2">
-                                <div className="kn-l-chains-container-action">Refresh list</div>
-                                <span>&nbsp;or&nbsp;</span>
-                                <div className="kn-l-chains-container-action">import tokens</div>
+                                <div className="kn-l-chains-container-action">{t<string>("Refresh list")}</div>
+                                <span>&nbsp;{t<string>("or")}&nbsp;</span>
+                                <div className="kn-l-chains-container-action">{t<string>("import tokens")}</div>
                               </div>
                             </div>
                           </div>
@@ -369,12 +422,15 @@ function KoniAccountOverView({className, currentAccount, network}: Props): React
               )}
               {activatedTab === 2 && (
                   <>
-                    <div className='overview-tab-activity'>NFT</div>
+                    <div className='kn-nft-coming-soon-wrapper'>
+                      <img src={nftComingSoon} alt="coming-soon"/>
+                      <div className='overview-tab-activity tab-nft'>Your NFTs will appear here<br/>Coming Soon...</div>
+                    </div>
                   </>
               )}
               {activatedTab === 3 && (
                   <>
-                    <div className='overview-tab-activity'>Activity History</div>
+                    <TransactionHistory address={address} networkName={networkName} />
                   </>
               )}
             </div>
@@ -401,7 +457,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   .overview-wrapper {
     display: flex;
     align-items: center;
-    margin: 22px 0 12px;
+    margin: 30px 0 20px;
   }
 
   .account-balance {
@@ -411,8 +467,8 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .account-balance__money {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 30px;
+    font-weight: 500;
   }
 
   .account-buttons-wrapper {
@@ -433,6 +489,7 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
     align-items: center;
     margin-right: 5px;
     margin-left: 5px;
+    opacity: 1;
 
     &__text {
       margin-top: 4px;
@@ -443,19 +500,32 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .account-button {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 40%;
-    background-color: ${theme.buttonBackground1};
+    background-color: ${theme.buttonBackground};
     cursor: pointer;
   }
 
   .kn-l-tab-content-wrapper {
     flex: 1;
     overflow: hidden;
+  }
+
+  .kn-nft-coming-soon-wrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .kn-nft-coming-soon-wrapper img {
+    width: 50%;
+    margin-top:25px;
+    margin-bottom:20px
   }
 
  .overview-tab-activity {
@@ -492,7 +562,27 @@ export default React.memo(styled(Wrapper)(({theme}: WrapperProps) => `
   }
 
   .kn-l-chains-container-action {
-    color: #04C1B7;
+    color: ${theme.buttonTextColor2};
     cursor: pointer;
+  }
+
+  .tab-nft {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0;
+    text-align:center;
+    font-size:15px;
+  }
+
+  .tab-transaction-history {
+    font-size: 15px;
+    line-height: 26px;
+    position: absolute;
+    bottom: -20px;
+    text-align: center;
+    padding-bottom: 0;
+
   }
 `));

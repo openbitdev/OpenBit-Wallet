@@ -7,33 +7,30 @@ import React from 'react';
 import styled from 'styled-components';
 
 import PaymentInfo from './PaymentInfo';
-import {QueueTx} from "@polkadot/extension-ui/koni/react-components/Status/types";
+import {SubmittableExtrinsic} from "@polkadot/api/types";
 
 interface Props {
   accountId: string | null;
   className?: string;
-  currentItem: QueueTx;
+  extrinsic: SubmittableExtrinsic<'promise'>;
   isSendable: boolean;
-  onError: () => void;
   tip?: BN;
 }
 
-function Transaction ({ accountId, className, currentItem: { extrinsic, isUnsigned, payload }, isSendable, onError, tip }: Props): React.ReactElement<Props> | null {
+function Transaction ({ accountId, className, extrinsic, isSendable, tip }: Props): React.ReactElement<Props> | null {
   if (!extrinsic) {
     return null;
   }
 
   return (
     <div className={className}>
-      {!isUnsigned && !payload && (
-        <PaymentInfo
-          accountId={accountId}
-          className='tx-details'
-          extrinsic={extrinsic}
-          isSendable={isSendable}
-          tip={tip}
-        />
-      )}
+      <PaymentInfo
+        accountId={accountId}
+        className='tx-details'
+        extrinsic={extrinsic}
+        isSendable={isSendable}
+        tip={tip}
+      />
     </div>
   );
 }

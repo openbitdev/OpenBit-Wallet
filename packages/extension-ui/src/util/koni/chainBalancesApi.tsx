@@ -36,6 +36,7 @@ export const priceParamByNetworkNameMap: Record<string, string> = {
 };
 
 export const BN_TEN = new BigN(10);
+export const BN_ZERO = new BigN(0);
 
 export const getTokenPrice = async (chains: string) => {
   try {
@@ -73,7 +74,7 @@ const getBalanceWithDecimals = ({totalBalance, decimals}: BalanceWithDecimalsPro
 const getTotalBalance = (balance: BigN, price: string) => (
   balance && price
     ? balance.multipliedBy(new BigN(price))
-    : new BigN(0)
+    : BN_ZERO
 );
 
 const getBalances = ({

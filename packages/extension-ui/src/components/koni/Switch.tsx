@@ -74,24 +74,24 @@ export default styled(Switch)(({ theme }: ThemeProps) => `
       width: 22px;
       left: 4px;
       bottom: 3px;
-      background-color: ${theme.textColor3};
+      background-color: ${theme.buttonBackground2};
       transition: 0.4s;
       border-radius: 50%;
     }
   }
 
   .lightLabel {
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     color: ${theme.labelLightThemeColor};
-    font-weight: 700;
+    font-weight: 500;
     font-size: 18px;
     line-height: 30px;
   }
 
   .darkLabel {
-    font-family: ${theme.fontFamilyRegular};
+    font-weight: 400;
     color: ${theme.labelDarkThemeColor};
-    font-weight: 700;
+    font-weight: 500;
     font-size: 18px;
     line-height: 30px;
   }
