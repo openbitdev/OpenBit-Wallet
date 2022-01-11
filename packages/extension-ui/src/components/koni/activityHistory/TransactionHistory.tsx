@@ -64,7 +64,7 @@ function Wrapper({className, theme, networkName, address}: Props): React.ReactEl
 }
 
 
-function TransactionHistory({className, items, networkName, api}: ContentProp): React.ReactElement<ContentProp> {
+function TransactionHistory({items, networkName, api}: ContentProp): React.ReactElement<ContentProp> {
   const _isSupportSubscan = isSupportSubscan(networkName);
 
   const renderChainBalanceItem = (item: TransactionHistoryItem, isSupportSubscan: boolean) => {
@@ -74,7 +74,7 @@ function TransactionHistory({className, items, networkName, api}: ContentProp): 
       return (
 	      <a href={getSubscanUrl(networkName, extrinsicHash)} target={'_blank'} key={extrinsicHash} className={'transaction-item-wrapper'}>
           <TransactionHistoryItemEl
-            itemValue={item}
+            item={item}
             registry={api.registry}
           />
         </a>
@@ -84,7 +84,7 @@ function TransactionHistory({className, items, networkName, api}: ContentProp): 
     return (
       <div key={extrinsicHash}>
         <TransactionHistoryItemEl
-          itemValue={item}
+          item={item}
           isSupportSubscan={false}
           registry={api.registry}
         />
@@ -107,7 +107,7 @@ export default styled(Wrapper)(({theme}: Props) => `
     align-items: center;
     justify-content: center;
   }
-  
+
   .transaction-item-wrapper {
       color: inherit;
       display: block;

@@ -13,8 +13,7 @@ import {Registry} from "@polkadot/types/types";
 
 interface Props extends ThemeProps {
   className?: string;
-  isReceived?: boolean;
-  itemValue: TransactionHistoryItem;
+  item: TransactionHistoryItem;
   registry: Registry;
   isSupportSubscan: boolean;
 }
@@ -27,7 +26,7 @@ const toShortAddress = (_address: string) => {
 
 let tooltipId = 0;
 
-function TransactionHistoryItemEl({className, isReceived, itemValue, registry, isSupportSubscan= true}: Props): React.ReactElement<Props> {
+function TransactionHistoryItemEl({className, item, registry, isSupportSubscan= true}: Props): React.ReactElement<Props> {
   const {t} = useTranslation();
   const [trigger] = useState(() => `transaction-history-item-${++tooltipId}`);
   return (
@@ -35,11 +34,11 @@ function TransactionHistoryItemEl({className, isReceived, itemValue, registry, i
       <div className={className} data-for={trigger} data-tip={true}>
         <div className='kn-history-item__main-area'>
           <div className='kn-history-item__main-area-part-1'>
-            <div className={`kn-history-item__img-wrapper ${itemValue.action === 'received' ? 'received-img-wrapper' : itemValue.isSuccess ? 'send-img-wrapper' : 'send-error-img-wrapper'} `}>
-              {itemValue.action === 'received' ?
+            <div className={`kn-history-item__img-wrapper ${item.action === 'received' ? 'received-img-wrapper' : item.isSuccess ? 'send-img-wrapper' : 'send-error-img-wrapper'} `}>
+              {item.action === 'received' ?
                 <img className='kn-history-item__img' src={arrowReceived} alt="received"/> :
                 <>
-                  {itemValue.isSuccess ?
+                  {item.isSuccess ?
                     <img className='kn-history-item__img' src={arrowSend} alt="send"/> :
                     <img className='kn-history-item__img' src={arrowSendError} alt="send-error"/>
                   }
@@ -49,31 +48,31 @@ function TransactionHistoryItemEl({className, isReceived, itemValue, registry, i
               }
             </div>
             <div className='kn-history-item__meta-wrapper'>
-              <div className='kn-history-item__address'>{toShortAddress(itemValue.extrinsicHash)}</div>
+              <div className='kn-history-item__address'>{toShortAddress(item.extrinsicHash)}</div>
               <div className='kn-history-item__bottom-area'>
-                <span className='kn-history-item__transaction-stt'>{itemValue.action}</span>
-                <span className='kn-history-item__transaction-date'>{customFormatDate(itemValue.time, '#MMM# #DD#')}</span>
+                <span className='kn-history-item__transaction-stt'>{item.action}</span>
+                <span className='kn-history-item__transaction-date'>{customFormatDate(item.time, '#MMM# #DD#')}</span>
               </div>
             </div>
           </div>
           <div className='kn-history-item__main-area-part-2'>
             <div className='kn-history-item__value'>
-              <span>{itemValue.action === 'received' ? '+' : '-'}</span>
+              <span>{item.action === 'received' ? '+' : '-'}</span>
               <FormatBalance
                 className={className}
                 label={' '}
                 registry={registry}
-                value={itemValue.change} />
+                value={item.change} />
             </div>
 
             {
-              !!itemValue.fee && (<div className='kn-history-item__balance'>
+              !!item.fee && (<div className='kn-history-item__balance'>
 	              <span>{t<string>('Fee:')}</span>
 	              <FormatBalance
 		              className={className}
 		              label={' '}
 		              registry={registry}
-		              value={itemValue.fee} />
+		              value={item.fee} />
               </div>)
             }
           </div>
