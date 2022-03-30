@@ -23,7 +23,7 @@
     "@polkadot/extension-koni-ui": "^0.2.10-0"
   },
   "devDependencies": {
-    "@polkadot/dev": "^0.65.23",
+    "@polkadot/dev": "^0.65.101",
     "assert": "^2.0.0",
     "babel-loader": "^8.2.3",
     "browser-resolve": "^2.0.0",
