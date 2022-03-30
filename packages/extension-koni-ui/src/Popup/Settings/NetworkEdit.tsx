@@ -1,10 +1,11 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import styled from 'styled-components';
 
-import { ActionContext, Button, ButtonArea, InputWithLabel } from '@polkadot/extension-koni-ui/components';
+import { ActionContext, Button, ButtonArea, InputWithLabel, MenuItem } from '@polkadot/extension-koni-ui/components';
+import RadioStatus from '@polkadot/extension-koni-ui/components/RadioStatus';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import Header from '@polkadot/extension-koni-ui/partials/Header';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
@@ -13,9 +14,21 @@ interface Props extends ThemeProps {
   className?: string;
 }
 
+const iconTypes = [
+  {
+    key: 'substate',
+    name: 'Substate'
+  },
+  {
+    key: 'polkadot',
+    name: 'Polkadot'
+  }
+];
+
 function NetworkEdit ({ className }: Props): React.ReactElement {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
+  const [selectedIconType, setSelectedIconType] = useState<string>('');
   const _goBack = useCallback(
     () => {
       window.localStorage.setItem('popupNavigation', '/account/networks');
@@ -24,15 +37,26 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
     [onAction]
   );
 
+  const onSelectIconType = useCallback(() => {
+    // setSelectedIconType();
+  }, []);
+
   const _onEditNetwork = useCallback(() => {
     _goBack();
   }, [_goBack]);
 
   const networkInfo = {
-    name: 'Moonriver',
+    key: 'polkadot',
+    chain: 'Polkadot Relay Chain',
+    genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
+    icon: 'polkadot',
+    ss58Format: 0,
+    provider: 'wss://polkadot.api.onfinality.io/public-ws',
+    groups: ['RELAY_CHAIN'],
+    nativeToken: 'DOT',
+    decimals: 10,
     rpcUrl: 'http://rpc.moonriver.moonbeam.network',
     chainId: '1285',
-    currencySymbol: 'MOVR',
     blockExplorerUrl: 'http://blockscout.moonriver.moonbeam.network'
   };
 
@@ -46,29 +70,42 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
 
       <div className={className}>
         <InputWithLabel
-          label={t<string>('Network name')}
-          value={networkInfo.name}
+          label={t<string>('Network key')}
+          value={networkInfo.key}
         />
 
         <InputWithLabel
-          label={t<string>('New RPC URL')}
-          value={networkInfo.rpcUrl}
+          label={t<string>('Display Name')}
+          value={networkInfo.chain}
         />
 
         <InputWithLabel
-          label={t<string>('Chain id')}
-          value={networkInfo.chainId}
+          label={t<string>('Genesis Hash')}
+          value={networkInfo.genesisHash}
         />
 
         <InputWithLabel
-          label={t<string>('Currency symbol')}
-          value={networkInfo.currencySymbol}
+          label={t<string>('Network prefix')}
+          value={String(networkInfo.ss58Format)}
         />
 
         <InputWithLabel
-          label={t<string>('Block Explorer (Optional)')}
-          value={networkInfo.blockExplorerUrl}
+          label={t<string>('Network prefix')}
+          value={String(networkInfo.ss58Format)}
         />
+
+        <MenuItem
+          title={t<string>('Icon type')}
+        >
+          {iconTypes.map((iconType) =>
+            <RadioStatus
+              checked={selectedIconType === iconType.key}
+              key={iconType.key}
+              label={iconType.name}
+              onChange={onSelectIconType}
+            />
+          )}
+        </MenuItem>
 
         <ButtonArea>
           <Button

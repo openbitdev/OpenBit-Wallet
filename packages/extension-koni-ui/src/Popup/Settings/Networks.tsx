@@ -4,7 +4,7 @@
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
-import { HorizontalLabelToggle, InputFilter, Link } from '@polkadot/extension-koni-ui/components';
+import { Button, ButtonArea, HorizontalLabelToggle, InputFilter, Link } from '@polkadot/extension-koni-ui/components';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import Header from '@polkadot/extension-koni-ui/partials/Header';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
@@ -55,6 +55,10 @@ function Networks ({ className }: Props): React.ReactElement {
 
   const _onChangeFilter = useCallback(() => {
     console.log(123);
+  }, []);
+
+  const _addNetwork = useCallback(() => {
+    console.log(456);
   }, []);
 
   const filteredNetwork = '';
@@ -108,8 +112,16 @@ function Networks ({ className }: Props): React.ReactElement {
 
       <div className='networks-list'>
         {networks.map((item) => renderNetworkItem(item))}
-      </div>
 
+        <ButtonArea className='add-network-button-area'>
+          <Button
+            className='forget-account-btn'
+            onClick={_addNetwork}
+          >
+            {t<string>('Add Network')}
+          </Button>
+        </ButtonArea>
+      </div>
     </div>
   );
 }
@@ -121,6 +133,12 @@ export default styled(Networks)(({ theme }: Props) => `
 
   .networks__input-filter {
     padding: 0 15px 15px;
+  }
+
+  .add-network-button-area {
+    bottom: 0;
+    margin: 0;
+    padding: 15px 130px;
   }
 
   .networks__btn {
@@ -190,6 +208,8 @@ export default styled(Networks)(({ theme }: Props) => `
 
   .network-item {
     position: relative;
+    flex-direction: column;
+    align-items: initial;
   }
 
   .network-item__separator:before {

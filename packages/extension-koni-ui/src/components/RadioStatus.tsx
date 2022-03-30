@@ -10,9 +10,10 @@ interface Props {
   checked: boolean;
   onChange?: () => void;
   className?: string;
+  label?: string;
 }
 
-function RadioStatus ({ checked, className, onChange }: Props): React.ReactElement<Props> {
+function RadioStatus ({ checked, className, label, onChange }: Props): React.ReactElement<Props> {
   return (
     <div className={className}>
       <div
@@ -23,11 +24,15 @@ function RadioStatus ({ checked, className, onChange }: Props): React.ReactEleme
           <div className='radio-status__dot' />
         )}
       </div>
+      <div className='radio-status__label'>{label}</div>
     </div>
   );
 }
 
 export default styled(RadioStatus)(({ theme }: ThemeProps) => `
+  display: flex;
+  align-items: center;
+
   .radio-status {
     width: 15px;
     height: 15px;
@@ -37,6 +42,7 @@ export default styled(RadioStatus)(({ theme }: ThemeProps) => `
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-right: 5px;
 
     &__dot {
       width: 5px;
@@ -44,5 +50,11 @@ export default styled(RadioStatus)(({ theme }: ThemeProps) => `
       border-radius: 50%;
       background-color: ${theme.checkDotColor};
     }
+  }
+
+  .radio-status__label {
+    color: ${theme.textColor2};
+    font-size: 16px;
+    line-height: 26px;
   }
 `);

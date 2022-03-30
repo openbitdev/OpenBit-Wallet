@@ -59,7 +59,6 @@ function Settings ({ className }: Props): React.ReactElement {
 
         <Link
           className='menu-setting-item'
-          isDisabled
           to='/account/networks'
         >
           {/* @ts-ignore */}
