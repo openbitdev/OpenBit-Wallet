@@ -142,9 +142,18 @@ export class KoniSubcription {
         selectedNftCollection
       } as NftTransferExtra);
       nftHandler.setAddresses(addresses);
-      nftHandler.handleNfts()
-        .then((r) => {
-          state.setNft(nftHandler.getNftJson());
+      nftHandler.handleNfts(
+        (data) => {
+          state.updateNft(data);
+        },
+        (data) => {
+          if (data !== null) state.updateNftCollection(data);
+        },
+        (ready) => {
+          state.updateNftReady(ready);
+        })
+        .then(() => {
+          console.log('nft state updated');
         })
         .catch(console.log);
     }

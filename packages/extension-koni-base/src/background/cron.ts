@@ -3,10 +3,10 @@
 
 import { Subject } from 'rxjs';
 
-import { NftJson, NftTransferExtra, StakingRewardJson } from '@polkadot/extension-base/background/KoniTypes';
+import { NftTransferExtra, StakingRewardJson } from '@polkadot/extension-base/background/KoniTypes';
 import { getTokenPrice } from '@polkadot/extension-koni-base/api/coingecko';
 import { fetchDotSamaHistory } from '@polkadot/extension-koni-base/api/subquery/history';
-import { dotSamaAPIMap, nftHandler, state } from '@polkadot/extension-koni-base/background/handlers';
+import { dotSamaAPIMap, state } from '@polkadot/extension-koni-base/background/handlers';
 import { KoniSubcription } from '@polkadot/extension-koni-base/background/subscription';
 import { CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKING_REWARD_INTERVAL, DOTSAMA_MAX_CONTINUE_RETRY } from '@polkadot/extension-koni-base/constants';
 
@@ -67,9 +67,9 @@ export class KoniCron {
       state.subscribeCurrentAccount().subscribe({
         next: ({ address }) => {
           this.resetNft();
+          this.resetNftTransferMeta();
           this.resetStakingReward();
           this.resetHistory();
-          this.resetNftTransferMeta();
           this.removeCron('refreshNft');
           this.removeCron('refreshStakingReward');
           this.removeCron('refreshHistory');
@@ -90,7 +90,6 @@ export class KoniCron {
           apiProp.recoverConnect && apiProp.recoverConnect();
         }
       });
-      nftHandler.refreshApi();
 
       this.subscriptions?.subscribeBalancesAndCrowdloans && this.subscriptions.subscribeBalancesAndCrowdloans(address);
     });
@@ -114,12 +113,9 @@ export class KoniCron {
   }
 
   resetNft () {
-    state.setNft({
-      ready: false,
-      total: 0,
-      nftList: []
-    } as NftJson);
-    // console.log('Reset Nft state');
+    state.resetNft();
+    state.resetNftCollection();
+    console.log('Reset Nft state');
   }
 
   resetNftTransferMeta () {

@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ApiProps, NftCollection, NftJson } from '@polkadot/extension-base/background/KoniTypes';
+import { ApiProps, NftCollection, NftItem } from '@polkadot/extension-base/background/KoniTypes';
 import { ethereumChains } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
 import { AcalaNftApi } from '@polkadot/extension-koni-base/api/nft/acala_nft';
 import { SUPPORTED_NFT_NETWORKS } from '@polkadot/extension-koni-base/api/nft/config';
@@ -12,12 +12,10 @@ import QuartzNftApi from '@polkadot/extension-koni-base/api/nft/quartz_nft';
 import { RmrkNftApi } from '@polkadot/extension-koni-base/api/nft/rmrk_nft';
 import StatemineNftApi from '@polkadot/extension-koni-base/api/nft/statemine_nft';
 import UniqueNftApi from '@polkadot/extension-koni-base/api/nft/unique_nft';
-import { categoryAddresses, isAddressesEqual } from '@polkadot/extension-koni-base/utils/utils';
+import { state } from '@polkadot/extension-koni-base/background/handlers';
+import { categoryAddresses } from '@polkadot/extension-koni-base/utils/utils';
 
-const NFT_FETCHING_TIMEOUT = 8000;
-const NFT_CONNECTION_TIMEOUT = 15000;
-
-function createNftApi (chain: string, api: ApiProps, addresses: string[]): BaseNftApi | null {
+function createNftApi (chain: string, api: ApiProps | null, addresses: string[]): BaseNftApi | null {
   const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
   const useAddresses = ethereumChains.indexOf(chain) > -1 ? evmAddresses : substrateAddresses;
 
@@ -58,7 +56,8 @@ export class NftHandler {
   addresses: string[] = [];
   prevAddresses: string[] = []; // handle change account
   total = 0;
-  data: NftCollection[] = [];
+  allCollections: NftCollection[] = [];
+  allItems: NftItem[] = [];
 
   constructor (dotSamaAPIMap: Record<string, ApiProps>, addresses?: string[]) {
     if (addresses) this.addresses = addresses;
@@ -70,7 +69,7 @@ export class NftHandler {
 
   setAddresses (addresses: string[]) {
     this.addresses = addresses;
-    if (this.prevAddresses.length === 0) this.prevAddresses = addresses;
+    // if (this.prevAddresses.length === 0) this.prevAddresses = addresses;
 
     const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
 
@@ -81,145 +80,146 @@ export class NftHandler {
     }
   }
 
-  public refreshApi () {
-    this.handlers.forEach((handler) => {
-      if (handler.getNeedRefresh()) {
-        handler.recoverConnection();
-        console.log(`recovered nft connection for ${handler.getChain() as string}`);
-        handler.setNeedRefresh(false);
-      }
-    });
-  }
-
-  private async setupApi () {
+  private setupApi () {
     try {
       if (this.handlers.length <= 0) { // setup connections for first time use
         const [substrateAddresses, evmAddresses] = categoryAddresses(this.addresses);
-        const start = performance.now();
 
-        await Promise.all(this.apiPromises.map(async ({ api: apiPromise, chain }) => {
+        this.apiPromises.forEach(({ api: apiPromise, chain }) => {
           const useAddresses = ethereumChains.indexOf(chain as string) > -1 ? evmAddresses : substrateAddresses;
 
-          if (apiPromise) {
-            const timeout = new Promise((resolve, reject) => {
-              const id = setTimeout(() => {
-                clearTimeout(id);
-                resolve(null);
-              }, NFT_CONNECTION_TIMEOUT);
-            });
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          const handler = createNftApi(chain, apiPromise as ApiProps, useAddresses);
 
-            await Promise.race([
-              timeout,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
-              apiPromise.isReady
-            ]).then((res) => {
-              if (res !== null) {
-                const parentApi: ApiProps = res as ApiProps;
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                const handler = createNftApi(chain, parentApi, useAddresses);
-
-                if (handler && !this.handlers.includes(handler)) {
-                  this.handlers.push(handler);
-                  console.log(`${handler.getChain() as string} nft connected`);
-                }
-              } else { console.log(`${chain as string} nft connection timeout`); }
-            });
+          if (handler && !this.handlers.includes(handler)) {
+            this.handlers.push(handler);
           }
-        }));
+        });
 
-        console.log(`nft connection setup took ${performance.now() - start}ms`);
-      } else { console.log('nft connection already setup.'); }
+        console.log(`${this.handlers.length} nft handlers setup done`);
+      } else { console.log('nft handlers already setup.'); }
     } catch (e) {
-      console.log('error connecting for nft', e);
+      console.log('error setting up nft handlers', e);
     }
   }
 
-  private sortData (data: NftCollection[]) {
-    const sortedData = this.data;
+  // private sortData (data: NftCollection[]) {
+  //   const sortedData = this.allCollections;
+  //
+  //   for (const collection of data) {
+  //     if (!this.allCollections.some((e) => e.collectionName === collection.collectionName && e.collectionId === collection.collectionId)) {
+  //       sortedData.push(collection);
+  //     }
+  //   }
+  //
+  //   return sortedData;
+  // }
 
-    for (const collection of data) {
-      if (!this.data.some((e) => e.collectionName === collection.collectionName && e.collectionId === collection.collectionId)) {
-        sortedData.push(collection);
-      }
-    }
-
-    return sortedData;
+  private existCollection (newCollection: NftCollection) {
+    return state.getNftCollection().nftCollectionList.some((collection) =>
+      collection.chain === newCollection.chain &&
+      collection.collectionId === newCollection.collectionId &&
+      collection.collectionName === newCollection.collectionName);
   }
 
-  public async handleNfts () {
-    const start = performance.now();
+  private existItem (newItem: NftItem) {
+    return state.getNft().nftList.some((item) =>
+      item.chain === newItem.chain &&
+      item.id === newItem.id &&
+      item.collectionId === newItem.collectionId &&
+      item.name === newItem.name);
+  }
 
-    let total = 0;
-    const dataMap: Record<string, NftCollection[]> = {};
-
-    await this.setupApi();
+  public async handleNfts (updateItem: (data: NftItem) => void, updateCollection: (data: NftCollection) => void, updateReady: (ready: boolean) => void) {
+    this.setupApi();
 
     await Promise.all(this.handlers.map(async (handler) => {
       const currentChain = handler.getChain() as string;
-      const timeout = new Promise((resolve, reject) => {
-        const id = setTimeout(() => {
-          clearTimeout(id);
-          resolve(0);
-        }, NFT_FETCHING_TIMEOUT);
-      });
 
-      await Promise.race([
-        handler.fetchNfts(),
-        timeout
-      ]).then((res) => {
-        if (res === 1) {
-          total += handler.getTotal();
-          dataMap[currentChain] = handler.getData();
-        } else {
-          console.log(`nft connection for ${currentChain} needs refresh`);
-          handler.setNeedRefresh(true);
-        }
-      });
+      const result = await handler.fetchNfts(
+        (data: NftItem) => {
+          if (!this.existItem(data)) {
+            updateItem(data);
+          }
+        },
+        (data: NftCollection) => {
+          if (!this.existCollection(data)) {
+            updateCollection(data);
+          }
+        },
+        updateReady);
+
+      if (result === 1) {
+        console.log(`${currentChain} fetched nft ok`);
+      } else {
+        console.log(`${currentChain} fetched nft failed`);
+      }
     }));
 
-    // console.log('nft dataMap', dataMap);
-    let data: NftCollection[] = [];
+    console.log('handled nft ok');
 
-    Object.values(dataMap).forEach((collection) => {
-      data = [...data, ...collection];
-    });
+    // await Promise.all(this.handlers.map(async (handler) => {
+    //   const currentChain = handler.getChain() as string;
+    //
+    //   const timeout = new Promise((resolve) => {
+    //     const id = setTimeout(() => {
+    //       clearTimeout(id);
+    //       resolve(0);
+    //     }, NFT_FETCHING_TIMEOUT);
+    //   });
+    //
+    //   await Promise.race([
+    //     handler.fetchNfts(
+    //       (data: NftItem) => {
+    //         if (!this.existItem(data)) {
+    //           this.allItems.push(data);
+    //           updateItem(data);
+    //         }
+    //       },
+    //       (data: NftCollection) => {
+    //         if (!this.existCollection(data)) {
+    //           this.allCollections.push(data);
+    //           updateCollection(data, true);
+    //         } else {
+    //           updateCollection(null, true);
+    //         }
+    //       }),
+    //     timeout
+    //   ]).then((res) => {
+    //     if (res === 1) {
+    //       console.log(`nft fetching for ${currentChain} ok`);
+    //     } else {
+    //       console.log(`nft fetching for ${currentChain} failed`);
+    //     }
+    //   });
+    // }));
 
-    if (isAddressesEqual(this.addresses, this.prevAddresses)) {
-      // console.log('nft address no change');
+    // TODO: clear outdated item
 
-      if (total < this.total) {
-        this.total = total;
-        this.data = data;
-      } else {
-        this.total = total;
-        this.data = this.sortData(data);
-      }
-    } else {
-      // console.log('nft address change');
-      this.total = total;
-      this.data = data;
-      this.prevAddresses = this.addresses;
-    }
-
-    console.log(`all nft took ${performance.now() - start}ms`);
-
-    console.log(`done fetching ${total} nft from rpc`);
-  }
-
-  public getTotal () {
-    return this.total;
-  }
-
-  public getNfts () {
-    return this.data;
-  }
-
-  public getNftJson () {
-    return {
-      ready: true,
-      total: this.total,
-      nftList: this.data
-    } as NftJson;
+    // let data: NftCollection[] = [];
+    //
+    // Object.values(dataMap).forEach((collection) => {
+    //   data = [...data, ...collection];
+    // });
+    //
+    //
+    //
+    // if (isAddressesEqual(this.addresses, this.prevAddresses)) {
+    //   // console.log('nft address no change');
+    //
+    //   if (total < this.total) {
+    //     this.total = total;
+    //     this.allCollections = data;
+    //   } else {
+    //     this.total = total;
+    //     this.allCollections = this.sortData(data);
+    //   }
+    // } else {
+    //   // console.log('nft address change');
+    //   this.total = total;
+    //   this.allCollections = data;
+    //   this.prevAddresses = this.addresses;
+    // }
   }
 
   public parseAssetId (id: string) {
