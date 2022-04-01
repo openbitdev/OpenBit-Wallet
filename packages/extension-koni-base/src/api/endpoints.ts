@@ -85,7 +85,7 @@ const NETWORKS: Record<string, NetWorkInfo> = {
     provider: 'rmrk',
     nativeToken: 'UNIT',
     groups: ['TEST_NET'],
-    decimals: 10
+    decimals: 12
   },
   statemint: {
     chain: 'Statemint',
