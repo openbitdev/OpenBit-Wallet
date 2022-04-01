@@ -519,7 +519,8 @@ export default class KoniState extends State {
         rs = {};
       }
 
-      if (NETWORKS.hasOwnProperty(networkKey)) {
+      if (Object.getOwnPropertyDescriptor(NETWORKS, networkKey)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         rs[networkKey] = JSON.parse(JSON.stringify(NETWORKS[networkKey]));
 
         if (networkInfo.providerDefinitions.custom) {
@@ -545,14 +546,15 @@ export default class KoniState extends State {
         return;
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const configs: Record<string, NetWorkInfo> = JSON.parse(JSON.stringify(NETWORKS));
 
       for (const networkKey in rs) {
-        if (!rs.hasOwnProperty(networkKey)) {
+        if (!Object.getOwnPropertyDescriptor(rs, networkKey)) {
           continue;
         }
 
-        if (NETWORKS.hasOwnProperty(networkKey)) {
+        if (!Object.getOwnPropertyDescriptor(NETWORKS, networkKey)) {
           if (rs[networkKey].providerDefinitions.custom) {
             configs[networkKey].providerDefinitions.custom = rs[networkKey].providerDefinitions.custom;
           }
