@@ -4,7 +4,27 @@
 import { Subject } from 'rxjs';
 
 import State from '@polkadot/extension-base/background/handlers/State';
-import { AccountRefMap, APIItemState, BalanceItem, BalanceJson, ChainRegistry, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, StakingItem, StakingJson, StakingRewardJson, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
+import {
+  AccountRefMap,
+  APIItemState,
+  BalanceItem,
+  BalanceJson,
+  ChainRegistry,
+  CrowdloanItem,
+  CrowdloanJson,
+  CurrentAccountInfo,
+  NetWorkInfo,
+  NftCollection,
+  NftCollectionJson,
+  NftItem,
+  NftJson,
+  NftTransferExtra,
+  PriceJson,
+  StakingItem,
+  StakingJson,
+  StakingRewardJson,
+  TransactionHistoryItemType
+} from '@polkadot/extension-base/background/KoniTypes';
 import { getTokenPrice } from '@polkadot/extension-koni-base/api/coingecko';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 import { DEFAULT_STAKING_NETWORKS } from '@polkadot/extension-koni-base/api/staking';
@@ -15,6 +35,8 @@ import { CurrentAccountStore, PriceStore } from '@polkadot/extension-koni-base/s
 import AccountRefStore from '@polkadot/extension-koni-base/stores/AccountRef';
 import TransactionHistoryStore from '@polkadot/extension-koni-base/stores/TransactionHistory';
 import { convertFundStatus } from '@polkadot/extension-koni-base/utils/utils';
+import NetworkConfigsStore from "@polkadot/extension-koni-base/stores/NetworkConfigs";
+import ActivatedNetworksStore from "@polkadot/extension-koni-base/stores/ActivatedNetworks";
 
 function generateDefaultBalanceMap () {
   const balanceMap: Record<string, BalanceItem> = {};
@@ -68,6 +90,8 @@ export default class KoniState extends State {
   // private readonly stakingStore = new StakingStore();
   private priceStoreReady = false;
   private readonly transactionHistoryStore = new TransactionHistoryStore();
+  private readonly networkConfigsStore = new NetworkConfigsStore();
+  private readonly activatedNetworksStore = new ActivatedNetworksStore();
 
   // private nftStoreReady = false;
   // private stakingStoreReady = false;
@@ -504,5 +528,71 @@ export default class KoniState extends State {
 
   public subscribePrice () {
     return this.priceStore.getSubject();
+  }
+
+  public setNetworkConfig(networkKey: string, networkInfo: NetWorkInfo, callBack?: () => void): void {
+    this.networkConfigsStore.get('NetworkConfigs', (rs) => {
+      if (!rs) {
+        rs = {};
+      }
+
+      if (NETWORKS.hasOwnProperty(networkKey)) {
+        rs[networkKey] = JSON.parse(JSON.stringify(NETWORKS[networkKey]));
+
+        if (networkInfo.providerDefinitions.custom) {
+          rs[networkKey].providerDefinitions.custom = networkInfo.providerDefinitions.custom;
+        }
+
+        rs[networkKey].provider = networkInfo.provider;
+      } else {
+        rs[networkKey] = {...networkInfo};
+      }
+
+      this.networkConfigsStore.set('NetworkConfigs', rs, () => {
+        callBack && callBack();
+      })
+    });
+
+  }
+
+  public getNetworkConfigs (update: (value: Record<string, NetWorkInfo>) => void): void {
+    this.networkConfigsStore.get('NetworkConfigs', (rs) => {
+      if (!rs) {
+        update(NETWORKS);
+        return;
+      }
+
+      const configs: Record<string, NetWorkInfo> = JSON.parse(JSON.stringify(NETWORKS));
+
+      for(const networkKey in rs) {
+        if (!rs.hasOwnProperty(networkKey)) {
+          continue;
+        }
+
+        if (NETWORKS.hasOwnProperty(networkKey)) {
+          if (rs[networkKey].providerDefinitions.custom) {
+            configs[networkKey].providerDefinitions.custom = rs[networkKey].providerDefinitions.custom;
+          }
+
+          configs[networkKey].provider = rs[networkKey].provider;
+        } else {
+          configs[networkKey] = {...rs[networkKey]};
+        }
+      }
+
+      update(configs);
+    })
+  }
+
+  public setActivatedNetworks(value: string, callBack?: () => void): void {
+    this.activatedNetworksStore.set('ActivatedNetworks', value, () => {
+      callBack && callBack();
+    });
+  }
+
+  public getActivatedNetworks(update: (value?: string) => void): void {
+    this.activatedNetworksStore.get('ActivatedNetworks', (rs) => {
+      update(rs || '');
+    });
   }
 }
