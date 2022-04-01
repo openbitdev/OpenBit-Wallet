@@ -33,7 +33,7 @@ function parseStakingBalance (balance: number, chain: string): number {
   if (chain === 'hydradx') {
     return balance;
   } else {
-    return toUnit(balance, NETWORKS[chain].decimals as number);
+    return toUnit(balance, NETWORKS[chain].decimals);
   }
 }
 

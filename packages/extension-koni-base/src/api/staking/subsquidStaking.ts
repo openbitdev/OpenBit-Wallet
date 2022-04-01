@@ -77,11 +77,25 @@ const getSubsquidStaking = async (accounts: string[], chain: string, callback: (
         if (rewardItem) {
           const latestReward = rewardItem.rewards[0];
 
-          if (rewardItem.totalReward) result.totalReward = parseFloat(rewardItem.totalReward);
-          if (rewardItem.totalSlash) result.totalSlash = parseFloat(rewardItem.totalSlash);
-          if (rewardItem.totalStake) result.totalStake = parseFloat(rewardItem.totalStake);
-          if (latestReward && latestReward.amount) result.latestReward = parseFloat(latestReward.amount);
-          if (latestReward && latestReward.smartContract) result.smartContract = latestReward.smartContract;
+          if (rewardItem.totalReward) {
+            result.totalReward = parseFloat(rewardItem.totalReward);
+          }
+
+          if (rewardItem.totalSlash) {
+            result.totalSlash = parseFloat(rewardItem.totalSlash);
+          }
+
+          if (rewardItem.totalStake) {
+            result.totalStake = parseFloat(rewardItem.totalStake);
+          }
+
+          if (latestReward && latestReward.amount) {
+            result.latestReward = parseFloat(latestReward.amount);
+          }
+
+          if (latestReward && latestReward.smartContract) {
+            result.smartContract = latestReward.smartContract;
+          }
         }
       }
 
@@ -89,37 +103,39 @@ const getSubsquidStaking = async (accounts: string[], chain: string, callback: (
     }));
 
     for (const reward of rewards) {
-      if (reward.smartContract) parsedResult.smartContract = reward.smartContract;
+      if (reward.smartContract) {
+        parsedResult.smartContract = reward.smartContract;
+      }
 
       if (reward.totalReward) {
         if (parsedResult.totalReward) {
-          parsedResult.totalReward += toUnit(reward.totalReward, NETWORKS[chain].decimals as number);
+          parsedResult.totalReward += toUnit(reward.totalReward, NETWORKS[chain].decimals);
         } else {
-          parsedResult.totalReward = toUnit(reward.totalReward, NETWORKS[chain].decimals as number);
+          parsedResult.totalReward = toUnit(reward.totalReward, NETWORKS[chain].decimals);
         }
       }
 
       if (reward.totalSlash) {
         if (parsedResult.totalSlash) {
-          parsedResult.totalSlash += toUnit(reward.totalSlash, NETWORKS[chain].decimals as number);
+          parsedResult.totalSlash += toUnit(reward.totalSlash, NETWORKS[chain].decimals);
         } else {
-          parsedResult.totalSlash = toUnit(reward.totalSlash, NETWORKS[chain].decimals as number);
+          parsedResult.totalSlash = toUnit(reward.totalSlash, NETWORKS[chain].decimals);
         }
       }
 
       if (reward.totalStake) {
         if (parsedResult.totalStake) {
-          parsedResult.totalStake += toUnit(reward.totalStake, NETWORKS[chain].decimals as number);
+          parsedResult.totalStake += toUnit(reward.totalStake, NETWORKS[chain].decimals);
         } else {
-          parsedResult.totalStake = toUnit(reward.totalStake, NETWORKS[chain].decimals as number);
+          parsedResult.totalStake = toUnit(reward.totalStake, NETWORKS[chain].decimals);
         }
       }
 
       if (reward.latestReward) {
         if (parsedResult.latestReward) {
-          parsedResult.latestReward += toUnit(reward.latestReward, NETWORKS[chain].decimals as number);
+          parsedResult.latestReward += toUnit(reward.latestReward, NETWORKS[chain].decimals);
         } else {
-          parsedResult.latestReward = toUnit(reward.latestReward, NETWORKS[chain].decimals as number);
+          parsedResult.latestReward = toUnit(reward.latestReward, NETWORKS[chain].decimals);
         }
       }
     }

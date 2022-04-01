@@ -5,7 +5,7 @@ import Web3 from 'web3';
 import { Contract } from 'web3-eth-contract';
 
 import { EVM_NETWORKS } from '@polkadot/extension-koni-base/api/endpoints';
-import {getNetworkApiUrl} from "@polkadot/extension-koni-base/utils/utils";
+import { getNetworkApiUrl } from '@polkadot/extension-koni-base/utils/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 export const ERC20Contract = require('./api-helper/ERC20Contract.json');

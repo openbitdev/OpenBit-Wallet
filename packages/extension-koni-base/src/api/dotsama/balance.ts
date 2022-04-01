@@ -361,7 +361,7 @@ export async function getFreeBalance (networkKey: string, address: string) {
   const api = apiProps.api;
 
   if (networkKey === 'kintsugi') {
-    const balance = await api.derive.balances?.all(address) as DeriveBalancesAll;
+    const balance = await api.derive.balances?.all(address);
 
     return balance.freeBalance?.toString() || '0';
   } else {

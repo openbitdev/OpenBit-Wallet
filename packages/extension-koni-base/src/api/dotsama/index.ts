@@ -3,9 +3,9 @@
 
 import { ApiProps } from '@polkadot/extension-base/background/KoniTypes';
 import { initApi } from '@polkadot/extension-koni-base/api/dotsama/api';
+import { getNetworkApiUrl } from '@polkadot/extension-koni-base/utils/utils';
 
 import NETWORKS from '../../api/endpoints';
-import {getNetworkApiUrl} from "@polkadot/extension-koni-base/utils/utils";
 
 export * from './api';
 

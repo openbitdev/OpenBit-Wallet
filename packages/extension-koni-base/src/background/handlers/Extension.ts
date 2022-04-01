@@ -3,42 +3,7 @@
 
 import Extension, { SEED_DEFAULT_LENGTH, SEED_LENGTHS } from '@polkadot/extension-base/background/handlers/Extension';
 import { createSubscription, unsubscribe } from '@polkadot/extension-base/background/handlers/subscriptions';
-import {
-  AccountsWithCurrentAddress,
-  ApiInitStatus,
-  BackgroundWindow,
-  BalanceJson,
-  ChainRegistry,
-  CrowdloanJson,
-  NetWorkMetadataDef,
-  NftCollection,
-  NftCollectionJson,
-  NftItem,
-  NftJson,
-  NftTransferExtra,
-  PriceJson,
-  RequestAccountCreateSuriV2,
-  RequestAccountExportPrivateKey, RequestActivatedNetworksSet,
-  RequestApi,
-  RequestCheckTransfer,
-  RequestNetworkConfigUpdate,
-  RequestNftForceUpdate,
-  RequestSeedCreateV2,
-  RequestSeedValidateV2,
-  RequestTransactionHistoryAdd,
-  RequestTransfer,
-  ResponseAccountCreateSuriV2,
-  ResponseAccountExportPrivateKey,
-  ResponseCheckTransfer,
-  ResponseSeedCreateV2,
-  ResponseSeedValidateV2,
-  StakingJson,
-  StakingRewardJson,
-  TransactionHistoryItemType,
-  TransferError,
-  TransferErrorCode,
-  TransferStep
-} from '@polkadot/extension-base/background/KoniTypes';
+import { AccountsWithCurrentAddress, ApiInitStatus, BackgroundWindow, BalanceJson, ChainRegistry, CrowdloanJson, NetWorkMetadataDef, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountCreateSuriV2, RequestAccountExportPrivateKey, RequestActivatedNetworksSet, RequestApi, RequestCheckTransfer, RequestNetworkConfigUpdate, RequestNftForceUpdate, RequestSeedCreateV2, RequestSeedValidateV2, RequestTransactionHistoryAdd, RequestTransfer, ResponseAccountCreateSuriV2, ResponseAccountExportPrivateKey, ResponseCheckTransfer, ResponseSeedCreateV2, ResponseSeedValidateV2, StakingJson, StakingRewardJson, TransactionHistoryItemType, TransferError, TransferErrorCode, TransferStep } from '@polkadot/extension-base/background/KoniTypes';
 import { AccountJson, MessageTypes, RequestAccountCreateSuri, RequestAccountForget, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestJsonRestore, RequestTypes, ResponseType } from '@polkadot/extension-base/background/types';
 import { initApi } from '@polkadot/extension-koni-base/api/dotsama';
 import { getFreeBalance } from '@polkadot/extension-koni-base/api/dotsama/balance';
@@ -849,7 +814,7 @@ export default class KoniExtension extends Extension {
     return true;
   }
 
-  private updateNetworkConfig ({networkKey, config}: RequestNetworkConfigUpdate, id: string, port: chrome.runtime.Port): boolean {
+  private updateNetworkConfig ({ config, networkKey }: RequestNetworkConfigUpdate, id: string, port: chrome.runtime.Port): boolean {
     const cb = createSubscription<'pri(networkConfig.update)'>(id, port);
 
     state.setNetworkConfig(networkKey, config, (configMap) => {
@@ -877,7 +842,7 @@ export default class KoniExtension extends Extension {
     return true;
   }
 
-  private setActivatedNetwork ({networkKeys}: RequestActivatedNetworksSet, id: string, port: chrome.runtime.Port): boolean {
+  private setActivatedNetwork ({ networkKeys }: RequestActivatedNetworksSet, id: string, port: chrome.runtime.Port): boolean {
     const cb = createSubscription<'pri(activatedNetworks.set)'>(id, port);
 
     state.setActivatedNetworks(networkKeys, (value) => {

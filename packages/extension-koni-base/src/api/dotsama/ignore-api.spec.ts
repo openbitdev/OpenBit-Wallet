@@ -4,8 +4,8 @@
 import { ApiProps } from '@polkadot/extension-base/background/KoniTypes';
 import { initApi } from '@polkadot/extension-koni-base/api/dotsama/api';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
+import { getNetworkApiUrl } from '@polkadot/extension-koni-base/utils/utils';
 import { AccountInfo } from '@polkadot/types/interfaces';
-import {getNetworkApiUrl} from "@polkadot/extension-koni-base/utils/utils";
 
 jest.setTimeout(50000);
 

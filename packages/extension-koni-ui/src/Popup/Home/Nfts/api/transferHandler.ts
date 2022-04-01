@@ -28,7 +28,9 @@ async function acalaTransferHandler (api: ApiPromise, senderAddress: string, rec
 async function rmrkTransferHandler (api: ApiPromise, senderAddress: string, recipientAddress: string, params: Record<string, any>) {
   const remark = params.remark as string;
 
-  if (!remark) return {};
+  if (!remark) {
+    return {};
+  }
 
   const parsedRemark = remark.concat(recipientAddress.replace(
     /\\s/g,

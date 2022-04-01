@@ -10,8 +10,8 @@ import { NftHandler } from '@polkadot/extension-koni-base/api/nft';
 import KoniExtension from '@polkadot/extension-koni-base/background/handlers/Extension';
 import KoniState from '@polkadot/extension-koni-base/background/handlers/State';
 import KoniTabs from '@polkadot/extension-koni-base/background/handlers/Tabs';
+import { getNetworkApiUrl } from '@polkadot/extension-koni-base/utils/utils';
 import { assert } from '@polkadot/util';
-import {getNetworkApiUrl} from "@polkadot/extension-koni-base/utils/utils";
 
 export const state = new KoniState();
 export const extension = new KoniExtension(state);

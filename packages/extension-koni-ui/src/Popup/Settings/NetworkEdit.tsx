@@ -4,19 +4,12 @@
 import React, { useCallback, useContext, useState } from 'react';
 import styled from 'styled-components';
 
-import {
-  ActionContext,
-  Button,
-  ButtonArea,
-  Dropdown,
-  InputWithLabel,
-  MenuItem
-} from '@polkadot/extension-koni-ui/components';
+import { ActionContext, Button, ButtonArea, Dropdown, InputWithLabel, MenuItem } from '@polkadot/extension-koni-ui/components';
 import RadioStatus from '@polkadot/extension-koni-ui/components/RadioStatus';
+import Toggle from '@polkadot/extension-koni-ui/components/Toggle';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import Header from '@polkadot/extension-koni-ui/partials/Header';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import Toggle from "@polkadot/extension-koni-ui/components/Toggle";
 
 interface Props extends ThemeProps {
   className?: string;
@@ -68,8 +61,8 @@ const rpcUrl = [
   {
     text: 'light client',
     value: '4'
-  },
-]
+  }
+];
 
 function NetworkEdit ({ className }: Props): React.ReactElement {
   const { t } = useTranslation();
@@ -88,7 +81,7 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
   );
 
   const onSelectIconType = useCallback((value: string) => {
-      setSelectedIconType(value);
+    setSelectedIconType(value);
   }, []);
 
   const onSelectRpc = useCallback((value: string) => {
@@ -104,11 +97,11 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
   }, [_goBack]);
 
   const onChangeIsEtherium = useCallback((isEtherium: boolean) => {
-    return () => setIsEtherium(isEtherium)
+    return () => setIsEtherium(isEtherium);
   }, []);
 
   const onChangeIsTestnet = useCallback((isTestnet: boolean) => {
-    return () => setIsTestnet(isTestnet)
+    return () => setIsTestnet(isTestnet);
   }, []);
 
   const networkInfo = {
@@ -169,8 +162,8 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
           title={t<string>('Icon type')}
         >
           <Dropdown
-            options={iconTypes}
             onChange={onSelectIconType}
+            options={iconTypes}
             value={selectedIconType}
           />
         </MenuItem>
@@ -180,8 +173,8 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
           title={t<string>('Network group')}
         >
           <Dropdown
-            options={networkGroups}
             onChange={onSelectNetworkGr}
+            options={networkGroups}
             value={selectedNetworkGr}
           />
         </MenuItem>
@@ -230,9 +223,10 @@ function NetworkEdit ({ className }: Props): React.ReactElement {
         >
           {rpcUrl.map((item) =>
             <RadioStatus
+              checked={item.text === selectedRpc}
+              key={item.value}
               label={item.text}
               onChange={onSelectRpc(item.text)}
-              checked={item.text === selectedRpc}
             />
           )}
 
