@@ -15,11 +15,12 @@ interface LedgerData {
   unlocking: string[]
 }
 
+// todo: Revert this change
 export const DEFAULT_STAKING_NETWORKS = {
-  polkadot: NETWORKS.polkadot,
-  kusama: NETWORKS.kusama,
-  hydradx: NETWORKS.hydradx,
-  acala: NETWORKS.acala
+  // polkadot: NETWORKS.polkadot,
+  // kusama: NETWORKS.kusama,
+  // hydradx: NETWORKS.hydradx,
+  // acala: NETWORKS.acala
   // astar: NETWORKS.astar,
   // moonbeam: NETWORKS.moonbeam
 };

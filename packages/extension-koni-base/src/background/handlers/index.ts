@@ -11,6 +11,7 @@ import KoniExtension from '@polkadot/extension-koni-base/background/handlers/Ext
 import KoniState from '@polkadot/extension-koni-base/background/handlers/State';
 import KoniTabs from '@polkadot/extension-koni-base/background/handlers/Tabs';
 import { assert } from '@polkadot/util';
+import {getNetworkApiUrl} from "@polkadot/extension-koni-base/utils/utils";
 
 export const state = new KoniState();
 export const extension = new KoniExtension(state);
@@ -28,7 +29,7 @@ function getRpcsMap (): Record<string, string> {
       return;
     }
 
-    result[networkKey] = networkInfo.provider;
+    result[networkKey] = getNetworkApiUrl(networkInfo);
   });
 
   return result;

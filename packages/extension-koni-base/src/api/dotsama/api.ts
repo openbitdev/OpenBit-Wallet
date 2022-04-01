@@ -152,7 +152,11 @@ export function initApi (networkKey: string, apiUrl: string): ApiProps {
 
       async function f (): Promise<ApiProps> {
         if (!result.isApiReadyOnce) {
-          await self.api.isReady;
+          if (apiUrl.startsWith('light://')) {
+            await self.api.connect();
+          } else {
+            await self.api.isReady;
+          }
         }
 
         return new Promise<ApiProps>((resolve, reject) => {

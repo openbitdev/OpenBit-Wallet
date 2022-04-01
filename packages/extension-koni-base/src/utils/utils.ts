@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CrowdloanParaState } from '@polkadot/extension-base/background/KoniTypes';
+import {CrowdloanParaState, NetWorkInfo} from '@polkadot/extension-base/background/KoniTypes';
 import { ethereumChains } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
 import { RMRK_PINATA_SERVER } from '@polkadot/extension-koni-base/api/nft/config';
 import { ALL_ACCOUNT_KEY } from '@polkadot/extension-koni-base/constants';
@@ -193,3 +193,11 @@ export const isAddressesEqual = (addresses: string[], prevAddresses: string[]) =
 
   return true;
 };
+
+export const getNetworkApiUrl = (network: NetWorkInfo) => {
+  if (network.providerDefinitions[network.provider]) {
+    return network.providerDefinitions[network.provider];
+  }
+
+  return Object.values(network.providerDefinitions)[0];
+}

@@ -187,12 +187,13 @@ export interface NetWorkInfo {
   ss58Format: number;
   chainType?: 'substrate' | 'ethereum';
   provider: string;
+  providerDefinitions: Record<string, string>;
   groups: NetWorkGroup[];
   paraId?: number;
   isEthereum?: boolean;
-  nativeToken?: string;
+  nativeToken: string;
   crowdloanUrl?: string;
-  decimals?: number;
+  decimals: number;
 }
 
 export interface DonateInfo {

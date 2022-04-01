@@ -10,7 +10,7 @@ import { RMRK_PINATA_SERVER, SUPPORTED_NFT_NETWORKS } from '@polkadot/extension-
 import { ASTAR_SUPPORTED_NFT_CONTRACTS, ContractInfo, MOONBEAM_SUPPORTED_NFT_CONTRACTS, MOONRIVER_SUPPORTED_NFT_CONTRACTS } from '@polkadot/extension-koni-base/api/nft/eth_nft/utils';
 import { BaseNftApi } from '@polkadot/extension-koni-base/api/nft/nft';
 import { ERC721Contract } from '@polkadot/extension-koni-base/api/web3/web3';
-import { isUrl } from '@polkadot/extension-koni-base/utils/utils';
+import {getNetworkApiUrl, isUrl} from '@polkadot/extension-koni-base/utils/utils';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
 export class Web3NftApi extends BaseNftApi {
@@ -26,7 +26,7 @@ export class Web3NftApi extends BaseNftApi {
   }
 
   connectWeb3 () {
-    this.web3 = new Web3(new Web3.providers.WebsocketProvider(EVM_NETWORKS[this.chain as string].provider));
+    this.web3 = new Web3(new Web3.providers.WebsocketProvider(getNetworkApiUrl(EVM_NETWORKS[this.chain as string])));
   }
 
   override parseUrl (input: string): string | undefined {

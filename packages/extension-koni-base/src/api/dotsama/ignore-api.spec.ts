@@ -5,6 +5,7 @@ import { ApiProps } from '@polkadot/extension-base/background/KoniTypes';
 import { initApi } from '@polkadot/extension-koni-base/api/dotsama/api';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 import { AccountInfo } from '@polkadot/types/interfaces';
+import {getNetworkApiUrl} from "@polkadot/extension-koni-base/utils/utils";
 
 jest.setTimeout(50000);
 
@@ -16,7 +17,7 @@ describe('test DotSama APIs', () => {
     const networkList = ['moonbase'];
 
     const promList = networkList.map((networkKey) => {
-      return initApi(networkKey, NETWORKS[networkKey].provider).isReady;
+      return initApi(networkKey, getNetworkApiUrl(NETWORKS[networkKey])).isReady;
     });
 
     const apiPropsList = await Promise.all(promList);
