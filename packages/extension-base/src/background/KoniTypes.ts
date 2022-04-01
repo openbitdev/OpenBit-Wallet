@@ -194,6 +194,7 @@ export interface NetWorkInfo {
   nativeToken: string;
   crowdloanUrl?: string;
   decimals: number;
+  scanExplorer?: string;
 }
 
 export interface DonateInfo {
@@ -281,6 +282,15 @@ export interface RequestTransactionHistoryAdd {
   address: string;
   networkKey: string;
   item: TransactionHistoryItemType;
+}
+
+export interface RequestNetworkConfigUpdate {
+  networkKey: string;
+  config: NetWorkInfo;
+}
+
+export interface RequestActivatedNetworksSet {
+  networkKeys: string;
 }
 
 export interface RequestApi {
@@ -428,5 +438,9 @@ export interface KoniRequestSignatures {
   'pri(chainRegistry.getSubscription)': [null, Record<string, ChainRegistry>, Record<string, ChainRegistry>];
   'pri(transaction.history.getSubscription)': [null, Record<string, TransactionHistoryItemType[]>, Record<string, TransactionHistoryItemType[]>];
   'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItemType[]];
+  'pri(networkConfig.getAll)': [null, boolean, Record<string, NetWorkInfo>];
+  'pri(networkConfig.update)': [RequestNetworkConfigUpdate, boolean, Record<string, NetWorkInfo>];
+  'pri(activatedNetworks.get)': [null, boolean, string];
+  'pri(activatedNetworks.set)': [RequestActivatedNetworksSet, boolean, string];
   'pub(utils.getRandom)': [RandomTestRequest, number];
 }

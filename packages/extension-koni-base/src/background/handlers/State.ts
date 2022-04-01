@@ -19,8 +19,7 @@ import {
   NftItem,
   NftJson,
   NftTransferExtra,
-  PriceJson,
-  StakingItem,
+  PriceJson, StakingItem,
   StakingJson,
   StakingRewardJson,
   TransactionHistoryItemType
@@ -530,7 +529,7 @@ export default class KoniState extends State {
     return this.priceStore.getSubject();
   }
 
-  public setNetworkConfig(networkKey: string, networkInfo: NetWorkInfo, callBack?: () => void): void {
+  public setNetworkConfig(networkKey: string, networkInfo: NetWorkInfo, callBack?: (configMap: Record<string, NetWorkInfo>) => void): void {
     this.networkConfigsStore.get('NetworkConfigs', (rs) => {
       if (!rs) {
         rs = {};
@@ -549,10 +548,9 @@ export default class KoniState extends State {
       }
 
       this.networkConfigsStore.set('NetworkConfigs', rs, () => {
-        callBack && callBack();
+        callBack && callBack(rs);
       })
     });
-
   }
 
   public getNetworkConfigs (update: (value: Record<string, NetWorkInfo>) => void): void {
@@ -584,13 +582,13 @@ export default class KoniState extends State {
     })
   }
 
-  public setActivatedNetworks(value: string, callBack?: () => void): void {
+  public setActivatedNetworks(value: string, callBack?: (value: string) => void): void {
     this.activatedNetworksStore.set('ActivatedNetworks', value, () => {
-      callBack && callBack();
+      callBack && callBack(value);
     });
   }
 
-  public getActivatedNetworks(update: (value?: string) => void): void {
+  public getActivatedNetworks(update: (value: string) => void): void {
     this.activatedNetworksStore.get('ActivatedNetworks', (rs) => {
       update(rs || '');
     });

@@ -3,7 +3,42 @@
 
 import Extension, { SEED_DEFAULT_LENGTH, SEED_LENGTHS } from '@polkadot/extension-base/background/handlers/Extension';
 import { createSubscription, unsubscribe } from '@polkadot/extension-base/background/handlers/subscriptions';
-import { AccountsWithCurrentAddress, ApiInitStatus, BackgroundWindow, BalanceJson, ChainRegistry, CrowdloanJson, NetWorkMetadataDef, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountCreateSuriV2, RequestAccountExportPrivateKey, RequestApi, RequestCheckTransfer, RequestNftForceUpdate, RequestSeedCreateV2, RequestSeedValidateV2, RequestTransactionHistoryAdd, RequestTransfer, ResponseAccountCreateSuriV2, ResponseAccountExportPrivateKey, ResponseCheckTransfer, ResponseSeedCreateV2, ResponseSeedValidateV2, StakingJson, StakingRewardJson, TransactionHistoryItemType, TransferError, TransferErrorCode, TransferStep } from '@polkadot/extension-base/background/KoniTypes';
+import {
+  AccountsWithCurrentAddress,
+  ApiInitStatus,
+  BackgroundWindow,
+  BalanceJson,
+  ChainRegistry,
+  CrowdloanJson,
+  NetWorkMetadataDef,
+  NftCollection,
+  NftCollectionJson,
+  NftItem,
+  NftJson,
+  NftTransferExtra,
+  PriceJson,
+  RequestAccountCreateSuriV2,
+  RequestAccountExportPrivateKey, RequestActivatedNetworksSet,
+  RequestApi,
+  RequestCheckTransfer,
+  RequestNetworkConfigUpdate,
+  RequestNftForceUpdate,
+  RequestSeedCreateV2,
+  RequestSeedValidateV2,
+  RequestTransactionHistoryAdd,
+  RequestTransfer,
+  ResponseAccountCreateSuriV2,
+  ResponseAccountExportPrivateKey,
+  ResponseCheckTransfer,
+  ResponseSeedCreateV2,
+  ResponseSeedValidateV2,
+  StakingJson,
+  StakingRewardJson,
+  TransactionHistoryItemType,
+  TransferError,
+  TransferErrorCode,
+  TransferStep
+} from '@polkadot/extension-base/background/KoniTypes';
 import { AccountJson, MessageTypes, RequestAccountCreateSuri, RequestAccountForget, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestJsonRestore, RequestTypes, ResponseType } from '@polkadot/extension-base/background/types';
 import { initApi } from '@polkadot/extension-koni-base/api/dotsama';
 import { getFreeBalance } from '@polkadot/extension-koni-base/api/dotsama/balance';
@@ -800,6 +835,62 @@ export default class KoniExtension extends Extension {
     return errors;
   }
 
+  private getAllNetworkConfigs (id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(networkConfig.getAll)'>(id, port);
+
+    state.getNetworkConfigs((configMap) => {
+      cb(configMap);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
+  private updateNetworkConfig ({networkKey, config}: RequestNetworkConfigUpdate, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(networkConfig.update)'>(id, port);
+
+    state.setNetworkConfig(networkKey, config, (configMap) => {
+      cb(configMap);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
+  private getActivatedNetwork (id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(activatedNetworks.get)'>(id, port);
+
+    state.getActivatedNetworks((value) => {
+      cb(value);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
+  private setActivatedNetwork ({networkKeys}: RequestActivatedNetworksSet, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(activatedNetworks.set)'>(id, port);
+
+    state.setActivatedNetworks(networkKeys, (value) => {
+      cb(value);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return true;
+  }
+
   // eslint-disable-next-line @typescript-eslint/require-await
   public override async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], port: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
     switch (type) {
@@ -875,6 +966,14 @@ export default class KoniExtension extends Extension {
         return await this.checkTransfer(request as RequestCheckTransfer);
       case 'pri(accounts.transfer)':
         return this.makeTransfer(id, port, request as RequestTransfer);
+      case 'pri(networkConfig.getAll)':
+        return this.getAllNetworkConfigs(id, port);
+      case 'pri(networkConfig.update)':
+        return this.updateNetworkConfig(request as RequestNetworkConfigUpdate, id, port);
+      case 'pri(activatedNetworks.get)':
+        return this.getActivatedNetwork(id, port);
+      case 'pri(activatedNetworks.set)':
+        return this.setActivatedNetwork(request as RequestActivatedNetworksSet, id, port);
       default:
         return super.handle(id, type, request, port);
     }
