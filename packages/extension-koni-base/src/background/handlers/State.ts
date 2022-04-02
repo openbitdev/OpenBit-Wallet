@@ -4,7 +4,7 @@
 import { Subject } from 'rxjs';
 
 import State from '@polkadot/extension-base/background/handlers/State';
-import { AccountRefMap, APIItemState, BalanceItem, BalanceJson, ChainRegistry, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, NetWorkInfo, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, StakingItem, StakingJson, StakingRewardJson, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
+import { AccountRefMap, APIItemState, BalanceItem, BalanceJson, ChainRegistry, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, NetworkInfo, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, StakingItem, StakingJson, StakingRewardJson, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
 import { getTokenPrice } from '@polkadot/extension-koni-base/api/coingecko';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 import { DEFAULT_STAKING_NETWORKS } from '@polkadot/extension-koni-base/api/staking';
@@ -513,7 +513,7 @@ export default class KoniState extends State {
     return this.priceStore.getSubject();
   }
 
-  public setNetworkConfig (networkKey: string, networkInfo: NetWorkInfo, callBack?: (configMap: Record<string, NetWorkInfo>) => void): void {
+  public setNetworkConfig (networkKey: string, networkInfo: NetworkInfo, callBack?: (configMap: Record<string, NetworkInfo>) => void): void {
     this.networkConfigsStore.get('NetworkConfigs', (rs) => {
       if (!rs) {
         rs = {};
@@ -538,7 +538,7 @@ export default class KoniState extends State {
     });
   }
 
-  public getNetworkConfigs (update: (value: Record<string, NetWorkInfo>) => void): void {
+  public getNetworkConfigs (update: (value: Record<string, NetworkInfo>) => void): void {
     this.networkConfigsStore.get('NetworkConfigs', (rs) => {
       if (!rs) {
         update(NETWORKS);
@@ -547,7 +547,7 @@ export default class KoniState extends State {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const configs: Record<string, NetWorkInfo> = JSON.parse(JSON.stringify(NETWORKS));
+      const configs: Record<string, NetworkInfo> = JSON.parse(JSON.stringify(NETWORKS));
 
       for (const networkKey in rs) {
         if (!Object.getOwnPropertyDescriptor(rs, networkKey)) {

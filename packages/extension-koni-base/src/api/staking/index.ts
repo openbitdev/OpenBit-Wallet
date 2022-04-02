@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { APIItemState, ApiProps, NetWorkInfo, StakingItem } from '@polkadot/extension-base/background/KoniTypes';
+import { APIItemState, ApiProps, NetworkInfo, StakingItem } from '@polkadot/extension-base/background/KoniTypes';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 import { categoryAddresses, toUnit } from '@polkadot/extension-koni-base/utils/utils';
 
@@ -37,7 +37,7 @@ function parseStakingBalance (balance: number, chain: string): number {
   }
 }
 
-export async function subscribeStaking (addresses: string[], dotSamaAPIMap: Record<string, ApiProps>, callback: (networkKey: string, rs: StakingItem) => void, networks: Record<string, NetWorkInfo> = DEFAULT_STAKING_NETWORKS) {
+export async function subscribeStaking (addresses: string[], dotSamaAPIMap: Record<string, ApiProps>, callback: (networkKey: string, rs: StakingItem) => void, networks: Record<string, NetworkInfo> = DEFAULT_STAKING_NETWORKS) {
   const allApiPromise: PromiseMapping[] = [];
   const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
 

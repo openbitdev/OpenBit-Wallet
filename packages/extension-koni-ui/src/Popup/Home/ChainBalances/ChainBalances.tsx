@@ -5,7 +5,7 @@ import BigN from 'bignumber.js';
 import React, { Fragment, useCallback, useState } from 'react';
 import styled from 'styled-components';
 
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import ChainBalanceDetailItem from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceDetail/ChainBalanceDetailItem';
 import ChainBalanceItem from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItem';
@@ -25,7 +25,7 @@ interface Props extends ThemeProps {
   isShowZeroBalances: boolean;
   networkKeys: string[];
   networkBalanceMaps: Record<string, BalanceInfo>;
-  networkMetadataMap: Record<string, NetWorkMetadataDef>;
+  networkMetadataMap: Record<string, NetworkMetadataDef>;
   setQrModalOpen: (visible: boolean) => void;
   setQrModalProps: (props: {
     networkPrefix: number,
@@ -55,7 +55,7 @@ function isAllowToShow (
 function getAccountInfoByNetwork (
   address: string,
   networkKey: string,
-  networkMetadata: NetWorkMetadataDef): AccountInfoByNetwork {
+  networkMetadata: NetworkMetadataDef): AccountInfoByNetwork {
   return {
     address,
     key: networkKey,
@@ -71,7 +71,7 @@ function getAccountInfoByNetwork (
 function getAccountInfoByNetworkMap (
   address: string,
   networkKeys: string[],
-  networkMetadataMap: Record<string, NetWorkMetadataDef>): Record<string, AccountInfoByNetwork> {
+  networkMetadataMap: Record<string, NetworkMetadataDef>): Record<string, AccountInfoByNetwork> {
   const result: Record<string, AccountInfoByNetwork> = {};
 
   networkKeys.forEach((n) => {

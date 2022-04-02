@@ -4,13 +4,13 @@
 import BigN from 'bignumber.js';
 import { useSelector } from 'react-redux';
 
-import { APIItemState, ChainRegistry, NetWorkGroup } from '@polkadot/extension-base/background/KoniTypes';
+import { APIItemState, ChainRegistry, NetworkGroup } from '@polkadot/extension-base/background/KoniTypes';
 import { AccountBalanceType, CrowdloanContributeValueType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
 import { RootState } from '@polkadot/extension-koni-ui/stores';
 import { BN_ZERO, getBalances, parseBalancesInfo } from '@polkadot/extension-koni-ui/util';
 import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
-function getCrowdloadChainRegistry (groups: NetWorkGroup[], chainRegistryMap: Record<string, ChainRegistry>): ChainRegistry | null {
+function getCrowdloadChainRegistry (groups: NetworkGroup[], chainRegistryMap: Record<string, ChainRegistry>): ChainRegistry | null {
   if (groups.includes('POLKADOT_PARACHAIN') && chainRegistryMap.polkadot) {
     return chainRegistryMap.polkadot;
   }
@@ -22,7 +22,7 @@ function getCrowdloadChainRegistry (groups: NetWorkGroup[], chainRegistryMap: Re
   return null;
 }
 
-function getGroupNetworkKey (groups: NetWorkGroup[]): string {
+function getGroupNetworkKey (groups: NetworkGroup[]): string {
   if (groups.includes('POLKADOT_PARACHAIN')) {
     return 'polkadot';
   }
@@ -97,7 +97,7 @@ export default function useAccountBalance (currentNetworkKey: string,
     const networkMetadata = networkMetadataMap[networkKey];
 
     if (!networkMetadata ||
-      !['POLKADOT_PARACHAIN', 'KUSAMA_PARACHAIN'].some((g) => networkMetadata.groups.includes(g as NetWorkGroup))) {
+      !['POLKADOT_PARACHAIN', 'KUSAMA_PARACHAIN'].some((g) => networkMetadata.groups.includes(g as NetworkGroup))) {
       return;
     }
 

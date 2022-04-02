@@ -1,11 +1,11 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 
-function getKnownHashes (): NetWorkMetadataDef[] {
-  const result: NetWorkMetadataDef[] = [];
+function getKnownHashes (): NetworkMetadataDef[] {
+  const result: NetworkMetadataDef[] = [];
 
   Object.keys(NETWORKS).forEach((networkKey) => {
     const { chain, genesisHash, groups, icon, isEthereum, paraId, ss58Format } = NETWORKS[networkKey];
@@ -33,7 +33,7 @@ function getKnownHashes (): NetWorkMetadataDef[] {
   return result;
 }
 
-const knowHashes: NetWorkMetadataDef[] = getKnownHashes();
+const knowHashes: NetworkMetadataDef[] = getKnownHashes();
 
 const hashes = [...knowHashes];
 

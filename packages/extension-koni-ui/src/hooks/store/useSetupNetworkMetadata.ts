@@ -3,11 +3,11 @@
 
 import { useEffect } from 'react';
 
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import { getAllNetworkMetadata } from '@polkadot/extension-koni-ui/messaging';
 import { store } from '@polkadot/extension-koni-ui/stores';
 
-function updateNetworkMetadata (metadataDefs: NetWorkMetadataDef[]): void {
+function updateNetworkMetadata (metadataDefs: NetworkMetadataDef[]): void {
   store.dispatch({ type: 'networkMetadata/update', payload: metadataDefs });
 }
 

@@ -178,23 +178,30 @@ export interface ApiProps extends ApiState {
   useEvmAddress?: boolean
 }
 
-export type NetWorkGroup = 'RELAY_CHAIN' | 'POLKADOT_PARACHAIN' | 'KUSAMA_PARACHAIN' | 'MAIN_NET' | 'TEST_NET' | 'UNKNOWN';
+export type NetworkGroup = 'RELAY_CHAIN' | 'POLKADOT_PARACHAIN' | 'KUSAMA_PARACHAIN' | 'MAIN_NET' | 'TEST_NET' | 'UNKNOWN';
 
-export interface NetWorkInfo {
+export interface NetworkInfo {
   chain: string;
   genesisHash: string;
   icon?: string;
   ss58Format: number;
   chainType?: 'substrate' | 'ethereum';
-  provider: string;
+  defaultProviderKey?: string;
   providerDefinitions: Record<string, string>;
-  groups: NetWorkGroup[];
+  groups: NetworkGroup[];
   paraId?: number;
   isEthereum?: boolean;
   nativeToken: string;
   crowdloanUrl?: string;
   decimals: number;
   scanExplorer?: string;
+}
+
+export interface StoredNetworkInfo extends NetworkInfo {
+  customProviderDefinitions?: Record<string, string>;
+  currentProviderKey: string;
+  currentProvider: string;
+  isActivated: boolean;
 }
 
 export interface DonateInfo {
@@ -205,9 +212,9 @@ export interface DonateInfo {
   link: string;
 }
 
-export interface NetWorkMetadataDef extends MetadataDefBase {
+export interface NetworkMetadataDef extends MetadataDefBase {
   networkKey: string;
-  groups: NetWorkGroup[];
+  groups: NetworkGroup[];
   isEthereum: boolean;
   paraId?: number;
   isAvailable: boolean;
@@ -286,7 +293,7 @@ export interface RequestTransactionHistoryAdd {
 
 export interface RequestNetworkConfigUpdate {
   networkKey: string;
-  config: NetWorkInfo;
+  config: NetworkInfo;
 }
 
 export interface RequestActivatedNetworksSet {
@@ -434,12 +441,12 @@ export interface KoniRequestSignatures {
   'pri(accounts.subscribeWithCurrentAddress)': [RequestAccountSubscribe, boolean, AccountsWithCurrentAddress];
   'pri(accounts.triggerSubscription)': [null, boolean];
   'pri(currentAccount.saveAddress)': [RequestCurrentAccountAddress, boolean, CurrentAccountInfo];
-  'pri(networkMetadata.list)': [null, NetWorkMetadataDef[]];
+  'pri(networkMetadata.list)': [null, NetworkMetadataDef[]];
   'pri(chainRegistry.getSubscription)': [null, Record<string, ChainRegistry>, Record<string, ChainRegistry>];
   'pri(transaction.history.getSubscription)': [null, Record<string, TransactionHistoryItemType[]>, Record<string, TransactionHistoryItemType[]>];
   'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItemType[]];
-  'pri(networkConfig.getAll)': [null, boolean, Record<string, NetWorkInfo>];
-  'pri(networkConfig.update)': [RequestNetworkConfigUpdate, boolean, Record<string, NetWorkInfo>];
+  'pri(networkConfig.getAll)': [null, boolean, Record<string, NetworkInfo>];
+  'pri(networkConfig.update)': [RequestNetworkConfigUpdate, boolean, Record<string, NetworkInfo>];
   'pri(activatedNetworks.get)': [null, boolean, string];
   'pri(activatedNetworks.set)': [RequestActivatedNetworksSet, boolean, string];
   'pub(utils.getRandom)': [RandomTestRequest, number];

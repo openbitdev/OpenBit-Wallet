@@ -3,10 +3,10 @@
 
 import { useSelector } from 'react-redux';
 
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import { RootState } from '@polkadot/extension-koni-ui/stores';
 
-function getCrowdloadNetworksMap (source: Record<string, NetWorkMetadataDef>): Record<string, string[]> {
+function getCrowdloadNetworksMap (source: Record<string, NetworkMetadataDef>): Record<string, string[]> {
   const result: Record<string, string[]> = {};
 
   result.all = [];
@@ -38,7 +38,7 @@ function getCrowdloadNetworksMap (source: Record<string, NetWorkMetadataDef>): R
   return result;
 }
 
-function getCrowdloanNetworks (networkMetadata: Record<string, NetWorkMetadataDef>, currentNetworkKey: string): string[] {
+function getCrowdloanNetworks (networkMetadata: Record<string, NetworkMetadataDef>, currentNetworkKey: string): string[] {
   const crowdloadNetworksMap = getCrowdloadNetworksMap(networkMetadata);
 
   if (currentNetworkKey === 'all') {

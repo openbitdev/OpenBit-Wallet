@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { NetWorkGroup } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkGroup } from '@polkadot/extension-base/background/KoniTypes';
 
 import { getAllNetworkMetadata } from '../messaging';
 import chains from '../util/chains';
@@ -15,7 +15,7 @@ export interface networkSelectOption {
   networkKey: string;
   networkPrefix: number;
   icon: string;
-  groups: NetWorkGroup[];
+  groups: NetworkGroup[];
   isEthereum: boolean;
 }
 
@@ -60,7 +60,7 @@ export default function (): networkSelectOption[] {
       networkKey: 'all',
       networkPrefix: -1,
       icon: 'polkadot',
-      groups: ['UNKNOWN'] as NetWorkGroup[],
+      groups: ['UNKNOWN'] as NetworkGroup[],
       isEthereum: false
     },
     // put the relay chains at the top

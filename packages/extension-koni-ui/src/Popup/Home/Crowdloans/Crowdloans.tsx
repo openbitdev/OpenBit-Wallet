@@ -5,7 +5,7 @@ import BigN from 'bignumber.js';
 import React from 'react';
 import styled from 'styled-components';
 
-import { NetWorkGroup, NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkGroup, NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 import { CrowdloanContributeValueType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
 import CrowdloanItem from '@polkadot/extension-koni-ui/Popup/Home/Crowdloans/CrowdloanItem';
@@ -19,7 +19,7 @@ interface Props extends ThemeProps {
   className?: string;
   networkKeys: string[];
   crowdloanContributeMap: Record<string, CrowdloanContributeValueType>;
-  networkMetadataMap: Record<string, NetWorkMetadataDef>;
+  networkMetadataMap: Record<string, NetworkMetadataDef>;
 }
 
 interface ContentProp {
@@ -32,7 +32,7 @@ const GroupDisplayNameMap: Record<string, string> = {
   KUSAMA_PARACHAIN: 'Kusama parachain'
 };
 
-function getGroupDisplayName (groups: NetWorkGroup[]): string {
+function getGroupDisplayName (groups: NetworkGroup[]): string {
   for (const group of groups) {
     if (GroupDisplayNameMap[group]) {
       return GroupDisplayNameMap[group];
@@ -49,7 +49,7 @@ function getCrowdloanUrl (networkKey: string) {
 function getItem (
   networkKey: string,
   contributeValueInfo: CrowdloanContributeValueType,
-  networkMetadata: NetWorkMetadataDef
+  networkMetadata: NetworkMetadataDef
 ): CrowdloanItemType {
   const groupDisplayName = getGroupDisplayName(networkMetadata.groups);
   const { balanceValue,
@@ -72,7 +72,7 @@ function getItem (
 function getItems (
   networkKeys: string[],
   crowdloanContributeMap: Record<string, CrowdloanContributeValueType>,
-  networkMetadataMap: Record<string, NetWorkMetadataDef>,
+  networkMetadataMap: Record<string, NetworkMetadataDef>,
   includeZeroBalance = false): CrowdloanItemType[] {
   const result: CrowdloanItemType[] = [];
 

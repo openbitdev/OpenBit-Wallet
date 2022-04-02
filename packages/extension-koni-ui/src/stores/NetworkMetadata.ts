@@ -3,12 +3,12 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 
 import chains from '../util/chains';
 
-function getNetworkMetadataMap (networkMetaDataItems: NetWorkMetadataDef[]): Record<string, NetWorkMetadataDef> {
-  const result: Record<string, NetWorkMetadataDef> = {};
+function getNetworkMetadataMap (networkMetaDataItems: NetworkMetadataDef[]): Record<string, NetworkMetadataDef> {
+  const result: Record<string, NetworkMetadataDef> = {};
 
   networkMetaDataItems.forEach((item) => {
     result[item.networkKey] = item;
@@ -23,7 +23,7 @@ const networkMetadataSlice = createSlice({
   initialState,
   name: 'networkMetadata',
   reducers: {
-    update (state, action: PayloadAction<NetWorkMetadataDef[]>) {
+    update (state, action: PayloadAction<NetworkMetadataDef[]>) {
       const { payload } = action;
 
       payload.forEach((item) => {

@@ -7,7 +7,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { CurrentNetworkInfo, NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import { CurrentNetworkInfo, NetworkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import { ActionContext } from '@polkadot/extension-koni-ui/components';
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
 import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
@@ -43,7 +43,7 @@ function updateTransferNftParams (nftItem: _NftItem, collectionImage: string | u
   store.dispatch({ type: 'transferNftParams/update', payload: { nftItem, collectionImage, collectionId } as TransferNftParams });
 }
 
-function updateCurrentNetwork (networkMetadata: NetWorkMetadataDef) {
+function updateCurrentNetwork (networkMetadata: NetworkMetadataDef) {
   const newState = {
     networkPrefix: networkMetadata.ss58Format,
     icon: networkMetadata.icon,

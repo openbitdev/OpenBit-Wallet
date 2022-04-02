@@ -6,7 +6,7 @@ import type { ThemeProps } from '../types';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import { NetWorkGroup } from '@polkadot/extension-base/background/KoniTypes';
+import { NetworkGroup } from '@polkadot/extension-base/background/KoniTypes';
 import check from '@polkadot/extension-koni-ui/assets/check.svg';
 import InputFilter from '@polkadot/extension-koni-ui/components/InputFilter';
 import Menu from '@polkadot/extension-koni-ui/components/Menu';
@@ -31,7 +31,7 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
   const [filteredGenesisOptions, setFilteredGenesisOption] = useState(genesisOptions);
   const [filteredNetwork, setFilteredNetwork] = useState('');
   const [selectedGroup, setSelectedGroup] = useState('');
-  const filterCategories: {text: string, type: NetWorkGroup | string}[] = [
+  const filterCategories: {text: string, type: NetworkGroup | string}[] = [
     {
       text: 'All',
       type: ''
@@ -71,7 +71,7 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
         setFilteredGenesisOption(genesisOptions.filter(
           (network) => network.text.toLowerCase()
             .includes(lowerCaseFilteredNetwork) &&
-              network.groups.includes(selectedGroup as NetWorkGroup)));
+              network.groups.includes(selectedGroup as NetworkGroup)));
       } else {
         setFilteredGenesisOption(genesisOptions.filter(
           (network) => network.text.toLowerCase()
@@ -80,7 +80,7 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
     } else {
       if (selectedGroup && selectedGroup.length) {
         setFilteredGenesisOption(genesisOptions
-          .filter((network) => network.groups.includes(selectedGroup as NetWorkGroup)));
+          .filter((network) => network.groups.includes(selectedGroup as NetworkGroup)));
       } else {
         setFilteredGenesisOption(genesisOptions);
       }
@@ -93,7 +93,7 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
   }, [onFilter]);
 
   const _selectGroup = useCallback(
-    (type: NetWorkGroup) => {
+    (type: NetworkGroup) => {
       return () => {
         setSelectedGroup(type);
 
@@ -138,7 +138,7 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
           <div
             className={type === selectedGroup ? 'network-filter-item__selected-text' : 'network-filter-item__text'}
             key={text}
-            onClick={_selectGroup(type as NetWorkGroup)}
+            onClick={_selectGroup(type as NetworkGroup)}
           >
             {text}
           </div>
