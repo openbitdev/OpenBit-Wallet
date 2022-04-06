@@ -8,6 +8,7 @@ import { ApiProps, ApiState } from '@polkadot/extension-base/background/KoniType
 import { ethereumChains, typesBundle, typesChain } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
 import { DOTSAMA_AUTO_CONNECT_MS, DOTSAMA_MAX_CONTINUE_RETRY } from '@polkadot/extension-koni-base/constants';
 import { inJestTest } from '@polkadot/extension-koni-base/utils/utils';
+import { ScProvider } from '@polkadot/rpc-provider/substrate-connect';
 import { TypeRegistry } from '@polkadot/types/create';
 import { ChainProperties, ChainType } from '@polkadot/types/interfaces';
 import { Registry } from '@polkadot/types/types';
@@ -101,10 +102,11 @@ async function loadOnReady (registry: Registry, api: ApiPromise): Promise<ApiSta
   };
 }
 
-export function initApi (networkKey: string, apiUrl: string | string[]): ApiProps {
+export function initApi (networkKey: string, apiUrl: string): ApiProps {
   const registry = new TypeRegistry();
-
-  const provider = new WsProvider(apiUrl, DOTSAMA_AUTO_CONNECT_MS);
+  const provider = apiUrl.startsWith('light://')
+    ? new ScProvider(apiUrl.replace('light://substrate-connect/', '') as 'polkadot')
+    : new WsProvider(apiUrl, DOTSAMA_AUTO_CONNECT_MS);
 
   const apiOption = { provider, typesBundle, typesChain: typesChain };
 
@@ -150,7 +152,11 @@ export function initApi (networkKey: string, apiUrl: string | string[]): ApiProp
 
       async function f (): Promise<ApiProps> {
         if (!result.isApiReadyOnce) {
-          await self.api.isReady;
+          if (apiUrl.startsWith('light://')) {
+            await self.api.connect();
+          } else {
+            await self.api.isReady;
+          }
         }
 
         return new Promise<ApiProps>((resolve, reject) => {
