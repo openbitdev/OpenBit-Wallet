@@ -7,6 +7,7 @@ import type { AvailableThemes } from './themes';
 
 import React from 'react';
 
+import { SearchContextData } from '@polkadot/extension-base/background/types';
 import settings from '@polkadot/ui-settings';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -22,6 +23,9 @@ const SigningReqContext = React.createContext<SigningRequest[]>([]);
 const ThemeSwitchContext = React.createContext<(theme: AvailableThemes) => void>(noop);
 const ToastContext = React.createContext<({show: (message: string) => void, setToastError: (isError: boolean) => void})>({ show: noop, setToastError: noop });
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const SearchContext = React.createContext<SearchContextData>({ query: '', setQuery: () => {} });
+
 export {
   AccountContext,
   ActionContext,
@@ -31,5 +35,6 @@ export {
   SettingsContext,
   SigningReqContext,
   ThemeSwitchContext,
-  ToastContext
+  ToastContext,
+  SearchContext
 };

@@ -65,6 +65,7 @@ export default function useAccountBalance (currentNetworkKey: string,
         symbol: 'Unit',
         balanceValue: BN_ZERO,
         convertedBalanceValue: BN_ZERO,
+        price: BN_ZERO,
         detailBalances: [],
         childrenBalances: []
       };

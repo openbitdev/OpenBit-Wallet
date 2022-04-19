@@ -5,6 +5,7 @@ import type { ThemeProps } from '../../types';
 
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import CN from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled, { ThemeContext } from 'styled-components';
@@ -31,6 +32,7 @@ import reformatAddress from '@polkadot/extension-koni-ui/util/reformatAddress';
 import { IconTheme } from '@polkadot/react-identicon/types';
 
 import defaultAvatar from '../../assets/default-avatar.svg';
+import logoFull from '../../assets/logo/sub-wallet-logo-full.png';
 import logo from '../../assets/sub-wallet-logo.svg';
 import useOutsideClick from '../../hooks/useOutsideClick';
 import { Theme } from '../../types';
@@ -292,8 +294,8 @@ function Header ({ changeAccountCallback, children, className = '', isBusy, isCo
               to={'/'}
             >
               <img
-                className='logo'
-                src={logo}
+                className={CN('logo', { full: !isPopup })}
+                src={isPopup ? logo : logoFull}
               />
             </Link>
           </div>
@@ -400,7 +402,7 @@ function Header ({ changeAccountCallback, children, className = '', isBusy, isCo
 
         />
         }
-        {isContainDetailHeader && currentAccount &&
+        {isPopup && isContainDetailHeader && currentAccount &&
           <DetailHeader
             currentAccount={currentAccount}
             formatted={formattedAddress}
@@ -485,6 +487,12 @@ export default React.memo(styled(Header)(({ theme }: Props) => `
       .logo {
         height: 48px;
         width: 48px;
+        margin-right:12px;
+      }
+
+      .logo.full {
+        height: 48px;
+        width:auto;
         margin-right:12px;
       }
 

@@ -7,9 +7,12 @@ import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import ChainBalanceDetailItem from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceDetail/ChainBalanceDetailItem';
 import ChainBalanceItem from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItem';
+import ChainBalanceDetailTable from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceTable/ChainBalanceDetailTable';
+import ChainBalanceTable from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceTable/ChainBalanceTable';
 import { hasAnyChildTokenBalance } from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/utils';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { BN_ZERO, getLogoByNetworkKey } from '@polkadot/extension-koni-ui/util';
@@ -101,10 +104,11 @@ function ChainBalances ({ address,
     getAccountInfoByNetworkMap(address, networkKeys, networkMetadataMap);
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string>('');
   const [scrollWidth, setScrollWidth] = useState<number>(6);
-  const [containerWidth, setContainerWidth] = useState<number>(458);
+  const [containerWidth, setContainerWidth] = useState<number>(1100);
   const [listWidth, setListWidth] = useState<number>(452);
   const selectedInfo = accountInfoByNetworkMap[selectedNetworkKey];
   const selectedBalanceInfo = networkBalanceMaps[selectedNetworkKey];
+  const isPopup = useIsPopup();
 
   const _openBalanceDetail = useCallback((networkKey: string) => {
     setSelectedNetworkKey(networkKey);
@@ -206,12 +210,32 @@ function ChainBalances ({ address,
       {!isShowBalanceDetail || !selectedNetworkKey || !selectedInfo || !selectedBalanceInfo
         ? (
           <>
-            <div
-              className={CN('chain-balances-container__body')}
-              style={{ width: listWidth }}
-            >
-              {networkKeys.map((networkKey) => renderChainBalanceItem(networkKey))}
-            </div>
+            {
+              !isPopup
+                ? (
+                  <ChainBalanceTable
+                    accountInfoByNetworkMap={accountInfoByNetworkMap}
+                    containerWidth={containerWidth}
+                    currentNetworkKey={currentNetworkKey}
+                    isAllowToShow={isAllowToShow}
+                    isShowZeroBalances={isShowZeroBalances}
+                    networkBalanceMaps={networkBalanceMaps}
+                    networkKeys={networkKeys}
+                    setQrModalOpen={setQrModalOpen}
+                    setQrModalProps={setQrModalProps}
+                    setSelectedNetworkBalance={setSelectedNetworkBalance}
+                    showBalanceDetail={_openBalanceDetail}
+                  />
+                )
+                : (
+                  <div
+                    className={CN('chain-balances-container__body')}
+                    style={{ width: listWidth }}
+                  >
+                    {networkKeys.map((networkKey) => renderChainBalanceItem(networkKey))}
+                  </div>
+                )
+            }
             <div className='chain-balances-container__footer'>
               <div>
                 <div className='chain-balances-container__footer-row-1'>
@@ -228,12 +252,26 @@ function ChainBalances ({ address,
         )
         : (
           <>
-            <ChainBalanceDetail
-              accountInfo={selectedInfo}
-              balanceInfo={selectedBalanceInfo}
-              setQrModalOpen={setQrModalOpen}
-              setQrModalProps={setQrModalProps}
-            />
+            {
+              !isPopup
+                ? (
+                  <ChainBalanceDetailTable
+                    accountInfo={selectedInfo}
+                    balanceInfo={selectedBalanceInfo}
+                    containerWidth={containerWidth}
+                    setQrModalOpen={setQrModalOpen}
+                    setQrModalProps={setQrModalProps}
+                  />
+                )
+                : (
+                  <ChainBalanceDetail
+                    accountInfo={selectedInfo}
+                    balanceInfo={selectedBalanceInfo}
+                    setQrModalOpen={setQrModalOpen}
+                    setQrModalProps={setQrModalProps}
+                  />
+                )
+            }
           </>
         )
       }

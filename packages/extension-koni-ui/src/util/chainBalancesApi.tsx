@@ -178,7 +178,8 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
       label,
       symbol,
       convertedBalanceValue,
-      balanceValue
+      balanceValue,
+      price: new BigN(priceMap[networkKey] || 0)
     });
   });
 
@@ -187,11 +188,13 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
   if (balanceChildren) {
     Object.keys(balanceChildren).forEach((token) => {
       const item = balanceChildren[token];
+      const price = getTokenPrice(tokenPriceMap, token);
+
       const { balanceValue, convertedBalanceValue } = getBalances({
         balance: item.free,
         decimals: item.decimals,
         symbol: token,
-        price: getTokenPrice(tokenPriceMap, token)
+        price: price
       });
 
       childrenBalances.push({
@@ -199,7 +202,8 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
         label: '',
         symbol: token,
         convertedBalanceValue,
-        balanceValue
+        balanceValue,
+        price: new BigN(price)
       });
     });
   }
@@ -209,6 +213,7 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
     balanceValue: totalBalanceValue,
     convertedBalanceValue: totalConvertedBalanceValue,
     detailBalances,
-    childrenBalances
+    childrenBalances,
+    price: new BigN(priceMap[networkKey] || 0)
   };
 };

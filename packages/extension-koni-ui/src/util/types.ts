@@ -40,6 +40,7 @@ export type BalanceSubInfo = {
   symbol: string;
   balanceValue: BigN;
   convertedBalanceValue: BigN;
+  price: BigN;
 }
 
 export type AccountInfoByNetwork = {
@@ -59,4 +60,5 @@ export type BalanceInfo = {
   convertedBalanceValue: BigN;
   detailBalances: BalanceSubInfo[];
   childrenBalances: BalanceSubInfo[];
+  price: BigN;
 }

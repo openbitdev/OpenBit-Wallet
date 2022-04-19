@@ -50,6 +50,7 @@ const darkTheme = {
   id: 'dark',
   identiconBackground: '#F4F5F8',
   inputBackground: '#111218',
+  inputBackgroundColor: '#262C4A',
   inputBorderColor: '#2D365C',
   uploadFileBorderColor: 'rgba(0, 75, 255, 0.2)',
   inputLabelFontSize: '14px',

@@ -3,8 +3,10 @@
 
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Input } from 'antd';
 import BigN from 'bignumber.js';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import CN from 'classnames';
+import React, { ChangeEvent, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { TFunction } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
@@ -21,34 +23,35 @@ import staking from '@polkadot/extension-koni-ui/assets/home-tab-icon/staking.sv
 import stakingActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/staking-active.svg';
 import transfers from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers.svg';
 import transfersActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers-active.svg';
-import { AccountContext, AccountQrModal, Link } from '@polkadot/extension-koni-ui/components';
-import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
+import SearchIcon from '@polkadot/extension-koni-ui/assets/icon/search.svg';
+import { AccountContext, AccountQrModal, SearchContext } from '@polkadot/extension-koni-ui/components';
 import Tooltip from '@polkadot/extension-koni-ui/components/Tooltip';
 import useAccountBalance from '@polkadot/extension-koni-ui/hooks/screen/home/useAccountBalance';
 import useCrowdloanNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useCrowdloanNetworks';
 import useFetchNft from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchNft';
 import useFetchStaking from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchStaking';
 import useShowedNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useShowedNetworks';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import { saveCurrentAccountAddress, triggerAccountsSubscription } from '@polkadot/extension-koni-ui/messaging';
 import { Header } from '@polkadot/extension-koni-ui/partials';
+import DetailHeaderFull from '@polkadot/extension-koni-ui/partials/Header/DetailHeaderFull';
 import AddAccount from '@polkadot/extension-koni-ui/Popup/Accounts/AddAccount';
+import ActionGroup from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroup';
+import ActionGroupFull from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroupFull';
 import NftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftContainer';
 import StakingContainer from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingContainer';
 import TabHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TabHeaders';
+import TopHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TopHeaders';
 import { TabHeaderItemType } from '@polkadot/extension-koni-ui/Popup/Home/types';
 import { RootState } from '@polkadot/extension-koni-ui/stores';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { BN_ZERO, isAccountAll, NFT_DEFAULT_GRID_SIZE, NFT_GRID_HEIGHT_THRESHOLD, NFT_HEADER_HEIGHT, NFT_PER_ROW, NFT_PREVIEW_HEIGHT } from '@polkadot/extension-koni-ui/util';
 
-import buyIcon from '../../assets/buy-icon.svg';
-import donateIcon from '../../assets/donate-icon.svg';
-import sendIcon from '../../assets/send-icon.svg';
 // import swapIcon from '../../assets/swap-icon.svg';
 import ChainBalances from './ChainBalances/ChainBalances';
 import Crowdloans from './Crowdloans/Crowdloans';
 import TransactionHistory from './TransactionHistory/TransactionHistory';
-import ActionButton from './ActionButton';
 
 interface WrapperProps extends ThemeProps {
   className?: string;
@@ -171,9 +174,12 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
     showExportButton: true
   });
   const { accounts } = useContext(AccountContext);
-  const { balanceStatus: { isShowBalance }, networkMetadata: networkMetadataMap } = useSelector((state: RootState) => state);
+  const { query, setQuery } = useContext(SearchContext);
+  const { balanceStatus: { isShowBalance },
+    networkMetadata: networkMetadataMap } = useSelector((state: RootState) => state);
   const showedNetworks = useShowedNetworks(networkKey, address, accounts);
   const crowdloanNetworks = useCrowdloanNetworks(networkKey);
+  const isPopup = useIsPopup();
 
   const [nftPage, setNftPage] = useState(1);
 
@@ -260,11 +266,18 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
 
   const _backToHome = useCallback(() => {
     setShowBalanceDetail(false);
-  }, [setShowBalanceDetail]);
+    setQuery('');
+  }, [setShowBalanceDetail, setQuery]);
 
   const onChangeAccount = useCallback((address: string) => {
     setShowBalanceDetail(false);
   }, []);
+
+  const handlerChangeSearchQuery = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+
+    setQuery(value);
+  }, [setQuery]);
 
   return (
     <div className={`home-screen home ${className}`}>
@@ -280,193 +293,182 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
         text={t<string>('Accounts')}
         toggleZeroBalances={_toggleZeroBalances}
       />
-
-      <div className={'home-action-block'}>
-        <div className='account-total-balance'>
-          <div
-            className={'account-total-btn'}
-            data-for={trigger}
-            data-tip={true}
-            onClick={_toggleBalances}
-          >
-            {isShowBalance
-              ? <BalanceVal
-                startWithSymbol
-                symbol={'$'}
-                value={isShowBalanceDetail ? selectedNetworkBalance : totalBalanceValue}
-              />
-              : <span>*********</span>
-            }
-          </div>
-        </div>
-
-        {!_isAccountAll && (
-          <div className='home-account-button-container'>
-            <div className='action-button-wrapper'>
-              <ActionButton
-                iconSrc={buyIcon}
-                onClick={_showQrModal}
-                tooltipContent={t<string>('Receive')}
-              />
-            </div>
-
-            <Link
-              className={'action-button-wrapper'}
-              to={'/account/send-fund'}
+      <div className={CN('main-layout', { full: !isPopup })}>
+        <div className={CN('main-container')}>
+          {!isPopup && currentAccount &&
+            <DetailHeaderFull
+              currentAccount={currentAccount}
+              formatted={currentAccount.address}
+              isShowZeroBalances={isShowZeroBalances}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              toggleZeroBalances={_toggleZeroBalances}
+            />
+          }
+          {
+            isPopup
+              ? (
+                <ActionGroup
+                  _isAccountAll={_isAccountAll}
+                  _showQrModal={_showQrModal}
+                  _toggleBalances={_toggleBalances}
+                  isShowBalance={isShowBalance}
+                  isShowBalanceDetail={isShowBalanceDetail}
+                  selectedNetworkBalance={selectedNetworkBalance}
+                  totalBalanceValue={totalBalanceValue}
+                  trigger={trigger}
+                />
+              )
+              : (
+                <ActionGroupFull
+                  _isAccountAll={_isAccountAll}
+                  _showQrModal={_showQrModal}
+                  _toggleBalances={_toggleBalances}
+                  isShowBalance={isShowBalance}
+                  isShowBalanceDetail={isShowBalanceDetail}
+                  selectedNetworkBalance={selectedNetworkBalance}
+                  totalBalanceValue={totalBalanceValue}
+                />
+              )
+          }
+          {
+            !isPopup &&
+            <TopHeaders
+              activatedItem={activatedTab}
+              className={'home-top-headers'}
+              isShowZeroBalances={isShowZeroBalances}
+              items={tabItems}
+              onSelectItem={_setActiveTab}
+              toggleZeroBalances={_toggleZeroBalances}
+            />
+          }
+          {isShowBalanceDetail &&
+            <div
+              className='home__back-btn'
+              onClick={_backToHome}
             >
-              <ActionButton
-                iconSrc={sendIcon}
-                tooltipContent={t<string>('Send')}
+              <FontAwesomeIcon
+                className='home__back-icon'
+                icon={faArrowLeft}
               />
-            </Link>
+              <span>{t<string>('Back to home')}</span>
+            </div>
+          }
 
-            <Link
-              className={'action-button-wrapper'}
-              to={'/account/donate'}
-            >
-              <ActionButton
-                iconSrc={donateIcon}
-                tooltipContent={t<string>('Donate')}
+          {
+            !isPopup &&
+            <Input
+              className={CN('search-input')}
+              onChange={handlerChangeSearchQuery}
+              placeholder={t('Search Assets')}
+              prefix={
+                <img
+                  alt='search-icon'
+                  className={CN('search-icon')}
+                  src={SearchIcon}
+                />
+              }
+              value={query}
+            />
+          }
+
+          <div className={'home-tab-contents'}>
+            {activatedTab === 1 && (
+              <ChainBalances
+                address={address}
+                currentNetworkKey={networkKey}
+                isShowBalanceDetail={isShowBalanceDetail}
+                isShowZeroBalances={isShowZeroBalances}
+                networkBalanceMaps={networkBalanceMaps}
+                networkKeys={showedNetworks}
+                networkMetadataMap={networkMetadataMap}
+                setQrModalOpen={setQrModalOpen}
+                setQrModalProps={setQrModalProps}
+                setSelectedNetworkBalance={setSelectedNetworkBalance}
+                setShowBalanceDetail={setShowBalanceDetail}
               />
-            </Link>
+            )}
+
+            {activatedTab === 2 && (
+              <NftContainer
+                chosenCollection={chosenNftCollection}
+                chosenItem={chosenNftItem}
+                currentNetwork={networkKey}
+                loading={loadingNft}
+                nftGridSize={nftGridSize}
+                nftList={nftList}
+                page={nftPage}
+                setChosenCollection={setChosenNftCollection}
+                setChosenItem={setChosenNftItem}
+                setPage={handleNftPage}
+                setShowCollectionDetail={setShowNftCollectionDetail}
+                setShowForcedCollection={setShowForcedCollection}
+                setShowItemDetail={setShowNftItemDetail}
+                setShowTransferredCollection={setShowTransferredCollection}
+                showCollectionDetail={showNftCollectionDetail}
+                showForcedCollection={showForcedCollection}
+                showItemDetail={showNftItemDetail}
+                showTransferredCollection={showTransferredCollection}
+                totalCollection={totalCollection}
+                totalItems={totalItems}
+              />
+            )}
+
+            {activatedTab === 3 && (
+              <Crowdloans
+                crowdloanContributeMap={crowdloanContributeMap}
+                networkKeys={crowdloanNetworks}
+                networkMetadataMap={networkMetadataMap}
+              />
+            )}
+
+            {activatedTab === 4 && (
+              <StakingContainer
+                data={stakingData}
+                loading={loadingStaking}
+                priceMap={stakingPriceMap}
+              />
+            )}
+
+            {activatedTab === 5 && (
+              <TransactionHistory
+                historyMap={historyMap}
+                networkKey={networkKey}
+                registryMap={chainRegistryMap}
+              />
+            )}
           </div>
-        )}
 
-        {_isAccountAll && (
-          <div className='home-account-button-container'>
-            <div className='action-button-wrapper'>
-              <ActionButton
-                iconSrc={buyIcon}
-                isDisabled
-                tooltipContent={t<string>('Receive')}
+          {
+            isPopup && (
+              <TabHeaders
+                activatedItem={activatedTab}
+                className={'home-tab-headers'}
+                items={tabItems}
+                onSelectItem={_setActiveTab}
               />
-            </div>
+            )
+          }
 
-            <div className='action-button-wrapper'>
-              <ActionButton
-                iconSrc={sendIcon}
-                isDisabled
-                tooltipContent={t<string>('Send')}
-              />
-            </div>
+          {isQrModalOpen && (
+            <AccountQrModal
+              accountName={currentAccount.name}
+              address={address}
+              className='home__account-qr-modal'
+              closeModal={_closeQrModal}
+              iconTheme={qrModalIconTheme}
+              networkKey={qrModalNetworkKey}
+              networkPrefix={qrModalNetworkPrefix}
+              showExportButton={qrModalShowExportButton}
+            />
+          )}
 
-            <div className='action-button-wrapper'>
-              <ActionButton
-                iconSrc={donateIcon}
-                isDisabled
-                tooltipContent={t<string>('Donate')}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {isShowBalanceDetail &&
-        <div
-          className='home__back-btn'
-          onClick={_backToHome}
-        >
-          <FontAwesomeIcon
-            className='home__back-icon'
-            // @ts-ignore
-            icon={faArrowLeft}
+          <Tooltip
+            offset={{ top: 8 }}
+            text={isShowBalance ? 'Hide balance' : 'Show balance'}
+            trigger={trigger}
           />
-          <span>{t<string>('Back to home')}</span>
         </div>
-      }
-
-      <div className={'home-tab-contents'}>
-        {activatedTab === 1 && (
-          <ChainBalances
-            address={address}
-            currentNetworkKey={networkKey}
-            isShowBalanceDetail={isShowBalanceDetail}
-            isShowZeroBalances={isShowZeroBalances}
-            networkBalanceMaps={networkBalanceMaps}
-            networkKeys={showedNetworks}
-            networkMetadataMap={networkMetadataMap}
-            setQrModalOpen={setQrModalOpen}
-            setQrModalProps={setQrModalProps}
-            setSelectedNetworkBalance={setSelectedNetworkBalance}
-            setShowBalanceDetail={setShowBalanceDetail}
-          />
-        )}
-
-        {activatedTab === 2 && (
-          <NftContainer
-            chosenCollection={chosenNftCollection}
-            chosenItem={chosenNftItem}
-            currentNetwork={networkKey}
-            loading={loadingNft}
-            nftGridSize={nftGridSize}
-            nftList={nftList}
-            page={nftPage}
-            setChosenCollection={setChosenNftCollection}
-            setChosenItem={setChosenNftItem}
-            setPage={handleNftPage}
-            setShowCollectionDetail={setShowNftCollectionDetail}
-            setShowForcedCollection={setShowForcedCollection}
-            setShowItemDetail={setShowNftItemDetail}
-            setShowTransferredCollection={setShowTransferredCollection}
-            showCollectionDetail={showNftCollectionDetail}
-            showForcedCollection={showForcedCollection}
-            showItemDetail={showNftItemDetail}
-            showTransferredCollection={showTransferredCollection}
-            totalCollection={totalCollection}
-            totalItems={totalItems}
-          />
-        )}
-
-        {activatedTab === 3 && (
-          <Crowdloans
-            crowdloanContributeMap={crowdloanContributeMap}
-            networkKeys={crowdloanNetworks}
-            networkMetadataMap={networkMetadataMap}
-          />
-        )}
-
-        {activatedTab === 4 && (
-          <StakingContainer
-            data={stakingData}
-            loading={loadingStaking}
-            priceMap={stakingPriceMap}
-          />
-        )}
-
-        {activatedTab === 5 && (
-          <TransactionHistory
-            historyMap={historyMap}
-            networkKey={networkKey}
-            registryMap={chainRegistryMap}
-          />
-        )}
       </div>
-
-      <TabHeaders
-        activatedItem={activatedTab}
-        className={'home-tab-headers'}
-        items={tabItems}
-        onSelectItem={_setActiveTab}
-      />
-
-      {isQrModalOpen && (
-        <AccountQrModal
-          accountName={currentAccount.name}
-          address={address}
-          className='home__account-qr-modal'
-          closeModal={_closeQrModal}
-          iconTheme={qrModalIconTheme}
-          networkKey={qrModalNetworkKey}
-          networkPrefix={qrModalNetworkPrefix}
-          showExportButton={qrModalShowExportButton}
-        />
-      )}
-
-      <Tooltip
-        offset={{ top: 8 }}
-        text={isShowBalance ? 'Hide balance' : 'Show balance'}
-        trigger={trigger}
-      />
     </div>
   );
 }
@@ -475,6 +477,74 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  .main-layout{
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .main-layout.full{
+    padding: 25px 0;
+    background-color: rgb(38, 44, 74);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .main-container{
+      min-width: 1100px;
+      margin-right: 375px;
+      margin-left: 375px;
+    }
+
+    .home-tab-contents{
+      margin-top: 20px;
+    }
+  }
+
+  .main-container{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: rgb(2, 4, 18);
+  }
+
+  .search-input{
+    margin-left: 20px;
+    background-color: ${theme.inputBackgroundColor};
+    border-radius: 8px;
+    border-color: ${theme.inputBackgroundColor};
+    width: 370px;
+    height: 48px;
+
+    .search-icon{
+      width: 20px;
+      height: 24px;
+      color: ${theme.textColor};
+      filter: invert(92%) sepia(94%) saturate(25%) hue-rotate(251deg) brightness(106%) contrast(100%);
+    }
+
+    .ant-input-prefix{
+      margin-right: 8px;
+    }
+
+    input{
+      font-family: 'Lexend';
+      font-style: normal;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 24px;
+      background-color: ${theme.inputBackgroundColor};
+      color: ${theme.textColor2};
+    }
+  }
+
+  .search-input:hover {
+    border-color: ${theme.inputBackgroundColor};
+  }
+
+  .ant-input-affix-wrapper-focused.search-input {
+    box-shadow: none;
+  }
+
 
   .home-tab-contents {
     flex: 1;
@@ -502,9 +572,121 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     display: flex;
   }
 
+  .action-button-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-right: 24px;
+
+    font-family: 'Lexend';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 26px;
+    text-align: center;
+    color: #7B8098;
+  }
+
+  .balance-title{
+    font-family: 'Lexend';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 28px;
+    color: #7B8098;
+    display: flex;
+    align-items: center;
+
+    .eye-icon{
+      width: 15px;
+      margin-left: 4px;
+    }
+  }
+
+  .balance-container{
+    display: flex;
+    flex-direction: column;
+
+    .balance-detail-container{
+      display: flex;
+      align-items: center;
+
+      .balance-detail__balance-content{
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .change-container{
+      display: flex;
+      align-items: center;
+
+      .hide-block{
+        width: 120px;
+        height: 32px;
+        background-color: #1a2256;
+        border-radius: 8px;
+      }
+
+      .change-detail__content{
+        font-family: 'Lexend';
+        font-style: normal;
+        font-weight: 500;
+        font-size: 20px;
+        line-height: 32px;
+        color: #26A975;
+      }
+
+      .change-detail__content.negative{
+        color: #B5131C;
+      }
+
+      .change-detail__time{
+        margin-left: 12px;
+        font-family: 'Lexend';
+        font-style: normal;
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 26px;
+        color: #7B8098;
+      }
+    }
+  }
+
+  .percentage{
+    height: 40px;
+    background: #26A975;
+    border-radius: 8px;
+    font-family: Lexend;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 28px;
+    text-align: center;
+    color: rgb(255, 255, 255);
+    margin-left: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 16px;
+    .icon{
+      margin-right: 8px;
+      width: 16px;
+    }
+  }
+
+  .percentage.negative{
+    color: #B5131C;
+  }
+
   .action-button-wrapper {
     opacity: 1;
     margin-right: 10px;
+  }
+
+  .action-button-container:last-child {
+    margin-right: 0;
   }
 
   .action-button-wrapper:last-child {
@@ -514,7 +696,6 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
   .home__account-qr-modal .subwallet-modal {
     max-width: 460px;
   }
-
 
   .home__back-btn {
     color: ${theme.buttonTextColor2};

@@ -1,6 +1,8 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import '@polkadot/extension-koni-ui/styles/index.scss';
+
 import type { AccountJson, AccountsContext, AuthorizeRequest, MetadataRequest, SigningRequest } from '@polkadot/extension-base/background/types';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 
@@ -14,6 +16,7 @@ import { PHISHING_PAGE_REDIRECT } from '@polkadot/extension-base/defaults';
 import { canDerive } from '@polkadot/extension-base/utils';
 import LoadingContainer from '@polkadot/extension-koni-ui/components/LoadingContainer';
 import useSetupStore from '@polkadot/extension-koni-ui/hooks/store/useSetupStore';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import TransferNftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/transfer/TransferNftContainer';
 import ImportLedger from '@polkadot/extension-koni-ui/Popup/ImportLedger';
 import Donate from '@polkadot/extension-koni-ui/Popup/Sending/old/Donate';
@@ -22,10 +25,11 @@ import Settings from '@polkadot/extension-koni-ui/Popup/Settings';
 import GeneralSetting from '@polkadot/extension-koni-ui/Popup/Settings/GeneralSetting';
 import NetworkEdit from '@polkadot/extension-koni-ui/Popup/Settings/NetworkEdit';
 import Networks from '@polkadot/extension-koni-ui/Popup/Settings/Networks';
+import { waitForElement } from '@polkadot/extension-koni-ui/util/dom';
 import uiSettings from '@polkadot/ui-settings';
 
 import { ErrorBoundary } from '../components';
-import { AccountContext, ActionContext, AuthorizeReqContext, MediaContext, MetadataReqContext, SettingsContext, SigningReqContext } from '../components/contexts';
+import { AccountContext, ActionContext, AuthorizeReqContext, MediaContext, MetadataReqContext, SearchContext, SettingsContext, SigningReqContext } from '../components/contexts';
 import ToastProvider from '../components/Toast/ToastProvider';
 import { saveCurrentAccountAddress, subscribeAccountsWithCurrentAddress, subscribeAuthorizeRequestsV2, subscribeMetadataRequests, subscribeSigningRequests } from '../messaging';
 import { store } from '../stores';
@@ -97,9 +101,11 @@ export default function Popup (): React.ReactElement {
   const [mediaAllowed, setMediaAllowed] = useState(false);
   const [metaRequests, setMetaRequests] = useState<null | MetadataRequest[]>(null);
   const [signRequests, setSignRequests] = useState<null | SigningRequest[]>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isWelcomeDone, setWelcomeDone] = useState(false);
   const [settingsCtx, setSettingsCtx] = useState<SettingsStruct>(startSettings);
   const browser = Bowser.getParser(window.navigator.userAgent);
+  const isPopup = useIsPopup();
 
   if (!!browser.getBrowser() && !!browser.getBrowser().name && !!browser.getOS().name) {
     window.localStorage.setItem('browserInfo', browser.getBrowser().name as string);
@@ -177,6 +183,18 @@ export default function Popup (): React.ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const handlerUpdateRootClassName = (root: Element) => {
+      if (!isPopup) {
+        root.classList.add('fullWidth');
+      } else {
+        root.classList.remove('fullWidth');
+      }
+    };
+
+    waitForElement('#root', handlerUpdateRootClassName);
+  }, [isPopup]);
+
   useSetupStore();
 
   useEffect((): void => {
@@ -206,43 +224,66 @@ export default function Popup (): React.ReactElement {
   return (
     <LoadingContainer>{accounts && authRequests && metaRequests && signRequests && (
       <Provider store={store}>
-        <ActionContext.Provider value={_onAction}><div id='tooltips' />
+        <ActionContext.Provider value={_onAction}>
+          <div id='tooltips' />
           <SettingsContext.Provider value={settingsCtx}>
             <AccountContext.Provider value={accountCtx}>
               <AuthorizeReqContext.Provider value={authRequests}>
                 <MediaContext.Provider value={cameraOn && mediaAllowed}>
                   <MetadataReqContext.Provider value={metaRequests}>
                     <SigningReqContext.Provider value={signRequests}>
-                      <ToastProvider>
-                        <Switch>
-                          <Route path='/auth-list'>{wrapWithErrorBoundary(<AuthList />, 'auth-list')}</Route>
-                          <Route path='/account/create'>{wrapWithErrorBoundary(<CreateAccount />, 'account-creation')}</Route>
-                          <Route path='/account/forget/:address'>{wrapWithErrorBoundary(<Forget />, 'forget-address')}</Route>
-                          <Route path='/account/export/:address'>{wrapWithErrorBoundary(<Export />, 'export-address')}</Route>
-                          {/* <Route path='/account/export-all'>{wrapWithErrorBoundary(<ExportAll />, 'export-all-address')}</Route> */}
-                          <Route path='/account/import-ledger'>{wrapWithErrorBoundary(<ImportLedger />, 'import-ledger')}</Route>
-                          <Route path='/account/import-qr'>{wrapWithErrorBoundary(<ImportQr />, 'import-qr')}</Route>
-                          <Route path='/account/import-seed'>{wrapWithErrorBoundary(<ImportSeed />, 'import-seed')}</Route>
-                          <Route path='/account/import-metamask-private-key'>{wrapWithErrorBoundary(<ImportMetamaskPrivateKey />, 'import-metamask-private-key')}</Route>
-                          <Route path='/account/restore-json'>{wrapWithErrorBoundary(<RestoreJson />, 'restore-json')}</Route>
-                          <Route path='/account/derive/:address/locked'>{wrapWithErrorBoundary(<Derive isLocked />, 'derived-address-locked')}</Route>
-                          <Route path='/account/derive/:address'>{wrapWithErrorBoundary(<Derive />, 'derive-address')}</Route>
-                          <Route path='/account/settings'>{wrapWithErrorBoundary(<Settings />, 'account-settings')}</Route>
-                          <Route path='/account/general-setting'>{wrapWithErrorBoundary(<GeneralSetting />, 'account-general-settings')}</Route>
-                          <Route path='/account/networks'>{wrapWithErrorBoundary(<Networks />, 'account-networks')}</Route>
-                          <Route path='/account/network-edit'>{wrapWithErrorBoundary(<NetworkEdit />, 'account-network-edit')}</Route>
-                          <Route path='/account/send-fund'>{wrapWithErrorBoundary(<SendFund />, 'send-fund')}</Route>
-                          <Route path='/account/donate'>{wrapWithErrorBoundary(<Donate />, 'donate')}</Route>
-                          <Route path='/account/send-nft'>{wrapWithErrorBoundary(<TransferNftContainer />, 'send-nft')}</Route>
-                          <Route path={`${PHISHING_PAGE_REDIRECT}/:website`}>{wrapWithErrorBoundary(<PhishingDetected />, 'phishing-page-redirect')}</Route>
-                          <Route
-                            exact
-                            path='/'
-                          >
-                            {Root}
-                          </Route>
-                        </Switch>
-                      </ToastProvider>
+                      <SearchContext.Provider
+                        value={{
+                          query: searchQuery,
+                          setQuery: setSearchQuery
+                        }}
+                      >
+                        <ToastProvider>
+                          <Switch>
+                            <Route path='/auth-list'>{wrapWithErrorBoundary(<AuthList />, 'auth-list')}</Route>
+                            <Route path='/account/create'>{wrapWithErrorBoundary(
+                              <CreateAccount />, 'account-creation')}</Route>
+                            <Route path='/account/forget/:address'>{wrapWithErrorBoundary(
+                              <Forget />, 'forget-address')}</Route>
+                            <Route path='/account/export/:address'>{wrapWithErrorBoundary(
+                              <Export />, 'export-address')}</Route>
+                            {/* <Route path='/account/export-all'>{wrapWithErrorBoundary(<ExportAll />, 'export-all-address')}</Route> */}
+                            <Route path='/account/import-ledger'>{wrapWithErrorBoundary(
+                              <ImportLedger />, 'import-ledger')}</Route>
+                            <Route path='/account/import-qr'>{wrapWithErrorBoundary(<ImportQr />, 'import-qr')}</Route>
+                            <Route path='/account/import-seed'>{wrapWithErrorBoundary(
+                              <ImportSeed />, 'import-seed')}</Route>
+                            <Route path='/account/import-metamask-private-key'>{wrapWithErrorBoundary(
+                              <ImportMetamaskPrivateKey />, 'import-metamask-private-key')}</Route>
+                            <Route path='/account/restore-json'>{wrapWithErrorBoundary(
+                              <RestoreJson />, 'restore-json')}</Route>
+                            <Route path='/account/derive/:address/locked'>{wrapWithErrorBoundary(
+                              <Derive isLocked />, 'derived-address-locked')}</Route>
+                            <Route path='/account/derive/:address'>{wrapWithErrorBoundary(
+                              <Derive />, 'derive-address')}</Route>
+                            <Route path='/account/settings'>{wrapWithErrorBoundary(
+                              <Settings />, 'account-settings')}</Route>
+                            <Route path='/account/general-setting'>{wrapWithErrorBoundary(
+                              <GeneralSetting />, 'account-general-settings')}</Route>
+                            <Route path='/account/networks'>{wrapWithErrorBoundary(
+                              <Networks />, 'account-networks')}</Route>
+                            <Route path='/account/network-edit'>{wrapWithErrorBoundary(
+                              <NetworkEdit />, 'account-network-edit')}</Route>
+                            <Route path='/account/send-fund'>{wrapWithErrorBoundary(<SendFund />, 'send-fund')}</Route>
+                            <Route path='/account/donate'>{wrapWithErrorBoundary(<Donate />, 'donate')}</Route>
+                            <Route path='/account/send-nft'>{wrapWithErrorBoundary(
+                              <TransferNftContainer />, 'send-nft')}</Route>
+                            <Route path={`${PHISHING_PAGE_REDIRECT}/:website`}>{wrapWithErrorBoundary(
+                              <PhishingDetected />, 'phishing-page-redirect')}</Route>
+                            <Route
+                              exact
+                              path='/'
+                            >
+                              {Root}
+                            </Route>
+                          </Switch>
+                        </ToastProvider>
+                      </SearchContext.Provider>
                     </SigningReqContext.Provider>
                   </MetadataReqContext.Provider>
                 </MediaContext.Provider>

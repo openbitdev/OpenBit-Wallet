@@ -48,6 +48,10 @@ module.exports = (entry, alias = {}) => ({
             }
           }
         ]
+      },
+      {
+        test: /\.(sass|less|css|scss)$/,
+        use: ['style-loader', 'css-loader', 'sass-loader']
       }
     ]
   },

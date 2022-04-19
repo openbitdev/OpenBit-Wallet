@@ -64,6 +64,11 @@ export type AccountsContext = {
   master?: AccountJson;
 }
 
+export type SearchContextData = {
+  query: string,
+  setQuery: (query: string) => void
+}
+
 export type CurrentAccContext = {
   currentAccount: AccountJson | null;
   setCurrentAccount: (account: AccountJson | null) => void;
