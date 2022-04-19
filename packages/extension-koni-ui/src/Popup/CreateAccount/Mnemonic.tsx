@@ -1,13 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountInfoEl, ButtonArea, Checkbox, MnemonicSeed, NextStepButton } from '@koniverse/extension-koni-ui/components';
+import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@koniverse/extension-koni-ui/Popup/CreateAccount/index';
+import { Theme, ThemeProps } from '@koniverse/extension-koni-ui/types';
 import { saveAs } from 'file-saver';
 import React, { useCallback, useContext, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
-import { AccountInfoEl, ButtonArea, Checkbox, MnemonicSeed, NextStepButton } from '@polkadot/extension-koni-ui/components';
-import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@polkadot/extension-koni-ui/Popup/CreateAccount/index';
-import { Theme, ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { KeypairType } from '@polkadot/util-crypto/types';
 
 import useToast from '../../hooks/useToast';

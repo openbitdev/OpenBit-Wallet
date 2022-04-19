@@ -1,10 +1,11 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CrowdloanParaState } from '@polkadot/extension-base/background/KoniTypes';
-import { ethereumChains } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
-import { RMRK_PINATA_SERVER } from '@polkadot/extension-koni-base/api/nft/config';
-import { ALL_ACCOUNT_KEY } from '@polkadot/extension-koni-base/constants';
+import { ethereumChains } from '@koniverse/extension-koni-base/api/dotsama/api-helper';
+import { RMRK_PINATA_SERVER } from '@koniverse/extension-koni-base/api/nft/config';
+import { CrowdloanParaState } from '@koniverse/extension-koni-base/background/types';
+import { ALL_ACCOUNT_KEY } from '@koniverse/extension-koni-base/constants';
+
 import { BN, hexToU8a, isHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress, ethereumEncode, isEthereumAddress } from '@polkadot/util-crypto';
 

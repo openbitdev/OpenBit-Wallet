@@ -1,3 +1,3 @@
-# @polkadot/extension-koni-ui
+# @koniverse/extension-koni-ui
 
 UI for the `@polkadot/extension`

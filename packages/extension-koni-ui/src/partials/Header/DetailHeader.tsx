@@ -1,27 +1,26 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountJson } from '@koniverse/extension-base/background/types';
+import cloneLogo from '@koniverse/extension-koni-ui/assets/clone.svg';
+import moreButtonDark from '@koniverse/extension-koni-ui/assets/dots-three-vertical-dark.svg';
+import moreButtonLight from '@koniverse/extension-koni-ui/assets/dots-three-vertical-light.svg';
+import EyeIcon from '@koniverse/extension-koni-ui/assets/icon/eye.svg';
+import EyeSlashIcon from '@koniverse/extension-koni-ui/assets/icon/eye-slash.svg';
+import Tooltip from '@koniverse/extension-koni-ui/components/Tooltip';
+import useOutsideClick from '@koniverse/extension-koni-ui/hooks/useOutsideClick';
+import useToast from '@koniverse/extension-koni-ui/hooks/useToast';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { editAccount } from '@koniverse/extension-koni-ui/messaging';
+import AccountAction from '@koniverse/extension-koni-ui/partials/AccountAction';
+import HeaderEditName from '@koniverse/extension-koni-ui/partials/HeaderEditName';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { isAccountAll } from '@koniverse/extension-koni-ui/util';
 import React, { useCallback, useRef, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
-
-import { AccountJson } from '@polkadot/extension-base/background/types';
-import cloneLogo from '@polkadot/extension-koni-ui/assets/clone.svg';
-import moreButtonDark from '@polkadot/extension-koni-ui/assets/dots-three-vertical-dark.svg';
-import moreButtonLight from '@polkadot/extension-koni-ui/assets/dots-three-vertical-light.svg';
-import EyeIcon from '@polkadot/extension-koni-ui/assets/icon/eye.svg';
-import EyeSlashIcon from '@polkadot/extension-koni-ui/assets/icon/eye-slash.svg';
-import Tooltip from '@polkadot/extension-koni-ui/components/Tooltip';
-import useOutsideClick from '@polkadot/extension-koni-ui/hooks/useOutsideClick';
-import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { editAccount } from '@polkadot/extension-koni-ui/messaging';
-import AccountAction from '@polkadot/extension-koni-ui/partials/AccountAction';
-import HeaderEditName from '@polkadot/extension-koni-ui/partials/HeaderEditName';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { isAccountAll } from '@polkadot/extension-koni-ui/util';
 
 interface Props extends ThemeProps {
   className?: string,

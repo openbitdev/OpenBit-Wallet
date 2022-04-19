@@ -1,9 +1,9 @@
 // Copyright 2019-2022 @polkadot/extension authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import '@polkadot/extension-mocks/chrome';
+import '@koniverse/extension-mocks/chrome';
 
-import type { ResponseSigning } from '@polkadot/extension-base/background/types';
+import type { ResponseSigning } from '@koniverse/extension-base/background/types';
 import type { MetadataDef } from '@polkadot/extension-inject/types';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import type { ExtDef } from '@polkadot/types/extrinsic/signedExtensions/types';

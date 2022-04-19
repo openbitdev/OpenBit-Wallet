@@ -1,21 +1,20 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import cloneIcon from '@koniverse/extension-koni-ui/assets/clone.svg';
+import receivedIcon from '@koniverse/extension-koni-ui/assets/receive-icon.svg';
+import { BalanceVal } from '@koniverse/extension-koni-ui/components/balance';
+import useToast from '@koniverse/extension-koni-ui/hooks/useToast';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import ChainBalanceItemRow from '@koniverse/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItemRow';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { isAccountAll, toShort } from '@koniverse/extension-koni-ui/util';
+import { waitForElement } from '@koniverse/extension-koni-ui/util/dom';
+import { AccountInfoByNetwork, BalanceInfo } from '@koniverse/extension-koni-ui/util/types';
 import CN from 'classnames';
 import React, { useCallback } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import styled from 'styled-components';
-
-import cloneIcon from '@polkadot/extension-koni-ui/assets/clone.svg';
-import receivedIcon from '@polkadot/extension-koni-ui/assets/receive-icon.svg';
-import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
-import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import ChainBalanceItemRow from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItemRow';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { isAccountAll, toShort } from '@polkadot/extension-koni-ui/util';
-import { waitForElement } from '@polkadot/extension-koni-ui/util/dom';
-import { AccountInfoByNetwork, BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 import { Loading } from '../../../../components';
 

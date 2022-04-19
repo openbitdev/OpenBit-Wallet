@@ -5,9 +5,9 @@ import type { MetadataDef, ProviderMeta } from '@polkadot/extension-inject/types
 import type { JsonRpcResponse, ProviderInterface, ProviderInterfaceCallback } from '@polkadot/rpc-provider/types';
 import type { AccountJson, AuthorizeRequest, MetadataRequest, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning, SigningRequest } from '../types';
 
+import { getId } from '@koniverse/extension-base/utils/getId';
 import { BehaviorSubject } from 'rxjs';
 
-import { getId } from '@polkadot/extension-base/utils/getId';
 import { addMetadata, knownMetadata } from '@polkadot/extension-chains';
 import { knownGenesis } from '@polkadot/networks/defaults';
 import settings from '@polkadot/ui-settings';

@@ -1,11 +1,10 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AccountWithChildren } from '@polkadot/extension-base/background/types';
+import type { AccountWithChildren } from '@koniverse/extension-base/background/types';
 
+import Account from '@koniverse/extension-koni-ui/Popup/Accounts/Account';
 import React from 'react';
-
-import Account from '@polkadot/extension-koni-ui/Popup/Accounts/Account';
 
 interface Props extends AccountWithChildren {
   parentName?: string;

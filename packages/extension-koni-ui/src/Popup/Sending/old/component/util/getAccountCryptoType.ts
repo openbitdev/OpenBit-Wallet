@@ -1,10 +1,10 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 // import { keyring } from '@polkadot/ui-keyring';
 
-import { BackgroundWindow } from '@polkadot/extension-base/background/KoniTypes';
-import { AccountIdIsh } from '@polkadot/extension-koni-ui/util/types';
+import { BackgroundWindow } from '@koniverse/extension-koni-base/background/types';
+import { AccountIdIsh } from '@koniverse/extension-koni-ui/util/types';
 
 const bWindow = chrome.extension.getBackgroundPage() as BackgroundWindow;
 const { keyring } = bWindow.pdotApi;

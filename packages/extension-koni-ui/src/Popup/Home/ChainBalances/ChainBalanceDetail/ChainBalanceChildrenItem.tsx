@@ -1,13 +1,12 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BalanceVal } from '@koniverse/extension-koni-ui/components/balance';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { getLogoByNetworkKey } from '@koniverse/extension-koni-ui/util';
+import { AccountInfoByNetwork, BalanceSubInfo } from '@koniverse/extension-koni-ui/util/types';
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
-
-import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { getLogoByNetworkKey } from '@polkadot/extension-koni-ui/util';
-import { AccountInfoByNetwork, BalanceSubInfo } from '@polkadot/extension-koni-ui/util/types';
 
 import { Loading } from '../../../../components';
 

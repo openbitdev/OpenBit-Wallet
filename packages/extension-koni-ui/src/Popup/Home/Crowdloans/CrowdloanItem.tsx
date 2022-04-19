@@ -1,15 +1,14 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { CrowdloanParaState } from '@koniverse/extension-koni-base/background/types';
+import { BalanceVal } from '@koniverse/extension-koni-ui/components/balance';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { CrowdloanItemType } from '@koniverse/extension-koni-ui/Popup/Home/types';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React from 'react';
 import { TFunction } from 'react-i18next';
 import styled from 'styled-components';
-
-import { CrowdloanParaState } from '@polkadot/extension-base/background/KoniTypes';
-import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { CrowdloanItemType } from '@polkadot/extension-koni-ui/Popup/Home/types';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
 interface Props extends ThemeProps {
   className?: string;

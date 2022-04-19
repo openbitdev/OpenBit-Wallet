@@ -1,12 +1,11 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { CrowdloanParaState, StakingItem, StakingRewardItem } from '@koniverse/extension-koni-base/background/types';
+import { _NftCollection } from '@koniverse/extension-koni-ui/Popup/Home/Nfts/types';
+import { BalanceValueType } from '@koniverse/extension-koni-ui/util';
+import { BalanceInfo } from '@koniverse/extension-koni-ui/util/types';
 import BigN from 'bignumber.js';
-
-import { CrowdloanParaState, StakingItem, StakingRewardItem } from '@polkadot/extension-base/background/KoniTypes';
-import { _NftCollection } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
-import { BalanceValueType } from '@polkadot/extension-koni-ui/util';
-import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 export type CrowdloanContributeValueType = {
   paraState?: CrowdloanParaState;

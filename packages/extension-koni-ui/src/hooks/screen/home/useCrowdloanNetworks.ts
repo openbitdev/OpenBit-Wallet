@@ -1,10 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { NetWorkMetadataDef } from '@koniverse/extension-koni-base/background/types';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
 import { useSelector } from 'react-redux';
-
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
 
 function getCrowdloadNetworksMap (source: Record<string, NetWorkMetadataDef>): Record<string, string[]> {
   const result: Record<string, string[]> = {};

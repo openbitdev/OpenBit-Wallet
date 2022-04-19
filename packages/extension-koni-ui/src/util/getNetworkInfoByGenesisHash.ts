@@ -1,8 +1,8 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetWorkInfo } from '@polkadot/extension-base/background/KoniTypes';
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import { NetWorkInfo } from '@koniverse/extension-koni-base/background/types';
 
 export default function getNetworkInfoByGenesisHash (hash?: string | null): NetWorkInfo | null {
   if (!hash) {

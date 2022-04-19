@@ -1,13 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni-base authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { options } from '@acala-network/api';
+import { ethereumChains, typesBundle, typesChain } from '@koniverse/extension-koni-base/api/dotsama/api-helper';
+import { ApiProps, ApiState } from '@koniverse/extension-koni-base/background/types';
+import { DOTSAMA_AUTO_CONNECT_MS, DOTSAMA_MAX_CONTINUE_RETRY } from '@koniverse/extension-koni-base/constants';
+import { inJestTest } from '@koniverse/extension-koni-base/utils/utils';
 
 import { ApiPromise, HttpProvider, WsProvider } from '@polkadot/api';
-import { ApiProps, ApiState } from '@polkadot/extension-base/background/KoniTypes';
-import { ethereumChains, typesBundle, typesChain } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
-import { DOTSAMA_AUTO_CONNECT_MS, DOTSAMA_MAX_CONTINUE_RETRY } from '@polkadot/extension-koni-base/constants';
-import { inJestTest } from '@polkadot/extension-koni-base/utils/utils';
 import { TypeRegistry } from '@polkadot/types/create';
 import { ChainProperties, ChainType } from '@polkadot/types/interfaces';
 import { Registry } from '@polkadot/types/types';

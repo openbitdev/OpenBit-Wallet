@@ -1,15 +1,14 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import confirmIcon from '@koniverse/extension-koni-ui/assets/confirmIcon.png';
+import { Button, Modal } from '@koniverse/extension-koni-ui/components';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React from 'react';
 import styled from 'styled-components';
-
-import confirmIcon from '@polkadot/extension-koni-ui/assets/confirmIcon.png';
-import { Button, Modal } from '@polkadot/extension-koni-ui/components';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
 interface Props extends ThemeProps {
   className?: string;

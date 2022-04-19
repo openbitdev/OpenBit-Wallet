@@ -1,19 +1,18 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { ChainRegistry, TransactionHistoryItemType } from '@koniverse/extension-koni-base/background/types';
+import arrowReceived from '@koniverse/extension-koni-ui/assets/arrow-received.svg';
+import arrowSend from '@koniverse/extension-koni-ui/assets/arrow-send.svg';
+import arrowSendError from '@koniverse/extension-koni-ui/assets/arrow-send-error.svg';
+import { BalanceVal } from '@koniverse/extension-koni-ui/components/balance';
+import Tooltip from '@koniverse/extension-koni-ui/components/Tooltip';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { getBalances, toShort } from '@koniverse/extension-koni-ui/util';
+import { customFormatDate } from '@koniverse/extension-koni-ui/util/customFormatDate';
 import React, { useState } from 'react';
 import styled from 'styled-components';
-
-import { ChainRegistry, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
-import arrowReceived from '@polkadot/extension-koni-ui/assets/arrow-received.svg';
-import arrowSend from '@polkadot/extension-koni-ui/assets/arrow-send.svg';
-import arrowSendError from '@polkadot/extension-koni-ui/assets/arrow-send-error.svg';
-import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
-import Tooltip from '@polkadot/extension-koni-ui/components/Tooltip';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { getBalances, toShort } from '@polkadot/extension-koni-ui/util';
-import { customFormatDate } from '@polkadot/extension-koni-ui/util/customFormatDate';
 
 interface Props extends ThemeProps {
   className?: string;

@@ -1,13 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { IconTheme } from '@polkadot/react-identicon/types';
 
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { getLogoByGenesisHash } from '@koniverse/extension-koni-ui/util/logoByGenesisHashMap';
 import React from 'react';
 import styled from 'styled-components';
 
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { getLogoByGenesisHash } from '@polkadot/extension-koni-ui/util/logoByGenesisHashMap';
 import Icon from '@polkadot/react-identicon';
 
 interface Props {

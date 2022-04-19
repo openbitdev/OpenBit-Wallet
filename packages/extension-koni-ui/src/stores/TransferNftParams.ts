@@ -1,9 +1,8 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { TransferNftParams } from '@koniverse/extension-koni-ui/stores/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-import { TransferNftParams } from '@polkadot/extension-koni-ui/stores/types';
 
 const initialState = {
   nftItem: {}

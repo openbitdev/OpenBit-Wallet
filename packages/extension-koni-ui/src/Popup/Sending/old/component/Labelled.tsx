@@ -1,10 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React from 'react';
 import styled from 'styled-components';
-
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
 import LabelHelp from './LabelHelp';
 

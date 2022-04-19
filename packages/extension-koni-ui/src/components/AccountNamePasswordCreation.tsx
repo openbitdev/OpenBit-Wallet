@@ -1,12 +1,12 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import Password from '@koniverse/extension-koni-ui/partials/Password';
+import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@koniverse/extension-koni-ui/Popup/CreateAccount';
+import { Theme, ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useContext, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
-import Password from '@polkadot/extension-koni-ui/partials/Password';
-import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@polkadot/extension-koni-ui/Popup/CreateAccount';
-import { Theme, ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { KeypairType } from '@polkadot/util-crypto/types';
 
 import { AccountInfoEl, ButtonArea, NextStepButton } from '../components';

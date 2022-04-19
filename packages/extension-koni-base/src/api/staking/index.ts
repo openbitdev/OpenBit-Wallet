@@ -1,10 +1,10 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { APIItemState, ApiProps, NetWorkInfo, StakingItem } from '@polkadot/extension-base/background/KoniTypes';
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
-import { IGNORE_GET_SUBSTRATE_FEATURES_LIST } from '@polkadot/extension-koni-base/constants';
-import { categoryAddresses, toUnit } from '@polkadot/extension-koni-base/utils/utils';
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import { APIItemState, ApiProps, NetWorkInfo, StakingItem } from '@koniverse/extension-koni-base/background/types';
+import { IGNORE_GET_SUBSTRATE_FEATURES_LIST } from '@koniverse/extension-koni-base/constants';
+import { categoryAddresses, toUnit } from '@koniverse/extension-koni-base/utils/utils';
 
 import { ethereumChains } from '../dotsama/api-helper';
 

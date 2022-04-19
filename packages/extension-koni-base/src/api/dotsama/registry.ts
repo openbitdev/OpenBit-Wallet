@@ -1,11 +1,12 @@
-// Copyright 2019-2022 @polkadot/extension-koni-base authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { moonbeamBaseChains } from '@koniverse/extension-koni-base/api/dotsama/api-helper';
+import { PREDEFINE_TOKEN_DATA_MAP } from '@koniverse/extension-koni-base/api/predefineChainTokens';
+import { dotSamaAPIMap, state } from '@koniverse/extension-koni-base/background/handlers';
+import { ChainRegistry, TokenInfo } from '@koniverse/extension-koni-base/background/types';
+
 import { ApiPromise } from '@polkadot/api';
-import { ChainRegistry, TokenInfo } from '@polkadot/extension-base/background/KoniTypes';
-import { moonbeamBaseChains } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
-import { PREDEFINE_TOKEN_DATA_MAP } from '@polkadot/extension-koni-base/api/predefineChainTokens';
-import { dotSamaAPIMap, state } from '@polkadot/extension-koni-base/background/handlers';
 import { BN, bnToHex } from '@polkadot/util';
 
 const cacheRegistryMap: Record<string, ChainRegistry> = {};

@@ -1,45 +1,44 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { AccountJson } from '@koniverse/extension-base/background/types';
+import { ChainRegistry, CurrentAccountInfo, CurrentNetworkInfo, NftCollection as _NftCollection, NftItem as _NftItem, TransactionHistoryItemType } from '@koniverse/extension-koni-base/background/types';
+import crowdloans from '@koniverse/extension-koni-ui/assets/home-tab-icon/crowdloans.svg';
+import crowdloansActive from '@koniverse/extension-koni-ui/assets/home-tab-icon/crowdloans-active.svg';
+import crypto from '@koniverse/extension-koni-ui/assets/home-tab-icon/crypto.svg';
+import cryptoActive from '@koniverse/extension-koni-ui/assets/home-tab-icon/crypto-active.svg';
+import nfts from '@koniverse/extension-koni-ui/assets/home-tab-icon/nfts.svg';
+import nftsActive from '@koniverse/extension-koni-ui/assets/home-tab-icon/nfts-active.svg';
+import staking from '@koniverse/extension-koni-ui/assets/home-tab-icon/staking.svg';
+import stakingActive from '@koniverse/extension-koni-ui/assets/home-tab-icon/staking-active.svg';
+import transfers from '@koniverse/extension-koni-ui/assets/home-tab-icon/transfers.svg';
+import transfersActive from '@koniverse/extension-koni-ui/assets/home-tab-icon/transfers-active.svg';
+import { AccountContext, AccountQrModal, Link } from '@koniverse/extension-koni-ui/components';
+import { BalanceVal } from '@koniverse/extension-koni-ui/components/balance';
+import Tooltip from '@koniverse/extension-koni-ui/components/Tooltip';
+import useAccountBalance from '@koniverse/extension-koni-ui/hooks/screen/home/useAccountBalance';
+import useCrowdloanNetworks from '@koniverse/extension-koni-ui/hooks/screen/home/useCrowdloanNetworks';
+import useFetchNft from '@koniverse/extension-koni-ui/hooks/screen/home/useFetchNft';
+import useFetchStaking from '@koniverse/extension-koni-ui/hooks/screen/home/useFetchStaking';
+import useShowedNetworks from '@koniverse/extension-koni-ui/hooks/screen/home/useShowedNetworks';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { saveCurrentAccountAddress, triggerAccountsSubscription } from '@koniverse/extension-koni-ui/messaging';
+import { Header } from '@koniverse/extension-koni-ui/partials';
+import AddAccount from '@koniverse/extension-koni-ui/Popup/Accounts/AddAccount';
+import NftContainer from '@koniverse/extension-koni-ui/Popup/Home/Nfts/render/NftContainer';
+import StakingContainer from '@koniverse/extension-koni-ui/Popup/Home/Staking/StakingContainer';
+import TabHeaders from '@koniverse/extension-koni-ui/Popup/Home/Tabs/TabHeaders';
+import { TabHeaderItemType } from '@koniverse/extension-koni-ui/Popup/Home/types';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { BN_ZERO, isAccountAll, NFT_DEFAULT_GRID_SIZE, NFT_GRID_HEIGHT_THRESHOLD, NFT_HEADER_HEIGHT, NFT_PER_ROW, NFT_PREVIEW_HEIGHT } from '@koniverse/extension-koni-ui/util';
 import BigN from 'bignumber.js';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { TFunction } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
-
-import { ChainRegistry, CurrentAccountInfo, CurrentNetworkInfo, NftCollection as _NftCollection, NftItem as _NftItem, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
-import { AccountJson } from '@polkadot/extension-base/background/types';
-import crowdloans from '@polkadot/extension-koni-ui/assets/home-tab-icon/crowdloans.svg';
-import crowdloansActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/crowdloans-active.svg';
-import crypto from '@polkadot/extension-koni-ui/assets/home-tab-icon/crypto.svg';
-import cryptoActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/crypto-active.svg';
-import nfts from '@polkadot/extension-koni-ui/assets/home-tab-icon/nfts.svg';
-import nftsActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/nfts-active.svg';
-import staking from '@polkadot/extension-koni-ui/assets/home-tab-icon/staking.svg';
-import stakingActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/staking-active.svg';
-import transfers from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers.svg';
-import transfersActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers-active.svg';
-import { AccountContext, AccountQrModal, Link } from '@polkadot/extension-koni-ui/components';
-import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
-import Tooltip from '@polkadot/extension-koni-ui/components/Tooltip';
-import useAccountBalance from '@polkadot/extension-koni-ui/hooks/screen/home/useAccountBalance';
-import useCrowdloanNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useCrowdloanNetworks';
-import useFetchNft from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchNft';
-import useFetchStaking from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchStaking';
-import useShowedNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useShowedNetworks';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { saveCurrentAccountAddress, triggerAccountsSubscription } from '@polkadot/extension-koni-ui/messaging';
-import { Header } from '@polkadot/extension-koni-ui/partials';
-import AddAccount from '@polkadot/extension-koni-ui/Popup/Accounts/AddAccount';
-import NftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftContainer';
-import StakingContainer from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingContainer';
-import TabHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TabHeaders';
-import { TabHeaderItemType } from '@polkadot/extension-koni-ui/Popup/Home/types';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { BN_ZERO, isAccountAll, NFT_DEFAULT_GRID_SIZE, NFT_GRID_HEIGHT_THRESHOLD, NFT_HEADER_HEIGHT, NFT_PER_ROW, NFT_PREVIEW_HEIGHT } from '@polkadot/extension-koni-ui/util';
 
 import buyIcon from '../../assets/buy-icon.svg';
 import donateIcon from '../../assets/donate-icon.svg';

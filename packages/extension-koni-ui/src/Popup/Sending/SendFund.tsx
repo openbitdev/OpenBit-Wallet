@@ -1,19 +1,18 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import Button from '@koniverse/extension-koni-ui/components/Button';
+import InputAddress from '@koniverse/extension-koni-ui/components/InputAddress';
+import { useTranslation } from '@koniverse/extension-koni-ui/components/translate';
+import Header from '@koniverse/extension-koni-ui/partials/Header';
+import AuthTransaction from '@koniverse/extension-koni-ui/Popup/Sending/AuthTransaction';
+import SendFundResult from '@koniverse/extension-koni-ui/Popup/Sending/SendFundResult';
+import Available from '@koniverse/extension-koni-ui/query/Available';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
+import { ThemeProps, TxResult } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
-
-import Button from '@polkadot/extension-koni-ui/components/Button';
-import InputAddress from '@polkadot/extension-koni-ui/components/InputAddress';
-import { useTranslation } from '@polkadot/extension-koni-ui/components/translate';
-import Header from '@polkadot/extension-koni-ui/partials/Header';
-import AuthTransaction from '@polkadot/extension-koni-ui/Popup/Sending/AuthTransaction';
-import SendFundResult from '@polkadot/extension-koni-ui/Popup/Sending/SendFundResult';
-import Available from '@polkadot/extension-koni-ui/query/Available';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
-import { ThemeProps, TxResult } from '@polkadot/extension-koni-ui/types';
 
 interface Props extends ThemeProps {
   className?: string,

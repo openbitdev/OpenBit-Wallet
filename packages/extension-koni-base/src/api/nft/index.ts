@@ -1,19 +1,19 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ApiProps, NftCollection, NftItem } from '@polkadot/extension-base/background/KoniTypes';
-import { ethereumChains } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
-import { AcalaNftApi } from '@polkadot/extension-koni-base/api/nft/acala_nft';
-import { BitCountryNftApi } from '@polkadot/extension-koni-base/api/nft/bit.country';
-import { SUPPORTED_NFT_NETWORKS } from '@polkadot/extension-koni-base/api/nft/config';
-import { Web3NftApi } from '@polkadot/extension-koni-base/api/nft/eth_nft';
-import { KaruraNftApi } from '@polkadot/extension-koni-base/api/nft/karura_nft';
-import { BaseNftApi } from '@polkadot/extension-koni-base/api/nft/nft';
-import { RmrkNftApi } from '@polkadot/extension-koni-base/api/nft/rmrk_nft';
-import StatemineNftApi from '@polkadot/extension-koni-base/api/nft/statemine_nft';
-import UniqueNftApi from '@polkadot/extension-koni-base/api/nft/unique_nft';
-import { state } from '@polkadot/extension-koni-base/background/handlers';
-import { categoryAddresses } from '@polkadot/extension-koni-base/utils/utils';
+import { ethereumChains } from '@koniverse/extension-koni-base/api/dotsama/api-helper';
+import { AcalaNftApi } from '@koniverse/extension-koni-base/api/nft/acala_nft';
+import { BitCountryNftApi } from '@koniverse/extension-koni-base/api/nft/bit.country';
+import { SUPPORTED_NFT_NETWORKS } from '@koniverse/extension-koni-base/api/nft/config';
+import { Web3NftApi } from '@koniverse/extension-koni-base/api/nft/eth_nft';
+import { KaruraNftApi } from '@koniverse/extension-koni-base/api/nft/karura_nft';
+import { BaseNftApi } from '@koniverse/extension-koni-base/api/nft/nft';
+import { RmrkNftApi } from '@koniverse/extension-koni-base/api/nft/rmrk_nft';
+import StatemineNftApi from '@koniverse/extension-koni-base/api/nft/statemine_nft';
+import UniqueNftApi from '@koniverse/extension-koni-base/api/nft/unique_nft';
+import { state } from '@koniverse/extension-koni-base/background/handlers';
+import { ApiProps, NftCollection, NftItem } from '@koniverse/extension-koni-base/background/types';
+import { categoryAddresses } from '@koniverse/extension-koni-base/utils/utils';
 
 function createNftApi (chain: string, api: ApiProps | null, addresses: string[]): BaseNftApi | null {
   const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);

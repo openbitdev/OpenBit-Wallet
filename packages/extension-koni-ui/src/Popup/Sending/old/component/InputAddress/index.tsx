@@ -1,16 +1,16 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { KeyringOption$Type, KeyringOptions, KeyringSectionOption, KeyringSectionOptions } from '@polkadot/ui-keyring/options/types';
 import type { Option } from './types';
 
+import { BackgroundWindow } from '@koniverse/extension-koni-base/background/types';
+import { withMulti, withObservable } from '@koniverse/extension-koni-ui/Popup/Sending/old/api/hoc';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React from 'react';
 import store from 'store';
 import styled from 'styled-components';
 
-import { BackgroundWindow } from '@polkadot/extension-base/background/KoniTypes';
-import { withMulti, withObservable } from '@polkadot/extension-koni-ui/Popup/Sending/old/api/hoc';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { createOptionItem } from '@polkadot/ui-keyring/options/item';
 import { isNull, isUndefined } from '@polkadot/util';
 

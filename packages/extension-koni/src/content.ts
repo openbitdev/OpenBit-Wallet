@@ -1,10 +1,11 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Message } from '@polkadot/extension-base/types';
+import type { Message } from '@koniverse/extension-base/types';
 
-import { MESSAGE_ORIGIN_CONTENT, MESSAGE_ORIGIN_PAGE, PORT_CONTENT } from '@polkadot/extension-base/defaults';
-import { redirectIfPhishing } from '@polkadot/extension-base/page';
+import { MESSAGE_ORIGIN_CONTENT, MESSAGE_ORIGIN_PAGE, PORT_CONTENT } from '@koniverse/extension-base/defaults';
+import { redirectIfPhishing } from '@koniverse/extension-base/page';
+
 import { chrome } from '@polkadot/extension-inject/chrome';
 
 // connect to the extension

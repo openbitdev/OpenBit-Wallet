@@ -1,15 +1,15 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { SiDef } from '@polkadot/util/types';
 import type { BitLength } from './types';
 
+import { BitLengthOption } from '@koniverse/extension-koni-ui/components/constants';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import { BitLengthOption } from '@polkadot/extension-koni-ui/components/constants';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { Registry } from '@polkadot/types/types';
 import { BN, BN_ONE, BN_TEN, BN_TWO, BN_ZERO, formatBalance, isBn, isUndefined } from '@polkadot/util';
 

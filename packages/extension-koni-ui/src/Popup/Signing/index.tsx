@@ -1,9 +1,8 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { Header } from '@koniverse/extension-koni-ui/partials';
 import React, { useContext, useEffect, useState } from 'react';
-
-import { Header } from '@polkadot/extension-koni-ui/partials';
 
 import { LoadingContainer, SigningReqContext } from '../../components';
 import useTranslation from '../../hooks/useTranslation';

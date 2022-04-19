@@ -1,4 +1,4 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 const path = require('path');
@@ -12,9 +12,6 @@ const manifest = require('./manifest.json');
 
 const packages = [
   'extension-base',
-  'extension-chains',
-  'extension-dapp',
-  'extension-inject',
   'extension-koni',
   'extension-koni-base',
   'extension-koni-ui'
@@ -90,7 +87,8 @@ module.exports = (entry, alias = {}) => ({
   resolve: {
     alias: packages.reduce((alias, p) => ({
       ...alias,
-      [`@polkadot/${p}`]: path.resolve(__dirname, `../${p}/src`)
+      [`@polkadot/${p}`]: path.resolve(__dirname, `../${p}/src`),
+      [`@koniverse/${p}`]: path.resolve(__dirname, `../${p}/src`)
     }), {
       ...alias,
       'react/jsx-runtime': require.resolve('react/jsx-runtime')

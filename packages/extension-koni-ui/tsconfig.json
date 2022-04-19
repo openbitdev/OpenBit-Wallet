@@ -7,10 +7,6 @@
   },
   "references": [
     { "path": "../extension-base" },
-    { "path": "../extension-koni-base" },
-    { "path": "../extension-chains" },
-    { "path": "../extension-dapp" },
-    { "path": "../extension-inject" },
-    { "path": "../extension-mocks" }
+    { "path": "../extension-koni-base" }
   ]
 }

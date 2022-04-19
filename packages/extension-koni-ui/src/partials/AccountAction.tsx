@@ -1,5 +1,5 @@
 /* eslint-disable */
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ThemeProps } from '../types';
@@ -8,15 +8,15 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { canDerive } from '@polkadot/extension-base/utils';
-import check from '@polkadot/extension-koni-ui/assets/check.svg';
-import Link from '@polkadot/extension-koni-ui/components/Link';
-import Menu from '@polkadot/extension-koni-ui/components/Menu';
-import MenuDivider from '@polkadot/extension-koni-ui/components/MenuDivider';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { EVM_ACCOUNT_TYPE } from '@polkadot/extension-koni-ui/Popup/CreateAccount';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
-import { isAccountAll } from '@polkadot/extension-koni-ui/util';
+import { canDerive } from '@koniverse/extension-base/utils';
+import check from '@koniverse/extension-koni-ui/assets/check.svg';
+import Link from '@koniverse/extension-koni-ui/components/Link';
+import Menu from '@koniverse/extension-koni-ui/components/Menu';
+import MenuDivider from '@koniverse/extension-koni-ui/components/MenuDivider';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { EVM_ACCOUNT_TYPE } from '@koniverse/extension-koni-ui/Popup/CreateAccount';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
+import { isAccountAll } from '@koniverse/extension-koni-ui/util';
 
 interface Props extends ThemeProps {
   className?: string;

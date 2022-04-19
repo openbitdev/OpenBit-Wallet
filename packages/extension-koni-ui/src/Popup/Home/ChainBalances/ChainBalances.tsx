@@ -1,20 +1,19 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { NetWorkMetadataDef } from '@koniverse/extension-koni-base/background/types';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import ChainBalanceDetailItem from '@koniverse/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceDetail/ChainBalanceDetailItem';
+import ChainBalanceItem from '@koniverse/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItem';
+import { hasAnyChildTokenBalance } from '@koniverse/extension-koni-ui/Popup/Home/ChainBalances/utils';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { BN_ZERO, getLogoByNetworkKey } from '@koniverse/extension-koni-ui/util';
+import reformatAddress from '@koniverse/extension-koni-ui/util/reformatAddress';
+import { AccountInfoByNetwork, BalanceInfo } from '@koniverse/extension-koni-ui/util/types';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-
-import { NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import ChainBalanceDetailItem from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceDetail/ChainBalanceDetailItem';
-import ChainBalanceItem from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItem';
-import { hasAnyChildTokenBalance } from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/utils';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { BN_ZERO, getLogoByNetworkKey } from '@polkadot/extension-koni-ui/util';
-import reformatAddress from '@polkadot/extension-koni-ui/util/reformatAddress';
-import { AccountInfoByNetwork, BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 import ChainBalanceDetail from '../ChainBalances/ChainBalanceDetail/ChainBalanceDetail';
 

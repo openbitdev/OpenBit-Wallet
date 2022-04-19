@@ -1,14 +1,14 @@
-// Copyright 2019-2022 @polkadot/extension-koni-base authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import registry from '@koniverse/extension-koni-base/api/dotsama/typeRegistry';
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import { APIItemState, ApiProps, CrowdloanItem } from '@koniverse/extension-koni-base/background/types';
+import { ACALA_REFRESH_CROWDLOAN_INTERVAL } from '@koniverse/extension-koni-base/constants';
+import { categoryAddresses, reformatAddress } from '@koniverse/extension-koni-base/utils/utils';
 import axios from 'axios';
 
 import { DeriveOwnContributions } from '@polkadot/api-derive/types';
-import { APIItemState, ApiProps, CrowdloanItem } from '@polkadot/extension-base/background/KoniTypes';
-import registry from '@polkadot/extension-koni-base/api/dotsama/typeRegistry';
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
-import { ACALA_REFRESH_CROWDLOAN_INTERVAL } from '@polkadot/extension-koni-base/constants';
-import { categoryAddresses, reformatAddress } from '@polkadot/extension-koni-base/utils/utils';
 import { BN } from '@polkadot/util';
 
 function getRPCCrowndloan (parentAPI: ApiProps, paraId: number, hexAddresses: string[], callback: (rs: CrowdloanItem) => void) {

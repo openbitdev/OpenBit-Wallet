@@ -1,15 +1,16 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { InjectedAccount } from '@polkadot/extension-inject/types';
 
-import { AuthUrls } from '@polkadot/extension-base/background/handlers/State';
-import { createSubscription, unsubscribe } from '@polkadot/extension-base/background/handlers/subscriptions';
-import Tabs from '@polkadot/extension-base/background/handlers/Tabs';
-import { RandomTestRequest } from '@polkadot/extension-base/background/KoniTypes';
-import { MessageTypes, RequestAccountList, RequestAuthorizeTab, RequestTypes, ResponseTypes } from '@polkadot/extension-base/background/types';
-import { canDerive } from '@polkadot/extension-base/utils';
-import KoniState from '@polkadot/extension-koni-base/background/handlers/State';
+import { AuthUrls } from '@koniverse/extension-base/background/handlers/State';
+import { createSubscription, unsubscribe } from '@koniverse/extension-base/background/handlers/subscriptions';
+import Tabs from '@koniverse/extension-base/background/handlers/Tabs';
+import { MessageTypes, RequestAccountList, RequestAuthorizeTab, RequestTypes, ResponseTypes } from '@koniverse/extension-base/background/types';
+import { canDerive } from '@koniverse/extension-base/utils';
+import KoniState from '@koniverse/extension-koni-base/background/handlers/State';
+import { RandomTestRequest } from '@koniverse/extension-koni-base/background/types';
+
 import { accounts as accountsObservable } from '@polkadot/ui-keyring/observable/accounts';
 import { SubjectInfo } from '@polkadot/ui-keyring/observable/types';
 import { assert } from '@polkadot/util';
@@ -57,7 +58,7 @@ export default class KoniTabs extends Tabs {
   }
 
   private accountsSubscribeV2 (url: string, id: string, port: chrome.runtime.Port): boolean {
-    const cb = createSubscription<'pub(accounts.subscribeV2)'>(id, port);
+    const cb = createSubscription<'pub(accounts.subscribe)'>(id, port);
     const subscription = accountsObservable.subject.subscribe((accounts: SubjectInfo): void => {
       this.#koniState.getAuthorize((value) => {
         cb(transformAccountsV2(accounts, false, url, value));
@@ -90,16 +91,12 @@ export default class KoniTabs extends Tabs {
       this.#koniState.ensureUrlAuthorizedV2(url);
     }
 
-    if (type !== 'pub(authorize.tabV2)') {
-      this.#koniState.ensureUrlAuthorizedV2(url);
-    }
-
     switch (type) {
-      case 'pub(authorize.tabV2)':
+      case 'pub(authorize.tab)':
         return this.authorizeV2(url, request as RequestAuthorizeTab);
-      case 'pub(accounts.listV2)':
+      case 'pub(accounts.list)':
         return this.accountsListV2(url, request as RequestAccountList);
-      case 'pub(accounts.subscribeV2)':
+      case 'pub(accounts.subscribe)':
         return this.accountsSubscribeV2(url, id, port);
       case 'pub:utils.getRandom':
         return KoniTabs.getRandom(request as RandomTestRequest);

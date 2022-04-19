@@ -1,9 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CurrentAccountInfo } from '@polkadot/extension-base/background/KoniTypes';
-import { EXTENSION_PREFIX } from '@polkadot/extension-base/defaults';
-import SubscribableStore from '@polkadot/extension-koni-base/stores/SubscribableStore';
+import { EXTENSION_PREFIX } from '@koniverse/extension-base/defaults';
+import { CurrentAccountInfo } from '@koniverse/extension-koni-base/background/types';
+import SubscribableStore from '@koniverse/extension-koni-base/stores/SubscribableStore';
 
 export default class CurrentAccountStore extends SubscribableStore<CurrentAccountInfo> {
   constructor () {

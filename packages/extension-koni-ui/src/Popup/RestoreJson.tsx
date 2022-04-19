@@ -1,15 +1,15 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { ResponseJsonGetAccountInfo } from '@polkadot/extension-base/background/types';
+import type { ResponseJsonGetAccountInfo } from '@koniverse/extension-base/background/types';
 import type { KeyringPair$Json } from '@polkadot/keyring/types';
 import type { KeyringPairs$Json } from '@polkadot/ui-keyring/types';
 
+import Header from '@koniverse/extension-koni-ui/partials/Header';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
-import Header from '@polkadot/extension-koni-ui/partials/Header';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { u8aToString } from '@polkadot/util';
 
 import { AccountContext, AccountInfoEl, ActionContext, Button, ButtonArea, InputFileWithLabel, InputWithLabel, Theme, Warning } from '../components';

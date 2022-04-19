@@ -1,14 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import failStatus from '@koniverse/extension-koni-ui/assets/fail-status.svg';
+import successStatus from '@koniverse/extension-koni-ui/assets/success-status.svg';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { getScanExplorerTransactionHistoryUrl } from '@koniverse/extension-koni-ui/util';
 import React from 'react';
 import styled from 'styled-components';
-
-import failStatus from '@polkadot/extension-koni-ui/assets/fail-status.svg';
-import successStatus from '@polkadot/extension-koni-ui/assets/success-status.svg';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { getScanExplorerTransactionHistoryUrl } from '@polkadot/extension-koni-ui/util';
 
 interface Props extends ThemeProps {
   className?: string;

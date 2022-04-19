@@ -1,18 +1,18 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import Button from '@koniverse/extension-koni-ui/components/Button';
+import Modal from '@koniverse/extension-koni-ui/components/Modal';
+import Output from '@koniverse/extension-koni-ui/components/Output';
+import { useToggle } from '@koniverse/extension-koni-ui/hooks/useToggle';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import Address from '@koniverse/extension-koni-ui/Popup/Sending/parts/Address';
+import Tip from '@koniverse/extension-koni-ui/Popup/Sending/parts/Tip';
+import Transaction from '@koniverse/extension-koni-ui/Popup/Sending/parts/Transaction';
+import { AddressProxy, ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 
-import Button from '@polkadot/extension-koni-ui/components/Button';
-import Modal from '@polkadot/extension-koni-ui/components/Modal';
-import Output from '@polkadot/extension-koni-ui/components/Output';
-import { useToggle } from '@polkadot/extension-koni-ui/hooks/useToggle';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import Address from '@polkadot/extension-koni-ui/Popup/Sending/parts/Address';
-import Tip from '@polkadot/extension-koni-ui/Popup/Sending/parts/Tip';
-import Transaction from '@polkadot/extension-koni-ui/Popup/Sending/parts/Transaction';
-import { AddressProxy, ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { BN_ZERO } from '@polkadot/util';
 
 interface Props extends ThemeProps {

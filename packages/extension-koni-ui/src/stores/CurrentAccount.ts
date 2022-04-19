@@ -1,10 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountJson } from '@koniverse/extension-base/background/types';
+import { CurrentAccountType } from '@koniverse/extension-koni-ui/stores/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-import { AccountJson } from '@polkadot/extension-base/background/types';
-import { CurrentAccountType } from '@polkadot/extension-koni-ui/stores/types';
 
 const initialState = {} as CurrentAccountType;
 

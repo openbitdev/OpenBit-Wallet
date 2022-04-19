@@ -1,9 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { BalanceJson } from '@polkadot/extension-base/background/KoniTypes';
-import { EXTENSION_PREFIX } from '@polkadot/extension-base/defaults';
-import SubscribableStore from '@polkadot/extension-koni-base/stores/SubscribableStore';
+import { EXTENSION_PREFIX } from '@koniverse/extension-base/defaults';
+import { BalanceJson } from '@koniverse/extension-koni-base/background/types';
+import SubscribableStore from '@koniverse/extension-koni-base/stores/SubscribableStore';
 
 export default class BalanceStore extends SubscribableStore<BalanceJson> {
   constructor () {

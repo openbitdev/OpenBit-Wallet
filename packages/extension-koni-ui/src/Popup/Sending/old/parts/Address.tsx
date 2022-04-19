@@ -1,13 +1,12 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { Warning } from '@koniverse/extension-koni-ui/components';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { AddressProxy } from '@koniverse/extension-koni-ui/Popup/Sending/old/types';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-
-import { Warning } from '@polkadot/extension-koni-ui/components';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { AddressProxy } from '@polkadot/extension-koni-ui/Popup/Sending/old/types';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
 import InputAddress from '../component/InputAddress';
 import Password from './Password';

@@ -1,7 +1,7 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { DonateInfo } from '@polkadot/extension-base/background/KoniTypes';
+import { DonateInfo } from '@koniverse/extension-koni-base/background/types';
 
 const DONATEINFOS: Record<string, DonateInfo> = {
   ukraine: {

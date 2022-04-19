@@ -1,27 +1,27 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AccountJson, AccountsContext, AuthorizeRequest, MetadataRequest, SigningRequest } from '@polkadot/extension-base/background/types';
+import type { AccountJson, AccountsContext, AuthorizeRequest, MetadataRequest, SigningRequest } from '@koniverse/extension-base/background/types';
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 
+import { PHISHING_PAGE_REDIRECT } from '@koniverse/extension-base/defaults';
+import { canDerive } from '@koniverse/extension-base/utils';
+import { AccountsWithCurrentAddress, CurrentAccountInfo } from '@koniverse/extension-koni-base/background/types';
+import LoadingContainer from '@koniverse/extension-koni-ui/components/LoadingContainer';
+import useSetupStore from '@koniverse/extension-koni-ui/hooks/store/useSetupStore';
+import TransferNftContainer from '@koniverse/extension-koni-ui/Popup/Home/Nfts/transfer/TransferNftContainer';
+import ImportLedger from '@koniverse/extension-koni-ui/Popup/ImportLedger';
+import Donate from '@koniverse/extension-koni-ui/Popup/Sending/old/Donate';
+import SendFund from '@koniverse/extension-koni-ui/Popup/Sending/old/SendFund';
+import Settings from '@koniverse/extension-koni-ui/Popup/Settings';
+import GeneralSetting from '@koniverse/extension-koni-ui/Popup/Settings/GeneralSetting';
+import NetworkEdit from '@koniverse/extension-koni-ui/Popup/Settings/NetworkEdit';
+import Networks from '@koniverse/extension-koni-ui/Popup/Settings/Networks';
 import * as Bowser from 'bowser';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { Route, Switch } from 'react-router';
 
-import { AccountsWithCurrentAddress, CurrentAccountInfo } from '@polkadot/extension-base/background/KoniTypes';
-import { PHISHING_PAGE_REDIRECT } from '@polkadot/extension-base/defaults';
-import { canDerive } from '@polkadot/extension-base/utils';
-import LoadingContainer from '@polkadot/extension-koni-ui/components/LoadingContainer';
-import useSetupStore from '@polkadot/extension-koni-ui/hooks/store/useSetupStore';
-import TransferNftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/transfer/TransferNftContainer';
-import ImportLedger from '@polkadot/extension-koni-ui/Popup/ImportLedger';
-import Donate from '@polkadot/extension-koni-ui/Popup/Sending/old/Donate';
-import SendFund from '@polkadot/extension-koni-ui/Popup/Sending/old/SendFund';
-import Settings from '@polkadot/extension-koni-ui/Popup/Settings';
-import GeneralSetting from '@polkadot/extension-koni-ui/Popup/Settings/GeneralSetting';
-import NetworkEdit from '@polkadot/extension-koni-ui/Popup/Settings/NetworkEdit';
-import Networks from '@polkadot/extension-koni-ui/Popup/Settings/Networks';
 import uiSettings from '@polkadot/ui-settings';
 
 import { ErrorBoundary } from '../components';

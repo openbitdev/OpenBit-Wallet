@@ -1,26 +1,26 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { SignerOptions } from '@polkadot/api/submittable/types';
 
+import { BackgroundWindow } from '@koniverse/extension-koni-base/background/types';
+import { Button } from '@koniverse/extension-koni-ui/components';
+import Modal from '@koniverse/extension-koni-ui/components/Modal';
+import Output from '@koniverse/extension-koni-ui/components/Output';
+import { useToggle } from '@koniverse/extension-koni-ui/hooks/useToggle';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import Address from '@koniverse/extension-koni-ui/Popup/Sending/old/parts/Address';
+import Tip from '@koniverse/extension-koni-ui/Popup/Sending/old/parts/Tip';
+import Transaction from '@koniverse/extension-koni-ui/Popup/Sending/old/parts/Transaction';
+import AccountSigner from '@koniverse/extension-koni-ui/Popup/Sending/old/signers/AccountSigner';
+import { AddressProxy, TxHandler } from '@koniverse/extension-koni-ui/Popup/Sending/old/types';
+import { cacheUnlock } from '@koniverse/extension-koni-ui/Popup/Sending/old/util';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { ApiPromise, SubmittableResult } from '@polkadot/api';
 import { SubmittableExtrinsic } from '@polkadot/api/types';
-import { BackgroundWindow } from '@polkadot/extension-base/background/KoniTypes';
-import { Button } from '@polkadot/extension-koni-ui/components';
-import Modal from '@polkadot/extension-koni-ui/components/Modal';
-import Output from '@polkadot/extension-koni-ui/components/Output';
-import { useToggle } from '@polkadot/extension-koni-ui/hooks/useToggle';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import Address from '@polkadot/extension-koni-ui/Popup/Sending/old/parts/Address';
-import Tip from '@polkadot/extension-koni-ui/Popup/Sending/old/parts/Tip';
-import Transaction from '@polkadot/extension-koni-ui/Popup/Sending/old/parts/Transaction';
-import AccountSigner from '@polkadot/extension-koni-ui/Popup/Sending/old/signers/AccountSigner';
-import { AddressProxy, TxHandler } from '@polkadot/extension-koni-ui/Popup/Sending/old/types';
-import { cacheUnlock } from '@polkadot/extension-koni-ui/Popup/Sending/old/util';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { assert, BN_ZERO } from '@polkadot/util';
 import { addressEq } from '@polkadot/util-crypto';

@@ -1,13 +1,12 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { RequestAuthorizeTab } from '@polkadot/extension-base/background/types';
+import type { RequestAuthorizeTab } from '@koniverse/extension-base/background/types';
 import type { ThemeProps } from '../../types';
 
+import ConnectAccount from '@koniverse/extension-koni-ui/Popup/Authorize/ConnectAccount';
 import React, { useCallback, useContext, useState } from 'react';
 import styled from 'styled-components';
-
-import ConnectAccount from '@polkadot/extension-koni-ui/Popup/Authorize/ConnectAccount';
 
 import { AccountContext, ActionContext, Button } from '../../components';
 import useTranslation from '../../hooks/useTranslation';

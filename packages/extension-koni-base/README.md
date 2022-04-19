@@ -1,4 +1,4 @@
-# @polkadot/extension-koni-base
+# @koniverse/extension-koni-base
 
 Functions, classes and other utilities used in `@polkadot/extension`. These include:
 - background script handlers,

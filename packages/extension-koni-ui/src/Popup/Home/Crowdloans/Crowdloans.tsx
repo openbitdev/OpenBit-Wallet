@@ -1,17 +1,16 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import { NetWorkGroup, NetWorkMetadataDef } from '@koniverse/extension-koni-base/background/types';
+import { CrowdloanContributeValueType } from '@koniverse/extension-koni-ui/hooks/screen/home/types';
+import CrowdloanItem from '@koniverse/extension-koni-ui/Popup/Home/Crowdloans/CrowdloanItem';
+import { CrowdloanItemType } from '@koniverse/extension-koni-ui/Popup/Home/types';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { BN_ZERO, getLogoByNetworkKey } from '@koniverse/extension-koni-ui/util';
 import BigN from 'bignumber.js';
 import React from 'react';
 import styled from 'styled-components';
-
-import { NetWorkGroup, NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
-import { CrowdloanContributeValueType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
-import CrowdloanItem from '@polkadot/extension-koni-ui/Popup/Home/Crowdloans/CrowdloanItem';
-import { CrowdloanItemType } from '@polkadot/extension-koni-ui/Popup/Home/types';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { BN_ZERO, getLogoByNetworkKey } from '@polkadot/extension-koni-ui/util';
 
 import CrowdloanEmptyList from './EmptyList';
 

@@ -1,24 +1,24 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { withErrorLog } from '@koniverse/extension-base/background/handlers/helpers';
+import State, { AuthUrls, Resolver } from '@koniverse/extension-base/background/handlers/State';
+import { AuthorizeRequest, RequestAuthorizeTab } from '@koniverse/extension-base/background/types';
+import { getId } from '@koniverse/extension-base/utils/getId';
+import { getTokenPrice } from '@koniverse/extension-koni-base/api/coingecko';
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import { DEFAULT_STAKING_NETWORKS } from '@koniverse/extension-koni-base/api/staking';
+// eslint-disable-next-line camelcase
+import { DotSamaCrowdloan_crowdloans_nodes } from '@koniverse/extension-koni-base/api/subquery/__generated__/DotSamaCrowdloan';
+import { fetchDotSamaCrowdloan } from '@koniverse/extension-koni-base/api/subquery/crowdloan';
+import { AccountRefMap, APIItemState, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, ResultResolver, StakingItem, StakingJson, StakingRewardJson, TransactionHistoryItemType } from '@koniverse/extension-koni-base/background/types';
+import { CurrentAccountStore, PriceStore } from '@koniverse/extension-koni-base/stores';
+import AccountRefStore from '@koniverse/extension-koni-base/stores/AccountRef';
+import AuthorizeStore from '@koniverse/extension-koni-base/stores/Authorize';
+import TransactionHistoryStore from '@koniverse/extension-koni-base/stores/TransactionHistory';
+import { convertFundStatus } from '@koniverse/extension-koni-base/utils/utils';
 import { BehaviorSubject, Subject } from 'rxjs';
 
-import { withErrorLog } from '@polkadot/extension-base/background/handlers/helpers';
-import State, { AuthUrls, Resolver } from '@polkadot/extension-base/background/handlers/State';
-import { AccountRefMap, APIItemState, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, ResultResolver, StakingItem, StakingJson, StakingRewardJson, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
-import { AuthorizeRequest, RequestAuthorizeTab } from '@polkadot/extension-base/background/types';
-import { getId } from '@polkadot/extension-base/utils/getId';
-import { getTokenPrice } from '@polkadot/extension-koni-base/api/coingecko';
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
-import { DEFAULT_STAKING_NETWORKS } from '@polkadot/extension-koni-base/api/staking';
-// eslint-disable-next-line camelcase
-import { DotSamaCrowdloan_crowdloans_nodes } from '@polkadot/extension-koni-base/api/subquery/__generated__/DotSamaCrowdloan';
-import { fetchDotSamaCrowdloan } from '@polkadot/extension-koni-base/api/subquery/crowdloan';
-import { CurrentAccountStore, PriceStore } from '@polkadot/extension-koni-base/stores';
-import AccountRefStore from '@polkadot/extension-koni-base/stores/AccountRef';
-import AuthorizeStore from '@polkadot/extension-koni-base/stores/Authorize';
-import TransactionHistoryStore from '@polkadot/extension-koni-base/stores/TransactionHistory';
-import { convertFundStatus } from '@polkadot/extension-koni-base/utils/utils';
 import { accounts } from '@polkadot/ui-keyring/observable/accounts';
 import { assert } from '@polkadot/util';
 

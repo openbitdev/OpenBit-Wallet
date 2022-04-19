@@ -1,8 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { RMRK_VER } from '@koniverse/extension-koni-base/background/types';
+
 import { SubmittableExtrinsic } from '@polkadot/api/types';
-import { RMRK_VER } from '@polkadot/extension-base/background/KoniTypes';
 import { RuntimeDispatchInfo } from '@polkadot/types/interfaces';
 
 // For rendering purposes only

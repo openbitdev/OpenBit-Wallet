@@ -1,13 +1,19 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
+
+/* eslint-disable no-use-before-define */
+
+import { AuthUrls, Resolver } from '@koniverse/extension-base/background/handlers/State';
+// @ts-ignore
+import { AccountJson, AuthorizeRequest, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestBatchRestore, RequestDeriveCreate, RequestJsonRestore, RequestTypes, ResponseAuthorizeList, SeedLengths } from '@koniverse/extension-base/background/types';
 
 import { ApiPromise } from '@polkadot/api';
 import { SubmittableExtrinsicFunction } from '@polkadot/api/promise/types';
-import { AuthUrls, Resolver } from '@polkadot/extension-base/background/handlers/State';
-import { AccountJson, AuthorizeRequest, RequestAccountList, RequestAccountSubscribe, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestJsonRestore, ResponseAuthorizeList, SeedLengths } from '@polkadot/extension-base/background/types';
 import { InjectedAccount, MetadataDefBase } from '@polkadot/extension-inject/types';
+import { KeyringPair$Json } from '@polkadot/keyring/types';
 import { Registry } from '@polkadot/types/types';
 import { Keyring } from '@polkadot/ui-keyring';
+import { KeyringPairs$Json } from '@polkadot/ui-keyring/types';
 import { BN } from '@polkadot/util';
 import { KeypairType } from '@polkadot/util-crypto/types';
 
@@ -278,6 +284,12 @@ export type TokenInfo = {
 }
 
 // all Accounts and the address of the current Account
+export interface RequestCurrentAccountAddress {
+  address: string;
+  isShowBalance?: boolean;
+  allAccountLogo?: string;
+}
+
 export interface AccountsWithCurrentAddress {
   accounts: AccountJson[];
   currentAddress?: string;
@@ -471,54 +483,77 @@ export interface EvmNftTransactionResponse {
   isSendingSelf: boolean
 }
 
-export interface KoniRequestSignatures {
-  'pri(evmNft.submitTransaction)': [EvmNftSubmitTransaction, EvmNftTransactionResponse, EvmNftTransactionResponse];
-  'pri(evmNft.getTransaction)': [EvmNftTransactionRequest, EvmNftTransaction];
-  'pri(nftTransfer.setNftTransfer)': [NftTransferExtra, boolean];
-  'pri(nftTransfer.getNftTransfer)': [null, NftTransferExtra];
-  'pri(nftTransfer.getSubscription)': [null, NftTransferExtra, NftTransferExtra];
-  'pri(nft.forceUpdate)': [RequestNftForceUpdate, boolean];
-  'pri(api.init)': [RequestApi, ApiInitStatus];
-  'pri(staking.getStaking)': [null, StakingJson];
-  'pri(staking.getSubscription)': [RequestSubscribeStaking, StakingJson, StakingJson];
-  'pri(stakingReward.getStakingReward)': [null, StakingRewardJson];
-  'pri(stakingReward.getSubscription)': [RequestSubscribeStakingReward, StakingRewardJson, StakingRewardJson];
-  'pri(nft.getNft)': [null, NftJson];
-  'pri(nft.getSubscription)': [RequestSubscribeNft, NftJson, NftJson];
-  'pri(nftCollection.getNftCollection)': [null, NftCollectionJson];
-  'pri(nftCollection.getSubscription)': [null, NftCollectionJson, NftCollectionJson];
-  'pri(price.getPrice)': [RequestPrice, PriceJson];
-  'pri(price.getSubscription)': [RequestSubscribePrice, PriceJson, PriceJson];
-  'pri(balance.getBalance)': [RequestBalance, BalanceJson];
-  'pri(balance.getSubscription)': [RequestSubscribeBalance, BalanceJson, BalanceJson];
-  'pri(crowdloan.getCrowdloan)': [RequestCrowdloan, CrowdloanJson];
-  'pri(crowdloan.getSubscription)': [RequestSubscribeCrowdloan, CrowdloanJson, CrowdloanJson];
-  'pri(authorize.listV2)': [null, ResponseAuthorizeList];
-  'pri(authorize.requestsV2)': [RequestAuthorizeSubscribe, boolean, AuthorizeRequest[]];
-  'pri(authorize.approveV2)': [RequestAuthorizeApproveV2, boolean];
-  'pri(authorize.changeSiteAll)': [RequestAuthorizationAll, boolean, AuthUrls];
-  'pri(authorize.changeSite)': [RequestAuthorization, boolean, AuthUrls];
-  'pri(authorize.changeSitePerAccount)': [RequestAuthorizationPerAccount, boolean, AuthUrls];
-  'pri(authorize.forgetSite)': [RequestForgetSite, boolean, AuthUrls];
-  'pri(authorize.forgetAllSite)': [null, boolean, AuthUrls];
-  'pri(authorize.rejectV2)': [RequestAuthorizeReject, boolean];
-  'pri(seed.createV2)': [RequestSeedCreateV2, ResponseSeedCreateV2];
-  'pri(seed.validateV2)': [RequestSeedValidateV2, ResponseSeedValidateV2];
-  'pri(accounts.create.suriV2)': [RequestAccountCreateSuriV2, ResponseAccountCreateSuriV2];
-  'pri(accounts.checkTransfer)': [RequestCheckTransfer, ResponseCheckTransfer];
-  'pri(accounts.transfer)': [RequestTransfer, Array<TransferError>, ResponseTransfer];
-  'pri(derivation.createV2)': [RequestDeriveCreate, boolean];
-  'pri(json.restoreV2)': [RequestJsonRestore, void];
-  'pri(json.batchRestoreV2)': [RequestBatchRestore, void];
-  'pri(accounts.exportPrivateKey)': [RequestAccountExportPrivateKey, ResponseAccountExportPrivateKey];
-  'pri(accounts.subscribeWithCurrentAddress)': [RequestAccountSubscribe, boolean, AccountsWithCurrentAddress];
-  'pri(accounts.triggerSubscription)': [null, boolean];
-  'pri(currentAccount.saveAddress)': [RequestCurrentAccountAddress, boolean, CurrentAccountInfo];
-  'pri(networkMetadata.list)': [null, NetWorkMetadataDef[]];
-  'pri(chainRegistry.getSubscription)': [null, Record<string, ChainRegistry>, Record<string, ChainRegistry>];
-  'pri(transaction.history.getSubscription)': [null, Record<string, TransactionHistoryItemType[]>, Record<string, TransactionHistoryItemType[]>];
-  'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItemType[]];
-  'pub(utils.getRandom)': [RandomTestRequest, number];
-  'pub(accounts.listV2)': [RequestAccountList, InjectedAccount[]];
-  'pub(accounts.subscribeV2)': [RequestAccountSubscribe, boolean, InjectedAccount[]];
+declare module '@koniverse/extension-base/background/types' {
+  export interface RequestSignatures {
+    'pri(evmNft.submitTransaction)': [EvmNftSubmitTransaction, EvmNftTransactionResponse, EvmNftTransactionResponse];
+    'pri(evmNft.getTransaction)': [EvmNftTransactionRequest, EvmNftTransaction];
+    'pri(nftTransfer.setNftTransfer)': [NftTransferExtra, boolean];
+    'pri(nftTransfer.getNftTransfer)': [null, NftTransferExtra];
+    'pri(nftTransfer.getSubscription)': [null, NftTransferExtra, NftTransferExtra];
+    'pri(nft.forceUpdate)': [RequestNftForceUpdate, boolean];
+    'pri(api.init)': [RequestApi, ApiInitStatus];
+    'pri(staking.getStaking)': [null, StakingJson];
+    'pri(staking.getSubscription)': [RequestSubscribeStaking, StakingJson, StakingJson];
+    'pri(stakingReward.getStakingReward)': [null, StakingRewardJson];
+    'pri(stakingReward.getSubscription)': [RequestSubscribeStakingReward, StakingRewardJson, StakingRewardJson];
+    'pri(nft.getNft)': [null, NftJson];
+    'pri(nft.getSubscription)': [RequestSubscribeNft, NftJson, NftJson];
+    'pri(nftCollection.getNftCollection)': [null, NftCollectionJson];
+    'pri(nftCollection.getSubscription)': [null, NftCollectionJson, NftCollectionJson];
+    'pri(price.getPrice)': [RequestPrice, PriceJson];
+    'pri(price.getSubscription)': [RequestSubscribePrice, PriceJson, PriceJson];
+    'pri(balance.getBalance)': [RequestBalance, BalanceJson];
+    'pri(balance.getSubscription)': [RequestSubscribeBalance, BalanceJson, BalanceJson];
+    'pri(crowdloan.getCrowdloan)': [RequestCrowdloan, CrowdloanJson];
+    'pri(crowdloan.getSubscription)': [RequestSubscribeCrowdloan, CrowdloanJson, CrowdloanJson];
+    'pri(authorize.listV2)': [null, ResponseAuthorizeList];
+    'pri(authorize.requestsV2)': [RequestAuthorizeSubscribe, boolean, AuthorizeRequest[]];
+    'pri(authorize.approveV2)': [RequestAuthorizeApproveV2, boolean];
+    'pri(authorize.changeSiteAll)': [RequestAuthorizationAll, boolean, AuthUrls];
+    'pri(authorize.changeSite)': [RequestAuthorization, boolean, AuthUrls];
+    'pri(authorize.changeSitePerAccount)': [RequestAuthorizationPerAccount, boolean, AuthUrls];
+    'pri(authorize.forgetSite)': [RequestForgetSite, boolean, AuthUrls];
+    'pri(authorize.forgetAllSite)': [null, boolean, AuthUrls];
+    'pri(json.validate.password)': [];
+    'pri(authorize.rejectV2)': [RequestAuthorizeReject, boolean];
+    'pri(seed.createV2)': [RequestSeedCreateV2, ResponseSeedCreateV2];
+    'pri(seed.validateV2)': [RequestSeedValidateV2, ResponseSeedValidateV2];
+    'pri(accounts.create.suriV2)': [RequestAccountCreateSuriV2, ResponseAccountCreateSuriV2];
+    'pri(accounts.checkTransfer)': [RequestCheckTransfer, ResponseCheckTransfer];
+    'pri(accounts.transfer)': [RequestTransfer, Array<TransferError>, ResponseTransfer];
+    'pri(derivation.createV2)': [RequestDeriveCreate, boolean];
+    'pri(json.restoreV2)': [RequestJsonRestore, void];
+    'pri(json.batchRestoreV2)': [RequestBatchRestore, void];
+    'pri(accounts.exportPrivateKey)': [RequestAccountExportPrivateKey, ResponseAccountExportPrivateKey];
+    'pri(accounts.subscribeWithCurrentAddress)': [RequestAccountSubscribe, boolean, AccountsWithCurrentAddress];
+    'pri(accounts.triggerSubscription)': [null, boolean];
+    'pri(currentAccount.saveAddress)': [RequestCurrentAccountAddress, boolean, CurrentAccountInfo];
+    'pri(networkMetadata.list)': [null, NetWorkMetadataDef[]];
+    'pri(chainRegistry.getSubscription)': [null, Record<string, ChainRegistry>, Record<string, ChainRegistry>];
+    'pri(transaction.history.getSubscription)': [null, Record<string, TransactionHistoryItemType[]>, Record<string, TransactionHistoryItemType[]>];
+    'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItemType[]];
+    'pub(utils.getRandom)': [RandomTestRequest, number];
+    'pub(accounts.list)': [RequestAccountList, InjectedAccount[]];
+    'pub(accounts.subscribe)': [RequestAccountSubscribe, boolean, InjectedAccount[]];
+    'pub(authorize.tab)': [RequestAuthorizeTab, null];
+  }
+
+  export interface TransportRequestMessage<TMessageType extends MessageTypes> {
+    id: string;
+    message: TMessageType;
+    origin: 'page' | 'extension' | string;
+    request: RequestTypes[TMessageType];
+  }
+
+  export interface RequestJsonRestore {
+    file: KeyringPair$Json;
+    password: string;
+    address: string;
+  }
+
+  export interface RequestBatchRestore {
+    file: KeyringPairs$Json;
+    password: string;
+    address: string;
+  }
 }

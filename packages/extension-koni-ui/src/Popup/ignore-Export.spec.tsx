@@ -1,7 +1,7 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import '@polkadot/extension-mocks/chrome';
+import '@koniverse/extension-mocks/chrome';
 
 import type { KeyringPair$Json } from '@polkadot/keyring/types';
 

@@ -1,11 +1,10 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseNftApi } from '@koniverse/extension-koni-base/api/nft/nft';
+import { NftCollection, NftItem, RMRK_VER } from '@koniverse/extension-koni-base/background/types';
+import { isUrl, reformatAddress } from '@koniverse/extension-koni-base/utils/utils';
 import fetch from 'cross-fetch';
-
-import { NftCollection, NftItem, RMRK_VER } from '@polkadot/extension-base/background/KoniTypes';
-import { BaseNftApi } from '@polkadot/extension-koni-base/api/nft/nft';
-import { isUrl, reformatAddress } from '@polkadot/extension-koni-base/utils/utils';
 
 import { KANARIA_ENDPOINT, KANARIA_EXTERNAL_SERVER, RMRK_PINATA_SERVER, SINGULAR_V1_COLLECTION_ENDPOINT, SINGULAR_V1_ENDPOINT, SINGULAR_V1_EXTERNAL_SERVER, SINGULAR_V2_COLLECTION_ENDPOINT, SINGULAR_V2_ENDPOINT, SINGULAR_V2_EXTERNAL_SERVER } from '../config';
 

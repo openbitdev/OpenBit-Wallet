@@ -11,7 +11,6 @@ import type { KeyringPairs$Json } from '@polkadot/ui-keyring/types';
 import type { HexString } from '@polkadot/util/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 
-import { CurrentNetworkInfo, KoniRequestSignatures } from '@polkadot/extension-base/background/KoniTypes';
 import { TypeRegistry } from '@polkadot/types';
 
 import { ALLOWED_PATH } from '../defaults';
@@ -44,16 +43,6 @@ export interface AccountJson extends KeyringPair$Meta {
   whenCreated?: number;
 }
 
-// all Accounts and the address of the current Account
-export interface AccountsWithCurrentAddress {
-  accounts: AccountJson[];
-  currentAddress?: string;
-}
-
-export interface CurrentAccountInfo {
-  address: string;
-}
-
 export type AccountWithChildren = AccountJson & {
   children?: AccountWithChildren[];
 }
@@ -62,16 +51,6 @@ export type AccountsContext = {
   accounts: AccountJson[];
   hierarchy: AccountWithChildren[];
   master?: AccountJson;
-}
-
-export type CurrentAccContext = {
-  currentAccount: AccountJson | null;
-  setCurrentAccount: (account: AccountJson | null) => void;
-}
-
-export type AccNetworkContext = {
-  network: CurrentNetworkInfo;
-  setNetwork: (network: CurrentNetworkInfo) => void;
 }
 
 export interface AuthorizeRequest {
@@ -94,7 +73,7 @@ export interface SigningRequest {
 }
 
 // [MessageType]: [RequestType, ResponseType, SubscriptionMessageType?]
-export interface RequestSignatures extends KoniRequestSignatures {
+export interface RequestSignatures {
   // private/internal requests, i.e. from a popup
   'pri(accounts.create.external)': [RequestAccountCreateExternal, boolean];
   'pri(accounts.create.hardware)': [RequestAccountCreateHardware, boolean];
@@ -117,7 +96,6 @@ export interface RequestSignatures extends KoniRequestSignatures {
   'pri(derivation.validate)': [RequestDeriveValidate, ResponseDeriveValidate];
   'pri(json.restore)': [RequestJsonRestore, void];
   'pri(json.batchRestore)': [RequestBatchRestore, void];
-  'pri(json.validate.password)': [];
   'pri(json.account.info)': [KeyringPair$Json, ResponseJsonGetAccountInfo];
   'pri(metadata.approve)': [RequestMetadataApprove, boolean];
   'pri(metadata.get)': [string | null, MetadataDef | null];
@@ -137,7 +115,6 @@ export interface RequestSignatures extends KoniRequestSignatures {
   'pub(accounts.list)': [RequestAccountList, InjectedAccount[]];
   'pub(accounts.subscribe)': [RequestAccountSubscribe, boolean, InjectedAccount[]];
   'pub(authorize.tab)': [RequestAuthorizeTab, null];
-  'pub(authorize.tabV2)': [RequestAuthorizeTab, null];
   'pub(bytes.sign)': [SignerPayloadRaw, ResponseSigning];
   'pub(extrinsic.sign)': [SignerPayloadJSON, ResponseSigning];
   'pub(metadata.list)': [null, InjectedMetadataKnown[]];
@@ -164,7 +141,7 @@ export type MessageTypesWithNullRequest = NullKeys<RequestTypes>
 export interface TransportRequestMessage<TMessageType extends MessageTypes> {
   id: string;
   message: TMessageType;
-  origin: 'page' | 'extension' | string;
+  origin: string;
   request: RequestTypes[TMessageType];
 }
 
@@ -184,12 +161,6 @@ export type RequestAuthorizeSubscribe = null;
 
 export interface RequestMetadataApprove {
   id: string;
-}
-
-export interface RequestCurrentAccountAddress {
-  address: string;
-  isShowBalance?: boolean;
-  allAccountLogo?: string;
 }
 
 export interface RequestMetadataReject {
@@ -411,13 +382,11 @@ export interface RequestSign {
 export interface RequestJsonRestore {
   file: KeyringPair$Json;
   password: string;
-  address: string;
 }
 
 export interface RequestBatchRestore {
   file: KeyringPairs$Json;
   password: string;
-  address: string;
 }
 
 export interface ResponseJsonRestore {

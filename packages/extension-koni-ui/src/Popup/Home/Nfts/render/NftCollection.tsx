@@ -1,16 +1,15 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import NftItem from '@koniverse/extension-koni-ui/Popup/Home/Nfts/render/NftItem';
+import NftItemPreview from '@koniverse/extension-koni-ui/Popup/Home/Nfts/render/NftItemPreview';
+import { _NftCollection, _NftItem } from '@koniverse/extension-koni-ui/Popup/Home/Nfts/types';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { NFT_PER_ROW } from '@koniverse/extension-koni-ui/util';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-
-import NftItem from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftItem';
-import NftItemPreview from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftItemPreview';
-import { _NftCollection, _NftItem } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { NFT_PER_ROW } from '@polkadot/extension-koni-ui/util';
 
 interface Props {
   className?: string;

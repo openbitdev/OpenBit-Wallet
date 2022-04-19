@@ -1,24 +1,23 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AccountJson } from '@polkadot/extension-base/background/types';
+import type { AccountJson } from '@koniverse/extension-base/background/types';
 
+import { CurrentAccountInfo } from '@koniverse/extension-koni-base/background/types';
+import check from '@koniverse/extension-koni-ui/assets/check.svg';
+import changeAvatar from '@koniverse/extension-koni-ui/assets/icon/camera.svg';
+import changeAvatarHover from '@koniverse/extension-koni-ui/assets/icon/camera-hover.svg';
+import { AccountContext, AccountInfoEl, ActionContext } from '@koniverse/extension-koni-ui/components';
+import useIsPopup from '@koniverse/extension-koni-ui/hooks/useIsPopup';
+import useToast from '@koniverse/extension-koni-ui/hooks/useToast';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { saveCurrentAccountAddress, triggerAccountsSubscription } from '@koniverse/extension-koni-ui/messaging';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { findAccountByAddress, isAccountAll } from '@koniverse/extension-koni-ui/util';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
-
-import { CurrentAccountInfo } from '@polkadot/extension-base/background/KoniTypes';
-import check from '@polkadot/extension-koni-ui/assets/check.svg';
-import changeAvatar from '@polkadot/extension-koni-ui/assets/icon/camera.svg';
-import changeAvatarHover from '@polkadot/extension-koni-ui/assets/icon/camera-hover.svg';
-import { AccountContext, AccountInfoEl, ActionContext } from '@polkadot/extension-koni-ui/components';
-import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
-import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { saveCurrentAccountAddress, triggerAccountsSubscription } from '@polkadot/extension-koni-ui/messaging';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { findAccountByAddress, isAccountAll } from '@polkadot/extension-koni-ui/util';
 
 interface Props extends AccountJson {
   className?: string;

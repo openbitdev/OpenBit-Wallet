@@ -1,14 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import LogosMap from '@koniverse/extension-koni-ui/assets/logo';
+import Spinner from '@koniverse/extension-koni-ui/components/Spinner';
+import { StakingDataType } from '@koniverse/extension-koni-ui/hooks/screen/home/types';
+import EmptyList from '@koniverse/extension-koni-ui/Popup/Home/Staking/EmptyList';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React from 'react';
 import styled from 'styled-components';
-
-import LogosMap from '@polkadot/extension-koni-ui/assets/logo';
-import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
-import { StakingDataType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
-import EmptyList from '@polkadot/extension-koni-ui/Popup/Home/Staking/EmptyList';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
 import StakingRow from './StakingRow';
 

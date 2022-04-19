@@ -1,18 +1,18 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { faCog, faExpand, faInfoCircle, faList, faLock, faQrcode } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import check from '@koniverse/extension-koni-ui/assets/check.svg';
+import { Link } from '@koniverse/extension-koni-ui/components';
+import useIsPopup from '@koniverse/extension-koni-ui/hooks/useIsPopup';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { windowOpen } from '@koniverse/extension-koni-ui/messaging';
+import Header from '@koniverse/extension-koni-ui/partials/Header';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import check from '@polkadot/extension-koni-ui/assets/check.svg';
-import { Link } from '@polkadot/extension-koni-ui/components';
-import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { windowOpen } from '@polkadot/extension-koni-ui/messaging';
-import Header from '@polkadot/extension-koni-ui/partials/Header';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import settings from '@polkadot/ui-settings';
 
 interface Props extends ThemeProps {

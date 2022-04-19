@@ -1,9 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import type { KeyringItemType, KeyringJson$Meta } from '@polkadot/ui-keyring/types';
 
-import { BackgroundWindow } from '@polkadot/extension-base/background/KoniTypes';
+import { BackgroundWindow } from '@koniverse/extension-koni-base/background/types';
 
 // import { keyring } from '@polkadot/ui-keyring';
 

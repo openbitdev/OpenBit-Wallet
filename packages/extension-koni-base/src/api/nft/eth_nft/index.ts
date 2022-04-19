@@ -1,16 +1,16 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import NETWORKS, { EVM_NETWORKS } from '@koniverse/extension-koni-base/api/endpoints';
+import { CF_IPFS_GATEWAY, SUPPORTED_NFT_NETWORKS } from '@koniverse/extension-koni-base/api/nft/config';
+import { ASTAR_SUPPORTED_NFT_CONTRACTS, ContractInfo, MOONBEAM_SUPPORTED_NFT_CONTRACTS, MOONRIVER_SUPPORTED_NFT_CONTRACTS } from '@koniverse/extension-koni-base/api/nft/eth_nft/utils';
+import { BaseNftApi } from '@koniverse/extension-koni-base/api/nft/nft';
+import { ERC721Contract } from '@koniverse/extension-koni-base/api/web3/web3';
+import { NftCollection, NftItem } from '@koniverse/extension-koni-base/background/types';
+import { isUrl } from '@koniverse/extension-koni-base/utils/utils';
 import fetch from 'cross-fetch';
 import Web3 from 'web3';
 
-import { NftCollection, NftItem } from '@polkadot/extension-base/background/KoniTypes';
-import NETWORKS, { EVM_NETWORKS } from '@polkadot/extension-koni-base/api/endpoints';
-import { CF_IPFS_GATEWAY, SUPPORTED_NFT_NETWORKS } from '@polkadot/extension-koni-base/api/nft/config';
-import { ASTAR_SUPPORTED_NFT_CONTRACTS, ContractInfo, MOONBEAM_SUPPORTED_NFT_CONTRACTS, MOONRIVER_SUPPORTED_NFT_CONTRACTS } from '@polkadot/extension-koni-base/api/nft/eth_nft/utils';
-import { BaseNftApi } from '@polkadot/extension-koni-base/api/nft/nft';
-import { ERC721Contract } from '@polkadot/extension-koni-base/api/web3/web3';
-import { isUrl } from '@polkadot/extension-koni-base/utils/utils';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
 export class Web3NftApi extends BaseNftApi {

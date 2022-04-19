@@ -1,24 +1,24 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import Identicon from '@koniverse/extension-koni-ui/components/Identicon';
+import Link from '@koniverse/extension-koni-ui/components/Link';
+import Modal from '@koniverse/extension-koni-ui/components/Modal';
+import useToast from '@koniverse/extension-koni-ui/hooks/useToast';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import { editAccount } from '@koniverse/extension-koni-ui/messaging';
+import HeaderEditName from '@koniverse/extension-koni-ui/partials/HeaderEditName';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
+import { getLogoByNetworkKey, getScanExplorerAddressInfoUrl, isSupportScanExplorer, toShort } from '@koniverse/extension-koni-ui/util';
+import reformatAddress from '@koniverse/extension-koni-ui/util/reformatAddress';
 import React, { useCallback, useMemo, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import QRCode from 'react-qr-code';
 import styled from 'styled-components';
 
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
-import Identicon from '@polkadot/extension-koni-ui/components/Identicon';
-import Link from '@polkadot/extension-koni-ui/components/Link';
-import Modal from '@polkadot/extension-koni-ui/components/Modal';
-import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { editAccount } from '@polkadot/extension-koni-ui/messaging';
-import HeaderEditName from '@polkadot/extension-koni-ui/partials/HeaderEditName';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { getLogoByNetworkKey, getScanExplorerAddressInfoUrl, isSupportScanExplorer, toShort } from '@polkadot/extension-koni-ui/util';
-import reformatAddress from '@polkadot/extension-koni-ui/util/reformatAddress';
 import { IconTheme } from '@polkadot/react-identicon/types';
 
 import cloneLogo from '../assets/clone.svg';

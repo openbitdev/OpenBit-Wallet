@@ -1,8 +1,8 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
-import LogosMap from '@polkadot/extension-koni-ui/assets/logo';
+import NETWORKS from '@koniverse/extension-koni-base/api/endpoints';
+import LogosMap from '@koniverse/extension-koni-ui/assets/logo';
 
 function getLogoByGenesisHashMap (): Record<string, string> {
   const result: Record<string, string> = {};

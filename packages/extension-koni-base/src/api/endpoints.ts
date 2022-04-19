@@ -1,8 +1,8 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetWorkInfo } from '@polkadot/extension-base/background/KoniTypes';
-import { ethereumChains } from '@polkadot/extension-koni-base/api/dotsama/api-helper';
+import { ethereumChains } from '@koniverse/extension-koni-base/api/dotsama/api-helper';
+import { NetWorkInfo } from '@koniverse/extension-koni-base/background/types';
 
 const NETWORKS: Record<string, NetWorkInfo> = {
   polkadot: {

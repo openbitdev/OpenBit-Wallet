@@ -1,13 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import Toggle from '@koniverse/extension-koni-ui/components/Toggle';
+import useTranslation from '@koniverse/extension-koni-ui/hooks/useTranslation';
+import InputBalance from '@koniverse/extension-koni-ui/Popup/Sending/old/component/InputBalance';
+import { ThemeProps } from '@koniverse/extension-koni-ui/types';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import Toggle from '@polkadot/extension-koni-ui/components/Toggle';
-import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import InputBalance from '@polkadot/extension-koni-ui/Popup/Sending/old/component/InputBalance';
-import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { BN, BN_ZERO } from '@polkadot/util';
 
 interface Props extends ThemeProps {

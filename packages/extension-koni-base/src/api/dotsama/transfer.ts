@@ -1,8 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-base authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ResponseTransfer, TransferErrorCode, TransferStep } from '@polkadot/extension-base/background/KoniTypes';
-import { dotSamaAPIMap } from '@polkadot/extension-koni-base/background/handlers';
+import { dotSamaAPIMap } from '@koniverse/extension-koni-base/background/handlers';
+import { ResponseTransfer, TransferErrorCode, TransferStep } from '@koniverse/extension-koni-base/background/types';
+
 import { KeyringPair } from '@polkadot/keyring/types';
 import { EventRecord, SignedBlockWithJustifications } from '@polkadot/types/interfaces';
 import { BN } from '@polkadot/util';

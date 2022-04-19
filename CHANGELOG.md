@@ -256,7 +256,7 @@ Changes:
 
 Changes:
 
-- Ensure `@polkadot/extension-mocks` is correctly listed as devDependency
+- Ensure `@koniverse/extension-mocks` is correctly listed as devDependency
 
 
 ## 0.42.3 Dec 27, 2021

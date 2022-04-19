@@ -1,8 +1,8 @@
-// Copyright 2019-2022 @polkadot/extension-koni authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
 import '@polkadot/extension-inject/crossenv';
 
-import { createView, Popup } from '@polkadot/extension-koni-ui';
+import { createView, Popup } from '@koniverse/extension-koni-ui';
 
 createView(Popup);

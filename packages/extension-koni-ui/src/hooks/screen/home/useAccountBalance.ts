@@ -1,14 +1,13 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { APIItemState, ChainRegistry, NetWorkGroup } from '@koniverse/extension-koni-base/background/types';
+import { AccountBalanceType, CrowdloanContributeValueType } from '@koniverse/extension-koni-ui/hooks/screen/home/types';
+import { RootState } from '@koniverse/extension-koni-ui/stores';
+import { BN_ZERO, getBalances, parseBalancesInfo } from '@koniverse/extension-koni-ui/util';
+import { BalanceInfo } from '@koniverse/extension-koni-ui/util/types';
 import BigN from 'bignumber.js';
 import { useSelector } from 'react-redux';
-
-import { APIItemState, ChainRegistry, NetWorkGroup } from '@polkadot/extension-base/background/KoniTypes';
-import { AccountBalanceType, CrowdloanContributeValueType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
-import { RootState } from '@polkadot/extension-koni-ui/stores';
-import { BN_ZERO, getBalances, parseBalancesInfo } from '@polkadot/extension-koni-ui/util';
-import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 function getCrowdloadChainRegistry (groups: NetWorkGroup[], chainRegistryMap: Record<string, ChainRegistry>): ChainRegistry | null {
   if (groups.includes('POLKADOT_PARACHAIN') && chainRegistryMap.polkadot) {

@@ -1,10 +1,9 @@
-// Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
+// Copyright 2019-2022 @koniverse/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BN_ZERO } from '@koniverse/extension-koni-ui/util';
+import { BalanceInfo } from '@koniverse/extension-koni-ui/util/types';
 import BigN from 'bignumber.js';
-
-import { BN_ZERO } from '@polkadot/extension-koni-ui/util';
-import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 export function hasAnyChildTokenBalance (balanceInfo: BalanceInfo): boolean {
   if (!balanceInfo.childrenBalances || !balanceInfo.childrenBalances.length) {
