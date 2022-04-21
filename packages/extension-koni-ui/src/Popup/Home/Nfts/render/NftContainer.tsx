@@ -7,7 +7,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
+import useFetchNftChain from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchNftChain';
 import useFetchNftExtra from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchNftTransferExtra';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import EmptyList from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/EmptyList';
 import NftCollection from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftCollection';
 import { _NftCollection, _NftItem } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
@@ -15,6 +17,7 @@ import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { NFT_PER_ROW } from '@polkadot/extension-koni-ui/util';
 
 import NftCollectionPreview from './NftCollectionPreview';
+import NavChainNetwork from './NavChainNetwork';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -41,6 +44,9 @@ interface Props extends ThemeProps {
 
   showItemDetail: boolean;
   setShowItemDetail: (val: boolean) => void;
+
+  selectedNftNetwork: string,
+  setSelectedNftNetwork: (val: string) => void;
 }
 
 function NftContainer (
@@ -52,9 +58,11 @@ function NftContainer (
     nftGridSize,
     nftList,
     page,
+    selectedNftNetwork,
     setChosenCollection,
     setChosenItem,
     setPage,
+    setSelectedNftNetwork,
     setShowCollectionDetail,
     setShowItemDetail,
     setShowTransferredCollection,
@@ -66,6 +74,13 @@ function NftContainer (
 ): React.ReactElement<Props> {
   const selectedNftCollection = useFetchNftExtra(showTransferredCollection, setShowTransferredCollection);
   const [networkKey, setNetworkKey] = useState(currentNetwork);
+  const nftChains = useFetchNftChain(networkKey);
+
+  const isPopup = useIsPopup();
+
+  useEffect(() => {
+    console.log('test')
+  },[networkKey])
 
   const handleShowCollectionDetail = useCallback((data: _NftCollection) => {
     setShowCollectionDetail(true);
@@ -129,8 +144,18 @@ function NftContainer (
         <EmptyList />
       }
 
+      {
+        !isPopup && (
+          <NavChainNetwork
+            nftChains={nftChains}
+            selectedNftNetwork={selectedNftNetwork}
+            setSelectedNftNetwork={setSelectedNftNetwork}
+          />
+        )
+      }
+
       {/* @ts-ignore */}
-      {!loading && !showCollectionDetail && totalItems > 0 &&
+      {!loading && isPopup && !showCollectionDetail && totalItems > 0 &&
       <div className={'total-title'}>
         {/* @ts-ignore */}
         {totalItems} NFT{totalItems > 1 && 's'} from {totalCollection} collection{totalCollection > 1 && 's'}

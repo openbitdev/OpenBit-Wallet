@@ -26,6 +26,7 @@ import GeneralSetting from '@polkadot/extension-koni-ui/Popup/Settings/GeneralSe
 import NetworkEdit from '@polkadot/extension-koni-ui/Popup/Settings/NetworkEdit';
 import Networks from '@polkadot/extension-koni-ui/Popup/Settings/Networks';
 import { waitForElement } from '@polkadot/extension-koni-ui/util/dom';
+import { SearchQuery, SearchQueryOptional } from '@polkadot/extension-koni-ui/util/types';
 import uiSettings from '@polkadot/ui-settings';
 
 import { ErrorBoundary } from '../components';
@@ -93,6 +94,22 @@ function updateAllAccount (allAccountLogo: string): void {
   store.dispatch({ type: 'allAccount/update', payload: { allAccountLogo: allAccountLogo } });
 }
 
+function updateObject (origin: Record<string, unknown>, _new: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...origin };
+
+  for (const [key, value] of Object.entries(_new)) {
+    if (result[key] !== undefined) {
+      if (typeof value === 'object' && value !== null) {
+        result[key] = updateObject(result[key] as Record<string, unknown>, value as Record<string, unknown>);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+
+  return result;
+}
+
 export default function Popup (): React.ReactElement {
   const [accounts, setAccounts] = useState<null | AccountJson[]>(null);
   const [accountCtx, setAccountCtx] = useState<AccountsContext>({ accounts: [], hierarchy: [] });
@@ -101,7 +118,7 @@ export default function Popup (): React.ReactElement {
   const [mediaAllowed, setMediaAllowed] = useState(false);
   const [metaRequests, setMetaRequests] = useState<null | MetadataRequest[]>(null);
   const [signRequests, setSignRequests] = useState<null | SigningRequest[]>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, _setSearchQuery] = useState<SearchQuery>({ balance: '', nft: { collection: '', item: '' } });
   const [isWelcomeDone, setWelcomeDone] = useState(false);
   const [settingsCtx, setSettingsCtx] = useState<SettingsStruct>(startSettings);
   const browser = Bowser.getParser(window.navigator.userAgent);
@@ -210,6 +227,12 @@ export default function Popup (): React.ReactElement {
   function wrapWithErrorBoundary (component: React.ReactElement, trigger?: string): React.ReactElement {
     return <ErrorBoundary trigger={trigger}>{component}</ErrorBoundary>;
   }
+
+  const setSearchQuery = useCallback((data: SearchQueryOptional) => {
+    const result: SearchQuery = updateObject(searchQuery, data) as SearchQuery;
+
+    _setSearchQuery({ ...result });
+  }, [searchQuery]);
 
   const Root = isWelcomeDone
     ? authRequests && authRequests.length

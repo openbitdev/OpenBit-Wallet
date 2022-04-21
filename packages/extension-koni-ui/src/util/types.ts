@@ -54,6 +54,16 @@ export type AccountInfoByNetwork = {
   formattedAddress: string;
 }
 
+export type ChainInfoBrief = {
+  key: string;
+  networkKey: string;
+  networkDisplayName: string;
+  networkPrefix: number;
+  networkLogo: string;
+  networkIconTheme: string;
+  numberCollections: number;
+}
+
 export type BalanceInfo = {
   symbol: string;
   balanceValue: BigN;
@@ -61,4 +71,25 @@ export type BalanceInfo = {
   detailBalances: BalanceSubInfo[];
   childrenBalances: BalanceSubInfo[];
   price: BigN;
+}
+
+export type SearchQuery = {
+  balance: string,
+  nft: {
+    collection: string,
+    item: string
+  }
+}
+
+export type SearchQueryOptional = {
+  balance?: string,
+  nft?: {
+    collection?: string,
+    item?: string
+  }
+}
+
+export type SearchContextData = {
+  query: SearchQuery,
+  setQuery: (query: SearchQueryOptional) => void
 }

@@ -295,7 +295,7 @@ const ChainBalanceDetailTable = ({ accountInfo,
       result.push(data);
     });
 
-    return result.filter((info) => info.label.toLowerCase().includes(query));
+    return result.filter((info) => info.label.toLowerCase().includes(query.balance));
   }, [accountInfo, balanceInfo, query]);
 
   return (
@@ -357,6 +357,20 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
 
     .ant-table-cell:first-child{
       padding: 12px 0;
+    }
+
+    .ant-table-placeholder:hover {
+      td{
+        background: transparent;
+      }
+    }
+
+    .ant-empty{
+      color: ${theme.textColor2};
+    }
+
+    .ant-empty-image{
+      filter: invert(55%) sepia(15%) saturate(461%) hue-rotate(192deg) brightness(89%) contrast(88%);
     }
 
     .ant-table-row:hover{

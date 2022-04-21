@@ -84,7 +84,7 @@ const TopHeaders = ({ activatedItem, className, isShowZeroBalances, items, onSel
 
 export default styled(TopHeaders)(({ theme }: Props) => `
   display: flex;
-  margin: 8px 20px;
+  margin: 0 20px 8px 20px;
   justify-content: space-between;
 
   .nav-container{

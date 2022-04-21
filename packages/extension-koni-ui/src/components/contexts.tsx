@@ -7,8 +7,9 @@ import type { AvailableThemes } from './themes';
 
 import React from 'react';
 
-import { SearchContextData } from '@polkadot/extension-base/background/types';
 import settings from '@polkadot/ui-settings';
+
+import { SearchContextData } from '../util/types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const noop = (): void => undefined;
@@ -24,7 +25,7 @@ const ThemeSwitchContext = React.createContext<(theme: AvailableThemes) => void>
 const ToastContext = React.createContext<({show: (message: string) => void, setToastError: (isError: boolean) => void})>({ show: noop, setToastError: noop });
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
-const SearchContext = React.createContext<SearchContextData>({ query: '', setQuery: () => {} });
+const SearchContext = React.createContext<SearchContextData>({ query: { balance: '', nft: { collection: '', item: '' } }, setQuery: () => {} });
 
 export {
   AccountContext,

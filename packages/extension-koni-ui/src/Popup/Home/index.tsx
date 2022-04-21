@@ -47,6 +47,7 @@ import { TabHeaderItemType } from '@polkadot/extension-koni-ui/Popup/Home/types'
 import { RootState } from '@polkadot/extension-koni-ui/stores';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { BN_ZERO, isAccountAll, NFT_DEFAULT_GRID_SIZE, NFT_GRID_HEIGHT_THRESHOLD, NFT_HEADER_HEIGHT, NFT_PER_ROW, NFT_PREVIEW_HEIGHT } from '@polkadot/extension-koni-ui/util';
+import { SearchQueryOptional } from '@polkadot/extension-koni-ui/util/types';
 
 // import swapIcon from '../../assets/swap-icon.svg';
 import ChainBalances from './ChainBalances/ChainBalances';
@@ -182,6 +183,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
   const isPopup = useIsPopup();
 
   const [nftPage, setNftPage] = useState(1);
+  const [selectedNftNetwork, setSelectedNftNetwork] = useState(networkKey);
 
   const [chosenNftCollection, setChosenNftCollection] = useState<_NftCollection>();
   const [showNftCollectionDetail, setShowNftCollectionDetail] = useState<boolean>(false);
@@ -203,12 +205,16 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
     }
   }, []);
   const nftGridSize = parseNftGridSize();
-  const { loading: loadingNft, nftList, totalCollection, totalItems } = useFetchNft(nftPage, networkKey, nftGridSize);
+  const { loading: loadingNft, nftList, totalCollection, totalItems } = useFetchNft(nftPage, selectedNftNetwork, nftGridSize);
   const { data: stakingData, loading: loadingStaking, priceMap: stakingPriceMap } = useFetchStaking(networkKey);
 
   const handleNftPage = useCallback((page: number) => {
     setNftPage(page);
   }, []);
+
+  useEffect(() => {
+    setSelectedNftNetwork(networkKey);
+  }, [networkKey]);
 
   useEffect(() => {
     if (isAccountAll(address) && activatedTab === 5) {
@@ -266,7 +272,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
 
   const _backToHome = useCallback(() => {
     setShowBalanceDetail(false);
-    setQuery('');
+    setQuery({ balance: '' });
   }, [setShowBalanceDetail, setQuery]);
 
   const onChangeAccount = useCallback((address: string) => {
@@ -276,8 +282,32 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
   const handlerChangeSearchQuery = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
 
-    setQuery(value);
-  }, [setQuery]);
+    let change: SearchQueryOptional = {};
+
+    switch (activatedTab) {
+      case 1:
+        change = { balance: value };
+        break;
+      case 2:
+        change = { nft: { collection: value } };
+        break;
+      default:
+        break;
+    }
+
+    setQuery(change);
+  }, [setQuery, activatedTab]);
+
+  const _query = useMemo(() => {
+    switch (activatedTab) {
+      case 1:
+        return query.balance;
+      case 2:
+        return query.nft.collection;
+      default:
+        return '';
+    }
+  }, [query, activatedTab]);
 
   return (
     <div className={`home-screen home ${className}`}>
@@ -367,7 +397,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
                   src={SearchIcon}
                 />
               }
-              value={query}
+              value={_query}
             />
           }
 

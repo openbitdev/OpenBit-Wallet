@@ -129,8 +129,6 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         const { address, formattedAddress, networkIconTheme, networkKey, networkPrefix } = accountInfo;
         const _isAccountAll = isAccountAll(address);
 
-        console.log('test', record);
-
         const handlerOpenQr = () => {
           _openQr(networkPrefix, networkKey, networkIconTheme);
         };
@@ -337,7 +335,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         }
       };
     }).filter((info) => {
-      return info.info.networkDisplayName.toLowerCase().includes(query);
+      return info.info.networkDisplayName.toLowerCase().includes(query.balance);
     });
   }, [query, networkKeys, networkBalanceMaps, isAllowToShow, isShowZeroBalances, currentNetworkKey, accountInfoByNetworkMap]);
 
@@ -405,6 +403,20 @@ export default React.memo(styled(ChainBalanceTable)(({ theme }: Props) => `
       .ant-table-cell{
         background-color: transparent;
       }
+    }
+
+    .ant-table-placeholder:hover {
+      td{
+        background: transparent;
+      }
+    }
+
+    .ant-empty{
+      color: ${theme.textColor2};
+    }
+
+    .ant-empty-image{
+      filter: invert(55%) sepia(15%) saturate(461%) hue-rotate(192deg) brightness(89%) contrast(88%);
     }
 
     .ant-table-expanded-row{
