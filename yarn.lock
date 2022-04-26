@@ -3534,17 +3534,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@polkadot/extension-base@^0.3.5-1, @polkadot/extension-base@workspace:packages/extension-base":
+"@polkadot/extension-base@^0.3.6-0, @polkadot/extension-base@workspace:packages/extension-base":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-base@workspace:packages/extension-base"
   dependencies:
     "@babel/runtime": ^7.16.7
     "@ethereumjs/common": ^2.6.3
     "@polkadot/api": ^7.3.1
-    "@polkadot/extension-chains": ^0.3.5-1
-    "@polkadot/extension-dapp": ^0.3.5-1
-    "@polkadot/extension-inject": ^0.3.5-1
-    "@polkadot/extension-mocks": ^0.3.5-1
+    "@polkadot/extension-chains": ^0.3.6-0
+    "@polkadot/extension-dapp": ^0.3.6-0
+    "@polkadot/extension-inject": ^0.3.6-0
+    "@polkadot/extension-mocks": ^0.3.6-0
     "@polkadot/keyring": ^8.3.1
     "@polkadot/networks": ^8.3.1
     "@polkadot/phishing": ^0.11.30
@@ -3561,12 +3561,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-chains@^0.3.5-1, @polkadot/extension-chains@workspace:packages/extension-chains":
+"@polkadot/extension-chains@^0.3.6-0, @polkadot/extension-chains@workspace:packages/extension-chains":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-chains@workspace:packages/extension-chains"
   dependencies:
     "@babel/runtime": ^7.16.7
-    "@polkadot/extension-inject": ^0.3.5-1
+    "@polkadot/extension-inject": ^0.3.6-0
     "@polkadot/networks": ^8.3.1
     "@polkadot/util": ^8.3.1
     "@polkadot/util-crypto": ^8.3.1
@@ -3582,7 +3582,7 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.16.7
     "@metamask/detect-provider": ^1.2.0
-    "@polkadot/extension-inject": ^0.3.5-1
+    "@polkadot/extension-inject": ^0.3.6-0
     "@polkadot/types": ^7.3.1
     "@polkadot/util": ^8.3.1
     web3: ^1.6.1
@@ -3591,12 +3591,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-dapp@^0.3.5-1, @polkadot/extension-dapp@workspace:packages/extension-dapp":
+"@polkadot/extension-dapp@^0.3.6-0, @polkadot/extension-dapp@workspace:packages/extension-dapp":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-dapp@workspace:packages/extension-dapp"
   dependencies:
     "@babel/runtime": ^7.16.7
-    "@polkadot/extension-inject": ^0.3.5-1
+    "@polkadot/extension-inject": ^0.3.6-0
     "@polkadot/util": ^8.3.1
     "@polkadot/util-crypto": ^8.3.1
   peerDependencies:
@@ -3606,7 +3606,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-inject@^0.3.5-1, @polkadot/extension-inject@workspace:packages/extension-inject":
+"@polkadot/extension-inject@^0.3.6-0, @polkadot/extension-inject@workspace:packages/extension-inject":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-inject@workspace:packages/extension-inject"
   dependencies:
@@ -3623,7 +3623,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-koni-base@^0.3.5-1, @polkadot/extension-koni-base@workspace:packages/extension-koni-base":
+"@polkadot/extension-koni-base@^0.3.6-0, @polkadot/extension-koni-base@workspace:packages/extension-koni-base":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-koni-base@workspace:packages/extension-koni-base"
   dependencies:
@@ -3647,11 +3647,11 @@ __metadata:
     "@phala/typedefs": 0.2.30
     "@polkadot/api": ^7.11.1
     "@polkadot/api-derive": ^7.8.1
-    "@polkadot/extension-base": ^0.3.5-1
-    "@polkadot/extension-chains": ^0.3.5-1
-    "@polkadot/extension-dapp": ^0.3.5-1
-    "@polkadot/extension-inject": ^0.3.5-1
-    "@polkadot/extension-mocks": ^0.3.5-1
+    "@polkadot/extension-base": ^0.3.6-0
+    "@polkadot/extension-chains": ^0.3.6-0
+    "@polkadot/extension-dapp": ^0.3.6-0
+    "@polkadot/extension-inject": ^0.3.6-0
+    "@polkadot/extension-mocks": ^0.3.6-0
     "@polkadot/keyring": ^8.3.1
     "@polkadot/networks": ^8.3.1
     "@polkadot/phishing": ^0.11.30
@@ -3683,7 +3683,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-koni-ui@^0.3.5-1, @polkadot/extension-koni-ui@workspace:packages/extension-koni-ui":
+"@polkadot/extension-koni-ui@^0.3.6-0, @polkadot/extension-koni-ui@workspace:packages/extension-koni-ui":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-koni-ui@workspace:packages/extension-koni-ui"
   dependencies:
@@ -3696,12 +3696,12 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": ^5.15.4
     "@fortawesome/react-fontawesome": ^0.1.16
     "@polkadot/api-contract": ^7.0.2
-    "@polkadot/extension-base": ^0.3.5-1
-    "@polkadot/extension-chains": ^0.3.5-1
-    "@polkadot/extension-dapp": ^0.3.5-1
-    "@polkadot/extension-inject": ^0.3.5-1
-    "@polkadot/extension-koni-base": ^0.3.5-1
-    "@polkadot/extension-mocks": ^0.3.5-1
+    "@polkadot/extension-base": ^0.3.6-0
+    "@polkadot/extension-chains": ^0.3.6-0
+    "@polkadot/extension-dapp": ^0.3.6-0
+    "@polkadot/extension-inject": ^0.3.6-0
+    "@polkadot/extension-koni-base": ^0.3.6-0
+    "@polkadot/extension-mocks": ^0.3.6-0
     "@polkadot/hw-ledger": ^8.3.1
     "@polkadot/keyring": ^8.3.1
     "@polkadot/networks": ^8.3.1
@@ -3763,10 +3763,10 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.16.7
     "@polkadot/dev": ^0.65.23
-    "@polkadot/extension-base": ^0.3.5-1
-    "@polkadot/extension-inject": ^0.3.5-1
-    "@polkadot/extension-koni-base": ^0.3.5-1
-    "@polkadot/extension-koni-ui": ^0.3.5-1
+    "@polkadot/extension-base": ^0.3.6-0
+    "@polkadot/extension-inject": ^0.3.6-0
+    "@polkadot/extension-koni-base": ^0.3.6-0
+    "@polkadot/extension-koni-ui": ^0.3.6-0
     assert: ^2.0.0
     babel-loader: ^8.2.3
     browser-resolve: ^2.0.0
@@ -3777,6 +3777,7 @@ __metadata:
     extract-loader: ^5.1.0
     file-loader: ^6.2.0
     html-loader: ^3.1.0
+    html-webpack-plugin: ^5.5.0
     https-browserify: ^1.0.0
     os-browserify: ^0.3.0
     path-browserify: ^1.0.1
@@ -3794,7 +3795,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-mocks@^0.3.5-1, @polkadot/extension-mocks@workspace:packages/extension-mocks":
+"@polkadot/extension-mocks@^0.3.6-0, @polkadot/extension-mocks@workspace:packages/extension-mocks":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-mocks@workspace:packages/extension-mocks"
   dependencies:
@@ -3803,7 +3804,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@polkadot/extension-ui@^0.3.5-1, @polkadot/extension-ui@workspace:packages/extension-ui":
+"@polkadot/extension-ui@^0.3.6-0, @polkadot/extension-ui@workspace:packages/extension-ui":
   version: 0.0.0-use.local
   resolution: "@polkadot/extension-ui@workspace:packages/extension-ui"
   dependencies:
@@ -3813,11 +3814,11 @@ __metadata:
     "@fortawesome/free-regular-svg-icons": ^5.15.4
     "@fortawesome/free-solid-svg-icons": ^5.15.4
     "@fortawesome/react-fontawesome": ^0.1.16
-    "@polkadot/extension-base": ^0.3.5-1
-    "@polkadot/extension-chains": ^0.3.5-1
-    "@polkadot/extension-dapp": ^0.3.5-1
-    "@polkadot/extension-inject": ^0.3.5-1
-    "@polkadot/extension-mocks": ^0.3.5-1
+    "@polkadot/extension-base": ^0.3.6-0
+    "@polkadot/extension-chains": ^0.3.6-0
+    "@polkadot/extension-dapp": ^0.3.6-0
+    "@polkadot/extension-inject": ^0.3.6-0
+    "@polkadot/extension-mocks": ^0.3.6-0
     "@polkadot/hw-ledger": ^8.3.1
     "@polkadot/keyring": ^8.3.1
     "@polkadot/networks": ^8.3.1
@@ -3862,9 +3863,9 @@ __metadata:
   dependencies:
     "@babel/runtime": ^7.16.7
     "@polkadot/dev": ^0.65.23
-    "@polkadot/extension-base": ^0.3.5-1
-    "@polkadot/extension-inject": ^0.3.5-1
-    "@polkadot/extension-ui": ^0.3.5-1
+    "@polkadot/extension-base": ^0.3.6-0
+    "@polkadot/extension-inject": ^0.3.6-0
+    "@polkadot/extension-ui": ^0.3.6-0
     babel-loader: ^8.2.3
     browser-resolve: ^2.0.0
     buffer: ^6.0.3
@@ -4987,6 +4988,13 @@ __metadata:
     "@types/react": "*"
     hoist-non-react-statics: ^3.3.0
   checksum: 2c0778570d9a01d05afabc781b32163f28409bb98f7245c38d5eaf082416fdb73034003f5825eb5e21313044e8d2d9e1f3fe2831e345d3d1b1d20bcd12270719
+  languageName: node
+  linkType: hard
+
+"@types/html-minifier-terser@npm:^6.0.0":
+  version: 6.1.0
+  resolution: "@types/html-minifier-terser@npm:6.1.0"
+  checksum: eb843f6a8d662d44fb18ec61041117734c6aae77aa38df1be3b4712e8e50ffaa35f1e1c92fdd0fde14a5675fecf457abcd0d15a01fae7506c91926176967f452
   languageName: node
   linkType: hard
 
@@ -9295,7 +9303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-select@npm:^4.3.0":
+"css-select@npm:^4.1.3, css-select@npm:^4.3.0":
   version: 4.3.0
   resolution: "css-select@npm:4.3.0"
   dependencies:
@@ -9844,6 +9852,15 @@ __metadata:
   version: 1.12.2
   resolution: "dom-align@npm:1.12.2"
   checksum: 0523f4d7c84c7a4e92b0f1d088e7e110f6bd109fc8b6f1f89e14d33bba63d7b54de26d311652e1527ead2c0700f671593af55f216cb8a67a80d9fc5ed7a23b95
+  languageName: node
+  linkType: hard
+
+"dom-converter@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "dom-converter@npm:0.2.0"
+  dependencies:
+    utila: ~0.4
+  checksum: ea52fe303f5392e48dea563abef0e6fb3a478b8dbe3c599e99bb5d53981c6c38fc4944e56bb92a8ead6bb989d10b7914722ae11febbd2fd0910e33b9fc4aaa77
   languageName: node
   linkType: hard
 
@@ -12621,6 +12638,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-webpack-plugin@npm:^5.5.0":
+  version: 5.5.0
+  resolution: "html-webpack-plugin@npm:5.5.0"
+  dependencies:
+    "@types/html-minifier-terser": ^6.0.0
+    html-minifier-terser: ^6.0.2
+    lodash: ^4.17.21
+    pretty-error: ^4.0.0
+    tapable: ^2.0.0
+  peerDependencies:
+    webpack: ^5.20.0
+  checksum: f3d84d0df71fe2f5bac533cc74dce41ab058558cdcc6ff767d166a2abf1cf6fb8491d54d60ddbb34e95c00394e379ba52e0468e0284d1d0cc6a42987056e8219
+  languageName: node
+  linkType: hard
+
 "htmlparser2@npm:^6.1.0":
   version: 6.1.0
   resolution: "htmlparser2@npm:6.1.0"
@@ -14969,7 +15001,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.0.0, lodash@npm:^4.16.3, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.7.0, lodash@npm:~4.17.10":
+"lodash@npm:^4.0.0, lodash@npm:^4.16.3, lodash@npm:^4.17.11, lodash@npm:^4.17.14, lodash@npm:^4.17.15, lodash@npm:^4.17.20, lodash@npm:^4.17.21, lodash@npm:^4.17.4, lodash@npm:^4.7.0, lodash@npm:~4.17.10":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
@@ -17372,6 +17404,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pretty-error@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "pretty-error@npm:4.0.0"
+  dependencies:
+    lodash: ^4.17.20
+    renderkid: ^3.0.0
+  checksum: a5b9137365690104ded6947dca2e33360bf55e62a4acd91b1b0d7baa3970e43754c628cc9e16eafbdd4e8f8bcb260a5865475d4fc17c3106ff2d61db4e72cdf3
+  languageName: node
+  linkType: hard
+
 "pretty-format@npm:^27.0.0, pretty-format@npm:^27.5.1":
   version: 27.5.1
   resolution: "pretty-format@npm:27.5.1"
@@ -18985,6 +19027,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"renderkid@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "renderkid@npm:3.0.0"
+  dependencies:
+    css-select: ^4.1.3
+    dom-converter: ^0.2.0
+    htmlparser2: ^6.1.0
+    lodash: ^4.17.21
+    strip-ansi: ^6.0.1
+  checksum: 77162b62d6f33ab81f337c39efce0439ff0d1f6d441e29c35183151f83041c7850774fb904da163d6c844264d440d10557714e6daa0b19e4561a5cd4ef305d41
+  languageName: node
+  linkType: hard
+
 "repeat-string@npm:^1.0.0":
   version: 1.6.1
   resolution: "repeat-string@npm:1.6.1"
@@ -20578,7 +20633,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tapable@npm:^2.1.1, tapable@npm:^2.2.0":
+"tapable@npm:^2.0.0, tapable@npm:^2.1.1, tapable@npm:^2.2.0":
   version: 2.2.1
   resolution: "tapable@npm:2.2.1"
   checksum: 3b7a1b4d86fa940aad46d9e73d1e8739335efd4c48322cb37d073eb6f80f5281889bf0320c6d8ffcfa1a0dd5bfdbd0f9d037e252ef972aca595330538aac4d51
@@ -21553,6 +21608,13 @@ __metadata:
     safe-buffer: ^5.1.2
     which-typed-array: ^1.1.2
   checksum: 8eac7a6e6b341c0f1b3eb73bbe5dfcae31a7e9699c8fc3266789f3e95f7637946a7700dcf1904dbd3749a58a36760ebf7acf4bb5b717f7468532a8a79f44eff0
+  languageName: node
+  linkType: hard
+
+"utila@npm:~0.4":
+  version: 0.4.0
+  resolution: "utila@npm:0.4.0"
+  checksum: 97ffd3bd2bb80c773429d3fb8396469115cd190dded1e733f190d8b602bd0a1bcd6216b7ce3c4395ee3c79e3c879c19d268dbaae3093564cb169ad1212d436f4
   languageName: node
   linkType: hard
 
