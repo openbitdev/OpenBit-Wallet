@@ -39,6 +39,7 @@ import DetailHeaderFull from '@polkadot/extension-koni-ui/partials/Header/Detail
 import AddAccount from '@polkadot/extension-koni-ui/Popup/Accounts/AddAccount';
 import ActionGroup from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroup';
 import ActionGroupFull from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroupFull';
+import ChartContainer from '@polkadot/extension-koni-ui/Popup/Home/Chart/ChartContainer';
 import NftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftContainer';
 import StakingContainer from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingContainer';
 import TabHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TabHeaders';
@@ -46,7 +47,7 @@ import TopHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TopHeaders';
 import { TabHeaderItemType } from '@polkadot/extension-koni-ui/Popup/Home/types';
 import { RootState } from '@polkadot/extension-koni-ui/stores';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { BN_ZERO, isAccountAll, NFT_DEFAULT_GRID_SIZE, NFT_GRID_HEIGHT_THRESHOLD, NFT_HEADER_HEIGHT, NFT_PER_ROW, NFT_PREVIEW_HEIGHT } from '@polkadot/extension-koni-ui/util';
+import { BN_ZERO, isAccountAll, NFT_DEFAULT_GRID_SIZE, NFT_GRID_HEIGHT_THRESHOLD, NFT_HEADER_HEIGHT, NFT_PER_ROW, NFT_PER_ROW_FULL, NFT_PREVIEW_HEIGHT } from '@polkadot/extension-koni-ui/util';
 import { SearchQueryOptional } from '@polkadot/extension-koni-ui/util/types';
 
 // import swapIcon from '../../assets/swap-icon.svg';
@@ -199,11 +200,11 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
       const nftContainerHeight = window.innerHeight - NFT_HEADER_HEIGHT;
       const rowCount = Math.floor(nftContainerHeight / NFT_PREVIEW_HEIGHT);
 
-      return rowCount * NFT_PER_ROW;
+      return rowCount * (isPopup ? NFT_PER_ROW : NFT_PER_ROW_FULL);
     } else {
       return NFT_DEFAULT_GRID_SIZE;
     }
-  }, []);
+  }, [isPopup]);
   const nftGridSize = parseNftGridSize();
   const { loading: loadingNft, nftList, totalCollection, totalItems } = useFetchNft(nftPage, selectedNftNetwork, nftGridSize);
   const { data: stakingData, loading: loadingStaking, priceMap: stakingPriceMap } = useFetchStaking(networkKey);
@@ -360,6 +361,16 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
                 />
               )
           }
+
+          {
+            !isPopup && (
+              <ChartContainer
+                networkBalanceMaps={networkBalanceMaps}
+                networkKeys={showedNetworks}
+              />
+            )
+          }
+
           {
             !isPopup &&
             <TopHeaders
@@ -427,9 +438,11 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
                 nftGridSize={nftGridSize}
                 nftList={nftList}
                 page={nftPage}
+                selectedNftNetwork={selectedNftNetwork}
                 setChosenCollection={setChosenNftCollection}
                 setChosenItem={setChosenNftItem}
                 setPage={handleNftPage}
+                setSelectedNftNetwork={setSelectedNftNetwork}
                 setShowCollectionDetail={setShowNftCollectionDetail}
                 setShowForcedCollection={setShowForcedCollection}
                 setShowItemDetail={setShowNftItemDetail}
@@ -535,6 +548,7 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     flex-direction: column;
     height: 100%;
     background: rgb(2, 4, 18);
+    overflow-x: hidden;
   }
 
   .search-input{
@@ -557,7 +571,6 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     }
 
     input{
-      font-family: 'Lexend';
       font-style: normal;
       font-weight: 400;
       font-size: 14px;
@@ -578,7 +591,7 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
 
   .home-tab-contents {
     flex: 1;
-    overflow: auto;
+    overflow: hidden auto;
   }
 
   .home-action-block {
@@ -609,7 +622,6 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     align-items: center;
     margin-right: 24px;
 
-    font-family: 'Lexend';
     font-style: normal;
     font-weight: 500;
     font-size: 15px;
@@ -619,7 +631,6 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
   }
 
   .balance-title{
-    font-family: 'Lexend';
     font-style: normal;
     font-weight: 500;
     font-size: 18px;
@@ -627,6 +638,7 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     color: #7B8098;
     display: flex;
     align-items: center;
+    margin-bottom: 12px;
 
     .eye-icon{
       width: 15px;
@@ -660,7 +672,6 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
       }
 
       .change-detail__content{
-        font-family: 'Lexend';
         font-style: normal;
         font-weight: 500;
         font-size: 20px;
@@ -674,7 +685,6 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
 
       .change-detail__time{
         margin-left: 12px;
-        font-family: 'Lexend';
         font-style: normal;
         font-weight: 400;
         font-size: 15px;

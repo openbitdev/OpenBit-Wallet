@@ -3,6 +3,7 @@
 
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import CN from 'classnames';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
@@ -14,10 +15,10 @@ import EmptyList from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/EmptyL
 import NftCollection from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftCollection';
 import { _NftCollection, _NftItem } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { NFT_PER_ROW } from '@polkadot/extension-koni-ui/util';
+import { NFT_PER_ROW, NFT_PER_ROW_FULL } from '@polkadot/extension-koni-ui/util';
 
-import NftCollectionPreview from './NftCollectionPreview';
 import NavChainNetwork from './NavChainNetwork';
+import NftCollectionPreview from './NftCollectionPreview';
 
 interface Props extends ThemeProps {
   className?: string;
@@ -78,10 +79,6 @@ function NftContainer (
 
   const isPopup = useIsPopup();
 
-  useEffect(() => {
-    console.log('test')
-  },[networkKey])
-
   const handleShowCollectionDetail = useCallback((data: _NftCollection) => {
     setShowCollectionDetail(true);
     setChosenCollection(data);
@@ -134,24 +131,24 @@ function NftContainer (
   }, [nftGridSize, page, setPage, totalCollection]);
 
   return (
-    <div className={`${className as string} scroll-container`}>
+    <div className={CN(className, 'scroll-container')}>
       {loading && <div className={'loading-container'}>
         <Spinner size={'large'} />
       </div>}
 
-      {/* @ts-ignore */}
-      {totalItems === 0 && !loading && !showCollectionDetail &&
-        <EmptyList />
-      }
-
       {
-        !isPopup && (
+        !isPopup && !showCollectionDetail && (
           <NavChainNetwork
             nftChains={nftChains}
             selectedNftNetwork={selectedNftNetwork}
             setSelectedNftNetwork={setSelectedNftNetwork}
           />
         )
+      }
+
+      {/* @ts-ignore */}
+      {totalItems === 0 && !loading && !showCollectionDetail &&
+        <EmptyList />
       }
 
       {/* @ts-ignore */}
@@ -164,7 +161,7 @@ function NftContainer (
 
       {
         !showCollectionDetail &&
-        <div className={'grid-container'}>
+        <div className={CN('grid-container test', { full: !isPopup })}>
           {
             !loading && nftList.length > 0 &&
             // @ts-ignore
@@ -283,6 +280,12 @@ export default React.memo(styled(NftContainer)(({ theme }: Props) => `
     row-gap: 20px;
     justify-items: center;
     grid-template-columns: repeat(${NFT_PER_ROW}, 1fr);
+  }
+
+  .grid-container.full {
+    column-gap: 30px;
+    row-gap: 30px;
+    grid-template-columns: repeat(${NFT_PER_ROW_FULL}, 1fr);
   }
 
   .footer {

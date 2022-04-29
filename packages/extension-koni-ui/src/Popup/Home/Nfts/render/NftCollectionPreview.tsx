@@ -1,13 +1,16 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import React, { useCallback, useState } from 'react';
+import CN from 'classnames';
+import React, { useCallback, useRef, useState } from 'react';
 // @ts-ignore
 import LazyLoad from 'react-lazyload';
 import styled from 'styled-components';
 
+import errorImage from '@polkadot/extension-koni-ui/assets/image-error.png';
 import logo from '@polkadot/extension-koni-ui/assets/sub-wallet-logo.svg';
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import { _NftCollection } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
@@ -19,10 +22,22 @@ interface Props {
 
 function NftCollectionPreview ({ className, data, onClick }: Props): React.ReactElement<Props> {
   const [loading, setLoading] = useState(true);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const isPopup = useIsPopup();
 
   const handleOnLoad = useCallback(() => {
     setLoading(false);
   }, []);
+
+  const handlerOnError = useCallback(() => {
+    if (imgRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      imgRef.current.src = errorImage;
+    }
+
+    setLoading(false);
+  }, [imgRef]);
 
   const handleOnClick = useCallback(() => {
     onClick(data);
@@ -31,20 +46,24 @@ function NftCollectionPreview ({ className, data, onClick }: Props): React.React
   return (
     <div className={className}>
       <div
-        className={'nft-preview'}
+        className={CN('nft-preview', { full: !isPopup })}
         onClick={handleOnClick}
-        style={{ height: '164px' }}
+        style={{ height: isPopup ? 164 : 310 }}
       >
         <div className={'img-container'}>
           {
             loading &&
             <Spinner className={'img-spinner'} />
           }
-          <LazyLoad>
+          <LazyLoad
+            scrollContainer={'.home-tab-contents'}
+          >
             <img
               alt={'collection-thumbnail'}
               className={'collection-thumbnail'}
+              onError={handlerOnError}
               onLoad={handleOnLoad}
+              ref={imgRef}
               src={data.image ? data?.image : logo}
               style={{ borderRadius: '5px 5px 0 0', opacity: loading ? '0.3' : '1' }}
             />
@@ -91,7 +110,7 @@ export default React.memo(styled(NftCollectionPreview)(({ theme }: ThemeProps) =
     }
 
     .collection-name {
-      width: 70%
+      // width: 70%;
       text-transform: capitalize;
       font-size: 16px;
       white-space: nowrap;
@@ -115,6 +134,44 @@ export default React.memo(styled(NftCollectionPreview)(({ theme }: ThemeProps) =
       margin-left: 5px;
       font-weight: normal;
       color: ${theme.iconNeutralColor};
+    }
+  }
+
+  .nft-preview.full{
+    width: 230px;
+
+    .collection-thumbnail {
+      height: 230px;
+      width: 230px;
+    }
+
+    .img-container{
+      height: 230px;
+    }
+
+    .collection-title {
+      height: 80px;
+      padding-left: 20px;
+      padding-right: 20px;
+      flex-direction: column;
+      align-items: start;
+      justify-content: center;
+    }
+
+    .collection-name{
+      font-style: normal;
+      font-weight: 500;
+      font-size: 20px;
+      line-height: 32px;
+      color: #FFFFFF;
+      width: 100%;
+    }
+
+    .collection-item-count{
+      font-style: normal;
+      font-weight: 400;
+      font-size: 15px;
+      line-height: 26px;
     }
   }
 `));

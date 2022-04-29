@@ -437,7 +437,6 @@ export default React.memo(styled(ChainBalanceTable)(({ theme }: Props) => `
         border-bottom: 0;
         padding: 12px 8px;
 
-        font-family: 'Lexend';
         font-style: normal;
         font-weight: 500;
         font-size: 15px;
@@ -573,7 +572,6 @@ export default React.memo(styled(ChainBalanceTable)(({ theme }: Props) => `
     flex: 1;
     margin-right: 6px;
     min-width: 450px;
-    font-family: 'Lexend';
     font-style: normal;
     font-weight: 400;
     font-size: 14px;
@@ -628,7 +626,6 @@ export default React.memo(styled(ChainBalanceTable)(({ theme }: Props) => `
   }
 
   .chain-balance-table-item__profit-percentage{
-    font-family: 'Lexend';
     font-style: normal;
     font-weight: 500;
     font-size: 13px;

@@ -3,14 +3,16 @@
 
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import CN from 'classnames';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import NftItem from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftItem';
 import NftItemPreview from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftItemPreview';
 import { _NftCollection, _NftItem } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { NFT_PER_ROW } from '@polkadot/extension-koni-ui/util';
+import { NFT_PER_ROW, NFT_PER_ROW_FULL } from '@polkadot/extension-koni-ui/util';
 
 interface Props {
   className?: string;
@@ -53,6 +55,8 @@ function NftCollection ({ chosenItem, className, currentNetwork, data, onClickBa
     onClickBack();
   }, [onClickBack, setShowItemDetail]);
 
+  const isPopup = useIsPopup();
+
   return (
     <div className={className}>
       {
@@ -81,7 +85,7 @@ function NftCollection ({ chosenItem, className, currentNetwork, data, onClickBa
             </div>
             <div></div>
           </div>
-          <div className={'grid-container'}>
+          <div className={CN('grid-container', { full: !isPopup })}>
             {
               // @ts-ignore
               data?.nftItems.length > 0 &&
@@ -155,5 +159,11 @@ export default React.memo(styled(NftCollection)(({ theme }: ThemeProps) => `
     font-size: 16px;
     font-weight: normal;
     color: #7B8098;
+  }
+
+  .grid-container.full {
+    column-gap: 30px;
+    row-gap: 30px;
+    grid-template-columns: repeat(${NFT_PER_ROW_FULL}, 1fr);
   }
 `));

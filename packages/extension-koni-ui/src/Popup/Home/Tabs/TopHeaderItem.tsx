@@ -52,7 +52,6 @@ export default styled(TopHeaderItem)(({ theme }: Props) => `
   }
 
   .top-header-item__label {
-    font-family: 'Lexend';
     font-style: normal;
     font-weight: 500;
     font-size: 20px;

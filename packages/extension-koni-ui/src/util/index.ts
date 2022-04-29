@@ -127,6 +127,44 @@ export const NFT_HEADER_HEIGHT = 202;
 
 export const NFT_PER_ROW = 3;
 
+export const NFT_PER_ROW_FULL = 4;
+
+export interface ChartTimeItem {
+  timeId: number,
+  label: string,
+}
+
+export const CHART_TIME_KEYS = {
+  T24H_ID: 1,
+  T7D_ID: 2,
+  T30D_ID: 3,
+  T90D_ID: 4,
+  TALL_ID: 5
+};
+
+export const CHART_TIME_ITEMS: ChartTimeItem[] = [
+  {
+    timeId: CHART_TIME_KEYS.T24H_ID,
+    label: '24H'
+  },
+  {
+    timeId: CHART_TIME_KEYS.T7D_ID,
+    label: '7D'
+  },
+  {
+    timeId: CHART_TIME_KEYS.T30D_ID,
+    label: '30D'
+  },
+  {
+    timeId: CHART_TIME_KEYS.T90D_ID,
+    label: '90D'
+  },
+  {
+    timeId: CHART_TIME_KEYS.TALL_ID,
+    label: 'ALL'
+  }
+];
+
 export const accountAllRecoded: Recoded = {
   account: {
     address: ALL_ACCOUNT_KEY

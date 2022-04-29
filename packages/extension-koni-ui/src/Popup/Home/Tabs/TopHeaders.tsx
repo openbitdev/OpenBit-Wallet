@@ -100,7 +100,6 @@ export default styled(TopHeaders)(({ theme }: Props) => `
       align-items: center;
 
       .text{
-        font-family: 'Lexend';
         font-style: normal;
         font-weight: 400;
         font-size: 15px;

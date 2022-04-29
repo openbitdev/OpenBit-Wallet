@@ -1,11 +1,13 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import CN from 'classnames';
 import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 
 import logo from '@polkadot/extension-koni-ui/assets/sub-wallet-logo.svg';
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import { _NftItem } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
@@ -20,6 +22,7 @@ function NftItemPreview ({ className, collectionImage, data, onClick }: Props): 
   const [loading, setLoading] = useState(true);
   const [showImage, setShowImage] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const isPopup = useIsPopup();
 
   const handleOnLoad = useCallback(() => {
     setLoading(false);
@@ -52,9 +55,9 @@ function NftItemPreview ({ className, collectionImage, data, onClick }: Props): 
   return (
     <div className={className}>
       <div
-        className={'nft-preview'}
+        className={CN('nft-preview', { full: !isPopup })}
         onClick={handleOnClick}
-        style={{ height: '164px' }}
+        style={{ height: isPopup ? 164 : 310 }}
       >
         <div className={'img-container'}>
           {
@@ -148,6 +151,44 @@ export default React.memo(styled(NftItemPreview)(({ theme }: ThemeProps) => `
       margin-left: 5px;
       font-weight: normal;
       color: #7B8098;
+    }
+  }
+
+  .nft-preview.full{
+    width: 230px;
+
+    .collection-thumbnail {
+      height: 230px;
+      width: 230px;
+    }
+
+    .img-container{
+      height: 230px;
+    }
+
+    .collection-title {
+      height: 80px;
+      padding-left: 20px;
+      padding-right: 20px;
+      flex-direction: column;
+      align-items: start;
+      justify-content: center;
+    }
+
+    .collection-name{
+      font-style: normal;
+      font-weight: 500;
+      font-size: 20px;
+      line-height: 32px;
+      color: #FFFFFF;
+      width: 100%;
+    }
+
+    .collection-item-count{
+      font-style: normal;
+      font-weight: 400;
+      font-size: 15px;
+      line-height: 26px;
     }
   }
 `));

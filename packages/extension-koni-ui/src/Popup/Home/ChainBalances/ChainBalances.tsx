@@ -105,7 +105,7 @@ function ChainBalances ({ address,
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string>('');
   const [scrollWidth, setScrollWidth] = useState<number>(6);
   const [containerWidth, setContainerWidth] = useState<number>(1100);
-  const [listWidth, setListWidth] = useState<number>(452);
+  const [listWidth, setListWidth] = useState<number>(1094);
   const selectedInfo = accountInfoByNetworkMap[selectedNetworkKey];
   const selectedBalanceInfo = networkBalanceMaps[selectedNetworkKey];
   const isPopup = useIsPopup();
