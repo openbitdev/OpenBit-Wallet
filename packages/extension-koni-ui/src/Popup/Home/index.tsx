@@ -11,7 +11,7 @@ import { TFunction } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { ChainRegistry, CurrentAccountInfo, CurrentNetworkInfo, NftCollection as _NftCollection, NftItem as _NftItem, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
+import { ChainRegistry, CurrentNetworkInfo, NftCollection as _NftCollection, NftItem as _NftItem, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
 import { AccountJson } from '@polkadot/extension-base/background/types';
 import crowdloans from '@polkadot/extension-koni-ui/assets/home-tab-icon/crowdloans.svg';
 import crowdloansActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/crowdloans-active.svg';
@@ -24,7 +24,7 @@ import stakingActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/stak
 import transfers from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers.svg';
 import transfersActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers-active.svg';
 import SearchIcon from '@polkadot/extension-koni-ui/assets/icon/search.svg';
-import { AccountContext, AccountQrModal, SearchContext } from '@polkadot/extension-koni-ui/components';
+import { AccountContext, AccountQrModal, SearchContext, Link } from '@polkadot/extension-koni-ui/components';
 import Tooltip from '@polkadot/extension-koni-ui/components/Tooltip';
 import useAccountBalance from '@polkadot/extension-koni-ui/hooks/screen/home/useAccountBalance';
 import useCrowdloanNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useCrowdloanNetworks';
@@ -33,13 +33,13 @@ import useFetchStaking from '@polkadot/extension-koni-ui/hooks/screen/home/useFe
 import useShowedNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useShowedNetworks';
 import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
-import { saveCurrentAccountAddress, triggerAccountsSubscription } from '@polkadot/extension-koni-ui/messaging';
 import { Header } from '@polkadot/extension-koni-ui/partials';
 import DetailHeaderFull from '@polkadot/extension-koni-ui/partials/Header/DetailHeaderFull';
 import AddAccount from '@polkadot/extension-koni-ui/Popup/Accounts/AddAccount';
 import ActionGroup from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroup';
 import ActionGroupFull from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroupFull';
 import ChartContainer from '@polkadot/extension-koni-ui/Popup/Home/Chart/ChartContainer';
+import BalancesVisibility from '@polkadot/extension-koni-ui/Popup/Home/BalancesVisibility';
 import NftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftContainer';
 import StakingContainer from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingContainer';
 import TabHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TabHeaders';
@@ -177,8 +177,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
   });
   const { accounts } = useContext(AccountContext);
   const { query, setQuery } = useContext(SearchContext);
-  const { balanceStatus: { isShowBalance },
-    networkMetadata: networkMetadataMap } = useSelector((state: RootState) => state);
+  const { networkMetadata: networkMetadataMap, settings: { isShowBalance } } = useSelector((state: RootState) => state);
   const showedNetworks = useShowedNetworks(networkKey, address, accounts);
   const crowdloanNetworks = useCrowdloanNetworks(networkKey);
   const isPopup = useIsPopup();
@@ -255,21 +254,6 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
   const tabItems = useMemo<TabHeaderItemType[]>(() => {
     return getTabHeaderItems(address, t);
   }, [address, t]);
-
-  const _toggleBalances = useCallback(() => {
-    const accountInfo = {
-      address: address,
-      isShowBalance: !isShowBalance
-    } as CurrentAccountInfo;
-
-    saveCurrentAccountAddress(accountInfo, () => {
-      triggerAccountsSubscription().catch((e) => {
-        console.error('There is a problem when trigger Accounts Subscription', e);
-      });
-    }).catch((e) => {
-      console.error('There is a problem when set Current Account', e);
-    });
-  }, [address, isShowBalance]);
 
   const _backToHome = useCallback(() => {
     setShowBalanceDetail(false);

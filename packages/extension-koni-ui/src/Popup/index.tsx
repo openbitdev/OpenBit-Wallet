@@ -142,7 +142,7 @@ export default function Popup (): React.ReactElement {
 
   // @ts-ignore
   const handleGetAccountsWithCurrentAddress = (data: AccountsWithCurrentAddress) => {
-    const { accounts, allAccountLogo, currentAddress, isShowBalance } = data;
+    const { accounts, currentAddress } = data;
 
     setAccounts(accounts);
 
@@ -164,9 +164,6 @@ export default function Popup (): React.ReactElement {
         updateCurrentAccount(selectedAcc);
       }
     }
-
-    allAccountLogo && updateAllAccount(allAccountLogo);
-    updateBalanceStatus(!!isShowBalance);
   };
 
   useEffect((): void => {
