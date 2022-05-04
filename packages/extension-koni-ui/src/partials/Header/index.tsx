@@ -400,7 +400,7 @@ function Header ({ changeAccountCallback, children, className = '', isBusy, isCo
 
         />
         }
-        {isPopup && isContainDetailHeader && currentAccount &&
+        {isPopup && isContainDetailHeader && account &&
           <DetailHeader
             currentAccount={account}
             formatted={formattedAddress}

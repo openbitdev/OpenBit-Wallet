@@ -24,7 +24,7 @@ import stakingActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/stak
 import transfers from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers.svg';
 import transfersActive from '@polkadot/extension-koni-ui/assets/home-tab-icon/transfers-active.svg';
 import SearchIcon from '@polkadot/extension-koni-ui/assets/icon/search.svg';
-import { AccountContext, AccountQrModal, SearchContext, Link } from '@polkadot/extension-koni-ui/components';
+import { AccountContext, AccountQrModal, SearchContext } from '@polkadot/extension-koni-ui/components';
 import Tooltip from '@polkadot/extension-koni-ui/components/Tooltip';
 import useAccountBalance from '@polkadot/extension-koni-ui/hooks/screen/home/useAccountBalance';
 import useCrowdloanNetworks from '@polkadot/extension-koni-ui/hooks/screen/home/useCrowdloanNetworks';
@@ -39,7 +39,6 @@ import AddAccount from '@polkadot/extension-koni-ui/Popup/Accounts/AddAccount';
 import ActionGroup from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroup';
 import ActionGroupFull from '@polkadot/extension-koni-ui/Popup/Home/ActionGroup/ActionGroupFull';
 import ChartContainer from '@polkadot/extension-koni-ui/Popup/Home/Chart/ChartContainer';
-import BalancesVisibility from '@polkadot/extension-koni-ui/Popup/Home/BalancesVisibility';
 import NftContainer from '@polkadot/extension-koni-ui/Popup/Home/Nfts/render/NftContainer';
 import StakingContainer from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingContainer';
 import TabHeaders from '@polkadot/extension-koni-ui/Popup/Home/Tabs/TabHeaders';
@@ -325,8 +324,6 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
                 <ActionGroup
                   _isAccountAll={_isAccountAll}
                   _showQrModal={_showQrModal}
-                  _toggleBalances={_toggleBalances}
-                  isShowBalance={isShowBalance}
                   isShowBalanceDetail={isShowBalanceDetail}
                   selectedNetworkBalance={selectedNetworkBalance}
                   totalBalanceValue={totalBalanceValue}
@@ -337,8 +334,6 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
                 <ActionGroupFull
                   _isAccountAll={_isAccountAll}
                   _showQrModal={_showQrModal}
-                  _toggleBalances={_toggleBalances}
-                  isShowBalance={isShowBalance}
                   isShowBalanceDetail={isShowBalanceDetail}
                   selectedNetworkBalance={selectedNetworkBalance}
                   totalBalanceValue={totalBalanceValue}

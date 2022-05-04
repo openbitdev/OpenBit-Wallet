@@ -3,7 +3,8 @@
 
 import BigN from 'bignumber.js';
 import CN from 'classnames';
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 
 import buyIcon from '@polkadot/extension-koni-ui/assets/buy-icon.svg';
 import donateIcon from '@polkadot/extension-koni-ui/assets/donate-icon.svg';
@@ -15,15 +16,15 @@ import sendIcon from '@polkadot/extension-koni-ui/assets/send-icon.svg';
 import { Link } from '@polkadot/extension-koni-ui/components';
 import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
+import { toggleBalancesVisibility } from '@polkadot/extension-koni-ui/messaging';
 import ActionButton from '@polkadot/extension-koni-ui/Popup/Home/ActionButton';
+import { RootState } from '@polkadot/extension-koni-ui/stores';
 
 type Props = {
   _isAccountAll: boolean,
   _showQrModal: () => void,
-  isShowBalance: boolean,
   selectedNetworkBalance: BigN,
   totalBalanceValue: BigN,
-  _toggleBalances: () => void,
   isShowBalanceDetail: boolean
 }
 
@@ -32,13 +33,21 @@ const change = 3857.42;
 
 const ActionGroupFull = ({ _isAccountAll,
   _showQrModal,
-  _toggleBalances,
-  isShowBalance,
   isShowBalanceDetail,
   selectedNetworkBalance,
   totalBalanceValue }: Props
 ) => {
   const { t } = useTranslation();
+
+  const { settings: { isShowBalance } } = useSelector((state: RootState) => state);
+
+  const _toggleBalances = useCallback(() => {
+    toggleBalancesVisibility((value) => {
+      console.log('Balances visible:', value.isShowBalance);
+    }).catch((e) => {
+      console.error('There is a problem when set Current Account', e);
+    });
+  }, []);
 
   return (
     <div className={CN('home-action-block')}>
