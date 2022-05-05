@@ -11,6 +11,7 @@ import LineChart from '@polkadot/extension-koni-ui/Popup/Home/Chart/LineChart';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { CHART_TIME_ITEMS, CHART_TIME_KEYS } from '@polkadot/extension-koni-ui/util';
 import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
+import PieChart from '@polkadot/extension-koni-ui/Popup/Home/Chart/PieChart';
 
 interface Props extends ThemeProps{
   className?: string;
@@ -41,14 +42,14 @@ const MENU_ITEMS: MenuItem[] = [
   },
   {
     tabId: STATISTIC_ID,
-    canActivate: false,
+    canActivate: true,
     label: 'Statistics'
   }
 ];
 
 const ChartContainer = (props: Props) => {
   const { className, networkBalanceMaps, networkKeys } = props;
-  const [selectedTab, setSelectedTab] = useState(ALLOCATION_ID);
+  const [selectedTab, setSelectedTab] = useState(STATISTIC_ID);
   const [selectedTime, setSelectedTime] = useState(CHART_TIME_KEYS.T24H_ID);
 
   const { t } = useTranslation();
@@ -122,6 +123,14 @@ const ChartContainer = (props: Props) => {
           {
             selectedTab === ALLOCATION_ID && (
               <BarChart
+                networkBalanceMaps={networkBalanceMaps}
+                networkKeys={networkKeys}
+              />
+            )
+          }
+          {
+            selectedTab === STATISTIC_ID && (
+              <PieChart
                 networkBalanceMaps={networkBalanceMaps}
                 networkKeys={networkKeys}
               />

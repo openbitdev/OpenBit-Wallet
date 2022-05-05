@@ -7,12 +7,11 @@ import { Theme as ChartTheme } from '@nivo/core';
 import { SymbolProps } from '@nivo/legends/dist/types/svg/symbols/types';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
-import dayjs from 'dayjs';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
 import { Theme, ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { CHART_TIME_KEYS } from '@polkadot/extension-koni-ui/util';
+import { CHART_COLOR_SCHEMA } from '@polkadot/extension-koni-ui/util';
 import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 interface Props extends ThemeProps{
@@ -139,7 +138,7 @@ const BarChart = (props: Props) => {
     return result;
   }, [dataKeys, data]);
 
-  const _theme = useMemo(() => {
+  const _theme = useMemo((): ChartTheme => {
     return getTheme(theme);
   }, [theme]);
 
@@ -257,7 +256,7 @@ const BarChart = (props: Props) => {
           }}
         >
           <strong>
-            {id} : ${value}
+            <span style={{ textTransform: 'uppercase' }}>{id}</span> : ${value}
           </strong>
         </div>
       );
@@ -281,7 +280,7 @@ const BarChart = (props: Props) => {
             ]
           ]
         }}
-        colors={{ scheme: 'nivo' }}
+        colors={CHART_COLOR_SCHEMA}
         data={[data]}
         enableGridY={false}
         enableLabel={false}

@@ -10,7 +10,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import styled, { ThemeContext } from 'styled-components';
 
 import { Theme, ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { CHART_TIME_KEYS } from '@polkadot/extension-koni-ui/util';
+import { CHART_COLOR_SCHEMA, CHART_TIME_KEYS } from '@polkadot/extension-koni-ui/util';
 
 interface Props extends ThemeProps{
   className?: string;
@@ -132,7 +132,7 @@ const LineChart = (props: Props) => {
 
   const theme = useContext(ThemeContext as React.Context<Theme>);
 
-  const _theme = useMemo(() => {
+  const _theme = useMemo((): ChartTheme => {
     return getTheme(theme);
   }, [theme]);
 
@@ -220,7 +220,7 @@ const LineChart = (props: Props) => {
         }}
         axisRight={null}
         axisTop={null}
-        colors={['#42C59A']}
+        colors={CHART_COLOR_SCHEMA}
         crosshairType='x'
         curve='monotoneX'
         data={[

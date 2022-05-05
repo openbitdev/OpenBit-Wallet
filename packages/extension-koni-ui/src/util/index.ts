@@ -129,6 +129,8 @@ export const NFT_PER_ROW = 3;
 
 export const NFT_PER_ROW_FULL = 4;
 
+export const CHART_COLOR_SCHEMA = ['#42C59A', '#004BFF', '#DC2D7A', '#8845F4', '#CCCCCC'];
+
 export interface ChartTimeItem {
   timeId: number,
   label: string,
