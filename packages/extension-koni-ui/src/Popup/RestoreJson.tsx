@@ -5,9 +5,11 @@ import type { ResponseJsonGetAccountInfo } from '@polkadot/extension-base/backgr
 import type { KeyringPair$Json } from '@polkadot/keyring/types';
 import type { KeyringPairs$Json } from '@polkadot/ui-keyring/types';
 
+import CN from 'classnames';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import Header from '@polkadot/extension-koni-ui/partials/Header';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { u8aToString } from '@polkadot/util';
@@ -24,10 +26,11 @@ interface Props {
   className?: string;
 }
 
-function Upload ({ className }: Props): React.ReactElement {
+function RestoreJson ({ className }: Props): React.ReactElement {
   const { t } = useTranslation();
   const { accounts } = useContext(AccountContext);
   const onAction = useContext(ActionContext);
+  const isPopup = useIsPopup();
   const [isBusy, setIsBusy] = useState(false);
   const [accountsInfo, setAccountsInfo] = useState<ResponseJsonGetAccountInfo[]>([]);
   const [password, setPassword] = useState<string>('');
@@ -137,76 +140,121 @@ function Upload ({ className }: Props): React.ReactElement {
         smallMargin
         subHeaderName={t<string>('Restore from JSON')}
       />
-      <div className={className}>
-        <InputFileWithLabel
-          accept={acceptedFormats}
-          isError={isFileError}
-          label={t<string>('IMPORT FROM POLKADOT.JS')}
-          onChange={_onChangeFile}
-          withLabel
-        />
-        {isFileError && (
-          <Warning
-            isDanger
-          >
-            {t<string>('Invalid Json file')}
-          </Warning>
-        )}
-        {requirePassword && (
-          <div>
-            <InputWithLabel
-              isError={isPasswordError}
-              label={t<string>('Password for this file')}
-              onChange={_onChangePass}
-              type='password'
-              value={password}
-            />
-            {isPasswordError && (
-              <Warning
-                className='restore-json-warning'
-                isBelowInput
-                isDanger
-              >
-                {t<string>('Unable to decode using the supplied passphrase')}
-              </Warning>
-            )}
-          </div>
-        )}
-
-        <div className='restore-from-json-wrapper'>
-          {accountsInfo.map(({ address, genesisHash, name, type = DEFAULT_TYPE }, index) => (
-            <div
-              className={`account-info-container ${themeContext.id === 'dark' ? '-dark' : '-light'} restore-json__account-info`}
-              key={`${index}:${address}`}
+      <div className={CN(className, { full: !isPopup })}>
+        <div className={CN('content-container')}>
+          <InputFileWithLabel
+            accept={acceptedFormats}
+            isError={isFileError}
+            label={t<string>('IMPORT FROM POLKADOT.JS')}
+            onChange={_onChangeFile}
+            withLabel
+          />
+          {isFileError && (
+            <Warning
+              isDanger
             >
-              <AccountInfoEl
-                address={address}
-                genesisHash={genesisHash}
-                name={name}
-                type={type}
+              {t<string>('Invalid Json file')}
+            </Warning>
+          )}
+          {requirePassword && (
+            <div>
+              <InputWithLabel
+                isError={isPasswordError}
+                label={t<string>('Password for this file')}
+                onChange={_onChangePass}
+                type='password'
+                value={password}
               />
+              {isPasswordError && (
+                <Warning
+                  className='restore-json-warning'
+                  isBelowInput
+                  isDanger
+                >
+                  {t<string>('Unable to decode using the supplied passphrase')}
+                </Warning>
+              )}
             </div>
-          ))}
+          )}
+
+          <div className='restore-from-json-wrapper'>
+            {accountsInfo.map(({ address, genesisHash, name, type = DEFAULT_TYPE }, index) => (
+              <div
+                className={`account-info-container ${themeContext.id === 'dark' ? '-dark' : '-light'} restore-json__account-info`}
+                key={`${index}:${address}`}
+              >
+                <AccountInfoEl
+                  address={address}
+                  genesisHash={genesisHash}
+                  name={name}
+                  type={type}
+                />
+              </div>
+            ))}
+          </div>
+          <ButtonArea className='restore-json-button-area'>
+            <Button
+              className='restoreButton'
+              isBusy={isBusy}
+              isDisabled={isFileError || isPasswordError}
+              onClick={_onRestore}
+            >
+              {t<string>('Restore')}
+            </Button>
+          </ButtonArea>
         </div>
-        <ButtonArea className='restore-json-button-area'>
-          <Button
-            className='restoreButton'
-            isBusy={isBusy}
-            isDisabled={isFileError || isPasswordError}
-            onClick={_onRestore}
-          >
-            {t<string>('Restore')}
-          </Button>
-        </ButtonArea>
       </div>
     </>
   );
 }
 
-export default styled(Upload)(({ theme }: ThemeProps) => `
+export default styled(RestoreJson)(({ theme }: ThemeProps) => `
   padding: 25px 15px 0;
   height: 100%;
   overflow-y: auto;
+
+  &.full{
+    padding: 25px 0;
+    background-color: ${theme.layoutBackground};
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden auto;
+    flex-wrap: wrap;
+
+
+    .content-container{
+      background-color: ${theme.background};
+      width: 560px;
+      padding: 25px 25px 0 25px;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-file__label{
+      background-color: ${theme.background};
+      border-radius: 5px 5px 0 0;
+      border: 1px solid ${theme.background};
+    }
+
+    .restore-from-json-wrapper{
+      overflow: hidden auto;
+      max-height: 100%;
+    }
+
+    .restore-json-button-area{
+      border-radius: 0 0 5px 5px;
+      margin: 0;
+      bottom: 0;
+      padding: 15px 0;
+    }
+  }
+
   .restore-from-json-wrapper {
     overflow: hidden;
     margin-top: 16px;

@@ -9,14 +9,14 @@ import styled from 'styled-components';
 import { Loading } from '@polkadot/extension-koni-ui/components';
 import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
-import { AccountInfoByNetwork, BalanceInfo, BalanceSubInfo } from '@polkadot/extension-koni-ui/util/types';
+import { BalanceInfo, BalanceSubInfo } from '@polkadot/extension-koni-ui/util/types';
 
 interface Props extends ThemeProps{
   className?: string,
   handlerOnClick: (networkKey: string) => void,
   balanceInfo: BalanceInfo,
   childrenBalances: BalanceSubInfo[],
-  info: AccountInfoByNetwork,
+  rowKey: string,
   expandedRowKeys: string[],
   renderTokenValue: (balanceInfo: BalanceInfo) => React.ReactNode,
   setSelectedNetworkBalance: (num: BigN) => void,
@@ -24,21 +24,21 @@ interface Props extends ThemeProps{
 }
 
 const ChainBalanceTableBalanceItem = (props: Props) => {
-  const { balanceInfo, childrenBalances, className, expandedRowKeys, handlerOnClick, info, isLoading, setSelectedNetworkBalance } = props;
+  const { balanceInfo, childrenBalances, className, expandedRowKeys, handlerOnClick, isLoading, rowKey, setSelectedNetworkBalance } = props;
 
   const _handlerOnClick = useCallback(() => {
     if (isLoading) {
       return;
     }
 
-    handlerOnClick(info.networkKey);
+    handlerOnClick(rowKey);
 
     if (balanceInfo.childrenBalances.length > 0) {
       setSelectedNetworkBalance(balanceInfo.convertedBalanceValue);
     }
-  }, [balanceInfo, handlerOnClick, info, isLoading, setSelectedNetworkBalance]);
+  }, [balanceInfo, handlerOnClick, rowKey, isLoading, setSelectedNetworkBalance]);
 
-  const isShowed = expandedRowKeys.includes(info.networkKey);
+  const isShowed = expandedRowKeys.includes(rowKey);
 
   return (
     <div

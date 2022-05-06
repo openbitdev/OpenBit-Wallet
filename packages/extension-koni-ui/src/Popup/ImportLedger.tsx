@@ -3,9 +3,11 @@
 
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import CN from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import settings from '@polkadot/ui-settings';
 
 import { AccountInfoEl, ActionContext, Button, ButtonArea, Dropdown, Warning } from '../components';
@@ -40,6 +42,7 @@ function ImportLedger ({ className }: Props): React.ReactElement {
   const [isBusy, setIsBusy] = useState(false);
   const [genesis, setGenesis] = useState<string | null>(null);
   const onAction = useContext(ActionContext);
+  const isPopup = useIsPopup();
   const [name, setName] = useState<string | null>(null);
   const { address, error: ledgerError, isLoading: ledgerLoading, isLocked: ledgerLocked, refresh, warning: ledgerWarning } = useLedger(genesis, accountIndex, addressOffset);
 
@@ -94,96 +97,98 @@ function ImportLedger ({ className }: Props): React.ReactElement {
   const _onSetAddressOffset = useCallback((value: number) => setAddressOffset(Number(value)), []);
 
   return (
-    <div className={className}>
+    <div className={CN(className)}>
       <Header
         showBackArrow
         showSubHeader
         subHeaderName={t<string>('Import Ledger Account')}
       />
-      <div className={'import-ledger-body-area'}>
-        <AccountInfoEl
-          address={address}
-          className={'import-ledger-account'}
-          genesisHash={genesis}
-          isExternal
-          isHardware
-          name={name}
-        />
-        <Dropdown
-          className='import-ledger__item'
-          label={t<string>('Network')}
-          onChange={setGenesis}
-          options={networkOps.current}
-          value={genesis}
-        />
-        {!!genesis && !!address && !ledgerError && (
-          <Name
-            className='import-ledger__item'
-            onChange={setName}
-            value={name || ''}
+      <div className={CN('import-ledger-body-area', { full: !isPopup })}>
+        <div className={'content-container'}>
+          <AccountInfoEl
+            address={address}
+            className={'import-ledger-account'}
+            genesisHash={genesis}
+            isExternal
+            isHardware
+            name={name}
           />
-        )}
-        {!!name && (
-          <>
-            <Dropdown
+          <Dropdown
+            className='import-ledger__item'
+            label={t<string>('Network')}
+            onChange={setGenesis}
+            options={networkOps.current}
+            value={genesis}
+          />
+          {!!genesis && !!address && !ledgerError && (
+            <Name
               className='import-ledger__item'
-              isDisabled={ledgerLoading}
-              label={t<string>('account type')}
-              onChange={_onSetAccountIndex}
-              options={accOps.current}
-              value={accountIndex}
+              onChange={setName}
+              value={name || ''}
             />
-            <Dropdown
-              className='import-ledger__item'
-              isDisabled={ledgerLoading}
-              label={t<string>('address index')}
-              onChange={_onSetAddressOffset}
-              options={addOps.current}
-              value={addressOffset}
-            />
-          </>
-        )}
-        {!!ledgerWarning && (
-          <Warning>
-            {ledgerWarning}
-          </Warning>
-        )}
-        {(!!error || !!ledgerError) && (
-          <Warning
-            isDanger
-          >
-            {error || ledgerError}
-          </Warning>
-        )}
-        <ButtonArea className={'import-ledger-button-area'}>
-          {ledgerLocked
-            ? (
-              <Button
-                isBusy={ledgerLoading || isBusy}
-                onClick={refresh}
-              >
-                {/* @ts-ignore */}
-                <FontAwesomeIcon icon={faSync} />
-                {t<string>('Refresh')}
-              </Button>
-            )
-            : (
-              <Button
-                isBusy={ledgerLoading || isBusy}
-                isDisabled={!!error || !!ledgerError || !address || !genesis}
-                onClick={_onSave}
-              >
-                {t<string>('Import Account')}
-              </Button>
-            )
-          }
-        </ButtonArea>
+          )}
+          {!!name && (
+            <>
+              <Dropdown
+                className='import-ledger__item'
+                isDisabled={ledgerLoading}
+                label={t<string>('account type')}
+                onChange={_onSetAccountIndex}
+                options={accOps.current}
+                value={accountIndex}
+              />
+              <Dropdown
+                className='import-ledger__item'
+                isDisabled={ledgerLoading}
+                label={t<string>('address index')}
+                onChange={_onSetAddressOffset}
+                options={addOps.current}
+                value={addressOffset}
+              />
+            </>
+          )}
+          {!!ledgerWarning && (
+            <Warning>
+              {ledgerWarning}
+            </Warning>
+          )}
+          {(!!error || !!ledgerError) && (
+            <Warning
+              isDanger
+            >
+              {error || ledgerError}
+            </Warning>
+          )}
+          <ButtonArea className={'import-ledger-button-area'}>
+            {ledgerLocked
+              ? (
+                <Button
+                  isBusy={ledgerLoading || isBusy}
+                  onClick={refresh}
+                >
+                  {/* @ts-ignore */}
+                  <FontAwesomeIcon icon={faSync} />
+                  {t<string>('Refresh')}
+                </Button>
+              )
+              : (
+                <Button
+                  isBusy={ledgerLoading || isBusy}
+                  isDisabled={!!error || !!ledgerError || !address || !genesis}
+                  onClick={_onSave}
+                >
+                  {t<string>('Import Account')}
+                </Button>
+              )
+            }
+          </ButtonArea>
+        </div>
       </div>
     </div>
   );
 }
 
-export default styled(ImportLedger)`
+export default React.memo(styled(ImportLedger)(({ theme }: Props) => `
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -192,6 +197,26 @@ export default styled(ImportLedger)`
     padding: 10px 15px 0;
     flex: 1;
     overflow: auto;
+  }
+
+  .import-ledger-body-area.full{
+    padding: 25px 0;
+    background-color: ${theme.layoutBackground};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden auto;
+    flex-wrap: wrap;
+
+    .content-container{
+      background-color: ${theme.background};
+      width: 560px;
+      padding: 25px 25px 0 25px;
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+      height: 100%;
+    }
   }
 
   .refreshIcon {
@@ -215,4 +240,4 @@ export default styled(ImportLedger)`
     bottom: 0;
     z-index: 1;
   }
-`;
+`));

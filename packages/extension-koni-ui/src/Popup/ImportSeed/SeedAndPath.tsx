@@ -7,10 +7,12 @@ import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { ThemeProps } from '../../types';
 import type { AccountInfo } from '.';
 
+import CN from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
 import RadioStatus from '@polkadot/extension-koni-ui/components/RadioStatus';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import { validateSeedV2 } from '@polkadot/extension-koni-ui/messaging';
 import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@polkadot/extension-koni-ui/Popup/CreateAccount';
 import { objectSpread } from '@polkadot/util';
@@ -49,6 +51,7 @@ function SeedAndPath ({ account, className, evmAccount, evmName, keyTypes, name,
   const [selectedAccType, setSelectedAccType] = useState<string>('');
   const networkRef = useRef(null);
   const evmNetworkRef = useRef(null);
+  const isPopup = useIsPopup();
   const dep = keyTypes.toString();
   const sustrateGenesisHashOption = options.filter((opt) => !opt.isEthereum);
   const ethGenesisHashOption = options.filter((opt) => opt.isEthereum || opt.networkKey === 'all');
@@ -134,7 +137,7 @@ function SeedAndPath ({ account, className, evmAccount, evmName, keyTypes, name,
   }, [setSelectedGenesis]);
 
   return (
-    <div className={className}>
+    <div className={CN(className, { full: !isPopup })}>
       <div className='account-info-wrapper'>
         <div className={`account-info-container ${themeContext.id === 'dark' ? '-dark' : '-light'} seed-and-path-wrapper`}>
           <div className='account-info-item'>
@@ -216,7 +219,7 @@ function SeedAndPath ({ account, className, evmAccount, evmName, keyTypes, name,
           }
         </div>
       </div>
-      <ButtonArea>
+      <ButtonArea className={'kn-button-area'}>
         <NextStepButton
           className='next-step-btn'
           isDisabled={(!address && !evmAddress) || !!error || !seed || (!selectedAccType)}
@@ -233,6 +236,33 @@ export default styled(SeedAndPath)(({ theme }: ThemeProps) => `
   padding: 25px 15px 15px;
   flex: 1;
   overflow-y: auto;
+
+  &.full{
+    padding: 25px 0;
+    background-color: ${theme.layoutBackground};
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden auto;
+    flex-wrap: wrap;
+
+    .account-info-wrapper{
+      width: 560px;
+      background-color: ${theme.background};
+      border-radius: 5px 5px 0 0;
+      border: 1px solid ${theme.background};
+
+      .account-info-container{
+        border: none;
+      }
+    }
+
+    .kn-button-area{
+      width: 560px;
+      border-radius: 0 0 5px 5px;
+    }
+  }
 
   .seed-and-path__advanced-toggle {
     color: ${theme.textColor};

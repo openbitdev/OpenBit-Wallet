@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import CN from 'classnames';
-import React from 'react';
+import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
 import ArrowClockwiseIcon from '@polkadot/extension-koni-ui/assets/icon/arrow-clockwise.svg';
@@ -20,11 +20,17 @@ interface Props extends ThemeProps {
   activatedItem: number;
   isShowZeroBalances: boolean;
   toggleZeroBalances: () => void;
+  showChart: boolean;
+  setShowChart: (val: boolean) => void;
 }
 
-const TopHeaders = ({ activatedItem, className, isShowZeroBalances, items, onSelectItem, toggleZeroBalances }: Props) => {
+const TopHeaders = ({ activatedItem, className, isShowZeroBalances, items, onSelectItem, setShowChart, showChart, toggleZeroBalances }: Props) => {
+  const toggleShowChart = useCallback(() => {
+    setShowChart(!showChart);
+  }, [setShowChart, showChart]);
+
   return (
-    <div className={CN('top-headers ', className)}>
+    <div className={CN(className, { 'show-chart': showChart })}>
       <div className='nav-container'>
         {
           items.map((item) => (
@@ -63,7 +69,10 @@ const TopHeaders = ({ activatedItem, className, isShowZeroBalances, items, onSel
             src={SquaresFourIcon}
           />
         </div>
-        <div className={CN('action-button')}>
+        <div
+          className={CN('action-button', { active: showChart })}
+          onClick={toggleShowChart}
+        >
           <img
             alt='action'
             className='action-icon'
@@ -84,8 +93,14 @@ const TopHeaders = ({ activatedItem, className, isShowZeroBalances, items, onSel
 
 export default styled(TopHeaders)(({ theme }: Props) => `
   display: flex;
-  margin: 0 20px 8px 20px;
+  padding: 30px 20px 8px 20px;
   justify-content: space-between;
+  background-color: ${theme.background};
+
+
+  &.show-chart{
+    border-radius: 5px 5px 0 0;
+  }
 
   .nav-container{
     display: flex;
@@ -104,7 +119,7 @@ export default styled(TopHeaders)(({ theme }: Props) => `
         font-weight: 400;
         font-size: 15px;
         line-height: 26px;
-        color: #7B8098;
+        color: ${theme.textColor2};
         margin: 0px 12px;
       }
     }
@@ -113,7 +128,7 @@ export default styled(TopHeaders)(({ theme }: Props) => `
       display: flex;
       align-items: center;
       padding: 8px 14px;
-      background: #262C4A;
+      background: ${theme.layoutBackground};
       border: 1px solid transparent;
       box-sizing: border-box;
       box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.2);
@@ -127,18 +142,18 @@ export default styled(TopHeaders)(({ theme }: Props) => `
 
       .action-icon{
         width: 20px;
-        filter: invert(52%) sepia(9%) saturate(797%) hue-rotate(192deg) brightness(96%) contrast(87%);
+        filter: ${theme.textColorFilter2};
       }
     }
 
     .action-button.active{
-      background: #262C4A;
-      border: 1px solid #42C59A;
+      background: ${theme.layoutBackground};
+      border: 1px solid ${theme.borderSuccess};
       box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.15);
       border-radius: 5px;
 
       .action-icon{
-        filter: invert(60%) sepia(92%) saturate(292%) hue-rotate(109deg) brightness(94%) contrast(83%);
+        filter: ${theme.successFilter};
       }
     }
   }

@@ -8,13 +8,13 @@ import { NftType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
 import { _NftCollection } from '@polkadot/extension-koni-ui/Popup/Home/Nfts/types';
 import { RootState } from '@polkadot/extension-koni-ui/stores';
 
-export default function useFetchNft (page: number, networkKey: string, gridSize: number): NftType {
+export default function useFetchNft (page: number, networkKey: string, gridSize: number, collectionQuery = ''): NftType {
   const { nft: nftReducer, nftCollection: nftCollectionReducer } = useSelector((state: RootState) => state);
 
   const nftCollections: _NftCollection[] = [];
-  const filteredNftCollections: _NftCollection[] = [];
-  let from = 0;
-  let to = 0;
+  const resultCollections: _NftCollection[] = [];
+  let from;
+  let to;
 
   const showAll = networkKey.toLowerCase() === ALL_ACCOUNT_KEY.toLowerCase();
 
@@ -39,30 +39,30 @@ export default function useFetchNft (page: number, networkKey: string, gridSize:
     nftCollections.push(parsedCollection);
   }
 
-  let totalItems = rawItems.length;
+  let totalItems = 0;
 
-  if (!showAll) {
-    totalItems = 0;
-    nftCollections.forEach((collection) => {
-      if (collection.chain && collection.chain.toLowerCase() === networkKey.toLowerCase()) {
-        filteredNftCollections.push(collection);
-        totalItems += collection.nftItems.length;
-      }
-    });
-  }
+  nftCollections.forEach((collection) => {
+    const queryCondition = collectionQuery ? collection.collectionName?.toLowerCase().includes(collectionQuery.toLowerCase()) : true;
+    const selectNetworkCondition = !showAll ? (collection.chain && collection.chain.toLowerCase() === networkKey.toLowerCase()) : true;
 
-  if (!showAll && filteredNftCollections.length <= gridSize) {
+    if (selectNetworkCondition && queryCondition) {
+      resultCollections.push(collection);
+      totalItems += collection.nftItems.length;
+    }
+  });
+
+  if (resultCollections.length <= gridSize) {
     from = 0;
-    to = filteredNftCollections.length;
+    to = resultCollections.length;
   } else {
     from = (page - 1) * gridSize;
     to = from + gridSize;
   }
 
   return {
-    nftList: showAll ? nftCollections.slice(from, to) : filteredNftCollections.slice(from, to),
+    nftList: resultCollections.slice(from, to),
     totalItems,
-    totalCollection: showAll ? nftCollections.length : filteredNftCollections.length,
+    totalCollection: resultCollections.length,
     loading: !nftCollectionReducer.ready // ready = not loading
   } as NftType;
 }

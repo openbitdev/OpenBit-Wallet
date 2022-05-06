@@ -370,7 +370,7 @@ export default React.memo(styled(Wrapper)(({ theme }: Props) => `
 
   .meta-title {
     font-size: 14px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .meta-value {
@@ -387,7 +387,7 @@ export default React.memo(styled(Wrapper)(({ theme }: Props) => `
   .field-title {
     text-transform: uppercase;
     font-size: 12px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .input-value {

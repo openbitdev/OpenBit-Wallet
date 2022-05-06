@@ -432,7 +432,9 @@ export default React.memo(styled(Header)(({ theme }: Props) => `
   max-width: 100%;
   box-sizing: border-box;
   margin: 0;
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 
   && {
     padding: 0 0 0;

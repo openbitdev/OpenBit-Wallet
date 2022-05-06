@@ -352,7 +352,7 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
 
     .ant-table-cell{
       padding: 12px 8px;
-      border-bottom: 1px solid #151A30;
+      border-bottom: 1px solid ${theme.tableSeparator};
     }
 
     .ant-table-cell:first-child{
@@ -365,12 +365,18 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
       }
     }
 
+    .ant-table-tbody {
+      .ant-table-cell-row-hover {
+        background-color: transparent;
+      }
+    }
+
     .ant-empty{
       color: ${theme.textColor2};
     }
 
     .ant-empty-image{
-      filter: invert(55%) sepia(15%) saturate(461%) hue-rotate(192deg) brightness(89%) contrast(88%);
+      filter: ${theme.textColorFilter2};
     }
 
     .ant-table-row:hover{
@@ -392,7 +398,7 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
       z-index: 1;
 
       .ant-table-cell{
-        background: #004BFF;
+        background: ${theme.tableHeader};
         box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.05);
         border-bottom: 0;
         padding: 12px 8px;
@@ -401,7 +407,7 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
         font-weight: 500;
         font-size: 15px;
         line-height: 26px;
-        color: #FFFFFF;
+        color: ${theme.textColor};
       }
 
       .ant-table-cell::before{
@@ -441,8 +447,8 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
     border-radius: 8px;
     overflow: hidden;
     margin-right: 12px;
-    background-color: #000000;
-    border: 1px solid #000000;
+    background-color: ${theme.tableChainLogoBackground};
+    border: 1px solid ${theme.tableChainLogoBackground};
   }
 
   .chain-balance-table-item__main-area {
@@ -497,8 +503,8 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
     border-radius: 8px;
     overflow: hidden;
     margin-right: 12px;
-    background-color: #000000;
-    border: 1px solid #000000;
+    background-color: ${theme.tableChainLogoBackground};
+    border: 1px solid ${theme.tableChainLogoBackground};
   }
 
   .chain-balance-table-item__meta-wrapper {
@@ -536,7 +542,7 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
     font-weight: 400;
     font-size: 14px;
     line-height: 24px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .chain-balance-table-item__copy {
@@ -590,10 +596,10 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
     font-weight: 500;
     font-size: 13px;
     line-height: 21px;
-    color: #26A975;
+    color: ${theme.textIncrease};
   }
 
   .chain-balance-table-item__profit-percentage.negative{
-    color: #B5131C;
+    color: ${theme.textDecrease};
   }
 `));

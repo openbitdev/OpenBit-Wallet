@@ -162,6 +162,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
     window.localStorage.getItem('show_zero_balances') === '1'
   );
   const [isQrModalOpen, setQrModalOpen] = useState<boolean>(false);
+  const [showChart, setShowChart] = useState<boolean>(false);
   const [selectedNetworkBalance, setSelectedNetworkBalance] = useState<BigN>(BN_ZERO);
   const [trigger] = useState(() => `home-balances-${++tooltipId}`);
   const [
@@ -193,7 +194,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
   const [showTransferredCollection, setShowTransferredCollection] = useState(false);
   const [showForcedCollection, setShowForcedCollection] = useState(false);
 
-  const parseNftGridSize = useCallback(() => {
+  const nftGridSize = useMemo(() => {
     if (window.innerHeight > NFT_GRID_HEIGHT_THRESHOLD) {
       const nftContainerHeight = window.innerHeight - NFT_HEADER_HEIGHT;
       const rowCount = Math.floor(nftContainerHeight / NFT_PREVIEW_HEIGHT);
@@ -203,8 +204,8 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
       return NFT_DEFAULT_GRID_SIZE;
     }
   }, [isPopup]);
-  const nftGridSize = parseNftGridSize();
-  const { loading: loadingNft, nftList, totalCollection, totalItems } = useFetchNft(nftPage, selectedNftNetwork, nftGridSize);
+
+  const { loading: loadingNft, nftList, totalCollection, totalItems } = useFetchNft(nftPage, selectedNftNetwork, nftGridSize, query.nft.collection);
   const { data: stakingData, loading: loadingStaking, priceMap: stakingPriceMap } = useFetchStaking(networkKey);
 
   const handleNftPage = useCallback((page: number) => {
@@ -273,25 +274,36 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
         change = { balance: value };
         break;
       case 2:
-        change = { nft: { collection: value } };
+        if (!showNftCollectionDetail) {
+          change = { nft: { collection: value } };
+        } else {
+          change = { nft: { item: value } };
+        }
+
         break;
       default:
         break;
     }
 
     setQuery(change);
-  }, [setQuery, activatedTab]);
+  }, [setQuery, activatedTab, showNftCollectionDetail]);
 
   const _query = useMemo(() => {
     switch (activatedTab) {
       case 1:
         return query.balance;
+
       case 2:
-        return query.nft.collection;
+        if (!showNftCollectionDetail) {
+          return query.nft.collection;
+        } else {
+          return query.nft.item;
+        }
+
       default:
         return '';
     }
-  }, [query, activatedTab]);
+  }, [query, activatedTab, showNftCollectionDetail]);
 
   return (
     <div className={`home-screen home ${className}`}>
@@ -342,7 +354,7 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
           }
 
           {
-            !isPopup && (
+            !isPopup && showChart && (
               <ChartContainer
                 networkBalanceMaps={networkBalanceMaps}
                 networkKeys={showedNetworks}
@@ -358,6 +370,8 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
               isShowZeroBalances={isShowZeroBalances}
               items={tabItems}
               onSelectItem={_setActiveTab}
+              setShowChart={setShowChart}
+              showChart={showChart}
               toggleZeroBalances={_toggleZeroBalances}
             />
           }
@@ -376,22 +390,23 @@ function Home ({ chainRegistryMap, className = '', currentAccount, historyMap, n
 
           {
             !isPopup &&
-            <Input
-              className={CN('search-input')}
-              onChange={handlerChangeSearchQuery}
-              placeholder={t('Search Assets')}
-              prefix={
-                <img
-                  alt='search-icon'
-                  className={CN('search-icon')}
-                  src={SearchIcon}
-                />
-              }
-              value={_query}
-            />
+            <div className={CN('search-input')}>
+              <Input
+                onChange={handlerChangeSearchQuery}
+                placeholder={t('Search Assets')}
+                prefix={
+                  <img
+                    alt='search-icon'
+                    className={CN('search-icon')}
+                    src={SearchIcon}
+                  />
+                }
+                value={_query}
+              />
+            </div>
           }
 
-          <div className={'home-tab-contents'}>
+          <div className={CN('home-tab-contents')}>
             {activatedTab === 1 && (
               <ChainBalances
                 address={address}
@@ -507,18 +522,26 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
 
   .main-layout.full{
     padding: 25px 0;
-    background-color: rgb(38, 44, 74);
+    background-color: ${theme.layoutBackground};
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden auto;
+    height: 100%;
+    flex-wrap: wrap;
+
     .main-container{
       min-width: 1100px;
       margin-right: 375px;
       margin-left: 375px;
+      background: transparent;
+      height: unset;
+      border-radius: 5px;
     }
 
     .home-tab-contents{
-      margin-top: 20px;
+      padding-top: 20px;
+      background-color: ${theme.background};
     }
   }
 
@@ -526,16 +549,15 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: rgb(2, 4, 18);
+    background: transparent;
     overflow-x: hidden;
   }
 
   .search-input{
-    margin-left: 20px;
-    background-color: ${theme.inputBackgroundColor};
-    border-radius: 8px;
-    border-color: ${theme.inputBackgroundColor};
-    width: 370px;
+    background-color: ${theme.background};
+    border-color: ${theme.background};
+    padding-left: 20px;
+    width: 100%;
     height: 48px;
 
     .search-icon{
@@ -549,6 +571,17 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
       margin-right: 8px;
     }
 
+    .ant-input-affix-wrapper{
+      background-color: ${theme.inputBackgroundColor};
+      border-radius: 8px;
+      border-color: ${theme.inputBackgroundColor};
+      width: 370px;
+    }
+
+    .ant-input-affix-wrapper-focused{
+      box-shadow: none;
+    }
+
     input{
       font-style: normal;
       font-weight: 400;
@@ -557,16 +590,11 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
       background-color: ${theme.inputBackgroundColor};
       color: ${theme.textColor2};
     }
-  }
 
-  .search-input:hover {
-    border-color: ${theme.inputBackgroundColor};
+    &:hover {
+      border-color: ${theme.inputBackgroundColor};
+    }
   }
-
-  .ant-input-affix-wrapper-focused.search-input {
-    box-shadow: none;
-  }
-
 
   .home-tab-contents {
     flex: 1;
@@ -575,7 +603,8 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
 
   .home-action-block {
     display: flex;
-    padding: 20px 25px;
+    padding: 20px 25px 0 25px;
+    background-color: ${theme.background};
   }
 
   .account-total-balance {
@@ -606,7 +635,7 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     font-size: 15px;
     line-height: 26px;
     text-align: center;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .balance-title{
@@ -614,7 +643,7 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     font-weight: 500;
     font-size: 18px;
     line-height: 28px;
-    color: #7B8098;
+    color: ${theme.textColor2};
     display: flex;
     align-items: center;
     margin-bottom: 12px;
@@ -668,7 +697,7 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
         font-weight: 400;
         font-size: 15px;
         line-height: 26px;
-        color: #7B8098;
+        color: ${theme.textColor2};
       }
     }
   }
@@ -721,9 +750,10 @@ export default React.memo(styled(Wrapper)(({ theme }: WrapperProps) => `
     font-size: 15px;
     line-height: 26px;
     font-weight: 500;
-    margin-left: 25px;
+    padding-left: 25px;
     cursor: pointer;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
+    background-color: ${theme.background};
   }
 
   .home__back-icon {

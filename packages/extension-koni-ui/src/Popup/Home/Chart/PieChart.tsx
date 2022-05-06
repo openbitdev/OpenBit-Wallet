@@ -153,11 +153,11 @@ const PieChart = (props: Props) => {
 
   const CustomSymbolShape = ({ borderColor, borderWidth, fill, id, x, y }: SymbolProps) => (
     <g
-      x={x}
-      y={y}
       style={{
         pointerEvents: 'none'
       }}
+      x={x}
+      y={y}
     >
       <rect
         fill={fill}

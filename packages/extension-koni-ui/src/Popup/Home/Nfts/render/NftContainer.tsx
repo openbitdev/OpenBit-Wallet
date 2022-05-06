@@ -4,9 +4,11 @@
 import { faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CN from 'classnames';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { ALL_ACCOUNT_KEY } from '@polkadot/extension-koni-base/constants';
+import { SearchContext } from '@polkadot/extension-koni-ui/components';
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
 import useFetchNftChain from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchNftChain';
 import useFetchNftExtra from '@polkadot/extension-koni-ui/hooks/screen/home/useFetchNftTransferExtra';
@@ -76,13 +78,15 @@ function NftContainer (
   const selectedNftCollection = useFetchNftExtra(showTransferredCollection, setShowTransferredCollection);
   const [networkKey, setNetworkKey] = useState(currentNetwork);
   const nftChains = useFetchNftChain(networkKey);
+  const { setQuery } = useContext(SearchContext);
 
   const isPopup = useIsPopup();
 
   const handleShowCollectionDetail = useCallback((data: _NftCollection) => {
     setShowCollectionDetail(true);
     setChosenCollection(data);
-  }, [setChosenCollection, setShowCollectionDetail]);
+    setQuery({ nft: { item: '' } });
+  }, [setChosenCollection, setShowCollectionDetail, setQuery]);
 
   useEffect(() => {
     if (!showTransferredCollection && selectedNftCollection) { // show collection after transfer
@@ -137,7 +141,7 @@ function NftContainer (
       </div>}
 
       {
-        !isPopup && !showCollectionDetail && (
+        !isPopup && !showCollectionDetail && currentNetwork === ALL_ACCOUNT_KEY.toLowerCase() && (
           <NavChainNetwork
             nftChains={nftChains}
             selectedNftNetwork={selectedNftNetwork}

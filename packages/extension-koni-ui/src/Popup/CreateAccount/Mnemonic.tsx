@@ -1,11 +1,13 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import CN from 'classnames';
 import { saveAs } from 'file-saver';
 import React, { useCallback, useContext, useState } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
 import { AccountInfoEl, ButtonArea, Checkbox, MnemonicSeed, NextStepButton } from '@polkadot/extension-koni-ui/components';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@polkadot/extension-koni-ui/Popup/CreateAccount/index';
 import { Theme, ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { KeypairType } from '@polkadot/util-crypto/types';
@@ -41,6 +43,8 @@ function Mnemonic ({ address, className, evmAddress, evmName, name, onNextStep, 
   const [isNormalAccountSelected, setNormalAccountSelected] = useState(false);
   const [isEvmAccountSelected, setEvmAccountSelected] = useState(false);
   const { show } = useToast();
+  const isPopup = useIsPopup();
+
   const themeContext = useContext(ThemeContext as React.Context<Theme>);
 
   const _onCopy = useCallback((): void => {
@@ -92,7 +96,7 @@ function Mnemonic ({ address, className, evmAddress, evmName, name, onNextStep, 
 
   return (
     <>
-      <div className={className}>
+      <div className={CN(className, { full: !isPopup })}>
         <div className='account-info-wrapper'>
           <div className={`account-info-container ${themeContext.id === 'dark' ? '-dark' : '-light'}`}>
             {address &&
@@ -157,6 +161,33 @@ export default React.memo(styled(Mnemonic)(({ theme }: Props) => `
   padding: 25px 15px 15px;
   flex: 1;
   overflow-y: auto;
+
+  &.full{
+    padding: 25px 0;
+    background-color: ${theme.layoutBackground};
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden auto;
+    flex-wrap: wrap;
+
+    .account-info-wrapper{
+      width: 560px;
+      background-color: ${theme.background};
+      border-radius: 5px 5px 0 0;
+      border: 1px solid ${theme.background};
+
+      .account-info-container{
+        border: none;
+      }
+    }
+
+    .kn-next-area{
+      width: 560px;
+      border-radius: 0 0 5px 5px;
+    }
+  }
 
   .account-info-item {
     display: flex;

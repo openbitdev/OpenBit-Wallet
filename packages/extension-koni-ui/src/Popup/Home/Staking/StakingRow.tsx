@@ -221,7 +221,7 @@ export default React.memo(styled(StakingRow)(({ theme }: Props) => `
 
   .balance-description {
     font-size: 14px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .staking-balance {
@@ -236,7 +236,7 @@ export default React.memo(styled(StakingRow)(({ theme }: Props) => `
 
   .reward-title {
     font-size: 14px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .reward-amount {
@@ -268,7 +268,7 @@ export default React.memo(styled(StakingRow)(({ theme }: Props) => `
     right: 4px;
     border-style: solid;
     border-width: 0 2px 2px 0;
-    border-color: #7B8098;
+    border-color: ${theme.textColor2};
     display: inline-block;
     padding: 3.5px;
     transform: rotate(45deg);
@@ -317,7 +317,7 @@ export default React.memo(styled(StakingRow)(({ theme }: Props) => `
   .chain-symbol {
     text-transform: uppercase;
     font-size: 14px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .staking-amount {
@@ -337,13 +337,13 @@ export default React.memo(styled(StakingRow)(({ theme }: Props) => `
     font-weight: normal;
     display: flex;
     justify-content: flex-end;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .major-balance {}
 
   .decimal-balance {
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   &.-show-detail .chain-balance-item__toggle {

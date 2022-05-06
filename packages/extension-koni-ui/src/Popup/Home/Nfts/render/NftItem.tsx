@@ -336,7 +336,7 @@ export default React.memo(styled(NftItem)(({ theme }: ThemeProps) => `
 
   .att-value {
     font-size: 15px;
-    color: #7B8098;
+    color: ${theme.textColor2};
     word-break: break-all;
   }
 

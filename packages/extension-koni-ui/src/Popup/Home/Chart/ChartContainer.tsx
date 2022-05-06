@@ -8,10 +8,10 @@ import styled from 'styled-components';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
 import BarChart from '@polkadot/extension-koni-ui/Popup/Home/Chart/BarChart';
 import LineChart from '@polkadot/extension-koni-ui/Popup/Home/Chart/LineChart';
+import PieChart from '@polkadot/extension-koni-ui/Popup/Home/Chart/PieChart';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { CHART_TIME_ITEMS, CHART_TIME_KEYS } from '@polkadot/extension-koni-ui/util';
 import { BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
-import PieChart from '@polkadot/extension-koni-ui/Popup/Home/Chart/PieChart';
 
 interface Props extends ThemeProps{
   className?: string;
@@ -49,7 +49,7 @@ const MENU_ITEMS: MenuItem[] = [
 
 const ChartContainer = (props: Props) => {
   const { className, networkBalanceMaps, networkKeys } = props;
-  const [selectedTab, setSelectedTab] = useState(STATISTIC_ID);
+  const [selectedTab, setSelectedTab] = useState(CHART_ID);
   const [selectedTime, setSelectedTime] = useState(CHART_TIME_KEYS.T24H_ID);
 
   const { t } = useTranslation();
@@ -64,7 +64,7 @@ const ChartContainer = (props: Props) => {
 
   return (
     <div className={CN(className)}>
-      <div>
+      <div className={CN('chart-container')}>
         <div className={CN('chart-header-container')}>
           <div className={CN('tab-items-container')}>
             {
@@ -114,7 +114,7 @@ const ChartContainer = (props: Props) => {
             )
           }
         </div>
-        <div>
+        <div className={CN('chart-content')}>
           {
             selectedTab === CHART_ID && (
               <LineChart selectedTime={selectedTime} />
@@ -143,8 +143,18 @@ const ChartContainer = (props: Props) => {
 };
 
 export default React.memo(styled(ChartContainer)(({ theme }: Props) => `
-  padding: 0 20px;
+  padding-bottom: 30px;
+  background-color: #262c4a;
 
+  .chart-container{
+    padding: 20px 20px 0 20px;
+    background-color: #020412;
+    border-radius: 0 0 5px 5px;
+  }
+
+  .chart-content{
+    padding-bottom: 20px;
+  }
 
   .chart-header-container{
     display: flex;

@@ -151,7 +151,7 @@ export default React.memo(styled(NavChainNetwork)(({ theme }: Props) => `
         font-weight: 400;
         font-size: 15px;
         line-height: 26px;
-        color: #7B8098;
+        color: ${theme.textColor2};
         margin-left: 8px;
       }
     }

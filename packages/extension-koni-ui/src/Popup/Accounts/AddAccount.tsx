@@ -3,6 +3,7 @@
 
 import type { ThemeProps } from '../../types';
 
+import CN from 'classnames';
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
@@ -50,8 +51,17 @@ function AddAccount ({ className }: Props): React.ReactElement<Props> {
         showSubHeader
         subHeaderName={t<string>('Add Account')}
       />
-      <div className={className}>
+      <div className={CN(className, { full: !isPopup })}>
         <div className='add-account-wrapper'>
+          {/* { */}
+          {/*  !isPopup && ( */}
+          {/*    <div className={'subheader-container'}> */}
+          {/*      <div className='subheader-container__text'> */}
+          {/*        {t<string>('Add Account')} */}
+          {/*      </div> */}
+          {/*    </div> */}
+          {/*  ) */}
+          {/* } */}
           <div className='no-accounts'>
             <p>{t<string>("You currently don't have any accounts. Create your first account or import another account to get started.")}</p>
           </div>
@@ -103,8 +113,47 @@ export default React.memo(styled(AddAccount)(({ theme }: Props) => `
   color: ${theme.textColor};
   height: 100%;
 
+
+  &.full{
+    padding: 25px 0;
+    background-color: ${theme.layoutBackground};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden auto;
+    flex-wrap: wrap;
+
+    .add-account-wrapper {
+      padding: 20px 40px;
+      border-radius: 5px;
+      background-color: ${theme.background};
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .add-account-btn{
+      width: 360px;
+    }
+  }
+
+
+  .subheader-container__text {
+    align-items: center;
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 500;
+    color: ${theme.textColor};
+  }
+
+  .subheader-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .add-account-wrapper {
-    margin: 0 40px;
+    padding: 0 40px;
   }
 
   .add-account-btn {

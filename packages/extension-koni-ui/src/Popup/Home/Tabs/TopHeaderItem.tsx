@@ -56,7 +56,7 @@ export default styled(TopHeaderItem)(({ theme }: Props) => `
     font-weight: 500;
     font-size: 20px;
     line-height: 32px;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   &.activated {

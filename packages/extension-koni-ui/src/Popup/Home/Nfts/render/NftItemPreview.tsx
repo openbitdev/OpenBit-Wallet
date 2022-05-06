@@ -150,7 +150,7 @@ export default React.memo(styled(NftItemPreview)(({ theme }: ThemeProps) => `
       font-size: 14px;
       margin-left: 5px;
       font-weight: normal;
-      color: #7B8098;
+      color: ${theme.textColor2};
     }
   }
 

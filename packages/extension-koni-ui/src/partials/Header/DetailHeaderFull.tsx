@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import CN from 'classnames';
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import QRCode from 'react-qr-code';
@@ -174,7 +175,7 @@ function DetailHeaderFull ({ className = '',
   }, [currentAccount, currentAccount?.address, networkPrefix, isEthereum]);
 
   return (
-    <div className={`detail-header ${className}`}>
+    <div className={CN(className)}>
       <div className='detail-header__part-1'>
         <div
           className='detail-header-connect-status-btn'
@@ -289,6 +290,8 @@ export default styled(DetailHeaderFull)(({ theme }: Props) => `
   height: 150px;
   padding-top: 20px;
   justify-content: space-between;
+  background-color: ${theme.background};
+  border-radius: 5px 5px 0 0;
 
   .detail-header__part-1 {
     margin-left: 20px;
@@ -334,7 +337,7 @@ export default styled(DetailHeaderFull)(({ theme }: Props) => `
     line-height: 44px;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 220px;
+    max-width: 100%;
     overflow: hidden;
   }
 

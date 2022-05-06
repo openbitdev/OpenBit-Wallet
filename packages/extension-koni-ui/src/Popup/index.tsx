@@ -86,14 +86,6 @@ function updateCurrentAccount (currentAcc: AccountJson): void {
   store.dispatch({ type: 'currentAccount/update', payload: currentAcc });
 }
 
-function updateBalanceStatus (isShowBalance: boolean): void {
-  store.dispatch({ type: 'balanceStatus/update', payload: { isShowBalance: isShowBalance } });
-}
-
-function updateAllAccount (allAccountLogo: string): void {
-  store.dispatch({ type: 'allAccount/update', payload: { allAccountLogo: allAccountLogo } });
-}
-
 function updateObject (origin: Record<string, unknown>, _new: Record<string, unknown>): Record<string, unknown> {
   const result = { ...origin };
 

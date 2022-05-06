@@ -158,7 +158,7 @@ export default React.memo(styled(NftCollection)(({ theme }: ThemeProps) => `
   .collection-item-count {
     font-size: 16px;
     font-weight: normal;
-    color: #7B8098;
+    color: ${theme.textColor2};
   }
 
   .grid-container.full {
