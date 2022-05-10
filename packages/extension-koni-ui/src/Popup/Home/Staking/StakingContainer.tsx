@@ -8,12 +8,12 @@ import { APIItemState } from '@polkadot/extension-base/background/KoniTypes';
 import LogosMap from '@polkadot/extension-koni-ui/assets/logo';
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
 import { StakingDataType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import EmptyList from '@polkadot/extension-koni-ui/Popup/Home/Staking/EmptyList';
+import StakingTable from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingTable';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 
 import StakingRow from './StakingRow';
-import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
-import StakingTable from '@polkadot/extension-koni-ui/Popup/Home/Staking/StakingTable';
 
 interface Props extends ThemeProps {
   className?: string;

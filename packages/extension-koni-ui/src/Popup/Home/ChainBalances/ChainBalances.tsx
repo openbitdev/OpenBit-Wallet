@@ -269,15 +269,15 @@ function ChainBalances ({ address,
                 )
                 : (
                   <ChainBalanceDetail
-                  accountInfo={selectedInfo}
-                  backToHome={_backToHome}
-                  balanceInfo={selectedBalanceInfo}
-                  setQrModalOpen={setQrModalOpen}
-                  setQrModalProps={setQrModalProps}
-                />
+                    accountInfo={selectedInfo}
+                    backToHome={_backToHome}
+                    balanceInfo={selectedBalanceInfo}
+                    setQrModalOpen={setQrModalOpen}
+                    setQrModalProps={setQrModalProps}
+                  />
                 )
             }
-            
+
           </>
         )
       }
