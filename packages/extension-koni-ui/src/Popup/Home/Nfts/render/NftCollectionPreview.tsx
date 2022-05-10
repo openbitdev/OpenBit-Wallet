@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import CN from 'classnames';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 // @ts-ignore
 import LazyLoad from 'react-lazyload';
 import styled from 'styled-components';
 
-import errorImage from '@polkadot/extension-koni-ui/assets/image-error.png';
 import logo from '@polkadot/extension-koni-ui/assets/sub-wallet-logo.svg';
 import Spinner from '@polkadot/extension-koni-ui/components/Spinner';
 import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
@@ -33,7 +32,7 @@ function NftCollectionPreview ({ className, data, onClick }: Props): React.React
   const handlerOnError = useCallback(() => {
     if (imgRef.current) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      imgRef.current.src = errorImage;
+      imgRef.current.src = logo;
     }
 
     setLoading(false);
@@ -42,6 +41,10 @@ function NftCollectionPreview ({ className, data, onClick }: Props): React.React
   const handleOnClick = useCallback(() => {
     onClick(data);
   }, [data, onClick]);
+
+  useEffect(() => {
+    setLoading(true);
+  }, [data.image]);
 
   return (
     <div className={className}>

@@ -8,10 +8,12 @@ import React, { useCallback, useContext, useMemo, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import styled from 'styled-components';
 
+import { AbstractColumnData } from '@polkadot/extension-base/background/KoniTypes';
 import cloneIcon from '@polkadot/extension-koni-ui/assets/clone.svg';
 import InfoIcon from '@polkadot/extension-koni-ui/assets/icon/info.svg';
 import receivedIcon from '@polkadot/extension-koni-ui/assets/receive-icon.svg';
 import { Loading, SearchContext } from '@polkadot/extension-koni-ui/components';
+import AntTableWrapper from '@polkadot/extension-koni-ui/components/AntTableWrapper';
 import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
 import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
@@ -20,6 +22,7 @@ import ChainBalanceTableBalanceItem from '@polkadot/extension-koni-ui/Popup/Home
 import { getTotalConvertedBalanceValue } from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/utils';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { isAccountAll } from '@polkadot/extension-koni-ui/util';
+import { recreateColumnTable } from '@polkadot/extension-koni-ui/util/recreateColumnTable';
 import { AccountInfoByNetwork, BalanceInfo } from '@polkadot/extension-koni-ui/util/types';
 
 interface Props extends ThemeProps {
@@ -56,15 +59,7 @@ interface DataRecord {
   }
 }
 
-interface ColumnData {
-  title?: string | React.ReactNode,
-  render?: (text: string, record: DataRecord, index: number) => React.ReactNode,
-  dataIndex?: string,
-  className?: string,
-  align?: 'center' | 'left' | 'right',
-  sorter?: boolean,
-  width?: number | string
-}
+type ColumnData = AbstractColumnData<DataRecord>
 
 const MAX_RAND = 100;
 const MIN_RAND = 0;
@@ -130,7 +125,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         title: 'Chain',
         dataIndex: 'chain',
         width: 42,
-        render: (text: string, record: DataRecord) => {
+        render: (text, record: DataRecord) => {
           const accountInfo = record.info;
           const { address, formattedAddress, networkIconTheme, networkKey, networkPrefix } = accountInfo;
           const _isAccountAll = isAccountAll(address);
@@ -193,7 +188,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         title: 'Balance',
         dataIndex: 'balance',
         align: 'right',
-        render: (text: string, record: DataRecord) => {
+        render: (text, record: DataRecord) => {
           const balanceInfo = record.balanceInfo;
           const isLoading = !balanceInfo;
           const childrenBalances = balanceInfo && balanceInfo.childrenBalances;
@@ -226,7 +221,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         ),
         dataIndex: 'price',
         align: 'right',
-        render: (text: string, record: DataRecord) => {
+        render: (text, record: DataRecord) => {
           const balanceInfo = record.balanceInfo;
           const isLoading = !balanceInfo;
 
@@ -238,18 +233,11 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
                     <Loading />
                   )
                   : (
-                    <>
-                      <BalanceVal
-                        startWithSymbol
-                        symbol={'$'}
-                        value={balanceInfo.price}
-                      />
-                      <BalanceVal
-                        startWithSymbol
-                        symbol={'$'}
-                        value={balanceInfo.price}
-                      />
-                    </>
+                    <BalanceVal
+                      startWithSymbol
+                      symbol={'$'}
+                      value={balanceInfo.price}
+                    />
                   )
               }
             </div>
@@ -260,7 +248,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         title: 'Value',
         dataIndex: 'test',
         align: 'right',
-        render: (text: string, record: DataRecord) => {
+        render: (text, record: DataRecord) => {
           const balanceInfo = record.balanceInfo;
           const isLoading = !balanceInfo;
 
@@ -287,7 +275,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
         title: 'Profit/loss',
         dataIndex: 'test',
         align: 'right',
-        render: (text: string, record: DataRecord) => {
+        render: (text, record: DataRecord) => {
           const change = record.change;
           const isLoading = !record.balanceInfo;
 
@@ -322,18 +310,7 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
       }
     ];
 
-    rawColumns.forEach((col) => {
-      const className: string[] = col.className ? [col.className] : [];
-
-      if (col.align) {
-        className.push(`text-${col.align}`);
-        delete col.align;
-      }
-
-      col.className = CN(className);
-    });
-
-    return rawColumns;
+    return recreateColumnTable(rawColumns);
   }, [_onCopy, _openQr, expandedRowKeys, renderRowKey, selectNetworkDetail, setSelectedNetworkBalance, toggleSelectedNetwork]);
 
   const dataSource = useMemo((): DataRecord[] => {
@@ -368,40 +345,42 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
 
   return (
     <div className={CN(className)}>
-      <Table
-        columns={_columns}
-        dataSource={dataSource}
-        expandable={{
-          expandedRowRender: (record) => {
-            const { balanceInfo } = record;
+      <AntTableWrapper>
+        <Table
+          columns={_columns}
+          dataSource={dataSource}
+          expandable={{
+            expandedRowRender: (record) => {
+              const { balanceInfo } = record;
 
-            if (!balanceInfo) {
-              return (<></>);
-            }
+              if (!balanceInfo) {
+                return (<></>);
+              }
 
-            return (
-              <div>
-                <div className='chain-balance-item__separator' />
-                <div className='chain-balance-item__detail-area'>
-                  {balanceInfo.detailBalances.map((d) => (
-                    <ChainBalanceItemRow
-                      item={d}
-                      key={d.key}
-                    />
-                  ))}
+              return (
+                <div>
+                  <div className='chain-balance-item__separator' />
+                  <div className='chain-balance-item__detail-area'>
+                    {balanceInfo.detailBalances.map((d) => (
+                      <ChainBalanceItemRow
+                        item={d}
+                        key={d.key}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          },
-          showExpandColumn: false,
-          expandedRowKeys: expandedRowKeys
-        }}
-        pagination={false}
-        rowKey={renderRowKey}
-        style={{
-          width: containerWidth - 40
-        }}
-      />
+              );
+            },
+            showExpandColumn: false,
+            expandedRowKeys: expandedRowKeys
+          }}
+          pagination={false}
+          rowKey={renderRowKey}
+          style={{
+            width: containerWidth - 40
+          }}
+        />
+      </AntTableWrapper>
     </div>
   );
 };
@@ -409,111 +388,8 @@ const ChainBalanceTable = ({ accountInfoByNetworkMap,
 export default React.memo(styled(ChainBalanceTable)(({ theme }: Props) => `
   margin-left: 20px;
 
-  .text-right{
-    text-align: right;
-  }
-
-  .text-center{
-    text-align: center;
-  }
-
-  .text-left{
-    text-align: left;
-  }
-
-  .ant-table{
-    background-color: transparent;
-
-    ant-table-content{
-      position: relative;
-    }
-
-    .ant-table-cell{
-      padding: 12px 8px;
-      border-bottom: 1px solid ${theme.tableSeparator};
-    }
-
-    .ant-table-cell:first-child{
-      padding: 12px 0;
-    }
-
-    .ant-table-cell.text-left.ant-table-column-has-sorters{
-
-      .ant-table-column-sorters{
-        justify-content: flex-start;
-      }
-
-      .ant-table-column-title{
-        flex: none;
-      }
-
-    }
-
-    .ant-table-row:hover{
-      .ant-table-cell{
-        background-color: transparent;
-      }
-    }
-
-    .ant-table-placeholder:hover {
-      td{
-        background: transparent;
-      }
-    }
-
-    .ant-table-tbody {
-      .ant-table-cell-row-hover, .ant-table-column-sort {
-        background-color: transparent;
-      }
-    }
-
-    .ant-empty{
-      color: ${theme.textColor2};
-    }
-
-    .ant-empty-image{
-      filter: ${theme.textColorFilter2};
-    }
-
-    .ant-table-expanded-row{
-      .ant-table-cell{
-        background-color: transparent;
-        color: ${theme.textColor2};
-      }
-    }
-
-    .ant-table-thead{
-      position: sticky;
-      top: 0;
-      z-index: 1;
-
-      .ant-table-cell{
-        background: ${theme.tableHeader};
-        box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.05);
-        border-bottom: 0;
-        padding: 12px 8px;
-
-        font-style: normal;
-        font-weight: 500;
-        font-size: 15px;
-        line-height: 26px;
-        color: ${theme.textColor};
-      }
-
-      .ant-table-cell::before{
-        display: none;
-      }
-
-      .ant-table-cell:first-child{
-        border-top-left-radius: 8px;
-        border-bottom-left-radius: 8px;
-      }
-
-      .ant-table-cell:last-child{
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
-      }
-    }
+  .ant-table-cell:first-child{
+    padding: 12px 0;
   }
 
   .price-header-title{
@@ -686,10 +562,10 @@ export default React.memo(styled(ChainBalanceTable)(({ theme }: Props) => `
     font-weight: 500;
     font-size: 13px;
     line-height: 21px;
-    color: ${theme.textIncrease};
+    color: ${theme.textSuccess};
   }
 
   .chain-balance-table-item__profit-percentage.negative{
-    color: ${theme.textDecrease};
+    color: ${theme.textError};
   }
 `));

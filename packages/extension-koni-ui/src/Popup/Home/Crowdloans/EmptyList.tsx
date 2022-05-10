@@ -32,6 +32,7 @@ export default styled(CrowdloanEmptyList)`
   align-items: center;
   flex-direction: column;
   position: relative;
+  padding-bottom: 20px;
 
   .empty-list__img {
     height: 130px;

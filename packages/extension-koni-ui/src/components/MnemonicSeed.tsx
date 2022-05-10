@@ -86,6 +86,7 @@ export default styled(MnemonicSeed)(({ theme }: ThemeProps) => `
     top: 55px;
     right: 15px;
     cursor: pointer;
+    filter: ${theme.textColorFilter2};
   }
 
   .mnemonic-seed__display {

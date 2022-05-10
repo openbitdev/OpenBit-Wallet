@@ -8,10 +8,12 @@ import React, { useCallback, useContext, useMemo, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import styled from 'styled-components';
 
+import { AbstractColumnData } from '@polkadot/extension-base/background/KoniTypes';
 import cloneIcon from '@polkadot/extension-koni-ui/assets/clone.svg';
 import InfoIcon from '@polkadot/extension-koni-ui/assets/icon/info.svg';
 import receivedIcon from '@polkadot/extension-koni-ui/assets/receive-icon.svg';
 import { SearchContext } from '@polkadot/extension-koni-ui/components';
+import AntTableWrapper from '@polkadot/extension-koni-ui/components/AntTableWrapper';
 import { BalanceVal } from '@polkadot/extension-koni-ui/components/balance';
 import useToast from '@polkadot/extension-koni-ui/hooks/useToast';
 import useTranslation from '@polkadot/extension-koni-ui/hooks/useTranslation';
@@ -20,6 +22,7 @@ import ChainBalanceDetailTableBalanceItem from '@polkadot/extension-koni-ui/Popu
 import { getTotalConvertedBalanceValue } from '@polkadot/extension-koni-ui/Popup/Home/ChainBalances/utils';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { getLogoByNetworkKey, isAccountAll } from '@polkadot/extension-koni-ui/util';
+import { recreateColumnTable } from '@polkadot/extension-koni-ui/util/recreateColumnTable';
 import { AccountInfoByNetwork, BalanceInfo, BalanceSubInfo } from '@polkadot/extension-koni-ui/util/types';
 
 interface Props extends ThemeProps {
@@ -52,14 +55,7 @@ interface DataRecord{
   networkLogo?: string;
 }
 
-interface ColumnData {
-  title?: string | React.ReactNode,
-  render?: (text: string, record: DataRecord, index: number) => React.ReactNode,
-  dataIndex?: string,
-  align?: 'center' | 'left' | 'right',
-  width?: number | string
-}
-
+type ColumnData = AbstractColumnData<DataRecord>
 const MAX_RAND = 100;
 const MIN_RAND = 0;
 
@@ -118,149 +114,153 @@ const ChainBalanceDetailTable = ({ accountInfo,
     setExpandedRowKeys(_expandedRowKeys);
   }, [expandedRowKeys]);
 
-  const _columns: ColumnData[] = [
-    {
-      title: 'Chain',
-      dataIndex: 'chain',
-      width: 42,
-      align: 'left',
-      render: (text: string, record: DataRecord) => {
-        const { address, formattedAddress, networkIconTheme, networkKey, networkPrefix } = accountInfo;
-        const { isCore, key, label, networkLogo } = record;
-        const _isAccountAll = isAccountAll(address);
+  const _columns = useMemo((): ColumnData[] => {
+    const _rawColumns: ColumnData[] = [
+      {
+        title: 'Chain',
+        dataIndex: 'chain',
+        width: 42,
+        align: 'left',
+        render: (text, record: DataRecord) => {
+          const { address, formattedAddress, networkIconTheme, networkKey, networkPrefix } = accountInfo;
+          const { isCore, key, label, networkLogo } = record;
+          const _isAccountAll = isAccountAll(address);
 
-        const handlerOpenQr = () => {
-          _openQr(networkPrefix, networkKey, networkIconTheme);
-        };
+          const handlerOpenQr = () => {
+            _openQr(networkPrefix, networkKey, networkIconTheme);
+          };
 
-        return (
-          <div className='chain-balance-table-item__main-area-part-1'>
-            <img
-              alt={'Logo'}
-              className='chain-balance-table-item__logo'
-              src={networkLogo || getLogoByNetworkKey(key.toLowerCase(), accountInfo.networkKey)}
-            />
+          return (
+            <div className='chain-balance-table-item__main-area-part-1'>
+              <img
+                alt={'Logo'}
+                className='chain-balance-table-item__logo'
+                src={networkLogo || getLogoByNetworkKey(key.toLowerCase(), accountInfo.networkKey)}
+              />
 
-            <div className='chain-balance-table-item__meta-wrapper'>
-              <div className='chain-balance-table-item__chain-name'>{label}</div>
+              <div className='chain-balance-table-item__meta-wrapper'>
+                <div className='chain-balance-table-item__chain-name'>{label}</div>
 
-              <div className='chain-balance-table-item__bottom-area'>
-                {!_isAccountAll && isCore && (
-                  <>
-                    <CopyToClipboard text={formattedAddress}>
-                      <div
-                        className='chain-balance-table-item__address'
-                        onClick={_onCopy}
-                      >
-                        <span className='chain-balance-table-item__address-text'>{formattedAddress}</span>
-                        <img
-                          alt='copy'
-                          className='chain-balance-table-item__copy'
-                          src={cloneIcon}
-                        />
-                      </div>
-                    </CopyToClipboard>
-                    <img
-                      alt='receive'
-                      className='chain-balance-table-item__receive'
-                      /* eslint-disable-next-line react/jsx-no-bind */
-                      onClick={handlerOpenQr}
-                      src={receivedIcon}
-                    />
-                  </>
-                )}
+                <div className='chain-balance-table-item__bottom-area'>
+                  {!_isAccountAll && isCore && (
+                    <>
+                      <CopyToClipboard text={formattedAddress}>
+                        <div
+                          className='chain-balance-table-item__address'
+                          onClick={_onCopy}
+                        >
+                          <span className='chain-balance-table-item__address-text'>{formattedAddress}</span>
+                          <img
+                            alt='copy'
+                            className='chain-balance-table-item__copy'
+                            src={cloneIcon}
+                          />
+                        </div>
+                      </CopyToClipboard>
+                      <img
+                        alt='receive'
+                        className='chain-balance-table-item__receive'
+                        /* eslint-disable-next-line react/jsx-no-bind */
+                        onClick={handlerOpenQr}
+                        src={receivedIcon}
+                      />
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        );
-      }
-    },
-    {
-      title: 'Balance',
-      dataIndex: 'balance',
-      align: 'right',
-      render: (text: string, record: DataRecord) => {
-        return (
-          <ChainBalanceDetailTableBalanceItem
-            expandedRowKeys={expandedRowKeys}
-            info={record}
-            toggleSelectedNetwork={toggleSelectedNetwork}
-          />
-        );
-      }
-    },
-    {
-      title: (
-        <div className='price-header-title'>
-          Price
-          <img
-            alt='info-icon'
-            className={CN('icon')}
-            src={InfoIcon}
-          />
-        </div>
-      ),
-      dataIndex: 'price',
-      align: 'right',
-      render: (text: string, record: DataRecord) => {
-        const { price } = record;
-
-        return (
-          <div className='chain-balance-table-item__value'>
-            <BalanceVal
-              startWithSymbol
-              symbol={'$'}
-              value={price}
+          );
+        }
+      },
+      {
+        title: 'Balance',
+        dataIndex: 'balance',
+        align: 'right',
+        render: (text, record: DataRecord) => {
+          return (
+            <ChainBalanceDetailTableBalanceItem
+              expandedRowKeys={expandedRowKeys}
+              info={record}
+              toggleSelectedNetwork={toggleSelectedNetwork}
+            />
+          );
+        }
+      },
+      {
+        title: (
+          <div className='price-header-title'>
+            Price
+            <img
+              alt='info-icon'
+              className={CN('icon')}
+              src={InfoIcon}
             />
           </div>
-        );
-      }
-    },
-    {
-      title: 'Value',
-      dataIndex: 'test',
-      align: 'right',
-      render: (text: string, record: DataRecord) => {
-        const { isCore } = record;
+        ),
+        dataIndex: 'price',
+        align: 'right',
+        render: (text, record: DataRecord) => {
+          const { price } = record;
 
-        return (
-          <div className='chain-balance-table-item__value'>
-            <BalanceVal
-              startWithSymbol
-              symbol={'$'}
-              value={isCore ? getTotalConvertedBalanceValue(balanceInfo) : record.convertedBalanceValue}
-            />
-          </div>
-        );
-      }
-    },
-    {
-      title: 'Profit/loss',
-      dataIndex: 'test',
-      align: 'right',
-      render: (text: string, record: DataRecord) => {
-        const change = record.change;
-
-        return (
-          <div className='chain-balance-table-item__profit'>
-            <div className='chain-balance-table-item__profit-value'>
-              <span className='chain-balance-table-item__profit-signal'>
-                {change.value.gt(0) ? '+' : '-'}
-              </span>
+          return (
+            <div className='chain-balance-table-item__value'>
               <BalanceVal
                 startWithSymbol
                 symbol={'$'}
-                value={change.value.abs()}
+                value={price}
               />
             </div>
-            <div className={CN('chain-balance-table-item__profit-percentage', { negative: change.percentage.lt(0) })}>
-              {change.percentage.lt(0) ? '-' : '+'}{change.percentage.absoluteValue().toFormat(2)}%
+          );
+        }
+      },
+      {
+        title: 'Value',
+        dataIndex: 'test',
+        align: 'right',
+        render: (text, record: DataRecord) => {
+          const { isCore } = record;
+
+          return (
+            <div className='chain-balance-table-item__value'>
+              <BalanceVal
+                startWithSymbol
+                symbol={'$'}
+                value={isCore ? getTotalConvertedBalanceValue(balanceInfo) : record.convertedBalanceValue}
+              />
             </div>
-          </div>
-        );
+          );
+        }
+      },
+      {
+        title: 'Profit/loss',
+        dataIndex: 'test',
+        align: 'right',
+        render: (text, record: DataRecord) => {
+          const change = record.change;
+
+          return (
+            <div className='chain-balance-table-item__profit'>
+              <div className='chain-balance-table-item__profit-value'>
+                <span className='chain-balance-table-item__profit-signal'>
+                  {change.value.gt(0) ? '+' : '-'}
+                </span>
+                <BalanceVal
+                  startWithSymbol
+                  symbol={'$'}
+                  value={change.value.abs()}
+                />
+              </div>
+              <div className={CN('chain-balance-table-item__profit-percentage', { negative: change.percentage.lt(0) })}>
+                {change.percentage.lt(0) ? '-' : '+'}{change.percentage.absoluteValue().toFormat(2)}%
+              </div>
+            </div>
+          );
+        }
       }
-    }
-  ];
+    ];
+
+    return recreateColumnTable(_rawColumns);
+  }, [_onCopy, _openQr, accountInfo, balanceInfo, expandedRowKeys, toggleSelectedNetwork]);
 
   const dataSource = useMemo((): DataRecord[] => {
     const result: DataRecord[] = [];
@@ -300,42 +300,44 @@ const ChainBalanceDetailTable = ({ accountInfo,
 
   return (
     <div className={CN(className)}>
-      <Table
-        columns={_columns}
-        dataSource={dataSource}
-        expandable={{
-          expandedRowRender: (record) => {
-            const { detailBalances } = record;
+      <AntTableWrapper>
+        <Table
+          columns={_columns}
+          dataSource={dataSource}
+          expandable={{
+            expandedRowRender: (record) => {
+              const { detailBalances } = record;
 
-            if (!detailBalances) {
-              return (<></>);
-            }
+              if (!detailBalances) {
+                return (<></>);
+              }
 
-            return (
-              <div>
-                <div className='chain-balance-item__separator' />
-                <div className='chain-balance-item__detail-area'>
-                  {detailBalances.map((d) => (
-                    <ChainBalanceItemRow
-                      item={d}
-                      key={d.key}
-                    />
-                  ))}
+              return (
+                <div>
+                  <div className='chain-balance-item__separator' />
+                  <div className='chain-balance-item__detail-area'>
+                    {detailBalances.map((d) => (
+                      <ChainBalanceItemRow
+                        item={d}
+                        key={d.key}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          },
-          showExpandColumn: false,
-          expandedRowKeys: expandedRowKeys,
-          rowExpandable: (record) => record.isCore
-        }}
-        pagination={false}
-        /* eslint-disable-next-line react/jsx-no-bind */
-        rowKey={(record) => record.key}
-        style={{
-          width: containerWidth - 40
-        }}
-      />
+              );
+            },
+            showExpandColumn: false,
+            expandedRowKeys: expandedRowKeys,
+            rowExpandable: (record) => record.isCore
+          }}
+          pagination={false}
+          /* eslint-disable-next-line react/jsx-no-bind */
+          rowKey={(record) => record.key}
+          style={{
+            width: containerWidth - 40
+          }}
+        />
+      </AntTableWrapper>
     </div>
   );
 };
@@ -343,87 +345,8 @@ const ChainBalanceDetailTable = ({ accountInfo,
 export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => `
   margin-left: 20px;
 
-  .ant-table{
-    background-color: transparent;
-
-    ant-table-content{
-      position: relative;
-    }
-
-    .ant-table-cell{
-      padding: 12px 8px;
-      border-bottom: 1px solid ${theme.tableSeparator};
-    }
-
-    .ant-table-cell:first-child{
-      padding: 12px 0;
-    }
-
-    .ant-table-placeholder:hover {
-      td{
-        background: transparent;
-      }
-    }
-
-    .ant-table-tbody {
-      .ant-table-cell-row-hover {
-        background-color: transparent;
-      }
-    }
-
-    .ant-empty{
-      color: ${theme.textColor2};
-    }
-
-    .ant-empty-image{
-      filter: ${theme.textColorFilter2};
-    }
-
-    .ant-table-row:hover{
-      .ant-table-cell{
-        background-color: transparent;
-      }
-    }
-
-    .ant-table-expanded-row{
-      .ant-table-cell{
-        background-color: transparent;
-        color: ${theme.textColor2};
-      }
-    }
-
-    .ant-table-thead{
-      position: sticky;
-      top: 0;
-      z-index: 1;
-
-      .ant-table-cell{
-        background: ${theme.tableHeader};
-        box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.05);
-        border-bottom: 0;
-        padding: 12px 8px;
-
-        font-style: normal;
-        font-weight: 500;
-        font-size: 15px;
-        line-height: 26px;
-        color: ${theme.textColor};
-      }
-
-      .ant-table-cell::before{
-        display: none;
-      }
-
-      .ant-table-cell:first-child{
-        border-top-left-radius: 8px;
-        border-bottom-left-radius: 8px;
-      }
-
-      .ant-table-cell:last-child{
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
-      }
-    }
+  .ant-table-cell:first-child{
+    padding: 12px 0;
   }
 
   .chain-balance-table-item__profit-signal{
@@ -596,10 +519,10 @@ export default React.memo(styled(ChainBalanceDetailTable)(({ theme }: Props) => 
     font-weight: 500;
     font-size: 13px;
     line-height: 21px;
-    color: ${theme.textIncrease};
+    color: ${theme.textSuccess};
   }
 
   .chain-balance-table-item__profit-percentage.negative{
-    color: ${theme.textDecrease};
+    color: ${theme.textError};
   }
 `));

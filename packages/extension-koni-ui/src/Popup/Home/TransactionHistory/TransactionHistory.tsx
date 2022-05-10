@@ -5,6 +5,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { ChainRegistry, TransactionHistoryItemType } from '@polkadot/extension-base/background/KoniTypes';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
+import TransactionHistoryTable from '@polkadot/extension-koni-ui/Popup/Home/TransactionHistory/TransactionHistoryTable';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { getScanExplorerTransactionHistoryUrl, isSupportScanExplorer } from '@polkadot/extension-koni-ui/util';
 
@@ -76,6 +78,8 @@ function Wrapper ({ className, historyMap, networkKey, registryMap }: Props): Re
 }
 
 function TransactionHistory ({ className, items, registryMap }: ContentProp): React.ReactElement<ContentProp> {
+  const isPopup = useIsPopup();
+
   const renderChainBalanceItem = (item: TransactionHistoryItemType, registryMap: Record<string, ChainRegistry>) => {
     const { networkKey } = item;
 
@@ -112,7 +116,20 @@ function TransactionHistory ({ className, items, registryMap }: ContentProp): Re
 
   return (
     <div className={`transaction-history ${className || ''}`}>
-      {items.map((item) => renderChainBalanceItem(item, registryMap))}
+      {
+        isPopup
+          ? (
+            <>
+              {items.map((item) => renderChainBalanceItem(item, registryMap))}
+            </>
+          )
+          : (
+            <TransactionHistoryTable
+              items={items}
+              registryMap={registryMap}
+            />
+          )
+      }
     </div>
   );
 }

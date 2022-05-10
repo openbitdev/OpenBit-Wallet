@@ -239,7 +239,7 @@ const LineChart = (props: Props) => {
         enableGridX={false}
         fill={[{ match: '*', id: 'gradient' }]}
         gridYValues={6}
-        margin={{ top: 50, right: 100, bottom: 50, left: 100 }}
+        margin={{ top: 50, right: 0, bottom: 50, left: 100 }}
         motionConfig='slow'
         onMouseLeave={handlerOnMouseLeave}
         onMouseMove={handlerOnMouseMove}

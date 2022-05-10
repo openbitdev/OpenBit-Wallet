@@ -8,7 +8,9 @@ import styled from 'styled-components';
 import { NetWorkGroup, NetWorkMetadataDef } from '@polkadot/extension-base/background/KoniTypes';
 import NETWORKS from '@polkadot/extension-koni-base/api/endpoints';
 import { CrowdloanContributeValueType } from '@polkadot/extension-koni-ui/hooks/screen/home/types';
+import useIsPopup from '@polkadot/extension-koni-ui/hooks/useIsPopup';
 import CrowdloanItem from '@polkadot/extension-koni-ui/Popup/Home/Crowdloans/CrowdloanItem';
+import CrowdloanTable from '@polkadot/extension-koni-ui/Popup/Home/Crowdloans/CrowdloanTable';
 import { CrowdloanItemType } from '@polkadot/extension-koni-ui/Popup/Home/types';
 import { ThemeProps } from '@polkadot/extension-koni-ui/types';
 import { BN_ZERO, getLogoByNetworkKey } from '@polkadot/extension-koni-ui/util';
@@ -116,6 +118,17 @@ function Wrapper ({ className, crowdloanContributeMap, networkKeys, networkMetad
 }
 
 function Crowdloans ({ className, items }: ContentProp): React.ReactElement<ContentProp> {
+  const isPopup = useIsPopup();
+
+  if (!isPopup) {
+    return (
+      <CrowdloanTable
+        className={className}
+        items={items}
+      />
+    );
+  }
+
   return (
     <div className={`crowdloan-items-container ${className || ''}`}>
       {items.map((item) => (
@@ -128,4 +141,6 @@ function Crowdloans ({ className, items }: ContentProp): React.ReactElement<Cont
   );
 }
 
-export default styled(Wrapper)(({ theme }: Props) => '');
+export default styled(Wrapper)(({ theme }: Props) => `
+  padding: 0 25px 20px 25px;
+`);

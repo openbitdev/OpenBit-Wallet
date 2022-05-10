@@ -10,6 +10,7 @@ import { Registry } from '@polkadot/types/types';
 import { Keyring } from '@polkadot/ui-keyring';
 import { BN } from '@polkadot/util';
 import { KeypairType } from '@polkadot/util-crypto/types';
+import React from 'react';
 
 export enum ApiInitStatus {
   SUCCESS,
@@ -337,6 +338,16 @@ export interface RequestTransactionHistoryAdd {
   address: string;
   networkKey: string;
   item: TransactionHistoryItemType;
+}
+
+export interface AbstractColumnData<DataRecord> {
+  title?: string | React.ReactNode,
+  render?: (text: unknown, record: DataRecord, index: number) => React.ReactNode,
+  dataIndex?: string,
+  className?: string,
+  align?: 'center' | 'left' | 'right',
+  sorter?: boolean,
+  width?: number | string
 }
 
 export interface RequestApi {
