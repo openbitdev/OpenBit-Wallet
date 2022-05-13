@@ -168,7 +168,7 @@ function TransferNftContainer ({ api, className, collectionId, collectionImage, 
 
       setShowConfirm(true);
     } else {
-      show('Some error occurred. Please try again later.');
+      show('An error occurred. Please try again later.');
     }
 
     setLoading(false);

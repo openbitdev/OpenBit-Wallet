@@ -400,7 +400,8 @@ const NETWORKS: Record<string, NetWorkInfo> = {
     paraId: 2023,
     isEthereum: true,
     nativeToken: 'MOVR',
-    crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan'
+    crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan',
+    decimals: 18
   },
   shiden: {
     chain: 'Shiden',
@@ -410,7 +411,8 @@ const NETWORKS: Record<string, NetWorkInfo> = {
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2007,
     nativeToken: 'SDN',
-    crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan'
+    crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan',
+    decimals: 18
   },
   shidenEvm: {
     chain: 'Shiden - EVM',
@@ -419,7 +421,8 @@ const NETWORKS: Record<string, NetWorkInfo> = {
     provider: 'wss://rpc.shiden.astar.network',
     groups: ['KUSAMA_PARACHAIN'],
     nativeToken: 'SDN',
-    isEthereum: true
+    isEthereum: true,
+    decimals: 18
   },
   khala: {
     chain: 'Khala',

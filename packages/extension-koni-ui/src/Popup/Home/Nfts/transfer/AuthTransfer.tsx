@@ -196,7 +196,7 @@ function AuthTransfer ({ chain, className, collectionId, nftItem, recipientAddre
           }
         });
       } catch (e) {
-        show('Encountered an error, please try again.');
+        show('Encountered an error, please check your balance and try again.');
         setBalanceError(true);
         setLoading(false);
       }
@@ -285,16 +285,6 @@ function AuthTransfer ({ chain, className, collectionId, nftItem, recipientAddre
                 value={callHash}
                 withCopy
               />
-            }
-
-            {
-              balanceError &&
-              <div
-                className={'password-error'}
-                style={{ marginTop: balanceError ? '40px' : '0' }}
-              >
-                Your balance is too low to cover fees.
-              </div>
             }
 
             <div

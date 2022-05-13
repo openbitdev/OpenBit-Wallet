@@ -14,7 +14,13 @@ import { checkReferenceCount, checkSupportTransfer, estimateFee, getExistentialD
 import NETWORKS from '@subwallet/extension-koni-base/api/endpoints';
 import { TRANSFER_CHAIN_ID } from '@subwallet/extension-koni-base/api/nft/config';
 import { getERC20TransactionObject, getEVMTransactionObject, makeERC20Transfer, makeEVMTransfer } from '@subwallet/extension-koni-base/api/web3/transfer';
-import { getERC20Contract, getERC721Contract, getWeb3Api, TestERC721Contract } from '@subwallet/extension-koni-base/api/web3/web3';
+import {
+  ERC721Contract,
+  getERC20Contract,
+  getERC721Contract,
+  getWeb3Api,
+  TestERC721Contract
+} from '@subwallet/extension-koni-base/api/web3/web3';
 import { dotSamaAPIMap, rpcsMap, state } from '@subwallet/extension-koni-base/background/handlers/index';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-koni-base/constants';
 import { reformatAddress } from '@subwallet/extension-koni-base/utils/utils';
@@ -1246,7 +1252,7 @@ export default class KoniExtension extends Extension {
     try {
       const web3 = getWeb3Api(networkKey);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const contract = new web3.eth.Contract(TestERC721Contract, contractAddress);
+      const contract = new web3.eth.Contract(ERC721Contract, contractAddress);
 
       const [fromAccountTxCount, gasPriceGwei] = await Promise.all([
         web3.eth.getTransactionCount(senderAddress),
