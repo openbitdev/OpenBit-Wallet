@@ -14,13 +14,7 @@ import { checkReferenceCount, checkSupportTransfer, estimateFee, getExistentialD
 import NETWORKS from '@subwallet/extension-koni-base/api/endpoints';
 import { TRANSFER_CHAIN_ID } from '@subwallet/extension-koni-base/api/nft/config';
 import { getERC20TransactionObject, getEVMTransactionObject, makeERC20Transfer, makeEVMTransfer } from '@subwallet/extension-koni-base/api/web3/transfer';
-import {
-  ERC721Contract,
-  getERC20Contract,
-  getERC721Contract,
-  getWeb3Api,
-  TestERC721Contract
-} from '@subwallet/extension-koni-base/api/web3/web3';
+import { ERC721Contract, getERC20Contract, getERC721Contract, getWeb3Api } from '@subwallet/extension-koni-base/api/web3/web3';
 import { dotSamaAPIMap, rpcsMap, state } from '@subwallet/extension-koni-base/background/handlers/index';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-koni-base/constants';
 import { reformatAddress } from '@subwallet/extension-koni-base/utils/utils';
