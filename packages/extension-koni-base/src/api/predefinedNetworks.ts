@@ -346,12 +346,12 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x729cb8f2cf428adcf81fe69610edda32c5711b2ff17de747e8604a3587021db8',
     ss58Format: 18,
     providers: {
-      'Darwinia Network': 'wss://rpc.darwinia.network',
-      Darwinia: 'wss://darwinia-rpc.dwellir.com'
+      Darwinia_Network: 'wss://rpc.darwinia.network',
+      Dwellir: 'wss://darwinia-rpc.dwellir.com'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Darwinia Network',
+    currentProvider: 'Darwinia_Network',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2003,
     nativeToken: 'RING',
@@ -1193,9 +1193,9 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x34f61bfda344b3fad3c3e38832a91448b3c613b199eb23e5110a635d71c13c65',
     ss58Format: 42,
     providers: {
+      Onfinality: 'wss://darwinia-crab.api.onfinality.io/public-ws',
       Darwinia_Network: 'wss://crab-rpc.darwinia.network',
-      Dwellir: 'wss://darwiniacrab-rpc.dwellir.com',
-      Onfinality: 'wss://darwinia-crab.api.onfinality.io/public-ws'
+      Dwellir: 'wss://darwiniacrab-rpc.dwellir.com'
     },
     active: false,
     currentProviderMode: 'ws',
