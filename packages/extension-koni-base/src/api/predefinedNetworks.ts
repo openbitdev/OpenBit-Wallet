@@ -1200,7 +1200,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     active: false,
     currentProviderMode: 'ws',
     currentProvider: 'Onfinality',
-    groups: ['KUSAMA_PARACHAIN'],
+    groups: ['MAIN_NET'],
     paraId: 2105,
     nativeToken: 'CRAB',
     crowdloanUrl: 'https://crab.network/plo',
