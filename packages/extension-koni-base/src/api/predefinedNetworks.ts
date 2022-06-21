@@ -1193,13 +1193,13 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x34f61bfda344b3fad3c3e38832a91448b3c613b199eb23e5110a635d71c13c65',
     ss58Format: 42,
     providers: {
-      Onfinality: 'wss://darwinia-crab.api.onfinality.io/public-ws',
+      OnFinality: 'wss://darwinia-crab.api.onfinality.io/public-ws',
       Darwinia_Network: 'wss://crab-rpc.darwinia.network',
       Dwellir: 'wss://darwiniacrab-rpc.dwellir.com'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Onfinality',
+    currentProvider: 'OnFinality',
     groups: ['MAIN_NET'],
     paraId: 2105,
     nativeToken: 'CRAB',
