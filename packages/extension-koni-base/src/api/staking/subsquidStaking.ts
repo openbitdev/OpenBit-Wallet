@@ -5,7 +5,6 @@ import { APIItemState, StakingItem, StakingRewardItem, StakingRewardJson } from 
 import { PREDEFINED_NETWORKS } from '@subwallet/extension-koni-base/api/predefinedNetworks';
 import { SUBSQUID_ENDPOINTS, SUPPORTED_STAKING_CHAINS } from '@subwallet/extension-koni-base/api/staking/config';
 import { reformatAddress, toUnit } from '@subwallet/extension-koni-base/utils/utils';
-import axios from 'axios';
 
 interface RewardResponseItem {
   smartContract: string;
@@ -77,37 +76,37 @@ const getSubsquidStaking = async (accounts: string[], chain: string, callback: (
       const parsedAccount = reformatAddress(account, PREDEFINED_NETWORKS[chain].ss58Format);
       const result: Record<string, any> = {};
 
-      const resp = await axios({ url: SUBSQUID_ENDPOINTS[chain],
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const resp = await fetch(SUBSQUID_ENDPOINTS[chain], {
         method: 'post',
-        data: { query: getSubsquidQuery(parsedAccount, chain) } });
+        body: JSON.stringify({ query: getSubsquidQuery(parsedAccount, chain) })
+      }).then((res) => res.json());
 
-      if (resp.status === 200) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        const respData = resp.data.data as Record<string, any>;
-        const rewardItem = respData.accountById as StakingResponseItem;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const respData = resp.data as Record<string, any>;
+      const rewardItem = respData.accountById as StakingResponseItem;
 
-        if (rewardItem) {
-          const latestReward = rewardItem.rewards[0];
+      if (rewardItem) {
+        const latestReward = rewardItem.rewards[0];
 
-          if (rewardItem.totalReward) {
-            result.totalReward = parseFloat(rewardItem.totalReward);
-          }
+        if (rewardItem.totalReward) {
+          result.totalReward = parseFloat(rewardItem.totalReward);
+        }
 
-          if (rewardItem.totalSlash) {
-            result.totalSlash = parseFloat(rewardItem.totalSlash);
-          }
+        if (rewardItem.totalSlash) {
+          result.totalSlash = parseFloat(rewardItem.totalSlash);
+        }
 
-          if (rewardItem.totalBond) {
-            result.totalBond = parseFloat(rewardItem.totalBond);
-          }
+        if (rewardItem.totalBond) {
+          result.totalBond = parseFloat(rewardItem.totalBond);
+        }
 
-          if (latestReward && latestReward.amount) {
-            result.latestReward = parseFloat(latestReward.amount);
-          }
+        if (latestReward && latestReward.amount) {
+          result.latestReward = parseFloat(latestReward.amount);
+        }
 
-          if (latestReward && latestReward.smartContract) {
-            result.smartContract = latestReward.smartContract;
-          }
+        if (latestReward && latestReward.smartContract) {
+          result.smartContract = latestReward.smartContract;
         }
       }
 

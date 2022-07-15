@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApolloClient, createHttpLink, gql, InMemoryCache } from '@apollo/client';
-import axios from 'axios';
-import fetch from 'cross-fetch';
 
 export const client = new ApolloClient({
   cache: new InMemoryCache(),
@@ -25,10 +23,10 @@ export const SUBSQUID_STAKING_QUERY = gql`
 `;
 
 export const getSubsquidStakingReward = async (account: string): Promise<Record<string, any>> => {
-  const resp = await axios({
-    url: 'https://app.gc.subsquid.io/beta/subwallet-polkadot/v4/graphql',
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const resp = await fetch('https://app.gc.subsquid.io/beta/subwallet-polkadot/v4/graphql', {
     method: 'post',
-    data: {
+    body: JSON.stringify({
       query: `
         query MyQuery {
           rewards(limit: 10, where: {account_eq: "${account}"}, orderBy: blockNumber_DESC) {
@@ -40,13 +38,9 @@ export const getSubsquidStakingReward = async (account: string): Promise<Record<
           }
         }
       `
-    }
-  });
+    })
+  }).then((res) => res.json());
 
-  if (resp.status === 200) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return resp.data.data as Record<string, any>;
-  }
-
-  return {};
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return resp.data as Record<string, any>;
 };

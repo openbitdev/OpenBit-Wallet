@@ -5,7 +5,6 @@ import { ApiProps, NftCollection, NftItem } from '@subwallet/extension-base/back
 import { BIT_COUNTRY_SERVER, SUPPORTED_NFT_NETWORKS } from '@subwallet/extension-koni-base/api/nft/config';
 import { BaseNftApi } from '@subwallet/extension-koni-base/api/nft/nft';
 import { isUrl } from '@subwallet/extension-koni-base/utils/utils';
-import fetch from 'cross-fetch';
 
 interface AssetId {
   classId: string | number,

@@ -3,7 +3,6 @@
 
 import { PriceJson } from '@subwallet/extension-base/background/KoniTypes';
 import { PREDEFINED_NETWORKS } from '@subwallet/extension-koni-base/api/predefinedNetworks';
-import axios from 'axios';
 
 interface GeckoItem {
   id: string,
@@ -19,13 +18,8 @@ export const getTokenPrice = async (chains: Array<string> = Object.keys(PREDEFIN
     chains.push(...['ethereum', 'bitcoin', 'tether', 'usd-coin', 'binancecoin', 'binance-usd', 'xrp', 'solana', 'dai', 'acala-dollar', 'kolibri-usd', 'zenlink-network-token', 'darwinia-commitment-token']);
 
     const chainsStr = chains.join(',');
-    const res = await axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${currency}&per_page=1000&ids=${chainsStr}`);
+    const responseData = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${currency}&per_page=1000&ids=${chainsStr}`).then((res) => res.json()) as Array<GeckoItem>;
 
-    if (res.status !== 200) {
-      console.warn('Failed to get token price');
-    }
-
-    const responseData = res.data as Array<GeckoItem>;
     const priceMap: Record<string, number> = {};
     const tokenPriceMap: Record<string, number> = {};
 

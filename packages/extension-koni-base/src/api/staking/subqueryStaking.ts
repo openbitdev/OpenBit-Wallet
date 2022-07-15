@@ -5,7 +5,6 @@ import { APIItemState, StakingRewardItem, StakingRewardJson } from '@subwallet/e
 import { PREDEFINED_NETWORKS } from '@subwallet/extension-koni-base/api/predefinedNetworks';
 import { SUBQUERY_ENDPOINTS, SUPPORTED_STAKING_CHAINS } from '@subwallet/extension-koni-base/api/staking/config';
 import { reformatAddress, toUnit } from '@subwallet/extension-koni-base/utils/utils';
-import axios from 'axios';
 
 interface StakingResponseItem {
   id: string,
@@ -15,10 +14,10 @@ interface StakingResponseItem {
 const getSubqueryStakingReward = async (accounts: string[], chain: string): Promise<StakingRewardItem> => {
   const amounts = await Promise.all(accounts.map(async (account) => {
     const parsedAccount = reformatAddress(account, PREDEFINED_NETWORKS[chain].ss58Format);
-    const resp = await axios({
-      url: SUBQUERY_ENDPOINTS[chain],
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const resp = await fetch(SUBQUERY_ENDPOINTS[chain], {
       method: 'post',
-      data: {
+      body: JSON.stringify({
         query: `
         query {
           accumulatedRewards (filter: {id: {equalTo: "${parsedAccount}"}}) {
@@ -29,20 +28,16 @@ const getSubqueryStakingReward = async (accounts: string[], chain: string): Prom
           }
         }
       `
-      }
-    });
+      })
+    }).then((res) => res.json());
 
-    if (resp.status === 200) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const respData = resp.data.data as Record<string, any>;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const rewardList = respData.accumulatedRewards.nodes as StakingResponseItem[];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const respData = resp.data as Record<string, any>;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const rewardList = respData.accumulatedRewards.nodes as StakingResponseItem[];
 
-      if (rewardList.length > 0) {
-        return parseFloat(rewardList[0].amount);
-      }
-
-      return 0;
+    if (rewardList.length > 0) {
+      return parseFloat(rewardList[0].amount);
     }
 
     return 0;

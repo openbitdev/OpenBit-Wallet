@@ -6,7 +6,6 @@ import registry from '@subwallet/extension-koni-base/api/dotsama/typeRegistry';
 import { PREDEFINED_NETWORKS } from '@subwallet/extension-koni-base/api/predefinedNetworks';
 import { ACALA_REFRESH_CROWDLOAN_INTERVAL } from '@subwallet/extension-koni-base/constants';
 import { categoryAddresses, reformatAddress } from '@subwallet/extension-koni-base/utils/utils';
-import axios from 'axios';
 
 import { DeriveOwnContributions } from '@polkadot/api-derive/types';
 import { BN } from '@polkadot/util';
@@ -41,17 +40,13 @@ export const subscribeAcalaContributeInterval = (polkadotAddresses: string[], ca
 
   const getContributeInfo = () => {
     Promise.all(polkadotAddresses.map((polkadotAddress) => {
-      return axios.get(`${acalaContributionApi}${polkadotAddress}`);
+      return fetch(`${acalaContributionApi}${polkadotAddress}`).then((res) => res.json());
     })).then((resList) => {
       let contribute = new BN(0);
 
       resList.forEach((res) => {
-        if (res.status !== 200) {
-          console.warn('Failed to get Acala, Karura crowdloan contribute');
-        }
-
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
-        contribute = contribute.add(new BN(res.data.data?.acala?.[0]?.detail?.lcAmount || '0'));
+        contribute = contribute.add(new BN(res.data?.acala?.[0]?.detail?.lcAmount || '0'));
       });
 
       const rs: CrowdloanItem = {

@@ -3,7 +3,6 @@
 
 import { NetworkJson, TokenInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { isEmptyArray } from '@subwallet/extension-koni-ui/util/common';
-import axios from 'axios';
 import BigN from 'bignumber.js';
 
 import { AccountInfoItem, BalanceInfo, BalanceSubInfo } from './types';
@@ -69,14 +68,11 @@ export const getAcalaCrowdloanContribute = async (polkadotAddress: string) => {
   const acalaContributionApi = 'https://api.polkawallet.io/acala-distribution-v2/crowdloan?account=';
 
   try {
-    const res = await axios.get(`${acalaContributionApi}/${polkadotAddress}`);
-
-    if (res.status !== 200) {
-      console.warn('Failed to get Acala crowdloan contribute');
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const res = await fetch(`${acalaContributionApi}/${polkadotAddress}`).then((res) => res.json());
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return res.data;
+    return res;
   } catch (err) {
     console.error('Failed to get Acala crowdloan contribute', err);
 

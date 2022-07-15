@@ -4,7 +4,6 @@
 import { NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
 import { UNIQUE_SCAN_ENDPOINT } from '@subwallet/extension-koni-base/api/nft/config';
 import { BaseNftApi } from '@subwallet/extension-koni-base/api/nft/nft';
-import fetch from 'cross-fetch';
 
 interface NftData {
   collection_id: number;
