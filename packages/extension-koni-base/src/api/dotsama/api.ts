@@ -8,7 +8,7 @@ import { DOTSAMA_AUTO_CONNECT_MS, DOTSAMA_MAX_CONTINUE_RETRY } from '@subwallet/
 import { inJestTest } from '@subwallet/extension-koni-base/utils/utils';
 
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { ScProvider, WellKnownChain } from '@polkadot/rpc-provider/substrate-connect';
+// import { ScProvider, WellKnownChain } from '@polkadot/rpc-provider/substrate-connect';
 import { TypeRegistry } from '@polkadot/types/create';
 import { ChainProperties, ChainType } from '@polkadot/types/interfaces';
 import { Registry } from '@polkadot/types/types';
@@ -118,6 +118,7 @@ async function loadOnReady (registry: Registry, api: ApiPromise): Promise<ApiSta
 export function initApi (networkKey: string, apiUrl: string, isEthereum?: boolean): ApiProps {
   const registry = new TypeRegistry();
 
+  // TODO: Implement light client for MV3
   const provider = new WsProvider(apiUrl, DOTSAMA_AUTO_CONNECT_MS);
 
   const apiOption = { provider, typesBundle, typesChain: typesChain };
