@@ -100,27 +100,25 @@ async function loadOnReady (registry: Registry, api: ApiPromise): Promise<ApiSta
   };
 }
 
-function getWellKnownChain (chain = 'polkadot'): string {
-  switch (chain) {
-    case 'kusama':
-      return WellKnownChain.ksmcc3;
-    case 'polkadot':
-      return WellKnownChain.polkadot;
-    case 'rococo':
-      return WellKnownChain.rococo_v2_2;
-    case 'westend':
-      return WellKnownChain.westend2;
-    default:
-      return chain;
-  }
-}
+// function getWellKnownChain (chain = 'polkadot'): string {
+//   switch (chain) {
+//     case 'kusama':
+//       return WellKnownChain.ksmcc3;
+//     case 'polkadot':
+//       return WellKnownChain.polkadot;
+//     case 'rococo':
+//       return WellKnownChain.rococo_v2_2;
+//     case 'westend':
+//       return WellKnownChain.westend2;
+//     default:
+//       return chain;
+//   }
+// }
 
 export function initApi (networkKey: string, apiUrl: string, isEthereum?: boolean): ApiProps {
   const registry = new TypeRegistry();
 
-  const provider = apiUrl.startsWith('light://')
-    ? new ScProvider(getWellKnownChain(apiUrl.replace('light://substrate-connect/', '')))
-    : new WsProvider(apiUrl, DOTSAMA_AUTO_CONNECT_MS);
+  const provider = new WsProvider(apiUrl, DOTSAMA_AUTO_CONNECT_MS);
 
   const apiOption = { provider, typesBundle, typesChain: typesChain };
 

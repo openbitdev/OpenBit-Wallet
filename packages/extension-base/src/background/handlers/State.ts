@@ -63,7 +63,7 @@ interface SignRequest extends Resolver<ResponseSigning> {
   url: string;
 }
 
-const NOTIFICATION_URL = chrome.extension.getURL('notification.html');
+const NOTIFICATION_URL = chrome.runtime.getURL('notification.html');
 
 const POPUP_WINDOW_OPTS: chrome.windows.CreateData = {
   focused: true,
@@ -124,7 +124,7 @@ function extractMetadata (store: MetadataStore): void {
 }
 
 export default class State {
-  readonly #authUrls: AuthUrls = {};
+  #authUrls: AuthUrls = {};
 
   readonly #authRequests: Record<string, AuthRequest> = {};
 
@@ -156,10 +156,17 @@ export default class State {
     extractMetadata(this.#metaStore);
 
     // retrieve previously set authorizations
-    const authString = localStorage.getItem(AUTH_URLS_KEY) || '{}';
-    const previousAuth = JSON.parse(authString) as AuthUrls;
+    this.updateAuthString();
+  }
 
-    this.#authUrls = previousAuth;
+  private updateAuthString () {
+    chrome.storage.local.get([AUTH_URLS_KEY], (result: Record<string, string>): void => {
+      const authString = result[AUTH_URLS_KEY] || {};
+
+      const previousAuth = authString as AuthUrls;
+
+      this.#authUrls = previousAuth;
+    });
   }
 
   public get knownMetadata (): MetadataDef[] {
@@ -273,7 +280,10 @@ export default class State {
   };
 
   private saveCurrentAuthList () {
-    localStorage.setItem(AUTH_URLS_KEY, JSON.stringify(this.#authUrls));
+    // localStorage.setItem(AUTH_URLS_KEY, JSON.stringify(this.#authUrls));
+    chrome.storage.local.set({ [AUTH_URLS_KEY]: this.#authUrls }, (): void => {
+      console.log('Auth url updated.');
+    });
   }
 
   private metaComplete = (id: string, resolve: (result: boolean) => void, reject: (error: Error) => void): Resolver<boolean> => {
@@ -332,7 +342,7 @@ export default class State {
           : (signCount ? `${signCount}` : '')
     );
 
-    withErrorLog(() => chrome.browserAction.setBadgeText({ text }));
+    withErrorLog(() => chrome.action.setBadgeText({ text }));
 
     if (shouldClose && text === '') {
       this.popupClose();

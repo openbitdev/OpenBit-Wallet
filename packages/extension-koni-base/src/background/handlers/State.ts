@@ -18,7 +18,7 @@ import { fetchDotSamaCrowdloan } from '@subwallet/extension-koni-base/api/subque
 import { DEFAULT_EVM_TOKENS } from '@subwallet/extension-koni-base/api/web3/defaultEvmToken';
 import { initWeb3Api } from '@subwallet/extension-koni-base/api/web3/web3';
 import { EvmRpcError } from '@subwallet/extension-koni-base/background/errors/EvmRpcError';
-import { state } from '@subwallet/extension-koni-base/background/handlers/index';
+// import { state } from '@subwallet/extension-koni-base/background/handlers/index';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, DEFAULT_THEME } from '@subwallet/extension-koni-base/constants';
 import { CurrentAccountStore, NetworkMapStore, PriceStore } from '@subwallet/extension-koni-base/stores';
 import AccountRefStore from '@subwallet/extension-koni-base/stores/AccountRef';
@@ -438,7 +438,7 @@ export default class KoniState extends State {
         : confirmCount > 0 ? confirmCount.toString() : ''
     );
 
-    withErrorLog(() => chrome.browserAction.setBadgeText({ text }));
+    withErrorLog(() => chrome.action.setBadgeText({ text }));
 
     if (shouldClose && text === '') {
       this.popupClose();
@@ -1225,7 +1225,7 @@ export default class KoniState extends State {
       if (this.priceStoreReady) {
         update(rs);
       } else {
-        const activeNetworks = Object.values(state.getNetworkMap()).map((network) => network.coinGeckoKey).filter((key) => key) as string[];
+        const activeNetworks = Object.values(this.getNetworkMap()).map((network) => network.coinGeckoKey).filter((key) => key) as string[];
 
         getTokenPrice(activeNetworks)
           .then((rs) => {

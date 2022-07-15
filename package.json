@@ -30,6 +30,7 @@
     "build:zip": "yarn build:zip:dst && yarn build:zip:src",
     "build:zip:dst": "rm -rf ./master-build.zip && cd packages/extension-koni/build && zip -r -FS ../../../master-build.zip .",
     "build:zip:src": "rm -rf ./master-src.zip && zip -r -x '*build/*' -x '*node_modules*' -FS ./master-src.zip packages .editorconfig .eslintignore .eslintrc.js babel.config.cjs CHANGELOG.md CONTRIBUTING.md i18next-scanner.config.js jest.config.cjs LICENSE package.json README.md tsconfig.json yarn.lock",
+    "dev": "yarn watch-dev",
     "clean": "polkadot-dev-clean-build",
     "lint": "polkadot-dev-run-lint",
     "postinstall": "polkadot-dev-yarn-only && patch-package",
@@ -37,6 +38,7 @@
     "test": "polkadot-dev-run-test --detectOpenHandles --testPathIgnorePatterns='/node_modules/|.*/ignore-.*\\.(test|spec)\\..*'",
     "test:one": "polkadot-dev-run-test --detectOpenHandles",
     "watch": "cd packages/extension-koni && yarn polkadot-exec-webpack --config webpack.watch.cjs --mode development --watch",
+    "watch-dev": "cd packages/extension-koni && yarn polkadot-exec-webpack --config webpack.watch.cjs --mode development --watch --devtool inline-source-map",
     "web-runner:build": "cd packages/web-runner && yarn webpack --config webpack.config.cjs --mode production",
     "web-runner:watch": "cd packages/web-runner && yarn webpack-dev-server --config webpack.config.cjs --mode development"
   },
@@ -51,6 +53,7 @@
     "@polkadot/dev": "^0.65.23",
     "@types/jest": "^27.4.0",
     "axios": "^0.27.2",
+    "clean-webpack-plugin": "^4.0.0",
     "discord-webhook-node": "^1.1.8",
     "i18next-scanner": "^3.1.0",
     "patch-package": "^6.4.7",

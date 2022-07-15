@@ -3,6 +3,7 @@
 
 const path = require('path');
 const webpack = require('webpack');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const CopyPlugin = require('copy-webpack-plugin');
 const ManifestPlugin = require('webpack-extension-manifest-plugin');
@@ -77,6 +78,7 @@ module.exports = (entry, alias = {}, useSplitChunk = false) => {
       hints: false
     },
     plugins: [
+      new CleanWebpackPlugin(),
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
         process: 'process/browser.js'
@@ -119,12 +121,12 @@ module.exports = (entry, alias = {}, useSplitChunk = false) => {
         filename: 'notification.html',
         template: 'public/notification.html',
         chunks: ['extension']
-      }),
-      new HtmlWebpackPlugin({
-        filename: 'background.html',
-        template: 'public/background.html',
-        chunks: ['background']
       })
+      // new HtmlWebpackPlugin({
+      //   filename: 'background.html',
+      //   template: 'public/background.html',
+      //   chunks: ['background']
+      // })
     ],
     resolve: {
       alias: packages.reduce((alias, p) => ({
