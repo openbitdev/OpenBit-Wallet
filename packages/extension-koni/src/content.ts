@@ -8,12 +8,40 @@ import { redirectIfPhishing } from '@subwallet/extension-base/page';
 import { chrome } from '@subwallet/extension-inject/chrome';
 
 // connect to the extension
-const port = chrome.runtime.connect({ name: PORT_CONTENT });
+let port: chrome.runtime.Port | null;
 
-// send any messages from the extension back to the page
-port.onMessage.addListener((data): void => {
-  window.postMessage({ ...data, origin: MESSAGE_ORIGIN_CONTENT }, '*');
-});
+function connect () {
+  if (!port) {
+    port = chrome.runtime.connect({ name: PORT_CONTENT });
+    port.onDisconnect.addListener(() => {
+      console.log(`Port [${PORT_CONTENT}] is disconnected.`);
+      port = null;
+    });
+
+    // const port = chrome.runtime.connect({ name: PORT_CONTENT });
+
+    // send any messages from the extension back to the page
+    port.onMessage.addListener((data): void => {
+      window.postMessage({ ...data, origin: MESSAGE_ORIGIN_CONTENT }, '*');
+    });
+  }
+}
+
+connect();
+
+async function makeSurePortConnected () {
+  const poll = (resolve: (value: unknown) => void) => {
+    console.log(`Port [${PORT_CONTENT}] is connecting...`);
+
+    if (port) {
+      resolve(true);
+    } else {
+      setTimeout(() => poll(resolve), 400);
+    }
+  };
+
+  return new Promise(poll);
+}
 
 // all messages from the page, pass them to the extension
 window.addEventListener('message', ({ data, source }: Message): void => {
@@ -22,7 +50,13 @@ window.addEventListener('message', ({ data, source }: Message): void => {
     return;
   }
 
-  port.postMessage(data);
+  if (!port) {
+    connect();
+  }
+
+  makeSurePortConnected().then(() => {
+    port && port.postMessage(data);
+  }).catch((e) => console.warn(e));
 });
 
 // inject our data injector
