@@ -85,7 +85,7 @@ export enum NotificationOptions {
   PopUp,
 }
 
-const AUTH_URLS_KEY = 'authUrls';
+export const AUTH_URLS_KEY = 'authUrls';
 
 function extractMetadata (store: MetadataStore): void {
   store.allMap((map): void => {
@@ -280,7 +280,6 @@ export default class State {
   };
 
   private saveCurrentAuthList () {
-    // localStorage.setItem(AUTH_URLS_KEY, JSON.stringify(this.#authUrls));
     chrome.storage.local.set({ [AUTH_URLS_KEY]: this.#authUrls }, (): void => {
       console.log('Auth url updated.');
     });

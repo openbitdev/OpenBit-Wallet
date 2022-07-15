@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AuthUrls } from '@subwallet/extension-base/background/handlers/State';
+import { AUTH_URLS_KEY, AuthUrls } from '@subwallet/extension-base/background/handlers/State';
 import { ApiProps, CustomEvmToken, NftTransferExtra } from '@subwallet/extension-base/background/KoniTypes';
 import { subscribeBalance } from '@subwallet/extension-koni-base/api/dotsama/balance';
 import { subscribeCrowdloan } from '@subwallet/extension-koni-base/api/dotsama/crowdloan';
@@ -36,23 +36,28 @@ export class KoniSubscription {
     state.mergeTransactionHistory();
 
     state.getAuthorize((value) => {
-      const authString = localStorage.getItem('authUrls') || '{}';
-      const previousAuth = JSON.parse(authString) as AuthUrls;
+      chrome.storage.local.get([AUTH_URLS_KEY], (result: Record<string, string>): void => {
+        const authString = result[AUTH_URLS_KEY] || {};
 
-      if (previousAuth && Object.keys(previousAuth).length) {
-        Object.keys(previousAuth).forEach((url) => {
-          if (previousAuth[url].isAllowed) {
-            previousAuth[url].isAllowedMap = state.getAddressList(true);
-          } else {
-            previousAuth[url].isAllowedMap = state.getAddressList();
-          }
-        });
-      }
+        const previousAuth = authString as AuthUrls;
 
-      const migrateValue = { ...previousAuth, ...value };
+        if (previousAuth && Object.keys(previousAuth).length) {
+          Object.keys(previousAuth).forEach((url) => {
+            if (previousAuth[url].isAllowed) {
+              previousAuth[url].isAllowedMap = state.getAddressList(true);
+            } else {
+              previousAuth[url].isAllowedMap = state.getAddressList();
+            }
+          });
+        }
 
-      state.setAuthorize(migrateValue);
-      localStorage.setItem('authUrls', '{}');
+        const migrateValue = { ...previousAuth, ...value };
+
+        state.setAuthorize(migrateValue);
+        // chrome.storage.local.set({ [AUTH_URLS_KEY]: {} }, (): void => {
+        //   console.log('Auth url updated.');
+        // });
+      });
     });
 
     state.fetchCrowdloanFundMap().then(console.log).catch(console.error);
