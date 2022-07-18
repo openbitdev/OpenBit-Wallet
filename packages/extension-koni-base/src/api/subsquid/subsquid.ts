@@ -26,6 +26,9 @@ export const getSubsquidStakingReward = async (account: string): Promise<Record<
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const resp = await fetch('https://app.gc.subsquid.io/beta/subwallet-polkadot/v4/graphql', {
     method: 'post',
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({
       query: `
         query MyQuery {

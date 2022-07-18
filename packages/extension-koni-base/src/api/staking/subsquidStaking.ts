@@ -79,6 +79,9 @@ const getSubsquidStaking = async (accounts: string[], chain: string, callback: (
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const resp = await fetch(SUBSQUID_ENDPOINTS[chain], {
         method: 'post',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ query: getSubsquidQuery(parsedAccount, chain) })
       }).then((res) => res.json());
 

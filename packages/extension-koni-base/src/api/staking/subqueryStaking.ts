@@ -17,6 +17,9 @@ const getSubqueryStakingReward = async (accounts: string[], chain: string): Prom
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const resp = await fetch(SUBQUERY_ENDPOINTS[chain], {
       method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         query: `
         query {

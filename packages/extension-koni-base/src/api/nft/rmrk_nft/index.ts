@@ -78,10 +78,7 @@ export class RmrkNftApi extends BaseNftApi {
       }
     }
 
-    return await fetch(url, {
-      method: 'GET'
-    })
-      .then((res) => res.json()) as NFTMetadata;
+    return await fetch(url).then((res) => res.json()) as NFTMetadata;
   }
 
   private async getAllByAccount (account: string) {
@@ -95,10 +92,7 @@ export class RmrkNftApi extends BaseNftApi {
     let data: Record<number | string, number | string | NFTResource>[] = [];
 
     await Promise.all(fetchUrls.map(async ({ source, url }) => {
-      let _data = await fetch(url, {
-        method: 'GET'
-      })
-        .then((res) => res.json()) as Record<number | string, number | string | NFTResource>[];
+      let _data = await fetch(url).then((res) => res.json()) as Record<number | string, number | string | NFTResource>[];
 
       _data = _data.map((item) => {
         return { ...item, source };
@@ -223,10 +217,7 @@ export class RmrkNftApi extends BaseNftApi {
 
       await Promise.all(collectionInfoUrl.map(async (url) => {
         try {
-          const data = await fetch(url, {
-            method: 'GET'
-          })
-            .then((resp) => resp.json()) as Record<string | number, string | number>[];
+          const data = await fetch(url).then((resp) => resp.json()) as Record<string | number, string | number>[];
           const result = data[0];
 
           if (result && 'metadata' in result) {
@@ -255,10 +246,7 @@ export class RmrkNftApi extends BaseNftApi {
 
         try {
           if (item.url) {
-            data = await fetch(item?.url as string, {
-              method: 'GET'
-            })
-              .then((resp) => resp.json()) as Record<string, any>;
+            data = await fetch(item?.url as string).then((resp) => resp.json()) as Record<string, any>;
           }
 
           if ('mediaUri' in data) { // rmrk v2.0
