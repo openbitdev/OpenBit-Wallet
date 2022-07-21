@@ -36,8 +36,13 @@ const keepAlive = () => {
   let port;
 
   function connect () {
+    console.log('Keep-alive port is connecting.');
     port = chrome.runtime.connect({ name: PORT_KEEP_ALIVE });
-    port.onDisconnect.addListener(connect);
+
+    port.onDisconnect.addListener(() => {
+      console.log('Keep-alive port is disconnected.');
+      connect();
+    });
   }
 
   connect();
@@ -45,32 +50,60 @@ const keepAlive = () => {
 
 keepAlive();
 
-const port = chrome.runtime.connect({ name: PORT_EXTENSION });
+// connect to the extension
+let port: chrome.runtime.Port | null | true;
+// const port = chrome.runtime.connect({ name: PORT_EXTENSION });
 const handlers: Handlers = {};
 
-// setup a listener for messages, any incoming resolves the promise
-port.onMessage.addListener((data: Message['data']): void => {
-  const handler = handlers[data.id];
+function connect () {
+  if (!port) {
+    port = true;
+    port = chrome.runtime.connect({ name: PORT_EXTENSION });
+    port.onDisconnect.addListener(() => {
+      port = null;
+      console.log(`Port [${PORT_EXTENSION}] is disconnected.`);
+    });
 
-  if (!handler) {
-    console.error(`Unknown response: ${JSON.stringify(data)}`);
+    // setup a listener for messages, any incoming resolves the promise
+    port.onMessage.addListener((data: Message['data']): void => {
+      const handler = handlers[data.id];
 
-    return;
+      if (!handler) {
+        console.error(`Unknown response: ${JSON.stringify(data)}`);
+
+        return;
+      }
+
+      if (!handler.subscriber) {
+        delete handlers[data.id];
+      }
+
+      if (data.subscription) {
+        // eslint-disable-next-line @typescript-eslint/ban-types
+        (handler.subscriber as Function)(data.subscription);
+      } else if (data.error) {
+        handler.reject(new Error(data.error));
+      } else {
+        handler.resolve(data.response);
+      }
+    });
   }
+}
 
-  if (!handler.subscriber) {
-    delete handlers[data.id];
-  }
+connect();
 
-  if (data.subscription) {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (handler.subscriber as Function)(data.subscription);
-  } else if (data.error) {
-    handler.reject(new Error(data.error));
-  } else {
-    handler.resolve(data.response);
-  }
-});
+async function makeSurePortConnected () {
+  const poll = (resolve: (value: unknown) => void) => {
+    if (port && port !== true) {
+      resolve(true);
+    } else {
+      console.log(`Port [${PORT_EXTENSION}] is connecting...`);
+      setTimeout(() => poll(resolve), 400);
+    }
+  };
+
+  return new Promise(poll);
+}
 
 function sendMessage<TMessageType extends MessageTypesWithNullRequest> (message: TMessageType): Promise<ResponseTypes[TMessageType]>;
 function sendMessage<TMessageType extends MessageTypesWithNoSubscriptions> (message: TMessageType, request: RequestTypes[TMessageType]): Promise<ResponseTypes[TMessageType]>;
@@ -81,7 +114,14 @@ function sendMessage<TMessageType extends MessageTypes> (message: TMessageType, 
 
     handlers[id] = { reject, resolve, subscriber };
 
-    port.postMessage({ id, message, request: request || {} });
+    // port.postMessage({ id, message, request: request || {} });
+    if (!port) {
+      connect();
+    }
+
+    makeSurePortConnected().then(() => {
+      port && port !== true && port.postMessage({ id, message, request: request || {} });
+    }).catch((e) => console.warn(e));
   });
 }
 

@@ -30,7 +30,7 @@ chrome.runtime.onConnect.addListener((port): void => {
   if (port.name === PORT_KEEP_ALIVE) {
     console.log('Keep-alive port connected.');
     port.onDisconnect.addListener(deleteTimer);
-    (port as KeepAlivePort)._timer = setTimeout(forceReconnect, 4.9 * 60 * 1000, port);
+    (port as KeepAlivePort)._timer = setTimeout(forceReconnect, 4 * 60 * 1000, port);
   } else {
     // message and disconnect handlers
     port.onMessage.addListener((data: TransportRequestMessage<keyof RequestSignatures>) => handlers(data, port));
