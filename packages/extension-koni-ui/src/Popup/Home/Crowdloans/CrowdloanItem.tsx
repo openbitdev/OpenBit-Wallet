@@ -146,7 +146,7 @@ export default styled(CrowdloanItem)(({ theme }: Props) => `
   .crowdloan-item__logo {
     min-width: 32px;
     width: 36px;
-    height: 32px;
+    height: 36px;
     border-radius: 100%;
     overflow: hidden;
     margin-right: 12px;
