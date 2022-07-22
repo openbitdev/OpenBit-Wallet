@@ -128,10 +128,10 @@ export default React.memo(styled(ChainBalanceChildrenItem)(({ theme }: Props) =>
 
   .chain-balance--children-item__logo {
     min-width: 32px;
-    height: 40px;
+    height: 36px;
     border-radius: 100%;
     overflow: hidden;
-    margin-right: 15px;
+    margin-right: 12px;
   }
 
   .chain-balance--children-item__meta-wrapper {
