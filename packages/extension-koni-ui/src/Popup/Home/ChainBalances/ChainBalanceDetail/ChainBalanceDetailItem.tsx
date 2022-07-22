@@ -231,10 +231,10 @@ export default React.memo(styled(ChainBalanceDetailItem)(({ theme }: Props) => `
 
   .chain-balance-item__logo {
     min-width: 32px;
-    height: 40px;
+    height: 36px;
     border-radius: 100%;
     overflow: hidden;
-    margin-right: 15x;
+    margin-right: 12px;
     margin-top:10px;
   }
 
