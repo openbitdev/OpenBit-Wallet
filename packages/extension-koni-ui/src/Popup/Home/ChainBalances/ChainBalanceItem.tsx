@@ -243,7 +243,7 @@ export default React.memo(styled(ChainBalanceItem)(({ theme }: Props) => `
     height: 40px;
     border-radius: 100%;
     overflow: hidden;
-    margin-right: 12px;
+    margin-right: 15px;
     margin-top:10px;
   }
 
