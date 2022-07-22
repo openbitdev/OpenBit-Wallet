@@ -49,7 +49,7 @@ const LogosMap: Record<string, string> = {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   crabParachain: require('./68.Crab.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  crabEvm: require('./68.Crab.pngg'),
+  crabEvm: require('./68.Crab.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   crust: require('./69.Crust.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -179,7 +179,7 @@ const LogosMap: Record<string, string> = {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   lksm: require('./72.Kusama.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  tai: require('./47.TaiKSM'),
+  tai: require('./47.TaiKSM.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   vsksm: require('./72.Kusama.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
