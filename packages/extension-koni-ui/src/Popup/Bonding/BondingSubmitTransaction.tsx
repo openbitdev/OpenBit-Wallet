@@ -80,13 +80,13 @@ function BondingSubmitTransaction ({ className }: Props): React.ReactElement<Pro
 
   useEffect(() => {
     if (!networkJson.active) {
-      navigate('/');
+      navigate('/account/select-bonding-network');
     }
   }, [navigate, networkJson.active]);
 
   useEffect(() => {
     if (account && account.address !== selectedAccount) {
-      navigate('/');
+      navigate('/account/select-bonding-network');
     }
   }, [account, navigate, selectedAccount]);
 
