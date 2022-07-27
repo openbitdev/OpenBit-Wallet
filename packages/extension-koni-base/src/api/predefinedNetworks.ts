@@ -158,6 +158,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     coinGeckoKey: 'moonbeam',
     evmChainId: 1284,
     supportBonding: true,
+    getStakingOnChain: true,
     abiExplorer: 'https://api-moonbeam.moonscan.io/api?module=contract&action=getabi'
   },
   astar: {
@@ -177,6 +178,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'ASTR',
     crowdloanUrl: 'https://crowdloan.astar.network/#/',
     decimals: 18,
+    getStakingOnChain: true,
+    supportBonding: true,
     coinGeckoKey: 'astar'
   },
   astarEvm: {
@@ -322,7 +325,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'TOKEN',
     crowdloanUrl: 'https://equilibrium.io/en/crowdloan#bid',
     decimals: 10,
-    coinGeckoKey: 'equilibrium'
+    coinGeckoKey: 'equilibrium-token'
   },
   nodle: {
     key: 'nodle',
@@ -735,6 +738,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     coinGeckoKey: 'moonriver',
     evmChainId: 1285,
     supportBonding: true,
+    getStakingOnChain: true,
     abiExplorer: 'https://api-moonriver.moonscan.io/api?module=contract&action=getabi'
   },
   shiden: {
@@ -1275,7 +1279,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     coinGeckoKey: 'darwinia-crab-network'
   },
   crabParachain: {
-    key: 'crab',
+    key: 'crabParachain',
     chain: 'Crab Parachain',
     genesisHash: '0xeac895d7768b17837a9c3a9f0280c01502c3ef40193df923490a0fa9c60ea076',
     ss58Format: 42,
