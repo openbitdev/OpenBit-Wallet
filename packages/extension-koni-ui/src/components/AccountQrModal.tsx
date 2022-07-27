@@ -478,7 +478,7 @@ export default styled(AccountQrModal)(({ theme }: ThemeProps) => `
   .account-qr-modal__network-logo {
     width: 20px;
     height: 20px;
-    border: 1px solid #fff;
+
     border-radius: 50%;
     margin-right: 10px;
     background-color: #fff;
@@ -619,7 +619,6 @@ export default styled(AccountQrModal)(({ theme }: ThemeProps) => `
 
     .select-modal {
       max-width: 390px !important;
-      background-color: ${theme.popupBackground};
 
       .account-qr-modal{
         height: 450px;
