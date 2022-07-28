@@ -167,7 +167,9 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     ss58Format: 5,
     providers: {
       OnFinality: 'wss://astar.api.onfinality.io/public-ws',
-      Dwellir: 'wss://astar-rpc.dwellir.com'
+      Dwellir: 'wss://astar-rpc.dwellir.com',
+      Astar: 'wss://rpc.astar.network',
+      PinkNode: 'wss://public-rpc.pinknode.io/astar'
     },
     active: false,
     currentProviderMode: 'ws',
@@ -185,12 +187,15 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x9eb76c5184c4ab8679d2d5d819fdf90b9c001403e9e17da2e14b6d8aec4029c6_evm',
     ss58Format: 5,
     providers: {
-      Astar: 'wss://rpc.astar.network'
+      Astar: 'wss://rpc.astar.network',
+      OnFinality: 'wss://astar.api.onfinality.io/public-ws',
+      Dwellir: 'wss://astar-rpc.dwellir.com',
+      PinkNode: 'wss://public-rpc.pinknode.io/astar'
     },
     isEthereum: true,
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Astar',
+    currentProvider: 'OnFinality',
     groups: ['POLKADOT_PARACHAIN'],
     nativeToken: 'ASTR',
     crowdloanUrl: 'https://crowdloan.astar.network/#/',
@@ -234,6 +239,45 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     crowdloanUrl: 'https://lucky.clover.finance/?type=support',
     decimals: 18,
     coinGeckoKey: 'clover-finance'
+  },
+  cloverEvm: {
+    key: 'cloverEvm',
+    chain: 'Clover - EVM',
+    genesisHash: '0x5c7bd13edf349b33eb175ffae85210299e324d852916336027391536e686f267_1',
+    ss58Format: 128,
+    providers: {
+      Clover: 'wss://rpc-para.clover.finance',
+      OnFinality: 'wss://clover.api.onfinality.io/public-ws'
+    },
+    active: false,
+    isEthereum: true,
+    currentProviderMode: 'ws',
+    currentProvider: 'OnFinality',
+    groups: ['POLKADOT_PARACHAIN'],
+    paraId: 2002,
+    evmChainId: 1024,
+    nativeToken: 'CLV',
+    crowdloanUrl: 'https://lucky.clover.finance/?type=support',
+    decimals: 18,
+    coinGeckoKey: 'clover-finance'
+  },
+  hydradx: {
+    key: 'hydradx',
+    chain: 'HydraDX Snakenet',
+    genesisHash: '0xd2a620c27ec5cbc5621ff9a522689895074f7cca0d08e7134a7804e1a3ba86fc',
+    ss58Format: 63,
+    providers: {
+      'Galactic Council': 'wss://rpc-01.snakenet.hydradx.io'
+    },
+    active: false,
+    currentProviderMode: 'ws',
+    currentProvider: 'Galactic Council',
+    groups: ['MAIN_NET'],
+    nativeToken: 'HDX',
+    crowdloanUrl: 'https://loan.hydradx.io/',
+    decimals: 12,
+    supportBonding: true,
+    getStakingOnChain: true
   },
   hydradx_main: {
     key: 'hydradx_main',
