@@ -27,6 +27,8 @@ jobs:
         NEXTCLOUD_CONFIG: ${{ secrets.NEXTCLOUD_CONFIG }}
         GH_RELEASE_FILES: master-build.zip,master-src.zip
         COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        COMMIT_SHA: ${{ github.event.head_commit.sha }}
+        COMMIT_URL: ${{ github.event.head_commit.url }}
         REF_NAME: ${{ github.ref_name }}
       run: |
         yarn install --immutable | grep -v 'YN0013'

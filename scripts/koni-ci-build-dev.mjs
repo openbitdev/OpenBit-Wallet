@@ -36,16 +36,17 @@ function npmGetVersion() {
 async function uploadBuild() {
   const refName = process.env.REF_NAME
   const commitMessage = process.env.COMMIT_MESSAGE
-  const nowTimestamp = new Date().getTime()
+  const commitSHA = process.env.COMMIT_SHA
+  const commitURL = process.env.COMMIT_URL
   const sRefName = refName.replace(/(\/)/g, '-');
 
-  discordHook.send('Finish build ' + refName + ': ' + commitMessage)
+  discordHook.send('Finish build ' + refName + ': ' + commitMessage + '(' + commitURL + ')')
 
   try {
     const cloudConfig = JSON.parse(process.env.NEXTCLOUD_CONFIG)
     const {nextCloudUrl, nextCloudUsername, nextCloudPassword, folder, shareFolder} = cloudConfig;
 
-    const newName = `./${sRefName}-build-${npmGetVersion()}-${nowTimestamp}.zip`
+    const newName = `./${sRefName}-build-${npmGetVersion()}-${commitSHA}.zip`
     const downloadLink = `${nextCloudUrl}/s/${shareFolder}/download?path=%2F&files=${newName}`;
     const uploadUrl = `${nextCloudUrl}/remote.php/dav/files/${nextCloudUsername}/${folder}/${newName}`;
 
