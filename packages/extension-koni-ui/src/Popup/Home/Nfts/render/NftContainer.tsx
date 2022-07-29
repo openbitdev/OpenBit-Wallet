@@ -151,9 +151,9 @@ function NftContainer (
           {
             !loading && nftList.length > 0 &&
             // @ts-ignore
-            nftList.map((item: _NftCollection, index: React.Key | null | undefined) => {
+            nftList.map((item: _NftCollection, index: React.Key) => {
               // @ts-ignore
-              return <div key={index}>
+              return <div key={`${item.chain || index}/${item.collectionId}`}>
                 <NftCollectionPreview
                   data={item}
                   onClick={handleShowCollectionDetail}
@@ -228,6 +228,8 @@ export default React.memo(styled(NftContainer)(({ theme }: Props) => `
   width: 100%;
   padding: 0 25px;
   padding-bottom: 20px;
+  position: relative;
+  min-height:100%;
 
   .loading-container {
     height: 100%;

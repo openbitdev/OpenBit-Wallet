@@ -507,6 +507,16 @@ export default React.memo(styled(Header)(({ theme }: Props) => `
     margin-left: 1rem;
     cursor: pointer;
     height: 56px;
+    position: relative;
+    
+    &:after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
   }
 
   .koni-subheader-btn {
@@ -534,7 +544,6 @@ export default React.memo(styled(Header)(({ theme }: Props) => `
     overflow: hidden;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
-    border: 1px solid #fff;
     background: #fff;
   }
 
