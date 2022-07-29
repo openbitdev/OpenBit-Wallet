@@ -10,9 +10,9 @@ import type { HexString } from '@polkadot/util/types';
 import type { KeypairType } from '@polkadot/util-crypto/types';
 
 import { AuthUrls } from '@subwallet/extension-base/background/handlers/State';
-import { AccountsWithCurrentAddress, BalanceJson, BasicTxInfo, BasicTxResponse, BondingOptionInfo, BondingSubmitParams, ChainBondingBasics, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationType, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DeleteEvmTokenParams, DisableNetworkResponse, EvmNftSubmitTransaction, EvmNftTransaction, EvmNftTransactionRequest, EvmTokenJson, NetworkJson, NftCollectionJson, NftJson, NftTransactionResponse, NftTransferExtra, OptionInputAddress, PriceJson, RequestCheckCrossChainTransfer, RequestCheckTransfer, RequestCrossChainTransfer, RequestFreeBalance, RequestNftForceUpdate, RequestSettingsType, RequestSubscribeBalance, RequestSubscribeBalancesVisibility, RequestSubscribeCrowdloan, RequestSubscribeNft, RequestSubscribePrice, RequestSubscribeStaking, RequestSubscribeStakingReward, RequestTransfer, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, ResponseAccountCreateSuriV2, ResponseCheckCrossChainTransfer, ResponseCheckTransfer, ResponsePrivateKeyValidateV2, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSettingsType, ResponseTransfer, StakeWithdrawalParams, StakingJson, StakingRewardJson, SubstrateNftSubmitTransaction, SubstrateNftTransaction, SubstrateNftTransactionRequest, SupportTransferResponse, ThemeTypes, TransactionHistoryItemType, TransferError, UnbondingSubmitParams, UnlockingStakeInfo, UnlockingStakeParams, ValidateEvmTokenRequest, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountsWithCurrentAddress, BalanceJson, BasicTxInfo, BasicTxResponse, BondingOptionInfo, BondingSubmitParams, ChainBondingBasics, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationType, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DelegationItem, DeleteEvmTokenParams, DisableNetworkResponse, EvmNftSubmitTransaction, EvmNftTransaction, EvmNftTransactionRequest, EvmTokenJson, NetworkJson, NftCollectionJson, NftJson, NftTransactionResponse, NftTransferExtra, OptionInputAddress, PriceJson, RequestAuthorizationBlock, RequestAuthorizationPerSite, RequestCheckCrossChainTransfer, RequestCheckTransfer, RequestCrossChainTransfer, RequestFreeBalance, RequestNftForceUpdate, RequestParseEVMTransactionInput, RequestSettingsType, RequestSubscribeBalance, RequestSubscribeBalancesVisibility, RequestSubscribeCrowdloan, RequestSubscribeNft, RequestSubscribePrice, RequestSubscribeStaking, RequestSubscribeStakingReward, RequestTransfer, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, ResponseAccountCreateSuriV2, ResponseCheckCrossChainTransfer, ResponseCheckTransfer, ResponseParseEVMTransactionInput, ResponsePrivateKeyValidateV2, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSettingsType, ResponseTransfer, StakeClaimRewardParams, StakeDelegationRequest, StakeUnlockingJson, StakeWithdrawalParams, StakingJson, StakingRewardJson, SubstrateNftSubmitTransaction, SubstrateNftTransaction, SubstrateNftTransactionRequest, SupportTransferResponse, ThemeTypes, TransactionHistoryItemType, TransferError, UnbondingSubmitParams, ValidateEvmTokenRequest, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { RequestCurrentAccountAddress } from '@subwallet/extension-base/background/types';
-import { PORT_EXTENSION, PORT_KEEP_ALIVE } from '@subwallet/extension-base/defaults';
+import { PORT_EXTENSION } from '@subwallet/extension-base/defaults';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { metadataExpand } from '@subwallet/extension-chains';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -28,27 +28,29 @@ interface Handler {
   reject: (error: Error) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subscriber?: (data: any) => void;
+  message: MessageTypes,
+  request?: RequestTypes[MessageTypes]
 }
 
 type Handlers = Record<string, Handler>;
 
-const keepAlive = () => {
-  let port;
+// const keepAlive = () => {
+//   let port;
 
-  function connect () {
-    console.log('Keep-alive port is connecting.');
-    port = chrome.runtime.connect({ name: PORT_KEEP_ALIVE });
+//   function connect () {
+//     console.log('Keep-alive port is connecting.');
+//     port = chrome.runtime.connect({ name: PORT_KEEP_ALIVE });
 
-    port.onDisconnect.addListener(() => {
-      console.log('Keep-alive port is disconnected.');
-      connect();
-    });
-  }
+//     port.onDisconnect.addListener(() => {
+//       console.log('Keep-alive port is disconnected.');
+//       connect();
+//     });
+//   }
 
-  connect();
-};
+//   connect();
+// };
 
-keepAlive();
+// keepAlive();
 
 // connect to the extension
 let port: chrome.runtime.Port | null | true;
@@ -87,7 +89,19 @@ function connect () {
         handler.resolve(data.response);
       }
     });
+
+    // Re-connect subscriptions
+    reconnectSubscriptions(port);
   }
+}
+
+function reconnectSubscriptions (port: chrome.runtime.Port) {
+  Object.entries(handlers).forEach(([key, handler]) => {
+    if (handler.subscriber) {
+      console.log(`Reconnecting subscription [${handler.message}]...`);
+      port.postMessage({ id: key, message: handler.message, request: handler.request || {} });
+    }
+  });
 }
 
 connect();
@@ -112,7 +126,7 @@ function sendMessage<TMessageType extends MessageTypes> (message: TMessageType, 
   return new Promise((resolve, reject): void => {
     const id = getId();
 
-    handlers[id] = { reject, resolve, subscriber };
+    handlers[id] = { reject, resolve, subscriber, message, request };
 
     // port.postMessage({ id, message, request: request || {} });
     if (!port) {
@@ -335,6 +349,14 @@ export async function changeAuthorization (connectValue: boolean, url: string, c
 
 export async function changeAuthorizationPerAcc (address: string, connectValue: boolean, url: string, callback: (data: AuthUrls) => void): Promise<boolean> {
   return sendMessage('pri(authorize.changeSitePerAccount)', { address, url, connectValue }, callback);
+}
+
+export async function changeAuthorizationPerSite (request: RequestAuthorizationPerSite): Promise<boolean> {
+  return sendMessage('pri(authorize.changeSitePerSite)', request);
+}
+
+export async function changeAuthorizationBlock (request: RequestAuthorizationBlock): Promise<boolean> {
+  return sendMessage('pri(authorize.changeSiteBlock)', request);
 }
 
 export async function forgetSite (url: string, callback: (data: AuthUrls) => void): Promise<boolean> {
@@ -619,8 +641,8 @@ export async function getBondingOptions (networkKey: string, address: string): P
   return sendMessage('pri(bonding.getBondingOptions)', { networkKey, address });
 }
 
-export async function getChainBondingBasics (networkJsons: NetworkJson[]): Promise<Record<string, ChainBondingBasics>> {
-  return sendMessage('pri(bonding.getChainBondingBasics)', networkJsons);
+export async function getChainBondingBasics (networkJsons: NetworkJson[], callback: (data: Record<string, ChainBondingBasics>) => void): Promise<Record<string, ChainBondingBasics>> {
+  return sendMessage('pri(bonding.getChainBondingBasics)', networkJsons, callback);
 }
 
 export async function submitBonding (bondingSubmitParams: BondingSubmitParams, callback: (data: BasicTxResponse) => void): Promise<BasicTxResponse> {
@@ -639,8 +661,8 @@ export async function submitUnbonding (unbondingSubmitParams: UnbondingSubmitPar
   return sendMessage('pri(unbonding.submitTransaction)', unbondingSubmitParams, callback);
 }
 
-export async function getUnlockingStakeInfo (unlockingParams: UnlockingStakeParams): Promise<UnlockingStakeInfo> {
-  return sendMessage('pri(unbonding.unlockingInfo)', unlockingParams);
+export async function subscribeStakeUnlockingInfo (callback: (data: StakeUnlockingJson) => void): Promise<StakeUnlockingJson> {
+  return sendMessage('pri(unbonding.subscribeUnlockingInfo)', null, callback);
 }
 
 export async function getStakeWithdrawalTxInfo (params: StakeWithdrawalParams): Promise<BasicTxInfo> {
@@ -650,3 +672,32 @@ export async function getStakeWithdrawalTxInfo (params: StakeWithdrawalParams): 
 export async function submitStakeWithdrawal (params: StakeWithdrawalParams, callback: (data: BasicTxResponse) => void): Promise<BasicTxResponse> {
   return sendMessage('pri(unbonding.submitWithdrawal)', params, callback);
 }
+
+export async function getStakeClaimRewardTxInfo (params: StakeClaimRewardParams): Promise<BasicTxInfo> {
+  return sendMessage('pri(staking.claimRewardTxInfo)', params);
+}
+
+export async function submitStakeClaimReward (params: StakeClaimRewardParams, callback: (data: BasicTxResponse) => void): Promise<BasicTxResponse> {
+  return sendMessage('pri(staking.submitClaimReward)', params, callback);
+}
+
+export async function getStakeDelegationInfo (params: StakeDelegationRequest): Promise<DelegationItem[]> {
+  return sendMessage('pri(staking.delegationInfo)', params);
+}
+
+export async function parseEVMTransactionInput (request: RequestParseEVMTransactionInput): Promise<ResponseParseEVMTransactionInput> {
+  return sendMessage('pri(evm.transaction.parse.input)', request);
+}
+
+export async function subscribeAuthUrl (callback: (data: AuthUrls) => void): Promise<AuthUrls> {
+  return sendMessage('pri(authorize.subscribe)', null, callback);
+}
+
+export async function ping () {
+  return sendMessage('pub(ping)');
+}
+
+// Send ping message to keep-alive connection
+setInterval(() => {
+  ping().then(() => console.log('pong')).catch((e) => console.warn(e));
+}, 10000);

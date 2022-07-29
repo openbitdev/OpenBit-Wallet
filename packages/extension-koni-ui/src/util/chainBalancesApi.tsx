@@ -129,7 +129,7 @@ export const getBalances = ({ balance,
 
 function getTokenPrice (tokenPriceMap: Record<string, number>, token: string): number {
   if (token === 'LCDOT') {
-    return (tokenPriceMap.dot || 0) * 0.6925;
+    return 0;
   }
 
   return tokenPriceMap[token.toLowerCase()] || 0;
@@ -142,8 +142,8 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
   const decimals = tokenDecimals && !isEmptyArray(tokenDecimals) ? tokenDecimals[0] : 0;
   const symbol = tokenSymbols && !isEmptyArray(tokenSymbols) ? tokenSymbols[0] : '';
 
-  const { children: balanceChildren, feeFrozen: frozenFee, free: freeBalance, miscFrozen: frozenMisc, reserved: reservedBalance } = balanceItem;
-  const transferableBalance = new BigN(freeBalance).minus(new BigN(frozenMisc)).toString();
+  const { children: balanceChildren, feeFrozen: frozenFee, free: freeBalance, miscFrozen: frozenMisc, reserved: reservedBalance, timestamp } = balanceItem;
+  const transferableBalance = new BigN(freeBalance || 0).minus(new BigN(frozenMisc || 0)).toString();
 
   const accountData = [
     { key: 'free', label: 'Transferable', value: transferableBalance },
@@ -157,7 +157,7 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
   let totalBalanceValue = BN_ZERO;
   let totalConvertedBalanceValue = BN_ZERO;
 
-  accountData.forEach(({ key, label, value }) => {
+  accountData.forEach(({ key, label, value = '0' }) => {
     const { balanceValue, convertedBalanceValue } = getBalances({
       balance: value,
       decimals,
@@ -215,6 +215,7 @@ export const parseBalancesInfo = (priceMap: Record<string, number>, tokenPriceMa
     balanceValue: totalBalanceValue,
     convertedBalanceValue: totalConvertedBalanceValue,
     detailBalances,
-    childrenBalances
+    childrenBalances,
+    timestamp
   };
 };

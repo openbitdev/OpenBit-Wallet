@@ -1,13 +1,13 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetWorkMetadataDef } from '@subwallet/extension-base/background/KoniTypes';
+import { NETWORK_STATUS, NetWorkMetadataDef } from '@subwallet/extension-base/background/KoniTypes';
 import { ALL_NETWORK_KEY } from '@subwallet/extension-koni-base/constants';
 import { Link } from '@subwallet/extension-koni-ui/components';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/useTranslation';
 import { hasAnyChildTokenBalance } from '@subwallet/extension-koni-ui/Popup/Home/ChainBalances/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { ModalQrProps, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BN_ZERO, getLogoByNetworkKey } from '@subwallet/extension-koni-ui/util';
 import reformatAddress from '@subwallet/extension-koni-ui/util/reformatAddress';
 import { AccountInfoByNetwork, BalanceInfo } from '@subwallet/extension-koni-ui/util/types';
@@ -23,6 +23,8 @@ const ChainBalanceDetail = React.lazy(() => import('../ChainBalances/ChainBalanc
 const ChainBalanceItem = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceItem'));
 const ChainBalanceDetailItem = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Home/ChainBalances/ChainBalanceDetail/ChainBalanceDetailItem'));
 
+const WAITING_FOR_CONNECTION = 5000;
+
 interface Props extends ThemeProps {
   address: string;
   className?: string;
@@ -33,14 +35,14 @@ interface Props extends ThemeProps {
   networkBalanceMaps: Record<string, BalanceInfo>;
   networkMetadataMap: Record<string, NetWorkMetadataDef>;
   setQrModalOpen: (visible: boolean) => void;
-  setQrModalProps: (props: {
-    networkPrefix: number,
-    networkKey: string,
-    iconTheme: string,
-    showExportButton: boolean
-  }) => void;
+  updateModalQr: (value: Partial<ModalQrProps>) => void;
   setShowBalanceDetail: (isShowBalanceDetail: boolean) => void;
   setSelectedNetworkBalance?: (networkBalance: BigN) => void;
+}
+
+interface ConnectingState {
+  status: 'pending' | 'done',
+  timestamp: number
 }
 
 function isAllowToShow (
@@ -98,9 +100,9 @@ function ChainBalances ({ address,
   networkKeys,
   networkMetadataMap,
   setQrModalOpen,
-  setQrModalProps,
   setSelectedNetworkBalance,
-  setShowBalanceDetail }: Props): React.ReactElement<Props> {
+  setShowBalanceDetail,
+  updateModalQr }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const accountInfoByNetworkMap: Record<string, AccountInfoByNetwork> =
     getAccountInfoByNetworkMap(address, networkKeys, networkMetadataMap);
@@ -111,6 +113,8 @@ function ChainBalances ({ address,
   const selectedInfo = accountInfoByNetworkMap[selectedNetworkKey];
   const selectedBalanceInfo = networkBalanceMaps[selectedNetworkKey];
   const { currentAccount: { account: currentAccount } } = useSelector((state: RootState) => state);
+  const { networkMap } = useSelector((state: RootState) => state);
+  const [connectingList, setConnectingList] = useState<Record<string, ConnectingState>>({});
 
   const isEthAccount = isEthereumAddress(currentAccount?.address);
 
@@ -144,17 +148,20 @@ function ChainBalances ({ address,
       return (<Fragment key={info.key} />);
     }
 
+    const isConnecting = connectingList[networkKey]?.status === 'done' || (balanceInfo && balanceInfo.isLoading);
+
     if (balanceInfo && balanceInfo.childrenBalances.length === 0) {
       return (
         <ChainBalanceDetailItem
           accountInfo={info}
           balanceInfo={balanceInfo}
+          isConnecting={isConnecting}
           isLoading={!balanceInfo}
           isShowDetail={info.networkKey === selectedNetworkKey}
           key={info.key}
           setQrModalOpen={setQrModalOpen}
-          setQrModalProps={setQrModalProps}
           toggleBalanceDetail={toggleBalanceDetail}
+          updateModalQr={updateModalQr}
         />
       );
     }
@@ -163,12 +170,13 @@ function ChainBalances ({ address,
       <ChainBalanceItem
         accountInfo={info}
         balanceInfo={balanceInfo}
+        isConnecting={isConnecting}
         isLoading={!balanceInfo}
         key={info.key}
         setQrModalOpen={setQrModalOpen}
-        setQrModalProps={setQrModalProps}
         setSelectedNetworkBalance={setSelectedNetworkBalance}
         showBalanceDetail={_openBalanceDetail}
+        updateModalQr={updateModalQr}
       />
     );
   };
@@ -213,6 +221,69 @@ function ChainBalances ({ address,
     setListWidth(containerWidth - scrollWidth);
   }, [containerWidth, scrollWidth]);
 
+  useEffect(() => {
+    const checkData = () => {
+      setConnectingList((state) => {
+        const timestamp = +new Date();
+        const newList: Record<string, ConnectingState> = {};
+
+        Object.entries(networkMap).forEach(([key, value]) => {
+          const isDisconnected = value.apiStatus !== NETWORK_STATUS.CONNECTED;
+
+          if (isDisconnected) {
+            if (state[key]) {
+              newList[key] = state[key];
+            } else {
+              newList[key] = {
+                status: 'pending',
+                timestamp
+              };
+            }
+          }
+        });
+
+        return newList;
+      });
+    };
+
+    checkData();
+  }, [networkMap]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    const createCounter = () => {
+      const check = Object.values(connectingList).some((item) => item.status === 'pending');
+
+      if (check) {
+        timer = setInterval(() => {
+          const newList: Record<string, ConnectingState> = {};
+          const newTimestamp = +new Date();
+          let changed = false;
+
+          Object.entries(connectingList).forEach(([key, item]) => {
+            if (item.status === 'pending' && newTimestamp - item.timestamp >= WAITING_FOR_CONNECTION) {
+              newList[key] = { ...item, status: 'done' };
+              !changed && (changed = true);
+            } else {
+              newList[key] = item;
+            }
+          });
+
+          if (changed) {
+            setConnectingList(newList);
+          }
+        }, 1000);
+      }
+    };
+
+    createCounter();
+
+    return () => {
+      timer && clearInterval(timer);
+    };
+  }, [connectingList]);
+
   return (
     <div className={CN(className, 'chain-balances-container')}>
       {!isShowBalanceDetail || !selectedNetworkKey || !selectedInfo || !selectedBalanceInfo
@@ -252,8 +323,10 @@ function ChainBalances ({ address,
               accountInfo={selectedInfo}
               backToHome={_backToHome}
               balanceInfo={selectedBalanceInfo}
+              isConnecting={connectingList[selectedInfo.networkKey]?.status === 'done'}
               setQrModalOpen={setQrModalOpen}
-              setQrModalProps={setQrModalProps}
+              setSelectedNetworkBalance={setSelectedNetworkBalance}
+              updateModalQr={updateModalQr}
             />
           </>
         )

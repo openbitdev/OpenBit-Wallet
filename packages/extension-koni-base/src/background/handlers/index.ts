@@ -30,6 +30,12 @@ export default function handlers<TMessageType extends MessageTypes> ({ id, messa
 
   console.log(` [in] ${source}`); // :: ${JSON.stringify(request)}`);
 
+  if (message === 'pub(ping)') {
+    console.log('ping');
+
+    return port.postMessage({ id, response: 'pong' });
+  }
+
   const promise = isExtension
     ? extension.handle(id, message, request, port)
     : tabs.handle(id, message, request, from, port);
