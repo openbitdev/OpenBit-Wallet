@@ -74,10 +74,6 @@ chrome.runtime.onConnect.addListener((port): void => {
 
       console.warn(`Disconnected from ${port.name}`);
     });
-
-    // message and disconnect handlers
-    // port.onMessage.addListener((data: TransportRequestMessage<keyof RequestSignatures>) => handlers(data, port));
-    // port.onDisconnect.addListener(() => console.log(`Disconnected from ${port.name}`));
   }
 });
 

@@ -12,7 +12,7 @@ import type { KeypairType } from '@polkadot/util-crypto/types';
 import { AuthUrls } from '@subwallet/extension-base/background/handlers/State';
 import { AccountsWithCurrentAddress, BalanceJson, BasicTxInfo, BasicTxResponse, BondingOptionInfo, BondingSubmitParams, ChainBondingBasics, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationType, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DelegationItem, DeleteEvmTokenParams, DisableNetworkResponse, EvmNftSubmitTransaction, EvmNftTransaction, EvmNftTransactionRequest, EvmTokenJson, NetworkJson, NftCollectionJson, NftJson, NftTransactionResponse, NftTransferExtra, OptionInputAddress, PriceJson, RequestAuthorizationBlock, RequestAuthorizationPerSite, RequestCheckCrossChainTransfer, RequestCheckTransfer, RequestCrossChainTransfer, RequestFreeBalance, RequestNftForceUpdate, RequestParseEVMTransactionInput, RequestSettingsType, RequestSubscribeBalance, RequestSubscribeBalancesVisibility, RequestSubscribeCrowdloan, RequestSubscribeNft, RequestSubscribePrice, RequestSubscribeStaking, RequestSubscribeStakingReward, RequestTransfer, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, ResponseAccountCreateSuriV2, ResponseCheckCrossChainTransfer, ResponseCheckTransfer, ResponseParseEVMTransactionInput, ResponsePrivateKeyValidateV2, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSettingsType, ResponseTransfer, StakeClaimRewardParams, StakeDelegationRequest, StakeUnlockingJson, StakeWithdrawalParams, StakingJson, StakingRewardJson, SubstrateNftSubmitTransaction, SubstrateNftTransaction, SubstrateNftTransactionRequest, SupportTransferResponse, ThemeTypes, TransactionHistoryItemType, TransferError, UnbondingSubmitParams, ValidateEvmTokenRequest, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { RequestCurrentAccountAddress } from '@subwallet/extension-base/background/types';
-import { PORT_EXTENSION, PORT_KEEP_ALIVE } from '@subwallet/extension-base/defaults';
+import { PORT_EXTENSION } from '@subwallet/extension-base/defaults';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { metadataExpand } from '@subwallet/extension-chains';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -28,27 +28,29 @@ interface Handler {
   reject: (error: Error) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subscriber?: (data: any) => void;
+  message: MessageTypes,
+  request?: RequestTypes[MessageTypes]
 }
 
 type Handlers = Record<string, Handler>;
 
-const keepAlive = () => {
-  let port;
+// const keepAlive = () => {
+//   let port;
 
-  function connect () {
-    console.log('Keep-alive port is connecting.');
-    port = chrome.runtime.connect({ name: PORT_KEEP_ALIVE });
+//   function connect () {
+//     console.log('Keep-alive port is connecting.');
+//     port = chrome.runtime.connect({ name: PORT_KEEP_ALIVE });
 
-    port.onDisconnect.addListener(() => {
-      console.log('Keep-alive port is disconnected.');
-      connect();
-    });
-  }
+//     port.onDisconnect.addListener(() => {
+//       console.log('Keep-alive port is disconnected.');
+//       connect();
+//     });
+//   }
 
-  connect();
-};
+//   connect();
+// };
 
-keepAlive();
+// keepAlive();
 
 // connect to the extension
 let port: chrome.runtime.Port | null | true;
@@ -87,7 +89,19 @@ function connect () {
         handler.resolve(data.response);
       }
     });
+
+    // Re-connect subscriptions
+    reconnectSubscriptions(port);
   }
+}
+
+function reconnectSubscriptions (port: chrome.runtime.Port) {
+  Object.entries(handlers).forEach(([key, handler]) => {
+    if (handler.subscriber) {
+      console.log(`Reconnecting subscription [${handler.message}]...`);
+      port.postMessage({ id: key, message: handler.message, request: handler.request || {} });
+    }
+  });
 }
 
 connect();
@@ -112,7 +126,7 @@ function sendMessage<TMessageType extends MessageTypes> (message: TMessageType, 
   return new Promise((resolve, reject): void => {
     const id = getId();
 
-    handlers[id] = { reject, resolve, subscriber };
+    handlers[id] = { reject, resolve, subscriber, message, request };
 
     // port.postMessage({ id, message, request: request || {} });
     if (!port) {
@@ -678,3 +692,12 @@ export async function parseEVMTransactionInput (request: RequestParseEVMTransact
 export async function subscribeAuthUrl (callback: (data: AuthUrls) => void): Promise<AuthUrls> {
   return sendMessage('pri(authorize.subscribe)', null, callback);
 }
+
+export async function ping () {
+  return sendMessage('pub(ping)');
+}
+
+// Send ping message to keep-alive connection
+setInterval(() => {
+  ping().then(() => console.log('pong')).catch((e) => console.warn(e));
+}, 10000);

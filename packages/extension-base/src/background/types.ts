@@ -146,6 +146,7 @@ export interface RequestSignatures extends KoniRequestSignatures {
   'pub(rpc.subscribe)': [RequestRpcSubscribe, number, JsonRpcResponse];
   'pub(rpc.subscribeConnected)': [null, boolean, boolean];
   'pub(rpc.unsubscribe)': [RequestRpcUnsubscribe, boolean];
+  'pub(ping)': [null]
 }
 
 export type MessageTypes = keyof RequestSignatures;
