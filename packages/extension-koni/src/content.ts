@@ -14,8 +14,8 @@ function connect () {
   if (!port) {
     port = chrome.runtime.connect({ name: PORT_CONTENT });
     port.onDisconnect.addListener(() => {
-      console.log(`Port [${PORT_CONTENT}] is disconnected.`);
       port = null;
+      console.log(`Port [${PORT_CONTENT}] is disconnected.`);
     });
 
     // const port = chrome.runtime.connect({ name: PORT_CONTENT });
@@ -31,11 +31,10 @@ connect();
 
 async function makeSurePortConnected () {
   const poll = (resolve: (value: unknown) => void) => {
-    console.log(`Port [${PORT_CONTENT}] is connecting...`);
-
     if (port) {
       resolve(true);
     } else {
+      console.log(`Port [${PORT_CONTENT}] is connecting...`);
       setTimeout(() => poll(resolve), 400);
     }
   };
