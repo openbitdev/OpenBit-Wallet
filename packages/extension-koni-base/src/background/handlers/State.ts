@@ -3,7 +3,7 @@
 
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import State, { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
-import { AccountRefMap, APIItemState, ApiMap, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DeleteEvmTokenParams, EvmSendTransactionParams, EvmTokenJson, NETWORK_STATUS, NetworkJson, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountExportPrivateKey, RequestConfirmationComplete, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseSettingsType, ResultResolver, ServiceInfo, SingleModeJson, StakeUnlockingJson, StakingItem, StakingJson, StakingRewardJson, ThemeTypes, TokenInfo, TransactionHistoryItemType } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, APIItemState, ApiMap, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DeleteEvmTokenParams, EvmSendTransactionParams, EvmTokenJson, NETWORK_STATUS, NetworkJson, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountExportPrivateKey, RequestConfirmationComplete, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseSettingsType, ResultResolver, ServiceInfo, SingleModeJson, StakeUnlockingJson, StakingItem, StakingJson, StakingRewardJson, ThemeTypes, TokenInfo, TransactionHistoryItemJson, TransactionHistoryItemType } from '@subwallet/extension-base/background/KoniTypes';
 import { AuthorizeRequest, RequestAuthorizeTab } from '@subwallet/extension-base/background/types';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
@@ -29,7 +29,7 @@ import NftStore from '@subwallet/extension-koni-base/stores/Nft';
 import NftCollectionStore from '@subwallet/extension-koni-base/stores/NftCollection';
 import SettingsStore from '@subwallet/extension-koni-base/stores/Settings';
 import StakingStore from '@subwallet/extension-koni-base/stores/Staking';
-import TransactionHistoryStore from '@subwallet/extension-koni-base/stores/TransactionHistoryV2';
+import TransactionHistoryStore from '@subwallet/extension-koni-base/stores/TransactionHistoryV3';
 import { convertFundStatus, getCurrentProvider, mergeNetworkProviders } from '@subwallet/extension-koni-base/utils/utils';
 import SimpleKeyring from 'eth-simple-keyring';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -154,7 +154,7 @@ export default class KoniState extends State {
 
   // eslint-disable-next-line camelcase
   private stakeUnlockingInfoSubject = new Subject<StakeUnlockingJson>();
-  private historyMap: Record<string, TransactionHistoryItemType[]> = {};
+  private historyMap: Record<string, TransactionHistoryItemJson> = {};
   private historySubject = new Subject<Record<string, TransactionHistoryItemType[]>>();
 
   private chainRegistryMap: Record<string, ChainRegistry> = {};
@@ -716,7 +716,7 @@ export default class KoniState extends State {
   public updateNftCollection (address: string, data: NftCollection, callback?: (data: NftCollection) => void): void {
     this.getCurrentAccount((currentAccountInfo) => {
       if (currentAccountInfo.address === address) {
-        const existedItemIndex = this.nftCollectionState.nftCollectionList.findIndex((col) => col.chain === data.chain && col.collectionId === data.collectionId);
+        const existedItemIndex = this.nftCollectionState.nftCollectionList.findIndex((col) => col.chain === data.chain && col.collectionId.toLowerCase() === data.collectionId.toLowerCase());
 
         if (existedItemIndex >= 0) {
           // Update to existed data
@@ -734,7 +734,7 @@ export default class KoniState extends State {
         this.publishNftCollectionChanged(address);
       } else {
         this.nftCollectionStore.asyncGet(address).then((storedData: NftCollection[]) => {
-          if (!storedData.some((col) => col.chain === data.chain && col.collectionId === data.collectionId)) {
+          if (!storedData.some((col) => col.chain === data.chain && col.collectionId.toLowerCase() === data.collectionId.toLowerCase())) {
             storedData.push(data);
             this.nftCollectionStore.set(address, storedData);
           }
@@ -880,7 +880,7 @@ export default class KoniState extends State {
           this.nftState.nftList = this.nftState.nftList.filter((nft) => nft.chain !== chain);
         } else {
           this.nftState.nftList = this.nftState.nftList.filter((nft) => !(nft.chain === chain &&
-          nft.collectionId === collectionId &&
+          nft.collectionId?.toLowerCase() === collectionId.toLowerCase() &&
           !nftIds?.includes(nft?.id || '')));
         }
 
@@ -896,8 +896,10 @@ export default class KoniState extends State {
           // Clear all nfts from chain
           this.nftState.nftList = this.nftState.nftList.filter((nft) => nft.chain !== chain);
         } else {
+          const convertedCollectionIds = collectionIds?.map((col) => col.toLowerCase());
+
           this.nftState.nftList = this.nftState.nftList.filter((nft) => !(nft.chain === chain &&
-          !collectionIds?.includes(nft?.collectionId || '')));
+          !convertedCollectionIds?.includes(nft?.collectionId?.toLowerCase() || '')));
         }
 
         this.publishNftChanged(address);
@@ -1036,11 +1038,14 @@ export default class KoniState extends State {
 
   public setHistory (address: string, network: string, histories: TransactionHistoryItemType[]) {
     if (histories.length) {
-      const oldItems = this.historyMap[network] || [];
+      const oldItems = this.historyMap[network].items || [];
 
       const comnbinedHistories = this.combineHistories(oldItems, histories);
 
-      this.historyMap[network] = comnbinedHistories;
+      this.historyMap[network] = {
+        items: comnbinedHistories,
+        total: comnbinedHistories.length
+      };
 
       this.lazyNext('setHistory', () => {
         // Save to storage
@@ -1444,7 +1449,7 @@ export default class KoniState extends State {
   }
 
   public getTransactionHistory (address: string, networkKey: string, update: (items: TransactionHistoryItemType[]) => void): void {
-    const items = this.historyMap[networkKey];
+    const items = this.historyMap[networkKey].items;
 
     if (!items) {
       update([]);
@@ -1458,29 +1463,44 @@ export default class KoniState extends State {
   }
 
   public getHistoryMap (): Record<string, TransactionHistoryItemType[]> {
-    return this.removeInactiveNetworkData(this.historyMap);
+    const data: Record<string, TransactionHistoryItemType[]> = {};
+
+    Object.entries(this.historyMap).forEach(([key, { items }]) => {
+      data[key] = items;
+    });
+
+    return this.removeInactiveNetworkData(data);
   }
 
   public setTransactionHistory (address: string, networkKey: string, item: TransactionHistoryItemType, callback?: (items: TransactionHistoryItemType[]) => void): void {
     this.getCurrentAccount((currentAccountInfo) => {
       if (currentAccountInfo.address === address) {
-        const items = this.historyMap[networkKey] || [];
+        const items = this.historyMap[networkKey]?.items || [];
 
         item.origin = 'app';
         items.unshift(item);
-        this.historyMap[networkKey] = items;
+        this.historyMap[networkKey] = {
+          items,
+          total: items.length
+        };
+
         // Save to storage
         this.saveHistoryToStorage(address);
         this.publishHistory();
         callback && callback(items);
       } else {
-        this.transactionHistoryStore.asyncGet(address).then((data: Record<string, TransactionHistoryItemType[]>) => {
+        this.transactionHistoryStore.asyncGet(address).then((data: Record<string, TransactionHistoryItemJson>) => {
           const hash = this.getNetworkGenesisHashByKey(networkKey);
-          const items = data[hash] || [];
+          const items = data[hash].items || [];
 
           item.origin = 'app';
           items.unshift(item);
-          data[hash] = items;
+
+          data[hash] = {
+            items,
+            total: items.length
+          };
+
           this.transactionHistoryStore.set(address, data);
         }).catch((err) => console.warn(err));
       }
@@ -2022,7 +2042,7 @@ export default class KoniState extends State {
 
     const newestHistoryMap = this.convertNetworkKeyToHashKey(this.historyMap);
 
-    Object.entries(newestHistoryMap).forEach(([key, items]) => {
+    Object.entries(newestHistoryMap).forEach(([key, { items }]) => {
       if (!Array.isArray(items) || !items.length) {
         delete newestHistoryMap[key];
       }
@@ -2119,7 +2139,7 @@ export default class KoniState extends State {
 
   private isSameNft (originNft: NftItem, destinationNft: NftItem) {
     return originNft.chain === destinationNft.chain &&
-      originNft.collectionId === destinationNft.collectionId &&
+      originNft.collectionId?.toLowerCase() === destinationNft.collectionId?.toLowerCase() &&
       originNft.id === destinationNft.id;
   }
 
