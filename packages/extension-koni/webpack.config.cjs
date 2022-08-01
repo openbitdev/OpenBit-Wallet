@@ -3,9 +3,13 @@
 
 const createConfig = require('./webpack.shared.cjs');
 
-module.exports = createConfig({
-  background: './src/background.ts',
-  extension: './src/extension.ts',
-  content: './src/content.ts',
-  page: './src/page.ts'
-}, [], false);
+module.exports = (env) => {
+  const manifestVersion = env.mv === '2' ? 2 : 3;
+
+  return createConfig({
+    background: './src/background.ts',
+    extension: './src/extension.ts',
+    content: './src/content.ts',
+    page: './src/page.ts'
+  }, [], false, manifestVersion);
+};

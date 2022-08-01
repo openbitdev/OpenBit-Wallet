@@ -9,7 +9,8 @@ const CopyPlugin = require('copy-webpack-plugin');
 const ManifestPlugin = require('webpack-extension-manifest-plugin');
 
 const pkgJson = require('./package.json');
-const manifest = require('./manifest.json');
+const manifestV2 = require('./manifest.v2.json');
+const manifestV3 = require('./manifest.json');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const args = process.argv.slice(2);
@@ -35,7 +36,7 @@ const packages = [
   'extension-koni-ui'
 ];
 
-module.exports = (entry, alias = {}, useSplitChunk = false) => {
+module.exports = (entry, alias = {}, useSplitChunk = false, manifestVersion = 3) => {
   const result = {
     context: __dirname,
     devtool: false,
@@ -106,7 +107,7 @@ module.exports = (entry, alias = {}, useSplitChunk = false) => {
       }),
       new ManifestPlugin({
         config: {
-          base: manifest,
+          base: manifestVersion === 2 ? manifestV2 : manifestV3,
           extend: {
             version: pkgJson.version.split('-')[0] // remove possible -beta.xx
           }
@@ -122,11 +123,6 @@ module.exports = (entry, alias = {}, useSplitChunk = false) => {
         template: 'public/notification.html',
         chunks: ['extension']
       })
-      // new HtmlWebpackPlugin({
-      //   filename: 'background.html',
-      //   template: 'public/background.html',
-      //   chunks: ['background']
-      // })
     ],
     resolve: {
       alias: packages.reduce((alias, p) => ({
@@ -154,6 +150,15 @@ module.exports = (entry, alias = {}, useSplitChunk = false) => {
     },
     watch: false
   };
+
+  if (manifestVersion === 2) {
+    result.plugins.push(
+      new HtmlWebpackPlugin({
+        filename: 'background.html',
+        template: 'public/background.html',
+        chunks: ['background']
+      }));
+  }
 
   if (useSplitChunk) {
     result.optimization = {

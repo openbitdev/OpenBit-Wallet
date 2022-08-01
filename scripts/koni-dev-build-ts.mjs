@@ -20,7 +20,20 @@ const CPX = ['patch', 'js', 'cjs', 'mjs', 'json', 'd.ts', 'css', 'gif', 'hbs', '
   .map((e) => `src/**/*.${e}`)
   .concat(['package.json', 'README.md', 'LICENSE', 'src/**/mod.ts']);
 
-console.log('$ koni-dev-build-ts', process.argv.slice(2).join(' '));
+const args = process.argv.slice(2);
+console.log('$ koni-dev-build-ts', args.join(' '));
+
+let manifestVersion = 3;
+
+if (args) {
+  args.forEach((p, index) => {
+    if (p === '--mv') {
+      manifestVersion = parseInt(args[index + 1]) || manifestVersion;
+    }
+  });
+}
+
+console.log('manifestVersion: ', manifestVersion);
 
 const IGNORE_IMPORTS = [
   // node
@@ -33,7 +46,7 @@ const IGNORE_IMPORTS = [
 function buildWebpack () {
   const config = WP_CONFIGS.find((c) => fs.existsSync(path.join(process.cwd(), c)));
 
-  execSync(`yarn polkadot-exec-webpack --config ${config} --mode production`);
+  execSync(`yarn polkadot-exec-webpack --config ${config} ${manifestVersion === 2 ? '--env mv=2' : ''} --mode production`);
 }
 
 // compile via babel, either via supplied config or default

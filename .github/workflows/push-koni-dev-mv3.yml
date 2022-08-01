@@ -1,15 +1,16 @@
-name: Master
+name: Koni Dev MV3
 on:
+  pull_request: { }
   push:
     branches:
-      - master
+      - koni-dev-mv3
 
 jobs:
   master:
     if: "! startsWith(github.event.head_commit.message, '[CI Skip]')"
     strategy:
       matrix:
-        step: ['build:release:mv2']
+        step: ['build:koni-dev']
     name: ${{ matrix.step }}
     runs-on: self-hosted
     steps:
@@ -22,9 +23,11 @@ jobs:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         GH_PAT: ${{ secrets.GH_PAT }}
         GH_RELEASE_GITHUB_API_TOKEN: ${{ secrets.GH_PAT }}
-        GH_RELEASE_FILES: master-build.zip,master-src.zip
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NEXTCLOUD_CONFIG: ${{ secrets.NEXTCLOUD_CONFIG }}
+        GH_RELEASE_FILES: master-build.zip,master-src.zip
+        COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        REF_NAME: ${{ github.ref_name }}
       run: |
         yarn install --immutable | grep -v 'YN0013'
         yarn ${{ matrix.step }}

@@ -10,6 +10,7 @@ import type { RequestSignatures, TransportRequestMessage } from '@subwallet/exte
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { PORT_CONTENT, PORT_EXTENSION, PORT_KEEP_ALIVE } from '@subwallet/extension-base/defaults';
 import { AccountsStore } from '@subwallet/extension-base/stores';
+import { isManifestV3 } from '@subwallet/extension-base/utils';
 import { KoniCron } from '@subwallet/extension-koni-base/background/cron';
 import { onExtensionInstall } from '@subwallet/extension-koni-base/background/events';
 import handlers, { state as koniState } from '@subwallet/extension-koni-base/background/handlers';
@@ -29,7 +30,9 @@ let waitingToStop = false;
 let openCount = 0;
 
 // setup the notification (same a FF default background, white text)
-withErrorLog(() => chrome.action.setBadgeBackgroundColor({ color: '#d90000' }));
+const badgeBackgroundColor = '#d90000';
+
+withErrorLog(() => isManifestV3() ? chrome.action.setBadgeBackgroundColor({ color: badgeBackgroundColor }) : chrome.browserAction.setBadgeBackgroundColor({ color: badgeBackgroundColor }));
 
 // listen to all messages and handle appropriately
 chrome.runtime.onConnect.addListener((port): void => {

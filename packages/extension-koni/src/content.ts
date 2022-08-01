@@ -5,6 +5,7 @@ import type { Message } from '@subwallet/extension-base/types';
 
 import { TransportRequestMessage } from '@subwallet/extension-base/background/types';
 import { MESSAGE_ORIGIN_CONTENT, MESSAGE_ORIGIN_PAGE, PORT_CONTENT } from '@subwallet/extension-base/defaults';
+import { isManifestV3 } from '@subwallet/extension-base/utils';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { chrome } from '@subwallet/extension-inject/chrome';
 
@@ -173,7 +174,7 @@ window.SubWallet = new Proxy(new SubWalletPlaceholder(), {
     }
   }
 })`;
-script.src = chrome.runtime.getURL('page.js');
+script.src = isManifestV3() ? chrome.runtime.getURL('page.js') : chrome.extension.getURL('page.js');
 
 script.onload = (): void => {
   // remove the injecting tag when loaded

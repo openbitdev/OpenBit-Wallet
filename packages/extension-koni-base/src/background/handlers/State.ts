@@ -5,6 +5,7 @@ import { withErrorLog } from '@subwallet/extension-base/background/handlers/help
 import State, { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
 import { AccountRefMap, APIItemState, ApiMap, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DeleteEvmTokenParams, EvmSendTransactionParams, EvmTokenJson, NETWORK_STATUS, NetworkJson, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountExportPrivateKey, RequestConfirmationComplete, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseSettingsType, ResultResolver, ServiceInfo, SingleModeJson, StakeUnlockingJson, StakingItem, StakingJson, StakingRewardJson, ThemeTypes, TokenInfo, TransactionHistoryItemJson, TransactionHistoryItemType } from '@subwallet/extension-base/background/KoniTypes';
 import { AuthorizeRequest, RequestAuthorizeTab } from '@subwallet/extension-base/background/types';
+import { isManifestV3 } from '@subwallet/extension-base/utils';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
 import { initApi } from '@subwallet/extension-koni-base/api/dotsama';
@@ -395,7 +396,7 @@ export default class KoniState extends State {
         : confirmCount > 0 ? confirmCount.toString() : ''
     );
 
-    withErrorLog(() => chrome.action.setBadgeText({ text }));
+    withErrorLog(() => isManifestV3() ? chrome.action.setBadgeText({ text }) : chrome.browserAction.setBadgeText({ text }));
 
     if (shouldClose && text === '') {
       this.popupClose();

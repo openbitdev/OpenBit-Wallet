@@ -3,7 +3,11 @@
 
 const createConfig = require('./webpack.shared.cjs');
 
-module.exports = createConfig(
-  {
-    extension: './src/extension.ts'
-  }, [], false);
+module.exports = (env) => {
+  const manifestVersion = env.mv === '2' ? 2 : 3;
+
+  return createConfig(
+    {
+      extension: './src/extension.ts'
+    }, [], false, manifestVersion);
+};

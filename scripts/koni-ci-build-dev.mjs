@@ -9,7 +9,20 @@ import fs from "fs";
 import execSync from '@polkadot/dev/scripts/execSync.mjs';
 import {Webhook} from "discord-webhook-node";
 
-console.log('$ polkadot-ci-ghact-build', process.argv.slice(2).join(' '));
+const args = process.argv.slice(2);
+console.log('$ polkadot-ci-ghact-build', args.join(' '));
+
+let manifestVersion = 3;
+
+if (args) {
+  args.forEach((p, index) => {
+    if (p === '--mv') {
+      manifestVersion = parseInt(args[index + 1]) || manifestVersion;
+    }
+  });
+}
+
+console.log('manifestVersion: ', manifestVersion);
 
 const discordHook = new Webhook(process.env.DISCORD_WEBHOOK);
 
@@ -26,7 +39,11 @@ function runTest() {
 }
 
 function runBuild() {
-  execSync('yarn build');
+  if (manifestVersion === 2) {
+    execSync('yarn build:mv2');
+  } else {
+    execSync('yarn build');
+  }
 }
 
 function npmGetVersion() {

@@ -5,6 +5,7 @@ import type { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/type
 import type { JsonRpcResponse, ProviderInterface, ProviderInterfaceCallback } from '@polkadot/rpc-provider/types';
 import type { AccountAuthType, AccountJson, AuthorizeRequest, MetadataRequest, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning, SigningRequest } from '../types';
 
+import { isManifestV3 } from '@subwallet/extension-base/utils';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { addMetadata, knownMetadata } from '@subwallet/extension-chains';
 import { BehaviorSubject } from 'rxjs';
@@ -63,7 +64,7 @@ interface SignRequest extends Resolver<ResponseSigning> {
   url: string;
 }
 
-const NOTIFICATION_URL = chrome.runtime.getURL('notification.html');
+const NOTIFICATION_URL = isManifestV3() ? chrome.runtime.getURL('notification.html') : chrome.extension.getURL('notification.html');
 
 const POPUP_WINDOW_OPTS: chrome.windows.CreateData = {
   focused: true,
@@ -341,7 +342,7 @@ export default class State {
           : (signCount ? `${signCount}` : '')
     );
 
-    withErrorLog(() => chrome.action.setBadgeText({ text }));
+    withErrorLog(() => isManifestV3() ? chrome.action.setBadgeText({ text }) : chrome.browserAction.setBadgeText({ text }));
 
     if (shouldClose && text === '') {
       this.popupClose();

@@ -11,21 +11,38 @@ import copySync from '@polkadot/dev/scripts/copySync.mjs';
 import execSync from '@polkadot/dev/scripts/execSync.mjs';
 import {Webhook} from "discord-webhook-node";
 
-console.log('$ polkadot-ci-ghact-build', process.argv.slice(2).join(' '));
+const args = process.argv.slice(2);
+console.log('$ polkadot-ci-ghact-build', args.join(' '));
 
-const discordHook = new Webhook(process.env.DISCORD_WEBHOOK);
+let manifestVersion = 3;
 
-const repo = `https://${process.env.GH_PAT}@github.com/${process.env.GITHUB_REPOSITORY}.git`;
+if (args) {
+  args.forEach((p, index) => {
+    if (p === '--mv') {
+      manifestVersion = parseInt(args[index + 1]) || manifestVersion;
+    }
+  });
+}
 
-const argv = yargs(process.argv.slice(2))
+console.log('manifestVersion: ', manifestVersion);
+
+const argv = yargs(args)
   .options({
     'skip-beta': {
       description: 'Do not increment as beta',
       type: 'boolean'
+    },
+    'mv': {
+      description: 'Target manifest version for Chrome Extensions.',
+      type: 'string'
     }
   })
   .strict()
   .argv;
+
+const discordHook = new Webhook(process.env.DISCORD_WEBHOOK);
+
+const repo = `https://${process.env.GH_PAT}@github.com/${process.env.GITHUB_REPOSITORY}.git`;
 
 function runClean () {
   execSync('yarn polkadot-dev-clean-build');
@@ -46,7 +63,11 @@ function runTest () {
 }
 
 function runBuild () {
-  execSync('yarn build');
+  if (manifestVersion === 2) {
+    execSync('yarn build:mv2');
+  } else {
+    execSync('yarn build');
+  }
 }
 
 function npmGetVersion () {
