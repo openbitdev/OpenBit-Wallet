@@ -353,6 +353,8 @@ export type ResponseType<TMessageType extends keyof RequestSignatures> = Request
 
 interface TransportResponseMessageSub<TMessageType extends MessageTypesWithSubscriptions> {
   error?: string;
+  errorCode?: number,
+  errorData?: unknown,
   id: string;
   response?: ResponseTypes[TMessageType];
   subscription?: SubscriptionMessageTypes[TMessageType];
@@ -360,6 +362,8 @@ interface TransportResponseMessageSub<TMessageType extends MessageTypesWithSubsc
 
 interface TransportResponseMessageNoSub<TMessageType extends MessageTypesWithNoSubscriptions> {
   error?: string;
+  errorCode?: number,
+  errorData?: unknown,
   id: string;
   response?: ResponseTypes[TMessageType];
 }
