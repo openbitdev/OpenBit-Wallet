@@ -39,7 +39,12 @@ cryptoWaitReady()
 
     // Init cron
     cron = new KoniCron(subscriptions);
-    setTimeout(() => cron.start(), 5000);
+
+    setTimeout(() => {
+      cron.start();
+      subscriptions.start();
+      console.log('[Mobile] start cron and subscriptions');
+    }, 1000);
 
     responseMessage({ id: '0', response: { status: 'crypto_ready' } } as PageStatus);
 
