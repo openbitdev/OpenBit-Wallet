@@ -32,6 +32,10 @@ const packages = [
   'extension-koni-ui'
 ];
 
+const polkadotDevOptions = require('@polkadot/dev/config/babel-config-webpack.cjs');
+// Overwrite babel babel config from polkadot dev
+// polkadotDevOptions.presets[2][1].targets = {ios: '12', android: '7'}
+
 const createConfig = (entry, alias = {}, useSplitChunk = false) => {
   const result = {
     context: __dirname,
@@ -55,7 +59,7 @@ const createConfig = (entry, alias = {}, useSplitChunk = false) => {
           use: [
             {
               loader: require.resolve('babel-loader'),
-              options: require('@polkadot/dev/config/babel-config-webpack.cjs')
+              options: polkadotDevOptions
             }
           ]
         },
