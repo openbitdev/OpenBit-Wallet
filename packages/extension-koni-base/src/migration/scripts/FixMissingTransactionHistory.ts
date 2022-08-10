@@ -15,6 +15,7 @@ const getOldKey = (address: string, networkKey: string) => {
 
 export default class FixMissingTransactionHistory extends BaseMigrationJob {
   public override async run (): Promise<void> {
+    await new Promise((resolve) => setTimeout(() => resolve(true), 1000));
     const oldStore = new TransactionHistoryStore();
     const newStoreV2 = new TransactionHistoryStoreV2();
     const newStoreV3 = new TransactionHistoryStoreV3();
@@ -49,7 +50,7 @@ export default class FixMissingTransactionHistory extends BaseMigrationJob {
           // Merge new transaction histories
           const newItems = Array.isArray(v2Data[hash]) ? v2Data[hash] || [] : [];
 
-          histories = histories.filter((item) => !newItems.some((newItem) => this.state.isSameHistory(newItem, item)));
+          histories = histories.filter((item) => !newItems.some((newItem) => newItem.extrinsicHash === item.extrinsicHash));
           histories = histories.concat(newItems);
           const sortedHistories = histories.map((item) => ({ origin: 'app', ...item } as TransactionHistoryItemType)).sort((a, b) => b.time - a.time);
 
