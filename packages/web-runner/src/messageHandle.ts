@@ -24,7 +24,9 @@ export function responseMessage (response: TransportResponseMessage<keyof Reques
   }
 }
 
-export function setupHandlers () {
+export type MobileHandlers = Record<string, (data: { id: string, message: string, request: unknown }) => Promise<unknown>>;
+
+export function setupHandlers (MobileHandlers: MobileHandlers = {}) {
   window.addEventListener('message', (ev) => {
     const data = ev.data as TransportRequestMessage<keyof RequestSignatures>;
     const port = {
@@ -39,9 +41,20 @@ export function setupHandlers () {
     };
 
     if (data.id && data.message) {
-      console.log(data);
+      if (data.message.startsWith('mobile')) {
+        const specialHandler = MobileHandlers[data.message.split(':')[1] || ''];
 
-      if (data.message.startsWith('pri')) {
+        if (specialHandler && typeof specialHandler === 'function') {
+          specialHandler(data)
+            .then((rs) => {
+              // @ts-ignore
+              responseMessage({ id: data.id, message: data.message, response: rs });
+            })
+            .catch(console.error);
+        }
+
+        return;
+      } else if (data.message.startsWith('pri')) {
         port.name = PORT_EXTENSION;
       } else {
         port.name = PORT_CONTENT;

@@ -19,7 +19,29 @@ let subscriptions: KoniSubscription;
 
 responseMessage({ id: '0', response: { status: 'load' } } as PageStatus);
 
-setupHandlers();
+setupHandlers({
+  hotReload: ({ id }) => {
+    if (!cron || !subscriptions) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      cron && cron.stop();
+      subscriptions && subscriptions.stop();
+
+      setTimeout(() => {
+        cron.stop();
+        subscriptions.stop();
+      }, 333);
+
+      setTimeout(() => {
+        cron.start();
+        subscriptions.start();
+        resolve();
+      }, 999);
+    });
+  }
+});
 
 state.setServiceInfoDelay(999);
 
