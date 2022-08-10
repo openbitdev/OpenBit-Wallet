@@ -1038,7 +1038,7 @@ export default class KoniState extends State {
 
   public setHistory (address: string, network: string, histories: TransactionHistoryItemType[]) {
     if (histories.length) {
-      const oldItems = this.historyMap[network].items || [];
+      const oldItems = this.historyMap[network]?.items || [];
 
       const comnbinedHistories = this.combineHistories(oldItems, histories);
 
@@ -1449,13 +1449,9 @@ export default class KoniState extends State {
   }
 
   public getTransactionHistory (address: string, networkKey: string, update: (items: TransactionHistoryItemType[]) => void): void {
-    const items = this.historyMap[networkKey].items;
+    const items = this.historyMap[networkKey]?.items || [];
 
-    if (!items) {
-      update([]);
-    } else {
-      update(items);
-    }
+    update(items);
   }
 
   public subscribeHistory () {
@@ -1491,7 +1487,7 @@ export default class KoniState extends State {
       } else {
         this.transactionHistoryStore.asyncGet(address).then((data: Record<string, TransactionHistoryItemJson>) => {
           const hash = this.getNetworkGenesisHashByKey(networkKey);
-          const items = data[hash].items || [];
+          const items = data[hash]?.items || [];
 
           item.origin = 'app';
           items.unshift(item);
