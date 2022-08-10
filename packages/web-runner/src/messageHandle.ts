@@ -14,8 +14,6 @@ export interface CustomResponse<T> {
 export type PageStatus = CustomResponse<{ status: 'init' | 'load' | 'crypto_ready' }>
 
 export function responseMessage (response: TransportResponseMessage<keyof RequestSignatures> | PageStatus) {
-  console.log(response);
-
   // @ts-ignore
   if (window.ReactNativeWebView) {
     // @ts-ignore

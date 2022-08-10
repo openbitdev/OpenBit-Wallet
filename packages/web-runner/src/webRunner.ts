@@ -21,6 +21,8 @@ responseMessage({ id: '0', response: { status: 'load' } } as PageStatus);
 
 setupHandlers();
 
+state.setServiceInfoDelay(999);
+
 // initial setup
 cryptoWaitReady()
   .then((): void => {
@@ -35,11 +37,22 @@ cryptoWaitReady()
     migration.run().catch((err) => console.warn(err));
 
     // Init subcription
-    subscriptions = new KoniSubscription();
+    subscriptions = new KoniSubscription({ balance: true, crowdloan: false, stakingOnChain: false });
 
     // Init cron
-    cron = new KoniCron(subscriptions);
-    setTimeout(() => cron.start(), 5000);
+    cron = new KoniCron(subscriptions, {
+      autoRecoverDotsamaInterval: 20000,
+      getApiMapStatusInterval: 5000,
+      refreshHistoryInterval: 60000,
+      refreshNftInterval: 0,
+      refreshPriceInterval: 30000,
+      refreshStakeUnlockingInfoInterval: 0,
+      refreshStakingRewardInterval: 0
+    });
+    setTimeout(() => {
+      cron.start();
+      subscriptions.start();
+    }, 3000);
 
     responseMessage({ id: '0', response: { status: 'crypto_ready' } } as PageStatus);
 

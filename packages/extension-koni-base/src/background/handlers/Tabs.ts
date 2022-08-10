@@ -11,7 +11,7 @@ import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscr
 import { canDerive } from '@subwallet/extension-base/utils';
 import { EvmRpcError } from '@subwallet/extension-koni-base/background/errors/EvmRpcError';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
-import { ALL_ACCOUNT_KEY, CRON_GET_API_MAP_STATUS } from '@subwallet/extension-koni-base/constants';
+import { ALL_ACCOUNT_KEY, CRON_GET_API_MAP_STATUS_INTERVAL } from '@subwallet/extension-koni-base/constants';
 import Web3 from 'web3';
 import { RequestArguments, WebsocketProvider } from 'web3-core';
 import { JsonRpcPayload } from 'web3-core-helpers';
@@ -370,7 +370,7 @@ export default class KoniTabs extends Tabs {
       }).catch(console.error);
     };
 
-    const networkCheckInterval = setInterval(networkCheck, CRON_GET_API_MAP_STATUS);
+    const networkCheckInterval = setInterval(networkCheck, CRON_GET_API_MAP_STATUS_INTERVAL);
 
     const provider = await this.getEvmProvider(url);
 

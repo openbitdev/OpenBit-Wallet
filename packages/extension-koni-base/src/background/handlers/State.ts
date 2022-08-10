@@ -185,6 +185,9 @@ export default class KoniState extends State {
     return balanceMap;
   }
 
+  private serviceInfoDelay = 600;
+  private serviceInfoPromise?: unknown = null;
+
   // init networkMap, apiMap and chainRegistry (first time only)
   // TODO: merge transactionHistory when custom network -> predefined network
   public initNetworkStates () {
@@ -1976,17 +1979,29 @@ export default class KoniState extends State {
     return this.serviceInfoSubject;
   }
 
+  public setServiceInfoDelay (delay: number) {
+    this.serviceInfoDelay = delay;
+  }
+
   public updateServiceInfo () {
     console.log('<---Update serviceInfo--->');
-    this.getCurrentAccount((value) => {
-      this.serviceInfoSubject.next({
-        networkMap: this.networkMap,
-        apiMap: this.apiMap,
-        currentAccountInfo: value,
-        chainRegistry: this.chainRegistryMap,
-        customErc721Registry: this.getActiveErc721Tokens()
+
+    if (this.serviceInfoPromise) {
+      clearTimeout(this.serviceInfoPromise as number);
+    }
+
+    this.serviceInfoPromise = setTimeout(() => {
+      this.getCurrentAccount((value) => {
+        this.serviceInfoPromise = null;
+        this.serviceInfoSubject.next({
+          networkMap: this.networkMap,
+          apiMap: this.apiMap,
+          currentAccountInfo: value,
+          chainRegistry: this.chainRegistryMap,
+          customErc721Registry: this.getActiveErc721Tokens()
+        });
       });
-    });
+    }, this.serviceInfoDelay);
   }
 
   public getExternalRequestMap (): Record<string, ExternalRequestPromise> {

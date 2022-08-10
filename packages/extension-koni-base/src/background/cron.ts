@@ -6,16 +6,39 @@ import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
 import { fetchDotSamaHistory } from '@subwallet/extension-koni-base/api/subquery/history';
 import { state } from '@subwallet/extension-koni-base/background/handlers';
 import { KoniSubscription } from '@subwallet/extension-koni-base/background/subscription';
-import { CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
+import { CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS_INTERVAL, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO_INTERVAL, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
 import { Subject, Subscription } from 'rxjs';
+
+export const KONI_CRON_DEFAULT_OPTIONS = {
+  autoRecoverDotsamaInterval: CRON_AUTO_RECOVER_DOTSAMA_INTERVAL,
+  getApiMapStatusInterval: CRON_GET_API_MAP_STATUS_INTERVAL,
+  refreshHistoryInterval: CRON_REFRESH_HISTORY_INTERVAL,
+  refreshNftInterval: CRON_REFRESH_NFT_INTERVAL,
+  refreshPriceInterval: CRON_REFRESH_PRICE_INTERVAL,
+  refreshStakeUnlockingInfoInterval: CRON_REFRESH_STAKE_UNLOCKING_INFO_INTERVAL,
+  refreshStakingRewardInterval: CRON_REFRESH_STAKING_REWARD_INTERVAL
+};
+
+export type KoniCronOptions = typeof KONI_CRON_DEFAULT_OPTIONS;
 
 export class KoniCron {
   subscriptions: KoniSubscription;
   public status: 'pending' | 'running' | 'stopped' = 'pending';
   private serviceSubscription: Subscription | undefined;
+  private options: KoniCronOptions;
 
-  constructor (subscriptions: KoniSubscription) {
+  constructor (subscriptions: KoniSubscription, options?: KoniCronOptions) {
     this.subscriptions = subscriptions;
+    this.options = options || KONI_CRON_DEFAULT_OPTIONS;
+
+    console.log('Init cronjobs with options', options);
+
+    // Validate and auto transform options
+    Object.entries(this.options).forEach(([key, val]) => {
+      if (val < 0) {
+        this.options[key as keyof KoniCronOptions] = 0;
+      }
+    });
     this.init();
   }
 
@@ -63,22 +86,24 @@ export class KoniCron {
   }
 
   init () {
+    const { getApiMapStatusInterval, refreshHistoryInterval, refreshNftInterval, refreshPriceInterval, refreshStakeUnlockingInfoInterval, refreshStakingRewardInterval } = this.options;
+
     state.getCurrentAccount((currentAccountInfo) => {
       if (!currentAccountInfo?.address) {
         return;
       }
 
       if (Object.keys(state.getDotSamaApiMap()).length !== 0 || Object.keys(state.getWeb3ApiMap()).length !== 0) {
-        this.refreshPrice();
-        this.updateApiMapStatus();
-        this.refreshNft(currentAccountInfo.address, state.getApiMap(), state.getActiveErc721Tokens())();
-        this.refreshStakingReward(currentAccountInfo.address)();
-        this.resetHistory(currentAccountInfo.address).then(() => {
+        refreshPriceInterval && this.refreshPrice();
+        getApiMapStatusInterval && this.updateApiMapStatus();
+        refreshNftInterval && this.refreshNft(currentAccountInfo.address, state.getApiMap(), state.getActiveErc721Tokens())();
+        refreshStakeUnlockingInfoInterval && this.refreshStakingReward(currentAccountInfo.address)();
+        refreshHistoryInterval && this.resetHistory(currentAccountInfo.address).then(() => {
           this.refreshHistory(currentAccountInfo.address, state.getNetworkMap())();
         }).catch((err) => console.warn(err));
       } else {
-        this.setNftReady(currentAccountInfo.address);
-        this.setStakingRewardReady();
+        refreshNftInterval && this.setNftReady(currentAccountInfo.address);
+        refreshStakingRewardInterval && this.setStakingRewardReady();
       }
     });
   }
@@ -88,6 +113,8 @@ export class KoniCron {
       return;
     }
 
+    const { autoRecoverDotsamaInterval, getApiMapStatusInterval, refreshHistoryInterval, refreshNftInterval, refreshPriceInterval, refreshStakeUnlockingInfoInterval, refreshStakingRewardInterval } = this.options;
+
     console.log('Stating cron jobs');
     state.getCurrentAccount((currentAccountInfo) => {
       if (!currentAccountInfo?.address) {
@@ -95,22 +122,22 @@ export class KoniCron {
       }
 
       if (Object.keys(state.getDotSamaApiMap()).length !== 0 || Object.keys(state.getWeb3ApiMap()).length !== 0) {
-        this.resetNft(currentAccountInfo.address).then(() => {
-          this.addCron('refreshNft', this.refreshNft(currentAccountInfo.address, state.getApiMap(), state.getActiveErc721Tokens()), CRON_REFRESH_NFT_INTERVAL);
+        refreshNftInterval && this.resetNft(currentAccountInfo.address).then(() => {
+          this.addCron('refreshNft', this.refreshNft(currentAccountInfo.address, state.getApiMap(), state.getActiveErc721Tokens()), refreshNftInterval);
         }).catch((err) => console.warn(err));
 
-        this.addCron('refreshPrice', this.refreshPrice, CRON_REFRESH_PRICE_INTERVAL);
-        this.addCron('checkStatusApiMap', this.updateApiMapStatus, CRON_GET_API_MAP_STATUS);
-        this.addCron('recoverApiMap', this.recoverApiMap, CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, false);
-        this.addCron('refreshStakingReward', this.refreshStakingReward(currentAccountInfo.address), CRON_REFRESH_STAKING_REWARD_INTERVAL);
-        this.addCron('refreshStakeUnlockingInfo', this.refreshStakeUnlockingInfo(currentAccountInfo.address, state.getNetworkMap(), state.getDotSamaApiMap()), CRON_REFRESH_STAKE_UNLOCKING_INFO);
+        refreshPriceInterval && this.addCron('refreshPrice', this.refreshPrice, refreshPriceInterval);
+        getApiMapStatusInterval && this.addCron('checkStatusApiMap', this.updateApiMapStatus, getApiMapStatusInterval);
+        autoRecoverDotsamaInterval && this.addCron('recoverApiMap', this.recoverApiMap, autoRecoverDotsamaInterval, false);
+        refreshStakingRewardInterval && this.addCron('refreshStakingReward', this.refreshStakingReward(currentAccountInfo.address), refreshStakingRewardInterval);
+        refreshStakeUnlockingInfoInterval && this.addCron('refreshStakeUnlockingInfo', this.refreshStakeUnlockingInfo(currentAccountInfo.address, state.getNetworkMap(), state.getDotSamaApiMap()), refreshStakeUnlockingInfoInterval);
 
-        this.resetHistory(currentAccountInfo.address).then(() => {
-          this.addCron('refreshHistory', this.refreshHistory(currentAccountInfo.address, state.getNetworkMap()), CRON_REFRESH_HISTORY_INTERVAL);
+        refreshHistoryInterval && this.resetHistory(currentAccountInfo.address).then(() => {
+          this.addCron('refreshHistory', this.refreshHistory(currentAccountInfo.address, state.getNetworkMap()), refreshHistoryInterval);
         }).catch((err) => console.warn(err));
       } else {
-        this.setNftReady(currentAccountInfo.address);
-        this.setStakingRewardReady();
+        refreshNftInterval && this.setNftReady(currentAccountInfo.address);
+        refreshStakingRewardInterval && this.setStakingRewardReady();
       }
     });
 
@@ -118,21 +145,21 @@ export class KoniCron {
       next: (serviceInfo) => {
         const { address } = serviceInfo.currentAccountInfo;
 
-        this.resetNft(address).then(() => {
+        refreshNftInterval && this.resetNft(address).then(() => {
           this.resetNftTransferMeta();
           this.removeCron('refreshNft');
 
           if (this.checkNetworkAvailable(serviceInfo)) { // only add cron job if there's at least 1 active network
-            this.addCron('refreshNft', this.refreshNft(address, serviceInfo.apiMap, serviceInfo.customErc721Registry), CRON_REFRESH_NFT_INTERVAL);
+            this.addCron('refreshNft', this.refreshNft(address, serviceInfo.apiMap, serviceInfo.customErc721Registry), refreshNftInterval);
           }
         }).catch((err) => console.warn(err));
 
         // this.resetStakingReward(address);
-        this.resetHistory(address).then(() => {
+        refreshHistoryInterval && this.resetHistory(address).then(() => {
           this.removeCron('refreshHistory');
 
           if (this.checkNetworkAvailable(serviceInfo)) { // only add cron job if there's at least 1 active network
-            this.addCron('refreshHistory', this.refreshHistory(address, serviceInfo.networkMap), CRON_REFRESH_HISTORY_INTERVAL);
+            refreshHistoryInterval && this.addCron('refreshHistory', this.refreshHistory(address, serviceInfo.networkMap), refreshHistoryInterval);
           }
         }).catch((err) => console.warn(err));
 
@@ -143,14 +170,14 @@ export class KoniCron {
         this.removeCron('recoverApiMap');
 
         if (this.checkNetworkAvailable(serviceInfo)) { // only add cron job if there's at least 1 active network
-          this.addCron('refreshPrice', this.refreshPrice, CRON_REFRESH_PRICE_INTERVAL);
-          this.addCron('checkStatusApiMap', this.updateApiMapStatus, CRON_GET_API_MAP_STATUS);
-          this.addCron('recoverApiMap', this.recoverApiMap, CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, false);
-          this.addCron('refreshStakingReward', this.refreshStakingReward(address), CRON_REFRESH_STAKING_REWARD_INTERVAL);
-          this.addCron('refreshStakeUnlockingInfo', this.refreshStakeUnlockingInfo(address, serviceInfo.networkMap, serviceInfo.apiMap.dotSama), CRON_REFRESH_STAKE_UNLOCKING_INFO);
+          refreshPriceInterval && this.addCron('refreshPrice', this.refreshPrice, refreshPriceInterval);
+          getApiMapStatusInterval && this.addCron('checkStatusApiMap', this.updateApiMapStatus, getApiMapStatusInterval);
+          autoRecoverDotsamaInterval && this.addCron('recoverApiMap', this.recoverApiMap, autoRecoverDotsamaInterval, false);
+          refreshStakingRewardInterval && this.addCron('refreshStakingReward', this.refreshStakingReward(address), CRON_REFRESH_STAKING_REWARD_INTERVAL);
+          refreshStakeUnlockingInfoInterval && this.addCron('refreshStakeUnlockingInfo', this.refreshStakeUnlockingInfo(address, serviceInfo.networkMap, serviceInfo.apiMap.dotSama), CRON_REFRESH_STAKE_UNLOCKING_INFO_INTERVAL);
         } else {
-          this.setNftReady(address);
-          this.setStakingRewardReady();
+          refreshNftInterval && this.setNftReady(address);
+          refreshStakingRewardInterval && this.setStakingRewardReady();
         }
       }
     });

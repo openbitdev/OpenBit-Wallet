@@ -19,15 +19,26 @@ import { isEthereumAddress } from '@polkadot/util-crypto';
 
 type SubscriptionName = 'balance' | 'crowdloan' | 'stakingOnChain';
 
+export type KoniSubscriptionOptions = Record<SubscriptionName, boolean>;
+export const KONI_SUBSCRIPTION_DEFAULT_OPTIONS: KoniSubscriptionOptions = {
+  balance: true,
+  crowdloan: true,
+  stakingOnChain: true
+};
+
 export class KoniSubscription {
   private serviceSubscription: Subscription | undefined;
+  private options: KoniSubscriptionOptions;
   private subscriptionMap: Record<SubscriptionName, (() => void) | undefined> = {
     crowdloan: undefined,
     balance: undefined,
     stakingOnChain: undefined
   };
 
-  constructor () {
+  constructor (options = KONI_SUBSCRIPTION_DEFAULT_OPTIONS) {
+    this.options = options;
+
+    console.log('Init subscription with options', options);
     this.init();
   }
 
@@ -43,7 +54,7 @@ export class KoniSubscription {
     const oldFunc = this.subscriptionMap[name];
 
     oldFunc && oldFunc();
-    func && (this.subscriptionMap[name] = func);
+    this.options[name] && func && (this.subscriptionMap[name] = func);
   }
 
   stopAllSubscription () {
@@ -64,7 +75,7 @@ export class KoniSubscription {
   }
 
   start () {
-    console.log('Stating subscrition');
+    console.log('Stating subscription');
     state.getCurrentAccount((currentAccountInfo) => {
       if (currentAccountInfo) {
         const { address } = currentAccountInfo;
@@ -77,7 +88,7 @@ export class KoniSubscription {
     !this.serviceSubscription &&
       (this.serviceSubscription = state.subscribeServiceInfo().subscribe({
         next: (serviceInfo) => {
-          console.log('serviceInfo update', serviceInfo);
+          console.log('ServiceInfo update');
           const { address } = serviceInfo.currentAccountInfo;
 
           state.initChainRegistry();
@@ -88,7 +99,7 @@ export class KoniSubscription {
   }
 
   stop () {
-    console.log('Stopping subscrition');
+    console.log('Stopping subscription');
 
     if (this.serviceSubscription) {
       this.serviceSubscription.unsubscribe();
@@ -119,7 +130,7 @@ export class KoniSubscription {
       localStorage.setItem('authUrls', '{}');
     });
 
-    state.fetchCrowdloanFundMap().then(console.log).catch(console.error);
+    this.options.crowdloan && state.fetchCrowdloanFundMap().then(console.log).catch(console.error);
 
     state.getCurrentAccount((currentAccountInfo) => {
       if (currentAccountInfo) {
