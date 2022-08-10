@@ -16,7 +16,7 @@ import { useRejectExternalRequest } from '@subwallet/extension-koni-ui/hooks/use
 import { useSignMode } from '@subwallet/extension-koni-ui/hooks/useSignMode';
 import useToast from '@subwallet/extension-koni-ui/hooks/useToast';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/useTranslation';
-import { evmNftSubmitTransaction, makeTransferNftLedgerSubstrate, makeTransferNftQrEvm, makeTransferNftQrSubstrate, nftForceUpdate, substrateNftSubmitTransaction } from '@subwallet/extension-koni-ui/messaging';
+import { evmNftSubmitTransaction, makeTransferNftLedgerEVM, makeTransferNftLedgerSubstrate, makeTransferNftQrEvm, makeTransferNftQrSubstrate, nftForceUpdate, substrateNftSubmitTransaction } from '@subwallet/extension-koni-ui/messaging';
 import { _NftItem, SubstrateTransferParams, Web3TransferParams } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/types';
 import Address from '@subwallet/extension-koni-ui/Popup/Sending/parts/Address';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -335,6 +335,23 @@ function AuthTransfer ({ chain, className, collectionId, nftItem, recipientAddre
       .catch((e) => console.log('There is problem when makeTransferNftQrSubstrate', e));
   }, [handlerCallbackResponseResultLedger, handlerResponseError, recipientAddress, senderAccount.address, substrateParams]);
 
+  const handlerSendLedgerEVM = useCallback((handlerSignLedger: (ledgerState: LedgerState) => void) => {
+    const callback = (data: ResponseNftTransferLedger) => {
+      handlerCallbackResponseResultLedger(handlerSignLedger, data);
+    };
+
+    if (web3Tx) {
+      makeTransferNftLedgerEVM({
+        senderAddress: account?.account?.address as string,
+        recipientAddress,
+        networkKey: chain,
+        rawTransaction: web3Tx
+      }, callback)
+        .then(handlerResponseError)
+        .catch((e) => console.log('There is problem when makeTransferNftQrSubstrate', e));
+    }
+  }, [account?.account?.address, chain, handlerCallbackResponseResultLedger, handlerResponseError, recipientAddress, web3Tx]);
+
   const handlerSendLedger = useCallback((handlerSignLedger: (ledgerState: LedgerState) => void) => {
     if (loading) {
       return;
@@ -357,11 +374,14 @@ function AuthTransfer ({ chain, className, collectionId, nftItem, recipientAddre
 
         sendSubstrate();
       } else if (web3Tx !== null) {
-        setErrorArr(['We don\'t support transfer NFT with ledger at the moment']);
-        setLoading(false);
+        const sendEVM = () => {
+          handlerSendLedgerEVM(handlerSignLedger);
+        };
+
+        sendEVM();
       }
     }, 10);
-  }, [chain, currentNetwork.networkKey, handlerSendLedgerSubstrate, loading, substrateParams, web3Tx]);
+  }, [chain, currentNetwork.networkKey, handlerSendLedgerEVM, handlerSendLedgerSubstrate, loading, substrateParams, web3Tx]);
 
   const handleSignAndSubmit = useCallback(() => {
     if (loading) {

@@ -176,7 +176,7 @@ export async function createAccountHardware (address: string, hardwareType: stri
   return sendMessage('pri(accounts.create.hardware)', { accountIndex, address, addressOffset, genesisHash, hardwareType, name });
 }
 
-export async function createAccountHardwareV2 (request: RequestAccountCreateHardwareV2): Promise<boolean> {
+export async function createAccountHardwareV2 (request: RequestAccountCreateHardwareV2): Promise<AccountExternalError[]> {
   return sendMessage('pri(accounts.create.hardwareV2)', request);
 }
 
@@ -668,6 +668,10 @@ export async function makeCrossChainTransferLedger (request: RequestCrossChainTr
 
 export async function makeTransferNftLedgerSubstrate (request: RequestNftTransferExternalSubstrate, callback: (data: ResponseNftTransferLedger) => void): Promise<Array<BaseTxError>> {
   return sendMessage('pri(nft.transfer.ledger.create.substrate)', request, callback);
+}
+
+export async function makeTransferNftLedgerEVM (request: RequestNftTransferExternalEVM, callback: (data: ResponseNftTransferLedger) => void): Promise<Array<BaseTxError>> {
+  return sendMessage('pri(nft.transfer.ledger.create.evm)', request, callback);
 }
 
 export async function makeBondingLedger (request: RequestStakeExternal, callback: (data: ResponseStakeLedger) => void): Promise<Array<BaseTxError>> {

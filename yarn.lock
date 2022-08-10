@@ -2146,7 +2146,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/abi@npm:5.6.4, @ethersproject/abi@npm:^5.6.3, @ethersproject/abi@npm:^5.6.4":
+"@ethersproject/abi@npm:5.6.4, @ethersproject/abi@npm:^5.5.0, @ethersproject/abi@npm:^5.6.3, @ethersproject/abi@npm:^5.6.4":
   version: 5.6.4
   resolution: "@ethersproject/abi@npm:5.6.4"
   dependencies:
@@ -2410,7 +2410,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/rlp@npm:5.6.1, @ethersproject/rlp@npm:^5.6.1":
+"@ethersproject/rlp@npm:5.6.1, @ethersproject/rlp@npm:^5.5.0, @ethersproject/rlp@npm:^5.6.1":
   version: 5.6.1
   resolution: "@ethersproject/rlp@npm:5.6.1"
   dependencies:
@@ -2988,6 +2988,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ledgerhq/cryptoassets@npm:^6.30.0":
+  version: 6.30.0
+  resolution: "@ledgerhq/cryptoassets@npm:6.30.0"
+  dependencies:
+    invariant: 2
+  checksum: 740c6d2c745bb00b005cd31e93345fee3f98a8fbec69b087eab51b9c40e903aff1185e8720a3353f8724fcaddb634a32391fb1a7a2facbbdadbf9a8bc8e87801
+  languageName: node
+  linkType: hard
+
 "@ledgerhq/devices@npm:^4.78.0":
   version: 4.78.0
   resolution: "@ledgerhq/devices@npm:4.78.0"
@@ -3060,6 +3069,33 @@ __metadata:
   version: 6.10.1
   resolution: "@ledgerhq/errors@npm:6.10.1"
   checksum: 21049b57d9451ce50a89ae671eff363ccb64fb03b17d58e9d67284b654a552e289c4d75a4f074e711644ea089acdde3596db411a5b06b6eb85ec12e0e4d0b9c9
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/hw-app-eth@npm:^6.29.2":
+  version: 6.29.2
+  resolution: "@ledgerhq/hw-app-eth@npm:6.29.2"
+  dependencies:
+    "@ethersproject/abi": ^5.5.0
+    "@ethersproject/rlp": ^5.5.0
+    "@ledgerhq/cryptoassets": ^6.30.0
+    "@ledgerhq/errors": ^6.10.1
+    "@ledgerhq/hw-transport": ^6.27.2
+    "@ledgerhq/hw-transport-mocker": ^6.27.2
+    "@ledgerhq/logs": ^6.10.0
+    axios: ^0.26.1
+    bignumber.js: ^9.0.2
+  checksum: 60e06334b15be60f38ef29ca00e99ea5948026fe713409a30af65f206e2165101923e87cf2721264cf3d2e6ce1624e7b906bc387ee1b2e560241d527200c33d9
+  languageName: node
+  linkType: hard
+
+"@ledgerhq/hw-transport-mocker@npm:^6.27.2":
+  version: 6.27.2
+  resolution: "@ledgerhq/hw-transport-mocker@npm:6.27.2"
+  dependencies:
+    "@ledgerhq/hw-transport": ^6.27.2
+    "@ledgerhq/logs": ^6.10.0
+  checksum: 1b3dd654d8e1d42911a5ad3f2b2fea97c560d06a45534e5463198bbb0c76313e39bd469dc3aeaefb52ef9e413d04f76ac600100f8a0037dbd8eba676aadf3253
   languageName: node
   linkType: hard
 
@@ -5218,6 +5254,7 @@ __metadata:
     "@fortawesome/free-regular-svg-icons": ^6.1.1
     "@fortawesome/free-solid-svg-icons": ^6.1.1
     "@fortawesome/react-fontawesome": ^0.1.18
+    "@ledgerhq/hw-app-eth": ^6.29.2
     "@polkadot/api-contract": ^8.11.3
     "@polkadot/hw-ledger": ^10.1.2
     "@polkadot/keyring": ^9.7.2
@@ -7784,6 +7821,15 @@ __metadata:
   version: 1.11.0
   resolution: "aws4@npm:1.11.0"
   checksum: 5a00d045fd0385926d20ebebcfba5ec79d4482fe706f63c27b324d489a04c68edb0db99ed991e19eda09cb8c97dc2452059a34d97545cebf591d7a2b5a10999f
+  languageName: node
+  linkType: hard
+
+"axios@npm:^0.26.1":
+  version: 0.26.1
+  resolution: "axios@npm:0.26.1"
+  dependencies:
+    follow-redirects: ^1.14.8
+  checksum: d9eb58ff4bc0b36a04783fc9ff760e9245c829a5a1052ee7ca6013410d427036b1d10d04e7380c02f3508c5eaf3485b1ae67bd2adbfec3683704745c8d7a6e1a
   languageName: node
   linkType: hard
 
@@ -12686,6 +12732,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"follow-redirects@npm:^1.14.8":
+  version: 1.15.1
+  resolution: "follow-redirects@npm:1.15.1"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 6aa4e3e3cdfa3b9314801a1cd192ba756a53479d9d8cca65bf4db3a3e8834e62139245cd2f9566147c8dfe2efff1700d3e6aefd103de4004a7b99985e71dd533
+  languageName: node
+  linkType: hard
+
 "for-each@npm:^0.3.3":
   version: 0.3.3
   resolution: "for-each@npm:0.3.3"
@@ -14352,7 +14408,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"invariant@npm:^2.1.1, invariant@npm:^2.2.2":
+"invariant@npm:2, invariant@npm:^2.1.1, invariant@npm:^2.2.2":
   version: 2.2.4
   resolution: "invariant@npm:2.2.4"
   dependencies:

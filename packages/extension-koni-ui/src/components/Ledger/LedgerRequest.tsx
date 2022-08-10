@@ -5,13 +5,13 @@ import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { LedgerState } from '@subwallet/extension-base/signers/types';
+import { Ledger } from '@subwallet/extension-koni-ui/connector/Ledger';
 import { ExternalRequestContext } from '@subwallet/extension-koni-ui/contexts/ExternalRequestContext';
 import { rejectExternalRequest, resolveExternalRequest } from '@subwallet/extension-koni-ui/messaging';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import { Ledger } from '@polkadot/hw-ledger';
 import { KeyringPair$Meta } from '@polkadot/keyring/types';
 import { hexToU8a } from '@polkadot/util';
 

@@ -4,7 +4,7 @@
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useGetSupportedLedger } from '@subwallet/extension-koni-ui/util/ledgerChains';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import settings from '@polkadot/ui-settings';
@@ -44,6 +44,10 @@ function ImportLedger ({ className }: Props): React.ReactElement {
   const [name, setName] = useState<string | null>(null);
   const { address, error: ledgerError, isLoading: ledgerLoading, isLocked: ledgerLocked, refresh, warning: ledgerWarning } = useLedger(genesis, accountIndex, addressOffset);
   const ledgerChains = useGetSupportedLedger();
+
+  const isEthereum = useMemo((): boolean => {
+    return !!ledgerChains.find((chain) => chain.genesisHash === genesis)?.isEthereum;
+  }, [genesis, ledgerChains]);
 
   useEffect(() => {
     if (address) {
@@ -85,9 +89,20 @@ function ImportLedger ({ className }: Props): React.ReactElement {
           addressOffset: addressOffset,
           name: name,
           genesisHash: genesis,
-          isAllowed: isAllowed
+          isAllowed: isAllowed,
+          isEthereum: isEthereum
         })
-          .then(() => onAction('/'))
+          .then((errors) => {
+            if (errors.length) {
+              setError(errors[0].message);
+              console.error(errors);
+
+              setIsBusy(false);
+            } else {
+              window.localStorage.setItem('popupNavigation', '/');
+              onAction('/');
+            }
+          })
           .catch((error: Error) => {
             console.error(error);
 
@@ -96,7 +111,7 @@ function ImportLedger ({ className }: Props): React.ReactElement {
           });
       }
     },
-    [accountIndex, address, addressOffset, genesis, isAllowed, name, onAction]
+    [accountIndex, address, addressOffset, genesis, isAllowed, isEthereum, name, onAction]
   );
 
   // select element is returning a string

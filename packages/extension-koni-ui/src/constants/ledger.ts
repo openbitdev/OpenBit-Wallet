@@ -8,23 +8,34 @@ export const PredefinedLedgerNetwork: LedgerNetwork[] = [
     displayName: 'Polkadot Relay Chain',
     genesisHash: '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3',
     icon: 'substrate',
-    network: 'polkadot',
-    isDevMode: false
+    isDevMode: false,
+    isEthereum: false,
+    network: 'polkadot'
   },
   {
     displayName: 'Kusama Relay Chain',
     genesisHash: '0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe',
     icon: 'substrate',
-    network: 'kusama',
-    isDevMode: false
+    isDevMode: false,
+    isEthereum: false,
+    network: 'kusama'
+  },
+  {
+    displayName: 'Moonbeam',
+    genesisHash: '0xfe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d',
+    icon: 'ethereum',
+    isDevMode: false,
+    isEthereum: true,
+    network: 'moonbeam'
+  },
+  {
+    displayName: 'Moonriver',
+    genesisHash: '0x401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b',
+    icon: 'ethereum',
+    isDevMode: false,
+    isEthereum: true,
+    network: 'moonriver'
   }
-  // {
-  //   displayName: 'Moonbeam',
-  //   genesisHash: '0xfe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d',
-  //   icon: 'ethereum',
-  //   network: 'moonbeam',
-  //   isDevMode: false
-  // },
   // {
   //   displayName: 'Acala',
   //   genesisHash: '0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c',

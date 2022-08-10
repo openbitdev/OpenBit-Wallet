@@ -17,7 +17,6 @@ import { DEFAULT_STAKING_NETWORKS } from '@subwallet/extension-koni-base/api/sta
 import { DotSamaCrowdloan_crowdloans_nodes } from '@subwallet/extension-koni-base/api/subquery/__generated__/DotSamaCrowdloan';
 import { fetchDotSamaCrowdloan } from '@subwallet/extension-koni-base/api/subquery/crowdloan';
 import { DEFAULT_EVM_TOKENS } from '@subwallet/extension-koni-base/api/web3/defaultEvmToken';
-import { parseTxAndSignature } from '@subwallet/extension-koni-base/api/web3/transferQr';
 import { initWeb3Api } from '@subwallet/extension-koni-base/api/web3/web3';
 import { EvmRpcError } from '@subwallet/extension-koni-base/background/errors/EvmRpcError';
 import { state } from '@subwallet/extension-koni-base/background/handlers/index';
@@ -34,7 +33,7 @@ import SettingsStore from '@subwallet/extension-koni-base/stores/Settings';
 import StakingStore from '@subwallet/extension-koni-base/stores/Staking';
 import TransactionHistoryStore from '@subwallet/extension-koni-base/stores/TransactionHistoryV2';
 import { convertFundStatus, getCurrentProvider, mergeNetworkProviders } from '@subwallet/extension-koni-base/utils';
-import { anyNumberToBN } from '@subwallet/extension-koni-base/utils/eth';
+import { anyNumberToBN, parseTxAndSignature } from '@subwallet/extension-koni-base/utils/eth';
 import SimpleKeyring from 'eth-simple-keyring';
 import RLP, { Input } from 'rlp';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -45,7 +44,7 @@ import { decodePair } from '@polkadot/keyring/pair/decode';
 import { KeyringPair$Meta } from '@polkadot/keyring/types';
 import { keyring } from '@polkadot/ui-keyring';
 import { accounts } from '@polkadot/ui-keyring/observable/accounts';
-import { assert, BN, u8aToHex } from '@polkadot/util';
+import { assert, BN, isString, u8aToHex } from '@polkadot/util';
 import { base64Decode, isEthereumAddress } from '@polkadot/util-crypto';
 
 function generateDefaultStakingMap () {
@@ -1095,7 +1094,17 @@ export default class KoniState extends State {
 
       assert(pair, 'Unable to find pair');
 
-      keyring.saveAccountMeta(pair, { ...pair.meta, genesisHash });
+      const originGenesisHash = pair.meta.originGenesisHash;
+
+      const newValue: KeyringPair$Meta = { ...pair.meta, genesisHash };
+
+      if (originGenesisHash) {
+        if (isString(originGenesisHash)) {
+          newValue.originGenesisHash = [originGenesisHash];
+        }
+      }
+
+      keyring.saveAccountMeta(pair, newValue);
     }
 
     this.getCurrentAccount((accountInfo) => {

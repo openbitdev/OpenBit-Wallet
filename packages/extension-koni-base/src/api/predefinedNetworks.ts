@@ -1781,3 +1781,5 @@ function getGenesisHashes () {
 }
 
 export const PREDEFINED_GENESIS_HASHES = getGenesisHashes();
+
+export const LEDGER_EVM_GENESIS_HASHES = [PREDEFINED_NETWORKS.moonbeam.genesisHash, PREDEFINED_NETWORKS.moonriver.genesisHash];

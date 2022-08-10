@@ -140,10 +140,10 @@ function SendFund ({ chainRegistryMap, className, defaultValue, networkMap }: Co
       if (!account) {
         return false;
       } else {
-        if (account.isHardware) {
+        if (account.isHardware && account.originGenesisHash) {
           const network = networkMap[selectedNetworkKey];
 
-          return network.genesisHash !== account.originGenesisHash;
+          return !account.originGenesisHash.includes(network.genesisHash);
         }
       }
     }

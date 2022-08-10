@@ -12,6 +12,7 @@ import cloneLogo from '@subwallet/extension-koni-ui/assets/clone.svg';
 import Identicon from '@subwallet/extension-koni-ui/components/Identicon';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { accountAllRecoded, defaultRecoded, isAccountAll, recodeAddress } from '@subwallet/extension-koni-ui/util';
+import { getShowGenesisHash } from '@subwallet/extension-koni-ui/util/getShowGenesisHash';
 import Avatar from 'boring-avatars';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
@@ -29,7 +30,7 @@ export interface Props {
   address?: string | null;
   className?: string;
   genesisHash?: string | null;
-  originGenesisHash?: string | null;
+  originGenesisHash?: string[] | null;
   isExternal?: boolean | null;
   isHardware?: boolean | null;
   name?: string | null;
@@ -83,7 +84,7 @@ function AccountInfo ({ accountSplitPart = 'both', address, addressHalfLength = 
     return null;
   }, [networkMap]);
 
-  const networkInfo = getNetworkInfoByGenesisHash(originGenesisHash || genesisHash || recodedOrigin || recodedGenesis);
+  const networkInfo = getNetworkInfoByGenesisHash(getShowGenesisHash(originGenesisHash, genesisHash) || getShowGenesisHash(recodedOrigin, recodedGenesis));
 
   useEffect((): void => {
     if (!address) {

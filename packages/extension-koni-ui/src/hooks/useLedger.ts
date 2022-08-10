@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { LedgerNetwork, NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
+import { EVMLedger } from '@subwallet/extension-koni-ui/connector/Ledger/EVMLedger';
+import { SubstrateLedger } from '@subwallet/extension-koni-ui/connector/Ledger/SubstrateLedger';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { Ledger } from '@polkadot/hw-ledger';
 import uiSettings from '@polkadot/ui-settings';
 import { assert } from '@polkadot/util';
 
+import { Ledger } from '../connector/Ledger/index';
 import { PredefinedLedgerNetwork } from '../constants/ledger';
 import useTranslation from './useTranslation';
 
@@ -52,7 +54,11 @@ function retrieveLedger (genesis: string, ledgerChains: LedgerNetwork[]): Ledger
 
   assert(def, 'There is no known Ledger app available for this chain');
 
-  ledger = new Ledger('webusb', def.network);
+  if (!def.isEthereum) {
+    ledger = new SubstrateLedger('webusb', def.network);
+  } else {
+    ledger = new EVMLedger('webusb', def.network);
+  }
 
   return ledger;
 }

@@ -46,13 +46,13 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
     return !!currentAccount?.account?.isHardware;
   }, [currentAccount?.account?.isHardware]);
 
-  const originGenesisHash = useMemo((): string | null | undefined => {
+  const originGenesisHash = useMemo((): string[] | null | undefined => {
     return currentAccount?.account?.originGenesisHash;
   }, [currentAccount?.account?.originGenesisHash]);
 
   const isAllowAllNetwork = useMemo((): boolean => {
     if (isHardware) {
-      const exists = genesisOptions.find((hash) => hash.value === originGenesisHash);
+      const exists = genesisOptions.find((hash) => originGenesisHash && originGenesisHash.includes(hash.value));
 
       return !exists;
     } else {
@@ -209,7 +209,7 @@ function NetworkMenu ({ className, currentNetwork, genesisOptions, isNotHaveAcco
         {
           filteredGenesisOptions && filteredGenesisOptions.length
             ? filteredGenesisOptions.map(({ apiStatus, icon, networkKey, networkPrefix, text, value }, index): React.ReactNode => {
-              const isDisable = isHardware && (value ? value !== originGenesisHash : !isAllowAllNetwork);
+              const isDisable = isHardware && (value ? (originGenesisHash && !originGenesisHash.includes(value)) : !isAllowAllNetwork);
 
               return (
                 <div

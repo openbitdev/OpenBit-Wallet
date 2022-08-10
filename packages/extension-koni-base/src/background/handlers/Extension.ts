@@ -18,9 +18,10 @@ import { getTokenInfo } from '@subwallet/extension-koni-base/api/dotsama/registr
 import { checkReferenceCount, checkSupportTransfer, estimateFee, getExistentialDeposit, makeTransfer } from '@subwallet/extension-koni-base/api/dotsama/transfer';
 import { SUPPORTED_TRANSFER_SUBSTRATE_CHAIN_NAME } from '@subwallet/extension-koni-base/api/nft/config';
 import { acalaTransferHandler, getNftTransferExtrinsic, isRecipientSelf, quartzTransferHandler, rmrkTransferHandler, statemineTransferHandler, uniqueTransferHandler, unlockAccount } from '@subwallet/extension-koni-base/api/nft/transfer';
+import { LEDGER_EVM_GENESIS_HASHES } from '@subwallet/extension-koni-base/api/predefinedNetworks';
+import { handleTransferNftLedger, handleTransferNftQr, makeERC20TransferLedger, makeERC20TransferQr, makeEVMTransferLedger, makeEVMTransferQr } from '@subwallet/extension-koni-base/api/web3/external/transfer';
 import { parseEVMTransaction, parseTransactionData } from '@subwallet/extension-koni-base/api/web3/parseEVMTransaction';
 import { getERC20TransactionObject, getEVMTransactionObject, makeERC20Transfer, makeEVMTransfer } from '@subwallet/extension-koni-base/api/web3/transfer';
-import { handleTransferNftQr, makeERC20TransferQr, makeEVMTransferQr } from '@subwallet/extension-koni-base/api/web3/transferQr';
 import { ERC721Contract, getERC20Contract, getERC721Contract, initWeb3Api } from '@subwallet/extension-koni-base/api/web3/web3';
 import { estimateCrossChainFee, makeCrossChainTransfer } from '@subwallet/extension-koni-base/api/xcm';
 import { state } from '@subwallet/extension-koni-base/background/handlers/index';
@@ -39,7 +40,7 @@ import { ChainType } from '@polkadot/types/interfaces';
 import { keyring } from '@polkadot/ui-keyring';
 import { accounts as accountsObservable } from '@polkadot/ui-keyring/observable/accounts';
 import { SingleAddress, SubjectInfo } from '@polkadot/ui-keyring/observable/types';
-import { assert, BN, hexToU8a, isAscii, isHex, u8aToString } from '@polkadot/util';
+import { assert, BN, hexToU8a, isAscii, isHex, isString, u8aToString } from '@polkadot/util';
 import { base64Decode, isEthereumAddress, jsonDecrypt, keyExtractSuri, mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto';
 import { EncryptedJson, KeypairType, Prefix } from '@polkadot/util-crypto/types';
 
@@ -52,11 +53,22 @@ function getSuri (seed: string, type?: KeypairType): string {
 }
 
 function transformAccounts (accounts: SubjectInfo): AccountJson[] {
-  return Object.values(accounts).map(({ json: { address, meta }, type }): AccountJson => ({
-    address,
-    ...meta,
-    type
-  }));
+  return Object.values(accounts).map(({ json: { address, meta }, type }): AccountJson => {
+    const result: AccountJson = {
+      address,
+      ...meta,
+      type
+    };
+    const originGenesisHash = meta.originGenesisHash;
+
+    if (originGenesisHash) {
+      if (isString(originGenesisHash)) {
+        result.originGenesisHash = [originGenesisHash as string];
+      }
+    }
+
+    return result;
+  });
 }
 
 const ACCOUNT_ALL_JSON: AccountJson = {
@@ -2287,33 +2299,71 @@ export default class KoniExtension extends Extension {
     genesisHash,
     hardwareType,
     isAllowed,
-    name }: RequestAccountCreateHardwareV2): Promise<boolean> {
-    const key = keyring.addHardware(address, hardwareType, {
-      accountIndex,
-      addressOffset,
-      genesisHash,
-      name,
-      originGenesisHash: genesisHash
-    });
+    isEthereum,
+    name }: RequestAccountCreateHardwareV2): Promise<AccountExternalError[]> {
+    try {
+      let result: KeyringPair;
 
-    const result = key.pair;
+      try {
+        const exists = keyring.getPair(address);
 
-    const _address = result.address;
+        if (exists) {
+          if (exists.type === (isEthereum ? 'ethereum' : 'sr25519')) {
+            return [{ code: AccountExternalErrorCode.INVALID_ADDRESS, message: 'Account exists' }];
+          }
+        }
+      } catch (e) {
 
-    await new Promise<void>((resolve) => {
-      state.addAccountRef([_address], () => {
-        resolve();
+      }
+
+      if (isEthereum) {
+        const originGenesisHash = [genesisHash, ...LEDGER_EVM_GENESIS_HASHES];
+
+        const filtered = originGenesisHash.filter((value, index, self) => {
+          return self.indexOf(value) === index;
+        });
+
+        result = keyring.keyring.addFromAddress(address, {
+          name,
+          hardwareType,
+          accountIndex,
+          addressOffset,
+          genesisHash,
+          isExternal: true,
+          isHardware: true,
+          originGenesisHash: filtered
+        }, null, 'ethereum');
+
+        keyring.saveAccount(result);
+      } else {
+        result = keyring.addHardware(address, hardwareType, {
+          accountIndex,
+          addressOffset,
+          genesisHash,
+          name,
+          originGenesisHash: [genesisHash]
+        }).pair;
+      }
+
+      const _address = result.address;
+
+      await new Promise<void>((resolve) => {
+        state.addAccountRef([_address], () => {
+          resolve();
+        });
       });
-    });
 
-    await new Promise<void>((resolve) => {
-      this._saveCurrentAccountAddress(_address, () => {
-        this._addAddressToAuthList(_address, isAllowed || false);
-        resolve();
+      await new Promise<void>((resolve) => {
+        this._saveCurrentAccountAddress(_address, () => {
+          this._addAddressToAuthList(_address, isAllowed || false);
+          resolve();
+        });
       });
-    });
 
-    return true;
+      return [];
+    } catch (e) {
+      return [{ code: AccountExternalErrorCode.KEYRING_ERROR, message: (e as Error).message }];
+    }
   }
 
   // External account QR
@@ -2994,21 +3044,61 @@ export default class KoniExtension extends Extension {
 
       const callback = this.makeTransferQrCallback(from, networkKey, token, cb);
 
-      const apiProps = await state.getDotSamaApiMap()[networkKey].isReady;
+      let transferProm: Promise<void>;
 
-      const transferProm = makeTransferLedger({
-        networkKey,
-        recipientAddress: to,
-        senderAddress: fromKeyPair.address,
-        value: value || '0',
-        transferAll: !!transferAll,
-        tokenInfo,
-        id,
-        setState,
-        updateState,
-        callback,
-        apiProps: apiProps
-      });
+      if (isEthereumAddress(from) && isEthereumAddress(to)) {
+        const web3ApiMap = state.getApiMap().web3;
+        const chainId = state.getNetworkMap()[networkKey].evmChainId || 1;
+
+        if (tokenInfo && !tokenInfo.isMainToken && tokenInfo.erc20Address) {
+          transferProm = makeERC20TransferLedger(
+            {
+              assetAddress: tokenInfo.erc20Address,
+              callback,
+              chainId,
+              from,
+              id,
+              networkKey,
+              setState,
+              updateState,
+              to,
+              transferAll: !!transferAll,
+              value: value || '0',
+              web3ApiMap
+            }
+          );
+        } else {
+          transferProm = makeEVMTransferLedger({
+            from: from,
+            to: to,
+            chainId: chainId,
+            web3ApiMap: web3ApiMap,
+            callback: callback,
+            id: id,
+            networkKey: networkKey,
+            updateState: updateState,
+            transferAll: !!transferAll,
+            value: value || '0',
+            setState: setState
+          });
+        }
+      } else {
+        const apiProps = await state.getDotSamaApiMap()[networkKey].isReady;
+
+        transferProm = makeTransferLedger({
+          networkKey,
+          recipientAddress: to,
+          senderAddress: fromKeyPair.address,
+          value: value || '0',
+          transferAll: !!transferAll,
+          tokenInfo,
+          id,
+          setState,
+          updateState,
+          callback,
+          apiProps: apiProps
+        });
+      }
 
       transferProm.then(() => {
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -3179,6 +3269,74 @@ export default class KoniExtension extends Extension {
     });
 
     return errors;
+  }
+
+  private nftTransferCreateLedgerEVM (id: string,
+    port: chrome.runtime.Port,
+    { networkKey,
+      rawTransaction,
+      recipientAddress,
+      senderAddress }: RequestNftTransferExternalEVM): Array<BaseTxError> {
+    const callback = createSubscription<'pri(nft.transfer.qr.create.evm)'>(id, port);
+    const network = state.getNetworkMapByKey(networkKey);
+    const isSendingSelf = reformatAddress(senderAddress, 1) === reformatAddress(recipientAddress, 1);
+
+    try {
+      const web3ApiMap = state.getWeb3ApiMap();
+
+      const id: string = getId();
+
+      state.cleanExternalRequest();
+
+      const setState = (promise: ExternalRequestPromise) => {
+        state.setExternalRequestMap(id, promise);
+      };
+
+      const updateState = (promise: Partial<ExternalRequestPromise>) => {
+        state.updateExternalRequest(id, { ...promise, resolve: undefined, reject: undefined });
+      };
+
+      const transferProm = handleTransferNftLedger({
+        callback,
+        chainId: network.evmChainId || 1,
+        isSendingSelf: isSendingSelf,
+        id: id,
+        setState,
+        updateState,
+        web3ApiMap,
+        rawTransaction,
+        networkKey,
+        from: senderAddress
+      });
+
+      transferProm.then(() => {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        console.log(`Start transfer nft from ${senderAddress} to ${recipientAddress}`);
+      })
+        .catch((e) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,node/no-callback-literal,@typescript-eslint/no-unsafe-member-access
+          if (!e) {
+            // eslint-disable-next-line node/no-callback-literal
+            callback({ txError: true, isSendingSelf: false });
+          } else {
+            // eslint-disable-next-line node/no-callback-literal
+            callback({ txError: true, isSendingSelf: false, status: false });
+          }
+
+          console.error('Error transferring nft', e);
+          setTimeout(() => {
+            unsubscribe(id);
+          }, 500);
+        });
+    } catch (e) {
+      return [{ code: BasicTxErrorCode.TRANSFER_ERROR, message: (e as Error).message }];
+    }
+
+    port.onDisconnect.addListener((): void => {
+      unsubscribe(id);
+    });
+
+    return [];
   }
 
   private stakeCreateLedger (id: string, port: chrome.runtime.Port, { amount,
@@ -4098,6 +4256,8 @@ export default class KoniExtension extends Extension {
         return await this.makeCrossChainTransferLedger(id, port, request as RequestCrossChainTransferExternal);
       case 'pri(nft.transfer.ledger.create.substrate)':
         return this.nftTransferCreateLedgerSubstrate(id, port, request as RequestNftTransferExternalSubstrate);
+      case 'pri(nft.transfer.ledger.create.evm)':
+        return this.nftTransferCreateLedgerEVM(id, port, request as RequestNftTransferExternalEVM);
       case 'pri(stake.ledger.create)':
         return this.stakeCreateLedger(id, port, request as RequestStakeExternal);
       case 'pri(unStake.ledger.create)':

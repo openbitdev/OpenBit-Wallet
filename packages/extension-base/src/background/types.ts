@@ -35,7 +35,7 @@ export type SeedLengths = 12 | 24;
 export interface AccountJson extends KeyringPair$Meta {
   address: string;
   genesisHash?: string | null;
-  originGenesisHash?: string | null;
+  originGenesisHash?: string[] | null;
   isExternal?: boolean;
   isHardware?: boolean;
   isHidden?: boolean;

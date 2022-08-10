@@ -898,6 +898,7 @@ export interface RequestAccountCreateHardwareV2 {
   genesisHash: string;
   hardwareType: string;
   name: string;
+  isEthereum: boolean;
   isAllowed?: boolean;
 }
 
@@ -1282,6 +1283,7 @@ export interface LedgerNetwork {
   network: string;
   icon: 'substrate' | 'ethereum';
   isDevMode: boolean;
+  isEthereum: boolean;
 }
 
 export interface KoniRequestSignatures {
@@ -1353,7 +1355,7 @@ export interface KoniRequestSignatures {
   'pri(privateKey.validateV2)': [RequestSeedValidateV2, ResponsePrivateKeyValidateV2];
   'pri(accounts.create.suriV2)': [RequestAccountCreateSuriV2, ResponseAccountCreateSuriV2];
   'pri(accounts.create.externalV2)': [RequestAccountCreateExternalV2, AccountExternalError[]];
-  'pri(accounts.create.hardwareV2)': [RequestAccountCreateHardwareV2, boolean];
+  'pri(accounts.create.hardwareV2)': [RequestAccountCreateHardwareV2, AccountExternalError[]];
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ResponseCheckTransfer];
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ResponseCheckCrossChainTransfer];
   'pri(accounts.transfer)': [RequestTransfer, Array<TransferError>, ResponseTransfer];
@@ -1417,7 +1419,8 @@ export interface KoniRequestSignatures {
   // Create ledger request
   'pri(accounts.transfer.ledger.create)': [RequestTransferExternal, Array<TransferError>, ResponseTransferLedger];
   'pri(accounts.cross.transfer.ledger.create)': [RequestCrossChainTransferExternal, Array<TransferError>, ResponseTransferLedger];
-  'pri(nft.transfer.ledger.create.substrate)': [RequestNftTransferExternalSubstrate, Array<BaseTxError>, ResponseNftTransferQr];
+  'pri(nft.transfer.ledger.create.substrate)': [RequestNftTransferExternalSubstrate, Array<BaseTxError>, ResponseNftTransferLedger];
+  'pri(nft.transfer.ledger.create.evm)': [RequestNftTransferExternalEVM, Array<BaseTxError>, ResponseNftTransferLedger];
   'pri(stake.ledger.create)': [RequestStakeExternal, Array<BaseTxError>, ResponseStakeLedger];
   'pri(unStake.ledger.create)': [RequestUnStakeExternal, Array<BaseTxError>, ResponseUnStakeLedger];
   'pri(withdrawStake.ledger.create)': [RequestWithdrawStakeExternal, Array<BaseTxError>, ResponseWithdrawStakeLedger];
