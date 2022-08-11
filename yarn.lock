@@ -1760,7 +1760,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-
 "@babel/runtime@npm:^7.18.9, @babel/runtime@npm:^7.4.4, @babel/runtime@npm:^7.8.3":
   version: 7.18.9
   resolution: "@babel/runtime@npm:7.18.9"
@@ -6048,11 +6047,6 @@ __metadata:
   checksum: c41d136f67231c3131cf1d4ca0b06687f4a322918a3a5adddc87ce90ed9dbd175a3610adee36b106ae68c0b92c637c35e02b58c8a56c424f71d30993ea220b92
   languageName: node
   linkType: hard
-
-"@types/minimist@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@types/minimist@npm:1.2.2"
-  checksum: b8da83c66eb4aac0440e64674b19564d9d86c80ae273144db9681e5eeff66f238ade9515f5006ffbfa955ceff8b89ad2bd8ec577d7caee74ba101431fb07045d
 
 "@types/mkdirp@npm:^0.5.2":
   version: 0.5.2
