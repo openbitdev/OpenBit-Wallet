@@ -11,11 +11,8 @@ import { withErrorLog } from '@subwallet/extension-base/background/handlers/help
 import { PORT_CONTENT, PORT_EXTENSION, PORT_KEEP_ALIVE } from '@subwallet/extension-base/defaults';
 import { AccountsStore } from '@subwallet/extension-base/stores';
 import { isManifestV3 } from '@subwallet/extension-base/utils';
-import { KoniCron } from '@subwallet/extension-koni-base/background/cron';
 import { onExtensionInstall } from '@subwallet/extension-koni-base/background/events';
 import handlers, { state as koniState } from '@subwallet/extension-koni-base/background/handlers';
-import { KoniSubscription } from '@subwallet/extension-koni-base/background/subscription';
-import Migration from '@subwallet/extension-koni-base/migration';
 
 import keyring from '@polkadot/ui-keyring';
 import { assert } from '@polkadot/util';
@@ -23,8 +20,6 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 
 const IDLE_TIME = 60000 * 2; // 2 minutes
 
-let cron: KoniCron;
-let subscriptions: KoniSubscription;
 let timer: NodeJS.Timeout;
 let waitingToStop = false;
 let openCount = 0;
@@ -46,10 +41,7 @@ chrome.runtime.onConnect.addListener((port): void => {
   } else {
     if (PORT_EXTENSION === port.name) {
       openCount += 1;
-      koniState.resumeAllNetworks().then(() => {
-        cron && cron.start();
-        subscriptions && subscriptions.start();
-      }).catch((err) => console.warn(err));
+      koniState.wakeup().catch((err) => console.warn(err));
 
       if (waitingToStop) {
         clearTimeout(timer);
@@ -66,9 +58,7 @@ chrome.runtime.onConnect.addListener((port): void => {
         if (openCount <= 0) {
           waitingToStop = true;
           timer = setTimeout(() => {
-            cron && cron.stop();
-            subscriptions.stop();
-            koniState.pauseAllNetworks(undefined, 'IDLE mode').then(() => {
+            koniState.sleep().then(() => {
               waitingToStop = false;
             }).catch((err) => console.warn(err));
           }, IDLE_TIME);
@@ -115,17 +105,6 @@ cryptoWaitReady()
 
     // load all the keyring data
     keyring.loadAll({ store: new AccountsStore(), type: 'sr25519' });
-
-    // Migration
-    const migration = new Migration(koniState);
-
-    migration.run().catch((err) => console.warn(err));
-
-    // Init subscription
-    subscriptions = new KoniSubscription();
-
-    // Init cron
-    cron = new KoniCron(subscriptions);
 
     console.log('initialization completed');
   })
