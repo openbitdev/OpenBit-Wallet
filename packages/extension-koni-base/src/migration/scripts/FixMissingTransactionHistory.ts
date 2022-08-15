@@ -46,11 +46,10 @@ export default class FixMissingTransactionHistory extends BaseMigrationJob {
           }
         }
 
-        if (histories && histories.length) {
-          // Merge new transaction histories
-          const newItems = Array.isArray(v2Data[hash]) ? v2Data[hash] || [] : [];
+        const newItems = Array.isArray(v2Data[hash]) ? v2Data[hash] || [] : [];
 
-          histories = histories.filter((item) => !newItems.some((newItem) => newItem.extrinsicHash === item.extrinsicHash));
+        if (histories?.length || newItems.length) {
+          histories = (histories || []).filter((item) => !newItems.some((newItem) => newItem.extrinsicHash === item.extrinsicHash));
           histories = histories.concat(newItems);
           const sortedHistories = histories.map((item) => ({ origin: 'app', ...item } as TransactionHistoryItemType)).sort((a, b) => b.time - a.time);
 
