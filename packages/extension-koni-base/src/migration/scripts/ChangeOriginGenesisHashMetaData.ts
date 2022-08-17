@@ -9,17 +9,15 @@ import { isString } from '@polkadot/util';
 export default class ChangeOriginGenesisHashMetaData extends BaseMigrationJob {
   // eslint-disable-next-line @typescript-eslint/require-await
   public override async run (): Promise<void> {
-    const oldStore = new AccountsStore();
-    const newStore = new AccountsStore();
+    const store = new AccountsStore();
 
-    oldStore.all((key, value) => {
-      const newValue = { ...value };
+    store.all((key, value) => {
+      if (key.startsWith('account:') && value.meta && isString(value.meta?.originGenesisHash)) {
+        const newValue = { ...value };
 
-      if (isString(value.meta?.originGenesisHash)) {
         newValue.meta.originGenesisHash = [value.meta.originGenesisHash];
+        store.set(key, newValue);
       }
-
-      newStore.set(key, newValue);
     });
   }
 }
