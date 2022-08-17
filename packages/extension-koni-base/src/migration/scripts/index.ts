@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import BaseMigrationJob from '../Base';
+import ChangeOriginGenesisHashMetaData from './ChangeOriginGenesisHashMetaData';
 import ChangeTransactionHistoryStore from './ChangeTransactionHistoryStore';
 // import RemoveWrongTransactionHistoriesFromStore from './RemoveWrongTransactionHistoriesFromStore';
 
@@ -11,5 +12,8 @@ export default <Record<string, typeof BaseMigrationJob[]>> {
   ],
   '0.4.6-2': [
     // RemoveWrongTransactionHistoriesFromStore
+  ],
+  '0.5.5': [
+    ChangeOriginGenesisHashMetaData
   ]
 };

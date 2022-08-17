@@ -40,7 +40,7 @@ import { ChainType } from '@polkadot/types/interfaces';
 import { keyring } from '@polkadot/ui-keyring';
 import { accounts as accountsObservable } from '@polkadot/ui-keyring/observable/accounts';
 import { SingleAddress, SubjectInfo } from '@polkadot/ui-keyring/observable/types';
-import { assert, BN, hexToU8a, isAscii, isHex, isString, u8aToString } from '@polkadot/util';
+import { assert, BN, hexToU8a, isAscii, isHex, u8aToString } from '@polkadot/util';
 import { base64Decode, isEthereumAddress, jsonDecrypt, keyExtractSuri, mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto';
 import { EncryptedJson, KeypairType, Prefix } from '@polkadot/util-crypto/types';
 
@@ -59,13 +59,6 @@ function transformAccounts (accounts: SubjectInfo): AccountJson[] {
       ...meta,
       type
     };
-    const originGenesisHash = meta.originGenesisHash;
-
-    if (originGenesisHash) {
-      if (isString(originGenesisHash)) {
-        result.originGenesisHash = [originGenesisHash as string];
-      }
-    }
 
     return result;
   });

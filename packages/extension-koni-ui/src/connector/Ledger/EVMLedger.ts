@@ -61,13 +61,42 @@ export class EVMLedger extends Ledger {
   async sign (message: Uint8Array, accountOffset = 0, addressOffset = 0, accountOptions: AccountOptions): Promise<LedgerSignature> {
     return this.#withApp(async (app): Promise<LedgerSignature> => {
       const hex = hexStripPrefix(u8aToHex(message));
+      //
+      // const tx: Transaction | null = createTransactionFromRLP(hex);
+      //
+      // if (!tx) {
+      //   throw new Error('Invalid params');
+      // }
+      //
+      // const type = TRANSACTION_ENVELOPE_TYPES.FEE_MARKET;
+      //
+      // const txParams: AccessListEIP2930TxData = {
+      //   type: type,
+      //   nonce: anyNumberToBN(tx.nonce).toNumber(),
+      //   gasPrice: anyNumberToBN(tx.gasPrice).toNumber(),
+      //   gasLimit: anyNumberToBN(tx.gas).toNumber(),
+      //   to: tx.action !== undefined ? tx.action : '',
+      //   value: anyNumberToBN(tx.value).toNumber(),
+      //   data: tx.data ? tx.data : '',
+      //   chainId: anyNumberToBN(tx.ethereumChainId).toNumber() || 1
+      // };
+      //
+      // const common = Common.forCustomChain('mainnet', {
+      //   name: this.#chain,
+      //   networkId: parseInt(tx.ethereumChainId, 16),
+      //   chainId: parseInt(tx.ethereumChainId, 16)
+      // }, 'petersburg');
+      //
+      // const unsignedEthTx = TransactionFactory.fromTxData(txParams, { common });
+      //
+      // console.log(txParams);
+      // console.log(u8aToHex(unsignedEthTx.serialize()));
+
       const { r, s, v } = await this.#wrapError(app.signTransaction(this.#serializePath(accountOffset, addressOffset, accountOptions), hex));
 
       const hexR = r.length % 2 === 1 ? `0${r}` : r;
       const hexS = s.length % 2 === 1 ? `0${s}` : s;
       const hexV = v.length % 2 === 1 ? `0${v}` : v;
-
-      console.log(hexV);
 
       return {
         signature: `0x${hexR + hexS + hexV}`
@@ -119,7 +148,18 @@ export class EVMLedger extends Ledger {
     try {
       return await promise;
     } catch (e) {
-      throw new Error((e as Error).message);
+      const error = (e as Error).message;
+      const message = mappingError(error);
+
+      throw new Error(message);
     }
   };
 }
+
+const mappingError = (error: string): string => {
+  if (error.includes('(0x6511)')) {
+    return 'App does not seem to be open';
+  }
+
+  return error;
+};
