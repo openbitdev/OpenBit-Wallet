@@ -15,7 +15,7 @@ export default class ChangeOriginGenesisHashMetaData extends BaseMigrationJob {
     oldStore.all((key, value) => {
       const newValue = { ...value };
 
-      if (isString(value.meta.originGenesisHash)) {
+      if (isString(value.meta?.originGenesisHash)) {
         newValue.meta.originGenesisHash = [value.meta.originGenesisHash];
       }
 
