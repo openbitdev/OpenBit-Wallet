@@ -1207,8 +1207,6 @@ export default class KoniExtension extends Extension {
     const dotSamaApiMap = state.getDotSamaApiMap();
     const web3ApiMap = state.getApiMap().web3;
 
-    console.log('here', errors, tokenInfo);
-
     let fee = '0';
     let feeSymbol;
     let fromAccountFree = '0';
@@ -1224,14 +1222,11 @@ export default class KoniExtension extends Extension {
 
       // Estimate with EVM API
       if (tokenInfo && !tokenInfo.isMainToken && tokenInfo.erc20Address) {
-        console.log('shit 1');
         [, , fee] = await getERC20TransactionObject(tokenInfo.erc20Address, networkKey, from, to, txVal, !!transferAll, web3ApiMap);
       } else {
-        console.log('shit 2');
         [, , fee] = await getEVMTransactionObject(networkKey, to, txVal, !!transferAll, web3ApiMap);
       }
     } else {
-      console.log('shit 3');
       // Estimate with DotSama API
       [[fee, feeSymbol], fromAccountFree, toAccountFree] = await Promise.all(
         [
