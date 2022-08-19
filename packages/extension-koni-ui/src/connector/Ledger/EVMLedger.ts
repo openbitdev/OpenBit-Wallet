@@ -12,26 +12,30 @@ import { hexStripPrefix, u8aToHex } from '@polkadot/util';
 
 export class EVMLedger extends Ledger {
   #app: EthApp | null = null;
-  readonly #chain: string;
+  // readonly #chainId: number;
   readonly #transport: LedgerTypes;
 
-  constructor (transport: LedgerTypes, chain: string) {
+  constructor (transport: LedgerTypes, chainId: number) {
     super();
 
     // u2f is deprecated
     if (!['hid', 'webusb'].includes(transport)) {
       throw new Error(`Unsupported transport ${transport}`);
-    } else if (!PredefinedLedgerNetwork.find((_chain) => _chain.isEthereum && _chain.network === chain)) {
-      throw new Error(`Unsupported chain ${chain}`);
+    } else if (!PredefinedLedgerNetwork.find((_chain) => _chain.isEthereum && _chain.chainId === chainId)) {
+      throw new Error(`Unsupported chain ${chainId}`);
     }
 
-    this.#chain = chain;
+    // this.#chainId = chainId;
     this.#transport = transport;
   }
 
   getAddress (confirm?: boolean, accountOffset?: number, addressOffset?: number, accountOptions?: Partial<AccountOptions>): Promise<LedgerAddress> {
     return this.#withApp(async (app): Promise<LedgerAddress> => {
-      const { address, publicKey } = await this.#wrapError(app.getAddress(this.#serializePath(accountOffset, addressOffset, accountOptions), confirm));
+      const path = this.#serializePath(accountOffset, addressOffset, accountOptions);
+
+      console.log('Get address path', path);
+
+      const { address, publicKey } = await this.#wrapError(app.getAddress(path, confirm));
 
       return {
         address,
@@ -92,11 +96,19 @@ export class EVMLedger extends Ledger {
       // console.log(txParams);
       // console.log(u8aToHex(unsignedEthTx.serialize()));
 
-      const { r, s, v } = await this.#wrapError(app.signTransaction(this.#serializePath(accountOffset, addressOffset, accountOptions), hex));
+      const path = this.#serializePath(accountOffset, addressOffset, accountOptions);
+
+      console.log('Sign path', path);
+
+      const { r, s, v } = await this.#wrapError(app.signTransaction(path, hex));
+
+      console.log(v)
 
       const hexR = r.length % 2 === 1 ? `0${r}` : r;
       const hexS = s.length % 2 === 1 ? `0${s}` : s;
       const hexV = v.length % 2 === 1 ? `0${v}` : v;
+
+      console.log('r, s, v:', r, s, v);
 
       return {
         signature: `0x${hexR + hexS + hexV}`
@@ -116,7 +128,7 @@ export class EVMLedger extends Ledger {
     return `44'/60'/${account}'/${change}/${addressIndex}`;
   }
 
-  #getApp = async () => {
+  #getApp = async (): Promise<EthApp> => {
     if (!this.#app) {
       const def = transports.find(({ type }) => type === this.#transport);
 
@@ -126,7 +138,7 @@ export class EVMLedger extends Ledger {
 
       const transport = await def.create();
 
-      this.#app = new EthApp(transport, this.#chain);
+      this.#app = new EthApp(transport);
     }
 
     return this.#app;
@@ -159,6 +171,14 @@ export class EVMLedger extends Ledger {
 const mappingError = (error: string): string => {
   if (error.includes('(0x6511)')) {
     return 'App does not seem to be open';
+  }
+
+  if (error.includes('(0x6985)')) {
+    return 'User rejected';
+  }
+
+  if (error.includes('(0x6b0c)')) {
+    return 'Your ledger is locked';
   }
 
   return error;

@@ -1277,14 +1277,26 @@ export interface ResponseParseEVMTransactionInput {
   result: ParseEVMTransactionData | string
 }
 
-export interface LedgerNetwork {
+export interface LedgerSubstrateNetwork {
   genesisHash: string;
   displayName: string;
   network: string;
-  icon: 'substrate' | 'ethereum';
+  icon: 'substrate';
   isDevMode: boolean;
-  isEthereum: boolean;
+  isEthereum: false;
 }
+
+export interface LedgerEVMNetwork {
+  genesisHash: string;
+  displayName: string;
+  network: string;
+  icon: 'ethereum';
+  isDevMode: boolean;
+  isEthereum: true;
+  chainId: number;
+}
+
+export type LedgerNetwork = LedgerEVMNetwork | LedgerSubstrateNetwork;
 
 export interface KoniRequestSignatures {
   'pri(staking.delegationInfo)': [StakeDelegationRequest, DelegationItem[]];

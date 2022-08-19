@@ -372,6 +372,18 @@ async function handleTransferLedger ({ callback,
   try {
     const signed = parseTxAndSignature(txObject, signature);
 
+    if (signed) {
+      const _signature = signature.slice(2);
+      const r = `${_signature.substring(0, 64)}`;
+      const s = `${_signature.substring(64, 128)}`;
+      const v = `${_signature.substring(128)}`;
+
+      console.log('Ledger transaction:');
+      console.log('Raw transaction:', signed);
+      console.log('r, s, v:', r, s, v);
+      console.log('Recovery address:', web3Api.eth.accounts.recoverTransaction(signed));
+    }
+
     web3Api.eth.sendSignedTransaction(signed)
       .on('transactionHash', function (hash: string) {
         console.log('transactionHash', hash);
@@ -388,6 +400,8 @@ async function handleTransferLedger ({ callback,
         updateState({ status: receipt.status ? ExternalRequestPromiseStatus.COMPLETED : ExternalRequestPromiseStatus.FAILED });
         callback(response);
       }).catch((e) => {
+        console.log(e);
+
         response.step = TransferStep.ERROR;
         response.errors?.push({
           code: TransferErrorCode.TRANSFER_ERROR,

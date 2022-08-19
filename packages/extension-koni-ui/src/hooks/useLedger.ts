@@ -57,7 +57,7 @@ function retrieveLedger (genesis: string, ledgerChains: LedgerNetwork[]): Ledger
   if (!def.isEthereum) {
     ledger = new SubstrateLedger('webusb', def.network);
   } else {
-    ledger = new EVMLedger('webusb', def.network);
+    ledger = new EVMLedger('webusb', def.chainId);
   }
 
   return ledger;

@@ -25,6 +25,13 @@ export async function handleTransfer (
   };
 
   try {
+    if (signedTransaction?.rawTransaction) {
+      console.log('Private key transaction:');
+      console.log('Raw transaction:', signedTransaction.rawTransaction);
+      console.log('r, s, v:', signedTransaction.r, signedTransaction.s, signedTransaction.v);
+      console.log('Recovery address:', web3Api.eth.accounts.recoverTransaction(signedTransaction.rawTransaction));
+    }
+
     signedTransaction?.rawTransaction && web3Api.eth.sendSignedTransaction(signedTransaction.rawTransaction)
       .on('transactionHash', function (hash: string) {
         console.log('transactionHash', hash);
