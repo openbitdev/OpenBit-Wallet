@@ -102,7 +102,7 @@ export class EVMLedger extends Ledger {
 
       const { r, s, v } = await this.#wrapError(app.signTransaction(path, hex));
 
-      console.log(v)
+      console.log(v);
 
       const hexR = r.length % 2 === 1 ? `0${r}` : r;
       const hexS = s.length % 2 === 1 ? `0${s}` : s;
