@@ -141,6 +141,7 @@ function XcmTransfer ({ chainRegistryMap, className, defaultValue, firstOriginCh
     ? getBalanceFormat(originChain, selectedToken, chainRegistryMap)
     : null;
   const mainTokenInfo = chainRegistryMap[originChain] && networkMap[originChain].active ? getMainTokenInfo(originChain, chainRegistryMap) : null;
+  // const valueToTransfer = isTransferAll && maxTransfer ? maxTransfer.toString() : amount?.toString() || '0';
   const valueToTransfer = amount?.toString() || '0';
   const defaultDestinationChainOptions = getDestinationChainOptions(firstOriginChain, networkMap);
   const [[selectedDestinationChain, destinationChainOptions], setDestinationChain] = useState<[string, DropdownTransformOptionType[]]>([defaultDestinationChainOptions[0].value, defaultDestinationChainOptions]);
