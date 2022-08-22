@@ -269,6 +269,7 @@ export const encodeNumber = (value: number): Uint8Array => {
   return new Uint8Array([value >> 8, value & 0xff]);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isJsonString = (str: any): boolean => {
   if (!str) {
     return false;
@@ -310,7 +311,7 @@ export const formatArgs = (callInstance: Call): ArgInfo[] => {
     } else if (args[i].toRawType().startsWith('Vec')) {
       // toString is nicer than toHuman here because
       // toHuman tends to concatenate long strings and would hide data
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-return,@typescript-eslint/no-explicit-any
       argument = (args[i] as any).map((v: any) => v.toString());
     } else {
       // toHuman takes care of the balance formating

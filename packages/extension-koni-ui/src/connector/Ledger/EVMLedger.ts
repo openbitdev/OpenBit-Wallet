@@ -116,6 +116,7 @@ export class EVMLedger extends Ledger {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   signMessage (message: Uint8Array, accountOffset?: number, addressOffset?: number, accountOptions?: Partial<AccountOptions>): Promise<LedgerSignature> {
     throw new Error('No sign message method');
   }

@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createNamedHook <F extends (...args: any[]) => any> (name: string, fn: F): (...args: Parameters<F>) => ReturnType<F> {
   return (...args: Parameters<F>): ReturnType<F> => {
     try {

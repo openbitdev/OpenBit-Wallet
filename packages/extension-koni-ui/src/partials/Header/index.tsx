@@ -224,17 +224,21 @@ function Header ({ cancelButtonText, changeAccountCallback, children, className 
             </Link>
           </div>
           <div className='koni-header-right-content'>
-            {isPopup && (<div
-              className={'kn-l-expand-btn'}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={_onWindowOpen}
-            >
-              <img
-                alt='Expand Icon'
-                className='kn-l-expand-btn__icon'
-                src={popupTheme === 'dark' ? ExpandLightIcon : ExpandDarkIcon}
-              />
-            </div>)}
+            {
+              isPopup && (
+                <div
+                  className={'kn-l-expand-btn'}
+                  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                  onClick={_onWindowOpen}
+                >
+                  <img
+                    alt='Expand Icon'
+                    className='kn-l-expand-btn__icon'
+                    src={popupTheme === 'dark' ? ExpandLightIcon : ExpandDarkIcon}
+                  />
+                </div>
+              )
+            }
             <div
               className={`network-select-item ${isNetworkSelectOpen ? 'pointer-events-none' : ''} ${isShowNetworkSelect ? '' : 'network-select-disabled'}`}
               onClick={_toggleNetwork}
@@ -512,7 +516,7 @@ export default React.memo(styled(Header)(({ theme }: Props) => `
     cursor: pointer;
     height: 56px;
     position: relative;
-    
+
     &:after {
       content: '';
       position: absolute;

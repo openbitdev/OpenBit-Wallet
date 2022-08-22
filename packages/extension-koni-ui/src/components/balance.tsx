@@ -12,6 +12,7 @@ type BalanceViewProps = {
   withSymbol?: boolean
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const BalanceVal = ({ startWithSymbol = false, symbol, value, withComma = true, withSymbol = true }: BalanceViewProps) => {
   let [prefix, postfix] = typeof value === 'object' ? value.toFormat(9).split('.') : value.toString().split('.');
 

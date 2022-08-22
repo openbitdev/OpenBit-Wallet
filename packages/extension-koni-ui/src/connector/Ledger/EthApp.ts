@@ -28,6 +28,7 @@ import { BigNumber } from 'bignumber.js';
 import { Buffer } from 'buffer';
 import { decode, encode } from 'rlp';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const remapTransactionRelatedErrors = (e: any): any => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   if (e && e.statusCode === 0x6a80) {

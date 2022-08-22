@@ -42,8 +42,11 @@ export interface AddressProxy {
 
 export interface TxHandler {
   onTxStart?: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onTxUpdate?: (result: any) => void; // TODO: change any type when add logic
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onTxSuccess?: (result: any, extrinsicHash?: string) => void; // TODO: change any type when add logic
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onTxFail?: (result: any | null, error: Error | null, extrinsicHash?: string) => void; // TODO: change any type when add logic
 }
 
@@ -65,6 +68,7 @@ export interface QrState {
   isQrHashed: boolean;
   qrAddress: string;
   qrPayload: Uint8Array;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   qrResolve?: (result: any) => void; // TODO: change any type when add logic
   qrReject?: (error: Error) => void;
 }

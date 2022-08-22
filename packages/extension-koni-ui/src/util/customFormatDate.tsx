@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export const customFormatDate = (dateMilli: any, formatString: string) => {
   // #YYYY#: 4-digit year
   // #YY#: 2-digit year
