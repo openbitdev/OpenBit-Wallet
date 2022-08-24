@@ -58,18 +58,18 @@ cryptoWaitReady()
 
     migration.run().catch((err) => console.warn(err));
 
-    // Init subcription
-    subscriptions = new KoniSubscription({ balance: true, crowdloan: false, stakingOnChain: false });
+    // Init subscription
+    subscriptions = new KoniSubscription({ balance: true, crowdloan: true, stakingOnChain: true });
 
     // Init cron
     cron = new KoniCron(subscriptions, {
       autoRecoverDotsamaInterval: 20000,
       getApiMapStatusInterval: 5000,
       refreshHistoryInterval: 60000,
-      refreshNftInterval: 0,
+      refreshNftInterval: 600000,
       refreshPriceInterval: 30000,
-      refreshStakeUnlockingInfoInterval: 0,
-      refreshStakingRewardInterval: 0
+      refreshStakeUnlockingInfoInterval: 60000,
+      refreshStakingRewardInterval: 60000
     });
     setTimeout(() => {
       cron.start();

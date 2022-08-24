@@ -1936,11 +1936,18 @@ export default class KoniState extends State {
     return true;
   }
 
+  // use for lazy update network status to avoid spam update
+  private networkStatusTimeOut: NodeJS.Timeout | undefined = undefined;
+
   public updateNetworkStatus (networkKey: string, status: NETWORK_STATUS) {
     this.networkMap[networkKey].apiStatus = status;
 
-    this.networkMapSubject.next(this.networkMap);
-    this.networkMapStore.set('NetworkMap', this.networkMap);
+    this.networkStatusTimeOut && clearTimeout(this.networkStatusTimeOut);
+    this.networkStatusTimeOut = setTimeout(() => {
+      this.networkMapStore.set('NetworkMap', this.networkMap);
+      this.networkMapSubject.next(this.networkMap);
+      clearTimeout(this.networkStatusTimeOut);
+    }, 300);
   }
 
   public getDotSamaApiMap () {
