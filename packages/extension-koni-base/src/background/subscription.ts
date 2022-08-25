@@ -9,12 +9,9 @@ import { subscribeCrowdloan } from '@subwallet/extension-koni-base/api/dotsama/c
 import { stakingOnChainApi } from '@subwallet/extension-koni-base/api/staking';
 import { getAllSubsquidStaking } from '@subwallet/extension-koni-base/api/staking/subsquidStaking';
 import { nftHandler } from '@subwallet/extension-koni-base/background/handlers';
-import { ALL_ACCOUNT_KEY } from '@subwallet/extension-koni-base/constants';
-import { Subscription, take } from 'rxjs';
+import { Subscription } from 'rxjs';
 import Web3 from 'web3';
 
-import { accounts as accountsObservable } from '@polkadot/ui-keyring/observable/accounts';
-import { SubjectInfo } from '@polkadot/ui-keyring/observable/types';
 import { logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 import { isEthereumAddress } from '@polkadot/util-crypto';
@@ -32,7 +29,7 @@ export class KoniSubscription {
     stakingOnChain: undefined
   };
 
-  private dbService: DatabaseService;
+  public dbService: DatabaseService;
   private state: KoniState;
   private logger: Logger;
 
@@ -146,22 +143,9 @@ export class KoniSubscription {
     });
   }
 
-  detectAddresses (currentAccountAddress: string) {
-    return new Promise<Array<string>>((resolve) => {
-      if (currentAccountAddress === ALL_ACCOUNT_KEY) {
-        accountsObservable.subject.pipe(take(1))
-          .subscribe((accounts: SubjectInfo): void => {
-            resolve([...Object.keys(accounts)]);
-          });
-      } else {
-        return resolve([currentAccountAddress]);
-      }
-    });
-  }
-
   subscribeBalancesAndCrowdloans (address: string, dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, onlyRunOnFirstTime?: boolean) {
     this.state.switchAccount(address).then(() => {
-      this.detectAddresses(address)
+      this.state.getDecodedAddresses(address)
         .then((addresses) => {
           if (!addresses.length) {
             return;
@@ -176,7 +160,7 @@ export class KoniSubscription {
 
   subscribeStakingOnChain (address: string, dotSamaApiMap: Record<string, ApiProps>, onlyRunOnFirstTime?: boolean) {
     this.state.resetStakingMap(address).then(() => {
-      this.detectAddresses(address)
+      this.state.getDecodedAddresses(address)
         .then((addresses) => {
           if (!addresses.length) {
             return;
@@ -207,8 +191,6 @@ export class KoniSubscription {
   initBalanceSubscription (key: string, addresses: string[], dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, onlyRunOnFirstTime?: boolean) {
     const unsub = subscribeBalance(addresses, dotSamaApiMap, web3ApiMap, (networkKey, rs) => {
       this.state.setBalanceItem(networkKey, rs);
-
-      this.dbService.addBalance(networkKey, this.state.getNetworkGenesisHashByKey(networkKey), key, rs).catch((e) => this.logger.warn(e));
     });
 
     if (onlyRunOnFirstTime) {
@@ -239,18 +221,18 @@ export class KoniSubscription {
   }
 
   subscribeNft (address: string, dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, customErc721Registry: CustomEvmToken[]) {
-    this.detectAddresses(address)
+    this.state.getDecodedAddresses(address)
       .then((addresses) => {
         if (!addresses.length) {
           return;
         }
 
-        this.initNftSubscription(addresses, dotSamaApiMap, web3ApiMap, customErc721Registry, address);
+        this.initNftSubscription(addresses, dotSamaApiMap, web3ApiMap, customErc721Registry);
       })
       .catch(this.logger.error);
   }
 
-  initNftSubscription (addresses: string[], dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, customErc721Registry: CustomEvmToken[], addressKey: string) {
+  initNftSubscription (addresses: string[], dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, customErc721Registry: CustomEvmToken[]) {
     const { cronUpdate, forceUpdate, selectedNftCollection } = this.state.getNftTransfer();
 
     if (forceUpdate && !cronUpdate) {
@@ -271,23 +253,10 @@ export class KoniSubscription {
       nftHandler.setAddresses(addresses);
       nftHandler.handleNfts(
         customErc721Registry,
-        (data) => {
-          this.state.updateNftData(addressKey, data);
-        },
-        (data) => {
-          if (data !== null) {
-            this.state.updateNftCollection(addressKey, data);
-          }
-        },
-        (ready) => {
-          this.state.updateNftReady(addressKey, ready);
-        },
-        (networkKey: string, collectionId?: string, nftIds?: string[]) => {
-          this.state.updateNftIds(networkKey, addressKey, collectionId, nftIds);
-        },
-        (networkKey: string, collectionIds?: string[]) => {
-          this.state.updateCollectionIds(networkKey, addressKey, collectionIds);
-        })
+        (...args) => this.state.updateNftData(...args),
+        (...args) => this.state.setNftCollection(...args),
+        (...args) => this.state.updateNftIds(...args),
+        (...args) => this.state.updateCollectionIds(...args))
         .then(() => {
           this.logger.log('nft state updated');
         })
@@ -296,7 +265,7 @@ export class KoniSubscription {
   }
 
   async subscribeStakingReward (address: string) {
-    const addresses = await this.detectAddresses(address);
+    const addresses = await this.state.getDecodedAddresses(address);
     const networkMap = this.state.getNetworkMap();
     const activeNetworks: string[] = [];
 
@@ -319,7 +288,7 @@ export class KoniSubscription {
   }
 
   async subscribeStakeUnlockingInfo (address: string, networkMap: Record<string, NetworkJson>, dotSamaApiMap: Record<string, ApiProps>) {
-    const addresses = await this.detectAddresses(address);
+    const addresses = await this.state.getDecodedAddresses(address);
     const currentAddress = addresses[0]; // only get info for the current account
 
     const stakeUnlockingInfo: Record<string, UnlockingStakeInfo> = {};

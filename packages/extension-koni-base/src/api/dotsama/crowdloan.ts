@@ -46,7 +46,7 @@ export const subscribeAcalaContributeInterval = (polkadotAddresses: string[], ca
 
       resList.forEach((res) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-argument
-        contribute = contribute.add(new BN(res.data?.acala?.[0]?.detail?.lcAmount || '0'));
+        contribute = contribute.add(new BN(res.data.data?.acala?.[0]?.totalDOTLocked || '0'));
       });
 
       const rs: CrowdloanItem = {

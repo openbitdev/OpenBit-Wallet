@@ -553,7 +553,9 @@ export interface RequestCrossChainTransfer extends RequestCheckCrossChainTransfe
 
 export interface ResponseCheckCrossChainTransfer {
   errors?: Array<TransferError>,
-  feeString?: string
+  feeString?: string,
+  estimatedFee: string,
+  feeSymbol: string
 }
 
 export type RequestTransferExternal = RequestCheckTransfer
@@ -1334,7 +1336,7 @@ export interface KoniRequestSignatures {
   'pri(nft.getNft)': [null, NftJson];
   'pri(nft.getSubscription)': [RequestSubscribeNft, NftJson, NftJson];
   'pri(nftCollection.getNftCollection)': [null, NftCollectionJson];
-  'pri(nftCollection.getSubscription)': [null, NftCollectionJson, NftCollectionJson];
+  'pri(nftCollection.getSubscription)': [null, NftCollection[], NftCollection[]];
   'pri(price.getPrice)': [RequestPrice, PriceJson];
   'pri(price.getSubscription)': [RequestSubscribePrice, PriceJson, PriceJson];
   'pri(balance.getBalance)': [RequestBalance, BalanceJson];
