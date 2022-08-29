@@ -31,7 +31,7 @@ export function setupHandlers (MobileHandlers: MobileHandlers = {}) {
     const data = ev.data as TransportRequestMessage<keyof RequestSignatures>;
     const port = {
       name: PORT_EXTENSION,
-      sender: { url: ev.origin },
+      sender: { url: data.origin || ev.origin },
       postMessage: responseMessage,
       onDisconnect: {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
