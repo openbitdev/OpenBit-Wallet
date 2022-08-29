@@ -1802,6 +1802,21 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'AMPE',
     groups: ['KUSAMA_PARACHAIN'],
     decimals: 12
+  },
+  joystream_testnet: {
+    key: 'joystream_testnet',
+    chain: 'Joystream Testnet',
+    genesisHash: '0x00add825e55ed90617534c0985f626504bb46a4684f442990ca644299e1571a4',
+    ss58Format: 42,
+    providers: {
+      Jsgenesis: 'wss://rpc.joystream.org:9944'
+    },
+    active: false,
+    currentProviderMode: 'ws',
+    currentProvider: 'Jsgenesis',
+    nativeToken: 'JOY',
+    groups: ['TEST_NET'],
+    decimals: 0
   }
   // contractsRococo: {
   //   key: 'contractsRococo',
