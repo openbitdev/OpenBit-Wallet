@@ -332,6 +332,16 @@ export interface NetworkJson {
 
   apiStatus?: NETWORK_STATUS;
   requestId?: string;
+  extra?: {
+    balance?: {
+      hasAccountBalance: boolean
+    },
+    crowdloan?: { [key: string]: unknown },
+    staking?: { [key: string]: unknown },
+    nft?: { [key: string]: unknown },
+    history?: { [key: string]: unknown },
+    other?: { [key: string]: unknown }
+  };
 }
 
 export interface DonateInfo {
@@ -1434,4 +1444,9 @@ export interface KoniRequestSignatures {
 
 export interface ApplicationMetadataType {
   version: string;
+}
+
+export interface BalanceHandler {
+  getBalance(addresses: string[], provider: any): void,
+  subscribe(addresses: string[], callback: (networkKey: string, rs: BalanceItem) => void): void;
 }

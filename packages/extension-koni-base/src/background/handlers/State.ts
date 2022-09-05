@@ -23,6 +23,7 @@ import { EvmRpcError } from '@subwallet/extension-koni-base/background/errors/Ev
 import { state } from '@subwallet/extension-koni-base/background/handlers/index';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH } from '@subwallet/extension-koni-base/constants';
 import DatabaseService from '@subwallet/extension-koni-base/services/DatabaseService';
+import NetworkService from '@subwallet/extension-koni-base/services/NetworkService';
 import { CurrentAccountStore, NetworkMapStore, PriceStore } from '@subwallet/extension-koni-base/stores';
 import AccountRefStore from '@subwallet/extension-koni-base/stores/AccountRef';
 import AuthorizeStore from '@subwallet/extension-koni-base/stores/Authorize';
@@ -153,6 +154,7 @@ export default class KoniState extends State {
 
   private lazyMap: Record<string, unknown> = {};
   public dbService: DatabaseService;
+  public networkService: NetworkService;
   private cron: KoniCron;
   private subscription: KoniSubscription;
   private logger: Logger;
@@ -163,6 +165,7 @@ export default class KoniState extends State {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     super(args);
     this.dbService = new DatabaseService();
+    this.networkService = new NetworkService(this);
     this.subscription = new KoniSubscription(this, this.dbService);
     this.cron = new KoniCron(this, this.subscription, this.dbService);
     this.logger = createLogger('State');
