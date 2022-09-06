@@ -334,7 +334,8 @@ export interface NetworkJson {
   requestId?: string;
   extra?: {
     balance?: {
-      hasAccountBalance: boolean
+      accountBalance: boolean,
+      tokenBalance: boolean
     },
     crowdloan?: { [key: string]: unknown },
     staking?: { [key: string]: unknown },

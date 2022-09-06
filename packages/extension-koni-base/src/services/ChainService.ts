@@ -8,27 +8,27 @@ import { Logger } from '@polkadot/util/types';
 
 import { PREDEFINED_NETWORKS } from '../api/predefinedNetworks';
 import KoniState from '../background/handlers/State';
-import Network from '../networks/Network';
+import Chain from '../networks/Chain';
 
-export default class NetworkService {
+export default class ChainService {
   protected logger: Logger;
   protected state: KoniState;
   public configs: Record<string, NetworkJson>;
-  public networks: Record<string, Network> = {};
+  public networks: Record<string, Chain> = {};
 
   constructor (state: KoniState) {
-    this.logger = createLogger('Network-Srv');
+    this.logger = createLogger('Chain-Srv');
     this.configs = PREDEFINED_NETWORKS;
     this.state = state;
 
-    this.initNetworks();
+    this.initChains();
   }
 
-  initNetworks () {
+  initChains () {
     Object.entries(this.configs).forEach(([key, config]) => {
       if (config.active) {
-        this.networks[key] = new Network(this.state, key, config, {
-          onBalanceUpdated: this.handleBalanceUpdate
+        this.networks[key] = new Chain(this.state, key, config, {
+          onBalanceUpdate: this.handleBalanceUpdate
         });
       }
     });

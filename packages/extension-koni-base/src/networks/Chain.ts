@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApiProps, BalanceHandler, BalanceItem, NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
+import { EventEmitter } from 'eventemitter3';
 import { Subject } from 'rxjs';
 import Web3 from 'web3';
 
@@ -37,13 +38,21 @@ export interface IBalanceOptions {
 }
 
 export interface IEvents {
-  onBalanceUpdated?: (network: string, rs: BalanceItem) => void,
-  onCrowdloanUpdated?: unknown,
-  onStakingUpdated?: unknown,
-  onNftUpdated?: unknown,
-  onNftCollectionUpdated?: unknown,
-  onHistoryUpdated?: unknown
+  onBalanceUpdate?: (network: string, rs: BalanceItem, isSubToken?: boolean) => void,
+  onCrowdloanUpdate?: unknown,
+  onStakingUpdate?: unknown,
+  onNftUpdate?: unknown,
+  onNftCollectionUpdate?: unknown,
+  onHistoryUpdate?: unknown
 }
+export const EVENTS = {
+  BalanceUpdate: 'balance-update',
+  CrowdloanUpdate: 'crowdloan-update',
+  StakingUpdate: 'staking-update',
+  NftUpdate: 'nft-update',
+  NftCollectionUpdate: 'nftCollection-update',
+  HistoryUpdate: 'history-update'
+};
 
 /**
  * Base network class
@@ -66,6 +75,7 @@ export default class Network implements INetwork {
   protected addressSubject = new Subject<string[]>();
   protected subscriptions: Record<string, void> = {};
   protected events: IEvents | undefined;
+  protected readonly emitter = new EventEmitter();
 
   constructor (state: KoniState, networkKey: string, options: NetworkJson, events?: IEvents) {
     this.logger = createLogger(this.constructor.name);
@@ -156,9 +166,37 @@ export default class Network implements INetwork {
     return this.handlers.transaction;
   }
 
+  public onBalanceUpdate (fn: () => void) {
+    return this.emitter.on(EVENTS.BalanceUpdate, fn);
+  }
+
+  public onCrowdloanUpdate (fn: () => void) {
+    return this.emitter.on(EVENTS.CrowdloanUpdate, fn);
+  }
+
+  public onStakingUpdate (fn: () => void) {
+    return this.emitter.on(EVENTS.StakingUpdate, fn);
+  }
+
+  public onNftCollectionUpdate (fn: () => void) {
+    return this.emitter.on(EVENTS.NftCollectionUpdate, fn);
+  }
+
+  public onNftUpdate (fn: () => void) {
+    return this.emitter.on(EVENTS.NftUpdate, fn);
+  }
+
+  public onHistoryUpdate (fn: () => void) {
+    return this.emitter.on(EVENTS.HistoryUpdate, fn);
+  }
+
+  protected handleBalanceUpdate (rs: BalanceItem, isSubToken = false) {
+    this.emitter.emit(EVENTS.BalanceUpdate, rs, isSubToken);
+  }
+
   initSubscribers (addresses: string[]) {
-    if (this.events?.onBalanceUpdated) {
-      this.balanceHandler.subscribe(addresses, this.events?.onBalanceUpdated);
+    if (this.events?.onBalanceUpdate) {
+      this.balanceHandler.subscribe(addresses, this.events?.onBalanceUpdate);
     }
 
     // if (this.options?.callbacks?.crowdloan) {
