@@ -1449,5 +1449,5 @@ export interface ApplicationMetadataType {
 
 export interface BalanceHandler {
   getBalance(addresses: string[], provider: any): void,
-  subscribe(addresses: string[], callback: (networkKey: string, rs: BalanceItem) => void): void;
+  subscribe(addresses: string[], callback: (address: string, rs: BalanceItem, isSubToken?: boolean) => void): void;
 }

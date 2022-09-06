@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { APIItemState, BalanceHandler, BalanceItem } from '@subwallet/extension-base/background/KoniTypes';
+import { BalanceHandler, BalanceItem } from '@subwallet/extension-base/background/KoniTypes';
 
 import { logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
@@ -25,26 +25,15 @@ export default abstract class BaseBalanceHandler implements BalanceHandler {
     console.log('Implement getBalance here.');
   }
 
-  public subscribe (addresses: string[], callback: (networkKey: string, rs: BalanceItem) => void): void {
+  public subscribe (addresses: string[], callback: (address: string, rs: BalanceItem, isSubToken?: boolean) => void): void {
     this.stopSubscribe();
 
-    if (!addresses.length) {
-      // Return zero balance if not have any address
-      const zeroBalance = {
-        state: APIItemState.READY,
-        free: '0',
-        reserved: '0',
-        miscFrozen: '0',
-        feeFrozen: '0'
-      } as BalanceItem;
-
-      callback(this.network.key, zeroBalance);
-    } else {
-      this.subscribeBalance(addresses, (rs: BalanceItem) => callback(this.network.key, rs));
+    if (addresses.length) {
+      this.subscribeBalance(addresses, callback);
     }
   }
 
-  protected subscribeBalance (addresses: string[], callback: (rs: BalanceItem) => void) {
+  protected subscribeBalance (addresses: string[], callback: (address: string, rs: BalanceItem, isSubToken?: boolean) => void) {
     if (this.network.options.extra?.balance?.accountBalance) {
       this.subscriptions.AccountBalance = this.subscriAccountbeBalance(addresses, callback);
     }
@@ -56,7 +45,7 @@ export default abstract class BaseBalanceHandler implements BalanceHandler {
     this.logger.warn('Implement subscribeBalance here.');
   }
 
-  protected subscriAccountbeBalance (addresses: string[], callback: (rs: BalanceItem) => void): () => void {
+  protected subscriAccountbeBalance (addresses: string[], callback: (address: string, rs: BalanceItem, isSubToken?: boolean) => void): () => void {
     this.logger.warn('Implement subscribeAccountBalance here.');
 
     return () => {
@@ -64,7 +53,7 @@ export default abstract class BaseBalanceHandler implements BalanceHandler {
     };
   }
 
-  protected subscribeTokenBalance (addresses: string[], callback: (rs: BalanceItem) => void): () => void {
+  protected subscribeTokenBalance (addresses: string[], callback: (address: string, rs: BalanceItem, isSubToken?: boolean) => void): () => void {
     this.logger.warn('Implement subscribeTokenBalance here.');
 
     return () => {

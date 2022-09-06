@@ -22,6 +22,8 @@
         "@subwallet/web-runner": ["web-runner/src"],
         "@subwallet/web-runner/*": ["web-runner/src/*"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
 	}
  }

@@ -34,7 +34,7 @@ export default class ChainService {
     });
   }
 
-  handleBalanceUpdate (network: string, item: BalanceItem) {
-    this.logger.log(`${network}: `, item);
+  handleBalanceUpdate (network: string, address: string, item: BalanceItem) {
+    this.logger.log(`[${network}]-[${address}]: `, item);
   }
 }

@@ -8,5 +8,9 @@
   "references": [
     { "path": "../extension-base" },
     { "path": "../extension-inject" }
+  ],
+  "include": [
+    "src/**/*",
+    "src/predefinedNetworks.json"
   ]
 }
