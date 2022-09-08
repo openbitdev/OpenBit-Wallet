@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AuthUrls } from '@subwallet/extension-base/background/handlers/State';
 import { ApiProps, CustomEvmToken, NetworkJson, NftTransferExtra, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { subscribeBalance } from '@subwallet/extension-koni-base/api/dotsama/balance';
@@ -110,26 +109,6 @@ export class KoniSubscription {
   }
 
   init () {
-    state.getAuthorize((value) => {
-      const authString = localStorage.getItem('authUrls') || '{}';
-      const previousAuth = JSON.parse(authString) as AuthUrls;
-
-      if (previousAuth && Object.keys(previousAuth).length) {
-        Object.keys(previousAuth).forEach((url) => {
-          if (previousAuth[url].isAllowed) {
-            previousAuth[url].isAllowedMap = state.getAddressList(true);
-          } else {
-            previousAuth[url].isAllowedMap = state.getAddressList();
-          }
-        });
-      }
-
-      const migrateValue = { ...previousAuth, ...value };
-
-      state.setAuthorize(migrateValue);
-      localStorage.setItem('authUrls', '{}');
-    });
-
     this.options.crowdloan && state.fetchCrowdloanFundMap().then(console.log).catch(console.error);
 
     state.getCurrentAccount((currentAccountInfo) => {
