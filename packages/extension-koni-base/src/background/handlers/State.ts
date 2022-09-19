@@ -3,6 +3,7 @@
 
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import State, { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
+import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
 import { AccountRefMap, APIItemState, ApiMap, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DeleteEvmTokenParams, EvmSendTransactionParams, EvmSendTransactionRequestQr, EvmSignatureRequestQr, EvmTokenJson, ExternalRequestPromise, ExternalRequestPromiseStatus, NETWORK_STATUS, NetworkJson, NftCollection, NftCollectionJson, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountExportPrivateKey, RequestConfirmationComplete, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseSettingsType, ResultResolver, ServiceInfo, SingleModeJson, StakeUnlockingJson, StakingItem, StakingJson, StakingRewardJson, ThemeTypes, TokenInfo, TransactionHistoryItemType } from '@subwallet/extension-base/background/KoniTypes';
 import { AuthorizeRequest, RequestAuthorizeTab } from '@subwallet/extension-base/background/types';
 import { Web3Transaction } from '@subwallet/extension-base/signers/types';
@@ -77,6 +78,8 @@ function generateDefaultCrowdloanMap () {
 }
 
 export default class KoniState extends State {
+  private readonly subscriptionMap: Record<string, () => void> = {};
+
   public readonly authSubjectV2: BehaviorSubject<AuthorizeRequest[]> = new BehaviorSubject<AuthorizeRequest[]>([]);
 
   private readonly balanceStore = new BalanceStore();
@@ -2771,5 +2774,23 @@ export default class KoniState extends State {
         }, 999);
       }
     });
+  }
+
+  public cancelSubscription (id: string): boolean {
+    if (isSubscriptionRunning(id)) {
+      unsubscribe(id);
+    }
+
+    if (this.subscriptionMap[id]) {
+      this.subscriptionMap[id]();
+
+      delete this.subscriptionMap[id];
+    }
+
+    return true;
+  }
+
+  public registerSubscription (id: string, unsubscribe: () => void): void {
+    this.subscriptionMap[id] = unsubscribe;
   }
 }
