@@ -4,7 +4,7 @@
 import type { InjectedAccount } from '@subwallet/extension-inject/types';
 
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
-import { createSubscription, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
+import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
 import Tabs from '@subwallet/extension-base/background/handlers/Tabs';
 import { CustomEvmToken, EvmAppState, EvmEventType, EvmSendTransactionParams, NetworkJson, RequestEvmProviderSend } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAuthorizeTab, RequestTypes, ResponseTypes } from '@subwallet/extension-base/background/types';
@@ -72,6 +72,14 @@ export default class KoniTabs extends Tabs {
     this.#koniState = koniState;
   }
 
+  private cancelSubscription (id: string): boolean {
+    return this.#koniState.cancelSubscription(id);
+  }
+
+  private registerSubscription (id: string, unsubscribe: () => void): void {
+    this.#koniState.registerSubscription(id, unsubscribe);
+  }
+
   async getAuthInfo (url: string): Promise<AuthUrlInfo | undefined> {
     const authList = await this.#koniState.getAuthList();
     const shortenUrl = stripUrl(url);
@@ -91,12 +99,12 @@ export default class KoniTabs extends Tabs {
       this.getAuthInfo(url).then((authInfo) => {
         cb(transformAccountsV2(accounts, false, authInfo, accountAuthType));
       }).catch(console.error);
-    }
-    );
+    });
+
+    this.registerSubscription(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      subscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -414,7 +422,7 @@ export default class KoniTabs extends Tabs {
 
     this.evmEventEmitterMap[url][id] = emitEvent;
 
-    port.onDisconnect.addListener((): void => {
+    this.registerSubscription(id, () => {
       if (this.evmEventEmitterMap[url][id]) {
         delete this.evmEventEmitterMap[url][id];
       }
@@ -423,10 +431,13 @@ export default class KoniTabs extends Tabs {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         provider?.removeListener(event, callback);
       });
-      unsubscribe(id);
       accountListSubscription.unsubscribe();
       authUrlSubscription.unsubscribe();
       clearInterval(networkCheckInterval);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -588,7 +599,11 @@ export default class KoniTabs extends Tabs {
       // eslint-disable-next-line node/no-callback-literal
       cb({ error, result });
 
-      unsubscribe(id);
+      this.cancelSubscription(id);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
     });
 
     return true;
