@@ -78,7 +78,7 @@ function generateDefaultCrowdloanMap () {
 }
 
 export default class KoniState extends State {
-  private readonly subscriptionMap: Record<string, () => void> = {};
+  private readonly unsubscriptionMap: Record<string, () => void> = {};
 
   public readonly authSubjectV2: BehaviorSubject<AuthorizeRequest[]> = new BehaviorSubject<AuthorizeRequest[]>([]);
 
@@ -2781,16 +2781,16 @@ export default class KoniState extends State {
       unsubscribe(id);
     }
 
-    if (this.subscriptionMap[id]) {
-      this.subscriptionMap[id]();
+    if (this.unsubscriptionMap[id]) {
+      this.unsubscriptionMap[id]();
 
-      delete this.subscriptionMap[id];
+      delete this.unsubscriptionMap[id];
     }
 
     return true;
   }
 
-  public registerSubscription (id: string, unsubscribe: () => void): void {
-    this.subscriptionMap[id] = unsubscribe;
+  public createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
+    this.unsubscriptionMap[id] = unsubscribe;
   }
 }
