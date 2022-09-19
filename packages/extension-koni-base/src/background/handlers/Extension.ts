@@ -69,8 +69,8 @@ export default class KoniExtension extends Extension {
     return state.cancelSubscription(id);
   }
 
-  private registerSubscription (id: string, unsubscribe: () => void): void {
-    state.registerSubscription(id, unsubscribe);
+  private createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
+    state.createUnsubscriptionHandle(id, unsubscribe);
   }
 
   public decodeAddress = (key: string | Uint8Array, ignoreChecksum?: boolean, ss58Format?: Prefix): Uint8Array => {
@@ -124,7 +124,7 @@ export default class KoniExtension extends Extension {
       }, 100);
     });
 
-    this.registerSubscription(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -143,7 +143,7 @@ export default class KoniExtension extends Extension {
       cb(optionsInputAddress);
     });
 
-    this.registerSubscription(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -200,7 +200,7 @@ export default class KoniExtension extends Extension {
       cb(requests)
     );
 
-    this.registerSubscription(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -509,7 +509,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, balancesVisibilitySubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, balancesVisibilitySubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -527,7 +527,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, authorizeUrlSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, authorizeUrlSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -591,7 +591,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, priceSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, priceSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -613,7 +613,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, balanceSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, balanceSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -635,7 +635,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, balanceSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, balanceSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -657,7 +657,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -956,7 +956,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, nftTransferSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, nftTransferSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -981,7 +981,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, nftCollectionSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, nftCollectionSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -1006,7 +1006,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, nftSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, nftSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -1031,7 +1031,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, stakingRewardSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, stakingRewardSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -1052,7 +1052,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, stakingSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, stakingSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -1070,7 +1070,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, historySubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, historySubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       unsubscribe(id);
@@ -1754,7 +1754,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, networkMapSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, networkMapSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -2044,7 +2044,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, evmTokenSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, evmTokenSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -2148,7 +2148,7 @@ export default class KoniExtension extends Extension {
     token }: RequestFreeBalance, id: string, port: chrome.runtime.Port): Promise<string> {
     const cb = createSubscription<'pri(freeBalance.subscribe)'>(id, port);
 
-    this.registerSubscription(
+    this.createUnsubscriptionHandle(
       id,
       await subscribeFreeBalance(networkKey, address, state.getDotSamaApiMap(), state.getWeb3ApiMap(), token, cb)
     );
@@ -3516,7 +3516,7 @@ export default class KoniExtension extends Extension {
 
     const subscription = state.getConfirmationsQueueSubject().subscribe(cb);
 
-    this.registerSubscription(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -3987,7 +3987,7 @@ export default class KoniExtension extends Extension {
       }
     });
 
-    this.registerSubscription(id, unlockingInfoSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, unlockingInfoSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);

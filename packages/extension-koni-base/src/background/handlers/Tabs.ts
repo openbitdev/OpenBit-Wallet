@@ -76,8 +76,8 @@ export default class KoniTabs extends Tabs {
     return this.#koniState.cancelSubscription(id);
   }
 
-  private registerSubscription (id: string, unsubscribe: () => void): void {
-    this.#koniState.registerSubscription(id, unsubscribe);
+  private createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
+    this.#koniState.createUnsubscriptionHandle(id, unsubscribe);
   }
 
   async getAuthInfo (url: string): Promise<AuthUrlInfo | undefined> {
@@ -101,7 +101,7 @@ export default class KoniTabs extends Tabs {
       }).catch(console.error);
     });
 
-    this.registerSubscription(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -422,7 +422,7 @@ export default class KoniTabs extends Tabs {
 
     this.evmEventEmitterMap[url][id] = emitEvent;
 
-    this.registerSubscription(id, () => {
+    this.createUnsubscriptionHandle(id, () => {
       if (this.evmEventEmitterMap[url][id]) {
         delete this.evmEventEmitterMap[url][id];
       }
