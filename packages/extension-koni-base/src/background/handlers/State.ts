@@ -1623,17 +1623,20 @@ export default class KoniState extends State {
     if (needUpdateChainRegistry) {
       for (const targetToken of targetTokens) {
         const chainRegistry = this.chainRegistryMap[targetToken.chain];
-        let deleteKey = '';
 
-        for (const [key, token] of Object.entries(chainRegistry.tokenMap)) {
-          if (token.erc20Address === targetToken.smartContract && targetToken.type === 'erc20') {
-            deleteKey = key;
+        if (chainRegistry) {
+          let deleteKey = '';
+
+          for (const [key, token] of Object.entries(chainRegistry.tokenMap)) {
+            if (token.erc20Address === targetToken.smartContract && targetToken.type === 'erc20') {
+              deleteKey = key;
+            }
           }
-        }
 
-        delete chainRegistry.tokenMap[deleteKey];
-        this.chainRegistryMap[targetToken.chain] = chainRegistry;
-        cacheRegistryMap[targetToken.chain] = chainRegistry;
+          delete chainRegistry.tokenMap[deleteKey];
+          this.chainRegistryMap[targetToken.chain] = chainRegistry;
+          cacheRegistryMap[targetToken.chain] = chainRegistry;
+        }
       }
     }
 
