@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { RequestSignatures, TransportRequestMessage, TransportResponseMessage } from '@subwallet/extension-base/background/types';
-import { PORT_CONTENT, PORT_EXTENSION } from '@subwallet/extension-base/defaults';
+import { PORT_CONTENT, PORT_EXTENSION, PORT_MOBILE } from '@subwallet/extension-base/defaults';
 import handlers from '@subwallet/extension-koni-base/background/handlers';
 
 export interface CustomResponse<T> {
@@ -26,7 +26,7 @@ export function responseMessage (response: TransportResponseMessage<keyof Reques
 
 export type MobileHandlers = Record<string, (data: { id: string, message: string, request: unknown }) => Promise<unknown>>;
 
-export function setupHandlers (MobileHandlers: MobileHandlers = {}) {
+export function setupHandlers () {
   window.addEventListener('message', (ev) => {
     const data = ev.data as TransportRequestMessage<keyof RequestSignatures>;
     const port = {
@@ -42,18 +42,7 @@ export function setupHandlers (MobileHandlers: MobileHandlers = {}) {
 
     if (data.id && data.message) {
       if (data.message.startsWith('mobile')) {
-        const specialHandler = MobileHandlers[data.message.split(':')[1] || ''];
-
-        if (specialHandler && typeof specialHandler === 'function') {
-          specialHandler(data)
-            .then((rs) => {
-              // @ts-ignore
-              responseMessage({ id: data.id, message: data.message, response: rs });
-            })
-            .catch(console.error);
-        }
-
-        return;
+        port.name = PORT_MOBILE;
       } else if (data.message.startsWith('pri')) {
         port.name = PORT_EXTENSION;
       } else {

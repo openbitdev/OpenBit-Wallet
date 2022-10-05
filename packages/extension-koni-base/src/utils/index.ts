@@ -9,6 +9,9 @@ import BigNumber from 'bignumber.js';
 
 import { BN, hexToU8a, isHex } from '@polkadot/util';
 import { decodeAddress, encodeAddress, ethereumEncode, isEthereumAddress } from '@polkadot/util-crypto';
+import { accounts as accountsObservable } from '@polkadot/ui-keyring/observable/accounts';
+import { take } from 'rxjs';
+import { SubjectInfo } from '@polkadot/ui-keyring/observable/types';
 
 export const notDef = (x: any) => x === null || typeof x === 'undefined';
 export const isDef = (x: any) => !notDef(x);
@@ -327,4 +330,17 @@ export function parseNumberToDisplay (amount: BN, decimals: number | undefined) 
   const formattedString = parseFloat(roundedString); // remove excess zeros at the end
 
   return formattedString.toString();
+}
+
+export function detectAddresses (currentAccountAddress: string) {
+  return new Promise<Array<string>>((resolve) => {
+    if (currentAccountAddress === ALL_ACCOUNT_KEY) {
+      accountsObservable.subject.pipe(take(1))
+        .subscribe((accounts: SubjectInfo): void => {
+          resolve([...Object.keys(accounts)]);
+        });
+    } else {
+      return resolve([currentAccountAddress]);
+    }
+  });
 }

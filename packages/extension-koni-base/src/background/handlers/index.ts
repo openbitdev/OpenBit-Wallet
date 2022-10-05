@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MessageTypes, TransportRequestMessage } from '@subwallet/extension-base/background/types';
-import { PORT_EXTENSION } from '@subwallet/extension-base/defaults';
+import { PORT_EXTENSION, PORT_MOBILE } from '@subwallet/extension-base/defaults';
 import { SubWalletProviderError } from '@subwallet/extension-base/errors/SubWalletProviderError';
 import { NftHandler } from '@subwallet/extension-koni-base/api/nft';
 import KoniExtension from '@subwallet/extension-koni-base/background/handlers/Extension';
+import Mobile from '@subwallet/extension-koni-base/background/handlers/Mobile';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
 import KoniTabs from '@subwallet/extension-koni-base/background/handlers/Tabs';
 
@@ -15,6 +16,7 @@ export const state = new KoniState();
 
 state.initNetworkStates();
 
+export const mobile = new Mobile(state);
 export const extension = new KoniExtension(state);
 export const tabs = new KoniTabs(state);
 export const nftHandler = new NftHandler(state.getDotSamaApiMap(), [], state.getWeb3ApiMap());
@@ -22,6 +24,7 @@ export const nftHandler = new NftHandler(state.getDotSamaApiMap(), [], state.get
 state.updateServiceInfo();
 
 export default function handlers<TMessageType extends MessageTypes> ({ id, message, request }: TransportRequestMessage<TMessageType>, port: chrome.runtime.Port, extensionPortName = PORT_EXTENSION): void {
+  const isMobile = port.name === PORT_MOBILE;
   const isExtension = port.name === extensionPortName;
   const sender = port.sender as chrome.runtime.MessageSender;
   const from = isExtension
@@ -31,9 +34,11 @@ export default function handlers<TMessageType extends MessageTypes> ({ id, messa
 
   console.log(` [in] ${source}`); // :: ${JSON.stringify(request)}`);
 
-  const promise = isExtension
-    ? extension.handle(id, message, request, port)
-    : tabs.handle(id, message, request, from, port);
+  const promise = isMobile
+    ? mobile.handle(id, message, request, port)
+    : isExtension
+      ? extension.handle(id, message, request, port)
+      : tabs.handle(id, message, request, from, port);
 
   promise
     .then((response): void => {

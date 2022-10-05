@@ -1,6 +1,10 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+/**
+ * This file now is only for readonly
+ **/
+
 import { ApiProps, CustomEvmToken, NetworkJson, NftTransferExtra, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { subscribeBalance } from '@subwallet/extension-koni-base/api/dotsama/balance';
