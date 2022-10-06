@@ -1509,18 +1509,12 @@ export interface KoniRequestSignatures {
   // Mobile
   'mobile(cronAndSubscription.init)': [RequestInitCronAndSubscription, ActiveCronAndSubscriptionMap];
   'mobile(cronAndSubscription.activeService.subscribe)': [null, ActiveCronAndSubscriptionMap, ActiveCronAndSubscriptionMap];
-  'mobile(cron.start)': [CronServiceType, void];
-  'mobile(cron.multi.start)': [CronServiceType[], void];
-  'mobile(cron.stop)': [CronServiceType, void];
-  'mobile(cron.multi.stop)': [CronServiceType[], void];
-  'mobile(cron.restart)': [CronServiceType, void];
-  'mobile(cron.multi.restart)': [CronServiceType[], void];
-  'mobile(subscription.start)': [SubscriptionServiceType, void];
-  'mobile(subscription.multi.start)': [SubscriptionServiceType[], void];
-  'mobile(subscription.stop)': [SubscriptionServiceType, void];
-  'mobile(subscription.multi.stop)': [SubscriptionServiceType[], void];
-  'mobile(subscription.restart)': [SubscriptionServiceType, void];
-  'mobile(subscription.multi.restart)': [SubscriptionServiceType[], void];
+  'mobile(cron.start)': [CronServiceType[], void];
+  'mobile(cron.stop)': [CronServiceType[], void];
+  'mobile(cron.restart)': [CronServiceType[], void];
+  'mobile(subscription.start)': [SubscriptionServiceType[], void];
+  'mobile(subscription.stop)': [SubscriptionServiceType[], void];
+  'mobile(subscription.restart)': [SubscriptionServiceType[], void];
 }
 
 export interface ApplicationMetadataType {

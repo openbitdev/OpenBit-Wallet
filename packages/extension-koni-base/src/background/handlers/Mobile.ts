@@ -4,19 +4,19 @@
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
 import { ActiveCronAndSubscriptionMap, CronServiceType, RequestInitCronAndSubscription, SubscriptionServiceType } from '@subwallet/extension-base/background/KoniTypes';
 import { MessageTypes, RequestTypes, ResponseType } from '@subwallet/extension-base/background/types';
-import CronManager from '@subwallet/extension-koni-base/background/cronManager';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
-import SubscriptionManager from '@subwallet/extension-koni-base/background/subscriptionManager';
+import WebRunnerCron from '@subwallet/extension-koni-base/background/webRunnerCron';
+import WebRunnerSubscription from '@subwallet/extension-koni-base/background/webRunnerSubscription';
 
 export default class Mobile {
   private state: KoniState;
-  private readonly cronManager: CronManager;
-  private readonly subscriptionManager: SubscriptionManager;
+  private readonly webRunnerCron: WebRunnerCron;
+  private readonly webRunnerSubscription: WebRunnerSubscription;
 
   constructor (state: KoniState) {
     this.state = state;
-    this.subscriptionManager = new SubscriptionManager(state);
-    this.cronManager = new CronManager(state, this.subscriptionManager);
+    this.webRunnerSubscription = new WebRunnerSubscription(state);
+    this.webRunnerCron = new WebRunnerCron(state, this.webRunnerSubscription);
   }
 
   private cancelSubscription (id: string): boolean {
@@ -30,29 +30,29 @@ export default class Mobile {
   public initCronAndSubscription (
     { cron: { activeServices: activeCronServices, intervalMap: cronIntervalMap },
       subscription: { activeServices: activeSubscriptionServices } }: RequestInitCronAndSubscription): ActiveCronAndSubscriptionMap {
-    this.subscriptionManager.init(activeSubscriptionServices);
-    this.cronManager.init(cronIntervalMap, activeCronServices);
+    this.webRunnerSubscription.init(activeSubscriptionServices);
+    this.webRunnerCron.init(cronIntervalMap, activeCronServices);
 
     return {
-      cron: this.cronManager.getActiveServiceMap(),
-      subscription: this.subscriptionManager.getActiveServiceMap()
+      cron: this.webRunnerCron.getActiveServiceMap(),
+      subscription: this.webRunnerSubscription.getActiveServiceMap()
     };
   }
 
   public subscribeActiveCronAndSubscriptionServiceMap (id: string, port: chrome.runtime.Port): ActiveCronAndSubscriptionMap {
     const updater = createSubscription<'mobile(cronAndSubscription.activeService.subscribe)'>(id, port);
-    const cronSub = this.cronManager.getActiveServiceMapSubject()
+    const cronSub = this.webRunnerCron.getActiveServiceMapSubject()
       .subscribe((activeCronServiceMap: Record<CronServiceType, boolean>): void => {
         updater({
           cron: activeCronServiceMap,
-          subscription: this.subscriptionManager.getActiveServiceMap()
+          subscription: this.webRunnerSubscription.getActiveServiceMap()
         });
       });
 
-    const subscriptionSub = this.subscriptionManager.getActiveServiceMapSubject()
+    const subscriptionSub = this.webRunnerSubscription.getActiveServiceMapSubject()
       .subscribe((activeSubscriptionServiceMap: Record<SubscriptionServiceType, boolean>): void => {
         updater({
-          cron: this.cronManager.getActiveServiceMap(),
+          cron: this.webRunnerCron.getActiveServiceMap(),
           subscription: activeSubscriptionServiceMap
         });
       });
@@ -67,81 +67,57 @@ export default class Mobile {
     });
 
     return {
-      cron: this.cronManager.getActiveServiceMap(),
-      subscription: this.subscriptionManager.getActiveServiceMap()
+      cron: this.webRunnerCron.getActiveServiceMap(),
+      subscription: this.webRunnerSubscription.getActiveServiceMap()
     };
   }
 
-  public startCronService (service: CronServiceType): void {
-    this.cronManager.startService(service, true);
-  }
-
-  public startMultiCronServices (services: CronServiceType[]): void {
+  public startCronServices (services: CronServiceType[]): void {
     services.forEach((sv) => {
-      this.cronManager.startService(sv);
+      this.webRunnerCron.startService(sv);
     });
 
-    this.cronManager.getActiveServiceMapSubject().next(this.cronManager.getActiveServiceMap());
+    this.webRunnerCron.getActiveServiceMapSubject().next(this.webRunnerCron.getActiveServiceMap());
   }
 
-  public stopCronService (service: CronServiceType): void {
-    this.cronManager.stopService(service, true);
-  }
-
-  public stopMultiCronServices (services: CronServiceType[]): void {
+  public stopCronServices (services: CronServiceType[]): void {
     services.forEach((sv) => {
-      this.cronManager.stopService(sv);
+      this.webRunnerCron.stopService(sv);
     });
 
-    this.cronManager.getActiveServiceMapSubject().next(this.cronManager.getActiveServiceMap());
+    this.webRunnerCron.getActiveServiceMapSubject().next(this.webRunnerCron.getActiveServiceMap());
   }
 
-  public restartCronService (service: CronServiceType): void {
-    this.cronManager.restartService(service, true);
-  }
-
-  public restartMultiCronServices (services: CronServiceType[]): void {
+  public restartCronServices (services: CronServiceType[]): void {
     services.forEach((sv) => {
-      this.cronManager.restartService(sv);
+      this.webRunnerCron.restartService(sv);
     });
 
-    this.cronManager.getActiveServiceMapSubject().next(this.cronManager.getActiveServiceMap());
+    this.webRunnerCron.getActiveServiceMapSubject().next(this.webRunnerCron.getActiveServiceMap());
   }
 
-  public startSubscriptionService (service: SubscriptionServiceType): void {
-    this.subscriptionManager.startService(service, true);
-  }
-
-  public startMultiSubscriptionServices (services: SubscriptionServiceType[]): void {
+  public startSubscriptionServices (services: SubscriptionServiceType[]): void {
     services.forEach((sv) => {
-      this.subscriptionManager.startService(sv);
+      this.webRunnerSubscription.startService(sv);
     });
 
-    this.subscriptionManager.getActiveServiceMapSubject().next(this.subscriptionManager.getActiveServiceMap());
+    this.webRunnerSubscription.getActiveServiceMapSubject().next(this.webRunnerSubscription.getActiveServiceMap());
   }
 
-  public stopSubscriptionService (service: SubscriptionServiceType): void {
-    this.subscriptionManager.stopService(service, true);
-  }
-
-  public stopMultiSubscriptionServices (services: SubscriptionServiceType[]): void {
+  public stopSubscriptionServices (services: SubscriptionServiceType[]): void {
     services.forEach((sv) => {
-      this.subscriptionManager.stopService(sv);
+      this.webRunnerSubscription.stopService(sv);
     });
 
-    this.subscriptionManager.getActiveServiceMapSubject().next(this.subscriptionManager.getActiveServiceMap());
+    this.webRunnerSubscription.getActiveServiceMapSubject().next(this.webRunnerSubscription.getActiveServiceMap());
   }
 
-  public restartSubscriptionService (service: SubscriptionServiceType): void {
-    this.subscriptionManager.restartService(service, true);
-  }
-
-  public restartMultiSubscriptionServices (services: SubscriptionServiceType[]): void {
+  public restartSubscriptionServices (services: SubscriptionServiceType[]): void {
     services.forEach((sv) => {
-      this.subscriptionManager.restartService(sv);
+      this.webRunnerSubscription.restartService(sv);
     });
 
-    this.subscriptionManager.getActiveServiceMapSubject().next(this.subscriptionManager.getActiveServiceMap());
+    this.webRunnerSubscription.getActiveServiceMapSubject().next(this.webRunnerSubscription.getActiveServiceMap());
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -156,29 +132,17 @@ export default class Mobile {
       case 'mobile(cronAndSubscription.activeService.subscribe)':
         return this.subscribeActiveCronAndSubscriptionServiceMap(id, port);
       case 'mobile(cron.start)':
-        return this.startCronService(request as CronServiceType);
-      case 'mobile(cron.multi.start)':
-        return this.startMultiCronServices(request as CronServiceType[]);
+        return this.startCronServices(request as CronServiceType[]);
       case 'mobile(cron.stop)':
-        return this.stopCronService(request as CronServiceType);
-      case 'mobile(cron.multi.stop)':
-        return this.stopMultiCronServices(request as CronServiceType[]);
+        return this.stopCronServices(request as CronServiceType[]);
       case 'mobile(cron.restart)':
-        return this.restartCronService(request as CronServiceType);
-      case 'mobile(cron.multi.restart)':
-        return this.restartMultiCronServices(request as CronServiceType[]);
+        return this.restartCronServices(request as CronServiceType[]);
       case 'mobile(subscription.start)':
-        return this.startSubscriptionService(request as SubscriptionServiceType);
-      case 'mobile(subscription.multi.start)':
-        return this.startMultiSubscriptionServices(request as SubscriptionServiceType[]);
+        return this.startSubscriptionServices(request as SubscriptionServiceType[]);
       case 'mobile(subscription.stop)':
-        return this.stopSubscriptionService(request as SubscriptionServiceType);
-      case 'mobile(subscription.multi.stop)':
-        return this.stopMultiSubscriptionServices(request as SubscriptionServiceType[]);
+        return this.stopSubscriptionServices(request as SubscriptionServiceType[]);
       case 'mobile(subscription.restart)':
-        return this.restartSubscriptionService(request as SubscriptionServiceType);
-      case 'mobile(subscription.multi.restart)':
-        return this.restartMultiSubscriptionServices(request as SubscriptionServiceType[]);
+        return this.restartSubscriptionServices(request as SubscriptionServiceType[]);
       default:
         throw new Error(`Unable to handle message of type ${type}`);
     }

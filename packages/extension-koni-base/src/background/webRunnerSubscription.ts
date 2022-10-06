@@ -10,7 +10,7 @@ import { detectAddresses } from '@subwallet/extension-koni-base/utils';
 import { Subject, Subscription } from 'rxjs';
 import Web3 from 'web3';
 
-export default class SubscriptionManager {
+export default class WebRunnerSubscription {
   private readonly activeServiceMap: Record<SubscriptionServiceType, boolean>;
   private readonly serviceInfoSubscriptionMap: Record<SubscriptionServiceType, Subscription | undefined>;
   private readonly unsubscriptionMap: Record<SubscriptionServiceType, (() => void) | undefined>;

@@ -8,7 +8,7 @@ import { getAllSubsquidStaking } from '@subwallet/extension-koni-base/api/stakin
 import { fetchDotSamaHistory } from '@subwallet/extension-koni-base/api/subquery/history';
 import { nftHandler } from '@subwallet/extension-koni-base/background/handlers';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
-import SubscriptionManager from '@subwallet/extension-koni-base/background/subscriptionManager';
+import WebRunnerSubscription from '@subwallet/extension-koni-base/background/webRunnerSubscription';
 import { CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS_INTERVAL, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO_INTERVAL, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
 import { detectAddresses } from '@subwallet/extension-koni-base/utils';
 import { Subject, Subscription } from 'rxjs';
@@ -35,18 +35,18 @@ const cronServiceRelationMap: Record<CronServiceType, CronType[]> = {
   staking: ['refreshStakeUnlockingInfo', 'refreshStakingReward']
 };
 
-export default class CronManager {
+export default class WebRunnerCron {
   private readonly activeServiceMap: Record<CronServiceType, boolean>;
   private readonly serviceInfoSubscriptionMap: Record<CronServiceType, Subscription | undefined>;
   private readonly cronMap: Record<CronType, NodeJS.Timer | undefined>;
   private readonly intervalMap: Record<CronType, number>;
   private readonly activeServiceMapSubject: Subject<Record<CronServiceType, boolean>>;
-  private subscriptionManager: SubscriptionManager;
+  private webRunnerSubscription: WebRunnerSubscription;
   private state: KoniState;
 
-  constructor (state: KoniState, subscriptionManager: SubscriptionManager, intervalMap: Record<CronType, number> = defaultIntervalMap) {
+  constructor (state: KoniState, webRunnerSubscription: WebRunnerSubscription, intervalMap: Record<CronType, number> = defaultIntervalMap) {
     this.state = state;
-    this.subscriptionManager = subscriptionManager;
+    this.webRunnerSubscription = webRunnerSubscription;
     this.intervalMap = intervalMap;
     this.activeServiceMapSubject = new Subject<Record<CronServiceType, boolean>>();
     this.activeServiceMap = {
@@ -289,15 +289,15 @@ export default class CronManager {
     }
 
     if (refreshCounter > 0) {
-      const activeSubscriptionServiceMap = this.subscriptionManager.getActiveServiceMap();
+      const activeSubscriptionServiceMap = this.webRunnerSubscription.getActiveServiceMap();
 
       (Object.keys(activeSubscriptionServiceMap) as SubscriptionServiceType[]).forEach((type) => {
         if (activeSubscriptionServiceMap[type]) {
-          this.subscriptionManager.restartService(type);
+          this.webRunnerSubscription.restartService(type);
         }
       });
 
-      this.subscriptionManager.getActiveServiceMapSubject().next(this.subscriptionManager.getActiveServiceMap());
+      this.webRunnerSubscription.getActiveServiceMapSubject().next(this.webRunnerSubscription.getActiveServiceMap());
     }
   };
 
