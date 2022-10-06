@@ -220,7 +220,10 @@ export default class CronManager {
     const currentStakingInfo = this.state.getStaking().details;
 
     await Promise.all(Object.entries(networkMap).map(async ([networkKey, networkJson]) => {
-      const needUpdateUnlockingStake = currentStakingInfo[networkKey] && currentStakingInfo[networkKey].balance && parseFloat(currentStakingInfo[networkKey].balance as string) > 0;
+      const needUpdateUnlockingStake =
+        currentStakingInfo[networkKey] &&
+        currentStakingInfo[networkKey].balance &&
+        parseFloat(currentStakingInfo[networkKey].balance as string) > 0;
 
       if (isEthereumAddress(currentAddress)) {
         if (networkJson.supportBonding && networkJson.active && networkJson.isEthereum && needUpdateUnlockingStake) {
@@ -267,9 +270,13 @@ export default class CronManager {
   private recoverApiMap = () => {
     const apiMap = this.state.getApiMap();
 
+    let refreshCounter = 0;
+
     for (const apiProp of Object.values(apiMap.dotSama)) {
       if (!apiProp.isApiConnected) {
         apiProp.recoverConnect && apiProp.recoverConnect();
+
+        refreshCounter++;
       }
     }
 
@@ -277,16 +284,21 @@ export default class CronManager {
       web3.eth.net.isListening()
         .catch(() => {
           this.state.refreshWeb3Api(key);
+          refreshCounter++;
         });
     }
 
-    const activeSubscriptionServiceMap = this.subscriptionManager.getActiveServiceMap();
+    if (refreshCounter > 0) {
+      const activeSubscriptionServiceMap = this.subscriptionManager.getActiveServiceMap();
 
-    (Object.keys(activeSubscriptionServiceMap) as SubscriptionServiceType[]).forEach((type) => {
-      if (activeSubscriptionServiceMap[type]) {
-        this.subscriptionManager.restartService(type);
-      }
-    });
+      (Object.keys(activeSubscriptionServiceMap) as SubscriptionServiceType[]).forEach((type) => {
+        if (activeSubscriptionServiceMap[type]) {
+          this.subscriptionManager.restartService(type);
+        }
+      });
+
+      this.subscriptionManager.getActiveServiceMapSubject().next(this.subscriptionManager.getActiveServiceMap());
+    }
   };
 
   // checkApiStatus
@@ -347,15 +359,17 @@ export default class CronManager {
 
   private onStartService = (
     type: CronServiceType,
-    onGetCurrentAccount: (currentAccountInfo: CurrentAccountInfo) => void,
+    onGetCurrentAccount?: (currentAccountInfo: CurrentAccountInfo) => void,
     onSubscribeServiceInfo?: (serviceInfo: ServiceInfo) => void): void => {
-    this.state.getCurrentAccount((currentAccountInfo) => {
-      if (!currentAccountInfo?.address) {
-        return;
-      }
+    if (onGetCurrentAccount) {
+      this.state.getCurrentAccount((currentAccountInfo) => {
+        if (!currentAccountInfo?.address) {
+          return;
+        }
 
-      onGetCurrentAccount(currentAccountInfo);
-    });
+        onGetCurrentAccount(currentAccountInfo);
+      });
+    }
 
     if (onSubscribeServiceInfo) {
       this.serviceInfoSubscriptionMap[type] = this.state.subscribeServiceInfo().subscribe({
