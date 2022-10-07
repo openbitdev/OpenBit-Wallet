@@ -1339,6 +1339,32 @@ export interface TuringCancelStakeCompoundParams {
   password?: string;
 }
 
+export type SubscriptionServiceType = 'chainRegistry' | 'balance' | 'crowdloan' | 'staking';
+export type CronServiceType = 'price' | 'nft' | 'staking' | 'history' | 'recoverApi' | 'checkApiStatus';
+export type CronType =
+  'recoverApiMap' |
+  'checkApiMapStatus' |
+  'refreshHistory' |
+  'refreshNft' |
+  'refreshPrice' |
+  'refreshStakeUnlockingInfo' |
+  'refreshStakingReward';
+
+export interface RequestInitCronAndSubscription {
+  subscription: {
+    activeServices: SubscriptionServiceType[]
+  },
+  cron: {
+    intervalMap: Partial<Record<CronType, number>>,
+    activeServices: CronServiceType[]
+  }
+}
+
+export interface ActiveCronAndSubscriptionMap {
+  subscription: Record<SubscriptionServiceType, boolean>;
+  cron: Record<CronServiceType, boolean>;
+}
+
 export interface KoniRequestSignatures {
   'pri(staking.submitTuringCancelCompound)': [TuringCancelStakeCompoundParams, BasicTxResponse, BasicTxResponse];
   'pri(staking.turingCancelCompound)': [TuringCancelStakeCompoundParams, BasicTxInfo];
@@ -1484,6 +1510,16 @@ export interface KoniRequestSignatures {
   'pri(withdrawStake.ledger.create)': [RequestWithdrawStakeExternal, Array<BaseTxError>, ResponseWithdrawStakeLedger];
   // Authorize
   'pri(authorize.subscribe)': [null, AuthUrls, AuthUrls];
+
+  // Mobile
+  'mobile(cronAndSubscription.init)': [RequestInitCronAndSubscription, ActiveCronAndSubscriptionMap];
+  'mobile(cronAndSubscription.activeService.subscribe)': [null, ActiveCronAndSubscriptionMap, ActiveCronAndSubscriptionMap];
+  'mobile(cron.start)': [CronServiceType[], void];
+  'mobile(cron.stop)': [CronServiceType[], void];
+  'mobile(cron.restart)': [CronServiceType[], void];
+  'mobile(subscription.start)': [SubscriptionServiceType[], void];
+  'mobile(subscription.stop)': [SubscriptionServiceType[], void];
+  'mobile(subscription.restart)': [SubscriptionServiceType[], void];
 }
 
 export interface ApplicationMetadataType {
