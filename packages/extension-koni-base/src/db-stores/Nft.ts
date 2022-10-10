@@ -12,6 +12,7 @@ export default class NftStore extends BaseStoreWithAddress<INft> {
       return this.table.where('address').anyOfIgnoreCase(addresses).and((item) => !chainHashs.length || chainHashs.includes(item.chainHash)).toArray();
     }
 
+    // return this.table.filter((item) => !chainHashs.length || chainHashs.includes(item.chainHash)).toArray();
     return this.table.filter((item) => !chainHashs.length || chainHashs.includes(item.chainHash)).toArray();
   }
 
@@ -56,4 +57,12 @@ export default class NftStore extends BaseStoreWithAddress<INft> {
       collectionId
     }).filter((item) => nftIds.includes(item.id || '')).delete();
   }
+
+  // reformatCollectionIds (items: INft[]) {
+  //   return items.map((item) => {
+  //     item.collectionId = item.collectionId?.toLowerCase();
+
+  //     return item;
+  //   });
+  // }
 }

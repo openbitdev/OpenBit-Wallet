@@ -3,9 +3,11 @@
 
 import { faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { BaseTxError, ResponseStakeExternal, ResponseStakeLedger, ResponseStakeQr, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { BaseTxError, BasicTxError, ResponseStakeExternal, ResponseStakeLedger, ResponseStakeQr, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { LedgerState } from '@subwallet/extension-base/signers/types';
 import { InputWithLabel } from '@subwallet/extension-koni-ui/components';
+import { BalanceVal } from '@subwallet/extension-koni-ui/components/Balance';
+import FeeValue from '@subwallet/extension-koni-ui/components/Balance/FeeValue';
 import { BalanceFormatType } from '@subwallet/extension-koni-ui/components/types';
 import { SIGN_MODE } from '@subwallet/extension-koni-ui/constants/signing';
 import { ExternalRequestContext } from '@subwallet/extension-koni-ui/contexts/ExternalRequestContext';
@@ -113,7 +115,12 @@ function BondingAuthTransaction ({ amount, balanceError, bondedValidators, class
       }
 
       if (data.txError && data.txError) {
-        show('Encountered an error, please try again.');
+        if (data.errorMessage && data.errorMessage === BasicTxError.BalanceTooLow) {
+          show('Your balance is too low to cover fees');
+        } else {
+          show('Encountered an error, please try again.');
+        }
+
         setLoading(false);
 
         return;
@@ -393,17 +400,35 @@ function BondingAuthTransaction ({ amount, balanceError, bondedValidators, class
         <div className={'transaction-info-container'}>
           <div className={'transaction-info-row'}>
             <div className={'transaction-info-title'}>Staking amount</div>
-            <div className={'transaction-info-value'}>{amount} {networkJson.nativeToken}</div>
+            <div className={'transaction-info-value'}>
+              <BalanceVal
+                newRule={false}
+                symbol={networkJson.nativeToken}
+                value={amount}
+                withSymbol={true}
+              />
+            </div>
           </div>
 
           <div className={'transaction-info-row'}>
             <div className={'transaction-info-title'}>Staking fee</div>
-            <div className={'transaction-info-value'}>{fee}</div>
+            <div className={'transaction-info-value'}>
+              <FeeValue feeString={fee} />
+            </div>
           </div>
 
           <div className={'transaction-info-row'}>
             <div className={'transaction-info-title'}>Total</div>
-            <div className={'transaction-info-value'}>{amount} {networkJson.nativeToken} + {fee}</div>
+            <div className={'transaction-info-value'}>
+              <BalanceVal
+                newRule={false}
+                symbol={networkJson.nativeToken}
+                value={amount}
+                withSymbol={true}
+              />
+              &nbsp;+&nbsp;
+              <FeeValue feeString={fee} />
+            </div>
           </div>
         </div>
       </>

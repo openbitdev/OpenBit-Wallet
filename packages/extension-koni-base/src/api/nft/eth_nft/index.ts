@@ -100,6 +100,7 @@ export class Web3NftApi extends BaseNftApi {
 
       if (Number(balance) === 0) {
         // nftParams.updateReady(true);
+        nftParams.updateNftIds(this.chain, address, smartContract, nftIds);
 
         return;
       }
@@ -138,6 +139,7 @@ export class Web3NftApi extends BaseNftApi {
 
               parsedItem.collectionId = smartContract;
               parsedItem.id = nftId;
+              parsedItem.owner = address;
 
               if (parsedItem) {
                 if (parsedItem.image) {

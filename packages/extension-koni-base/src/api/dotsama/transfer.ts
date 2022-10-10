@@ -91,6 +91,12 @@ export async function checkSupportTransfer (networkKey: string, token: string, d
   } else if (isTxBalancesSupported && (!tokenInfo || tokenInfo.isMainToken)) {
     result.supportTransfer = true;
     result.supportTransferAll = true;
+  } else if (['pioneer'].includes(networkKey) && tokenInfo && tokenInfo.symbol === 'BIT') {
+    result.supportTransfer = true;
+    result.supportTransferAll = true;
+  } else if (['statemint', 'statemine'].includes(networkKey) && tokenInfo) {
+    result.supportTransfer = false;
+    result.supportTransferAll = false;
   }
 
   return result;
@@ -160,6 +166,14 @@ export async function estimateFee (
 
       fee = paymentInfo.partialFee.toString();
     }
+  } else if (['pioneer'].includes(networkKey) && tokenInfo && tokenInfo.symbol === 'BIT') {
+    const paymentInfo = await api.tx.currencies.transfer(to, tokenInfo.specialOption, value).paymentInfo(fromKeypair);
+
+    fee = paymentInfo.partialFee.toString();
+  } else if (['statemint', 'statemine'].includes(networkKey) && tokenInfo) {
+    const paymentInfo = await api.tx.assets.transfer(tokenInfo.assetIndex, to, value).paymentInfo(fromKeypair);
+
+    fee = paymentInfo.partialFee.toString();
   } else if (isTxBalancesSupported && (!tokenInfo || tokenInfo.isMainToken || (tokenInfo && ((networkKey === 'crab' && tokenInfo.symbol === 'CKTON') || (networkKey === 'pangolin' && tokenInfo.symbol === 'PKTON'))))) {
     if (transferAll) {
       const paymentInfo = await api.tx.balances.transferAll(to, false).paymentInfo(fromKeypair);
@@ -225,6 +239,12 @@ export function updateResponseTxResult (
       }
     } else if (['genshiro_testnet', 'genshiro', 'equilibrium_parachain'].includes(networkKey) && tokenInfo) {
       if (record.event.section === 'eqBalances' &&
+        record.event.method.toLowerCase() === 'transfer') {
+        response.txResult.change = record.event.data[3]?.toString() || '0';
+        response.txResult.changeSymbol = tokenInfo.symbol;
+      }
+    } else if (['pioneer', 'bit.country'].includes(networkKey) && tokenInfo && !tokenInfo.isMainToken) {
+      if (record.event.section === 'tokens' &&
         record.event.method.toLowerCase() === 'transfer') {
         response.txResult.change = record.event.data[3]?.toString() || '0';
         response.txResult.changeSymbol = tokenInfo.symbol;
@@ -426,6 +446,8 @@ export async function makeTransfer (
     } else if (value) {
       transfer = api.tx.kton.transfer(to, new BN(value));
     }
+  } else if (['pioneer'].includes(networkKey) && tokenInfo && tokenInfo.symbol === 'BIT') {
+    transfer = api.tx.currencies.transfer(to, tokenInfo.specialOption, value);
   } else if (isTxBalancesSupported && (!tokenInfo || tokenInfo.isMainToken)) {
     if (transferAll) {
       transfer = api.tx.balances.transferAll(to, false);

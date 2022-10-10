@@ -19,7 +19,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       // Pinknode: 'wss://rpc.pinknode.io/polkadot/explorer' // https://github.com/polkadot-js/apps/issues/5721
     },
     active: true,
-    currentProvider: 'OnFinality',
+    currentProvider: 'Dwellir',
     currentProviderMode: 'ws',
     groups: ['RELAY_CHAIN'],
     nativeToken: 'DOT',
@@ -43,7 +43,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       // Pinknode: 'wss://rpc.pinknode.io/kusama/explorer' // https://github.com/polkadot-js/apps/issues/5721
     },
     active: true,
-    currentProvider: 'OnFinality',
+    currentProvider: 'Parity',
     currentProviderMode: 'ws',
     groups: ['RELAY_CHAIN'],
     nativeToken: 'KSM',
@@ -105,36 +105,30 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       Dwellir: 'wss://statemint-rpc.dwellir.com'
     },
     active: false,
-    currentProvider: 'OnFinality',
+    currentProvider: 'Dwellir',
     currentProviderMode: 'ws',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 1000,
     nativeToken: 'KSM',
     decimals: 10
   },
-  acala: {
-    key: 'acala',
-    chain: 'Acala',
-    genesisHash: '0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c',
-    ss58Format: 10,
+  pioneer: {
+    key: 'pioneer',
+    chain: 'Pioneer Network',
+    genesisHash: '0xf22b7850cdd5a7657bbfd90ac86441275bbc57ace3d2698a740c7b0ec4de5ec3',
+    ss58Format: 268,
     providers: {
-      'Acala Foundation 0': 'wss://acala-rpc-0.aca-api.network',
-      'Acala Foundation 1': 'wss://acala-rpc-1.aca-api.network',
-      // 'Acala Foundation 2': 'wss://acala-rpc-2.aca-api.network/ws', // https://github.com/polkadot-js/apps/issues/6965
-      'Acala Foundation 3': 'wss://acala-rpc-3.aca-api.network/ws',
-      'Polkawallet 0': 'wss://acala.polkawallet.io',
-      OnFinality: 'wss://acala-polkadot.api.onfinality.io/public-ws',
-      Dwellir: 'wss://acala-rpc.dwellir.com'
+      OnFinality: 'wss://pioneer.api.onfinality.io/public-ws'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
-    groups: ['POLKADOT_PARACHAIN'],
-    paraId: 2000,
-    nativeToken: 'ACA',
-    crowdloanUrl: 'https://distribution.acala.network/',
-    decimals: 12,
-    coinGeckoKey: 'acala'
+    currentProvider: 'OnFinality',
+    groups: ['KUSAMA_PARACHAIN'],
+    paraId: 2096,
+    nativeToken: 'NEER',
+    crowdloanUrl: 'https://ksmcrowdloan.bit.country/',
+    decimals: 18,
+    coinGeckoKey: 'metaverse-network-pioneer'
   },
   moonbeam: {
     key: 'moonbeam',
@@ -148,7 +142,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Dwellir',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2004,
     isEthereum: true,
@@ -198,7 +192,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     isEthereum: true,
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Astar',
     groups: ['POLKADOT_PARACHAIN'],
     nativeToken: 'ASTR',
     crowdloanUrl: 'https://crowdloan.astar.network/#/',
@@ -206,6 +200,30 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     coinGeckoKey: 'astar',
     evmChainId: 592,
     paraId: 2006
+  },
+  acala: {
+    key: 'acala',
+    chain: 'Acala',
+    genesisHash: '0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c',
+    ss58Format: 10,
+    providers: {
+      'Acala Foundation 0': 'wss://acala-rpc-0.aca-api.network',
+      'Acala Foundation 1': 'wss://acala-rpc-1.aca-api.network',
+      'Acala Foundation 2': 'wss://acala-rpc-2.aca-api.network/ws',
+      'Acala Foundation 3': 'wss://acala-rpc-3.aca-api.network/ws',
+      'Polkawallet 0': 'wss://acala.polkawallet.io',
+      OnFinality: 'wss://acala-polkadot.api.onfinality.io/public-ws',
+      Dwellir: 'wss://acala-rpc.dwellir.com'
+    },
+    active: false,
+    currentProviderMode: 'ws',
+    currentProvider: 'Dwellir',
+    groups: ['POLKADOT_PARACHAIN'],
+    paraId: 2000,
+    nativeToken: 'ACA',
+    crowdloanUrl: 'https://distribution.acala.network/',
+    decimals: 12,
+    coinGeckoKey: 'acala'
   },
   parallel: {
     key: 'parallel',
@@ -218,7 +236,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Parallel',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2012,
     nativeToken: 'PARA',
@@ -236,7 +254,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Clover',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2002,
     nativeToken: 'CLV',
@@ -256,7 +274,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     active: false,
     isEthereum: true,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Clover',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2002,
     evmChainId: 1024,
@@ -289,12 +307,12 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x742a2ca70c2fda6cee4f8df98d64c4c670a052d9568058982dad9d5a7a135c5b',
     ss58Format: 7,
     providers: {
-      'Commonwealth Labs': 'wss://mainnet.edgewa.re',
+      JelliedOwl: 'wss://edgeware.jelliedowl.net',
       OnFinality: 'wss://edgeware.api.onfinality.io/public-ws'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'JelliedOwl',
     groups: ['MAIN_NET'],
     nativeToken: 'EDG',
     decimals: 18,
@@ -334,7 +352,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     paraId: 2032,
     nativeToken: 'INTR',
     crowdloanUrl: 'https://crowdloan.interlay.io/',
-    decimals: 10
+    decimals: 10,
+    coinGeckoKey: 'interlay'
   },
   equilibrium_parachain: {
     key: 'equilibrium_parachain',
@@ -365,7 +384,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Dwellir',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2026,
     nativeToken: 'NODL',
@@ -391,77 +410,36 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 9,
     coinGeckoKey: 'darwinia-network-native-token'
   },
-  manta: {
-    key: 'manta',
-    chain: 'Manta',
-    genesisHash: '0x7822fe86be209e140e1bdb80fb09539d1825e3d1dfee79ce37c336a832a26d48',
-    ss58Format: 77,
-    providers: {
-      'Manta Kuhlii': 'wss://kuhlii.manta.systems' // https://github.com/polkadot-js/apps/issues/6930
-      // 'Manta Munkiana': 'wss://munkiana.manta.systems', // https://github.com/polkadot-js/apps/issues/6871
-      // 'Manta Pectinata': 'wss://pectinata.manta.systems' // https://github.com/polkadot-js/apps/issues/7018
-    },
-    active: false,
-    currentProviderMode: 'ws',
-    currentProvider: 'Manta Kuhlii',
-    groups: ['POLKADOT_PARACHAIN'],
-    paraId: 2015,
-    nativeToken: 'MANTA',
-    crowdloanUrl: 'https://crowdloan.manta.network/',
-    decimals: 10
-  },
   'sora-substrate': {
     key: 'sora-substrate',
     chain: 'SORA',
     genesisHash: '0x7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5',
-    ss58Format: 69,
+    ss58Format: 420,
     providers: {
-      'SORA Parliament Ministry of Finance #2': 'wss://mof2.sora.org',
-      'SORA Parliament Ministry of Finance': 'wss://ws.mof.sora.org',
-      'SORA Parliament Ministry of Finance #3': 'wss://mof3.sora.org',
-      Soramitsu: 'wss://ws.alb.sora.org',
-      OnFinality: 'wss://sora.api.onfinality.io/public-ws'
-      // 'SORA Community (Lux8)': 'wss://sora.lux8.net' // https://github.com/polkadot-js/apps/issues/6195
+      Soramitsu: 'wss://ws.parachain-collator-1.c1.sora2.soramitsu.co.jp'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Soramitsu',
     groups: ['KUSAMA_PARACHAIN'],
     nativeToken: 'XOR',
     crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan',
-    decimals: 18
-  },
-  subgame: {
-    key: 'subgame',
-    chain: 'SubGame',
-    genesisHash: '0xe6343cef9167c43305c6f197bbd90d55bf93efc561b3d698845398cd864f6eb3',
-    ss58Format: 27,
-    providers: {
-      SubGame: 'wss://mainnet.subgame.org/'
-    },
-    active: false,
-    currentProviderMode: 'ws',
-    currentProvider: 'SubGame',
-    groups: ['POLKADOT_PARACHAIN'],
-    paraId: 2017,
-    nativeToken: 'SGB',
-    crowdloanUrl: 'https://www.subgame.org/#/crowdloan',
-    decimals: 10
+    decimals: 12,
+    paraId: 2011
   },
   odyssey: {
     key: 'odyssey',
     chain: 'Ares Odyssey',
-    genesisHash: '0x52097bd7416205228bf13ac3eda6f16de56c19cac3476866b8b8a9c00d515870',
-    ss58Format: 42,
+    genesisHash: '0x0f3665e2e57fb38fd638145b69e567fb05bbadfd457624f90f15e5dbb31320bb',
+    ss58Format: 34,
     providers: {
-      AresProtocol: 'wss://wss.odyssey.aresprotocol.io'
+      AresProtocol: 'wss://odyssey.aresprotocol.io'
     },
     active: false,
     currentProviderMode: 'ws',
     currentProvider: 'AresProtocol',
-    groups: ['POLKADOT_PARACHAIN'],
-    paraId: 2028,
-    nativeToken: 'AMAS',
+    groups: ['MAIN_NET'],
+    nativeToken: 'ARES',
     crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan',
     decimals: 12
   },
@@ -476,7 +454,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Polkadex Team',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2040,
     nativeToken: 'PDEX',
@@ -544,15 +522,16 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     key: 'dolphin',
     chain: 'Dolphin Testnet',
     active: false,
-    genesisHash: '0xa3e43f6bb8cc5767147764709d6353f8654a7ef31d0577758c0e8ced0bb43087',
-    ss58Format: 42,
+    genesisHash: '0x79372c8ed25b51c0d3c1f085becb264c93f1ecbc71dcf387fdb5c294fd823a08',
+    ss58Format: 78,
     providers: {
-      dolphin: 'wss://trillian.dolphin.red'
+      dolphin: 'wss://ws.rococo.dolphin.engineering'
     },
     currentProvider: 'dolphin',
     currentProviderMode: 'ws',
     groups: ['TEST_NET'],
-    nativeToken: 'DOL'
+    nativeToken: 'DOL',
+    decimals: 18
   },
   alephTest: {
     key: 'alephTest',
@@ -577,7 +556,10 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x3fa374fbc8d0a9077356aefe327c88f447ce7f1fda905b1d4b4a2680a7b5cefa',
     ss58Format: 42,
     providers: {
-      Unique: 'wss://opal.unique.network'
+      Unique: 'wss://ws-opal.unique.network',
+      Europe: 'wss://eu-ws-opal.unique.network',
+      NA: 'wss://us-ws-opal.unique.network',
+      Asia: 'wss://asia-ws-opal.unique.network'
     },
     active: false,
     currentProviderMode: 'ws',
@@ -713,7 +695,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Parity',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 1000,
     nativeToken: 'KSM',
@@ -735,7 +717,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Dwellir',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2000,
     nativeToken: 'KAR',
@@ -782,7 +764,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Pinknode',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2007,
     nativeToken: 'SDN',
@@ -853,7 +835,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Phala',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2004,
     nativeToken: 'PHA',
@@ -873,7 +855,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Liebi 0',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2001,
     nativeToken: 'BNC',
@@ -881,7 +863,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 12,
     coinGeckoKey: 'bifrost-native-coin',
     getStakingOnChain: true,
-    supportBonding: true
+    supportBonding: true,
+    blockExplorer: 'https://bifrost-kusama.subscan.io'
   },
   bifrost_dot: {
     key: 'bifrost_dot',
@@ -899,7 +882,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'BNC',
     crowdloanUrl: 'https://bifrost.app/vcrowdloan',
     decimals: 12,
-    coinGeckoKey: 'bifrost-native-coin'
+    coinGeckoKey: 'bifrost-native-coin',
+    blockExplorer: 'https://bifrost.subscan.io'
   },
   bifrost_testnet: {
     key: 'bifrost_testnet',
@@ -907,7 +891,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x8b290fa39a8808f29d7309ea99442c95bf964838aef14be5a6449ae48f8a5f1f',
     ss58Format: 6,
     providers: {
-      Liebi: 'wss://bifrost-rpc.testnet.liebi.com/ws'
+      Liebi: 'wss://bifrost-rpc.rococo.liebi.com/ws'
     },
     active: false,
     currentProviderMode: 'ws',
@@ -930,7 +914,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Dwellir',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2086,
     nativeToken: 'KILT',
@@ -949,7 +933,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Manta Network',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2084,
     nativeToken: 'KMA',
@@ -988,7 +972,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Centrifuge',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2088,
     nativeToken: 'AIR',
@@ -1007,7 +991,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Parallel',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2085,
     nativeToken: 'HKO',
@@ -1025,7 +1009,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Kintsugi Labs',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2092,
     nativeToken: 'KINT',
@@ -1066,24 +1050,6 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 12,
     coinGeckoKey: 'picasso-network'
   },
-  pioneer: {
-    key: 'pioneer',
-    chain: 'Pioneer Network',
-    genesisHash: '0xf22b7850cdd5a7657bbfd90ac86441275bbc57ace3d2698a740c7b0ec4de5ec3',
-    ss58Format: 268,
-    providers: {
-      'Bit.Country': 'wss://pioneer-1-rpc.bit.country',
-      OnFinality: 'wss://pioneer.api.onfinality.io/public-ws'
-    },
-    active: false,
-    currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
-    groups: ['KUSAMA_PARACHAIN'],
-    paraId: 2096,
-    nativeToken: 'NEER',
-    crowdloanUrl: 'https://ksmcrowdloan.bit.country/',
-    decimals: 18
-  },
   quartz: {
     key: 'quartz',
     chain: 'QUARTZ by UNIQUE',
@@ -1097,7 +1063,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'OnFinality',
+    currentProvider: 'Unique',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2095,
     nativeToken: 'QTZ',
@@ -1169,38 +1135,24 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'SUB',
     crowdloanUrl: 'https://app.subsocial.network/crowdloan'
   },
-  subsocial: {
-    key: 'subsocial',
-    chain: 'Subsocial',
-    genesisHash: '0x0bd72c1c305172e1275278aaeb3f161e02eccb7a819e63f62d47bd53a28189f8',
-    ss58Format: 28,
-    providers: {
-      Dappforce: 'wss://rpc.subsocial.network'
-    },
-    active: false,
-    currentProviderMode: 'ws',
-    currentProvider: 'Dappforce',
-    groups: ['KUSAMA_PARACHAIN'],
-    nativeToken: 'SUB',
-    crowdloanUrl: 'https://app.subsocial.network/crowdloan',
-    decimals: 11
-  },
   zeitgeist: {
     key: 'zeitgeist',
     chain: 'Zeitgeist',
     genesisHash: '0x1bf2a2ecb4a868de66ea8610f2ce7c8c43706561b6476031315f6640fe38e060',
     ss58Format: 73,
     providers: {
-      ZeitgeistPM: 'wss://rpc-0.zeitgeist.pm'
+      OnFinality: 'wss://zeitgeist.api.onfinality.io/public-ws',
+      Dwellir: 'wss://zeitgeist-rpc.dwellir.com'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'ZeitgeistPM',
+    currentProvider: 'Dwellir',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2101,
     nativeToken: 'ZTG',
     crowdloanUrl: 'https://crowdloan.zeitgeist.pm/',
-    decimals: 10
+    decimals: 10,
+    coinGeckoKey: 'zeitgeist'
   },
   sakura: {
     key: 'sakura',
@@ -1443,20 +1395,6 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'ACA',
     decimals: 12
   },
-  neumann: {
-    chain: 'Neumann Network',
-    genesisHash: '0x68577f68a47847fb974c220189333c46e83a899b6e375abf50b9a615d9019c20',
-    ss58Format: 51,
-    providers: {
-      neumann: 'wss://neumann.api.onfinality.io/public-ws'
-    },
-    currentProvider: 'neumann',
-    currentProviderMode: 'ws',
-    active: false,
-    key: 'neumann',
-    groups: ['TEST_NET'],
-    nativeToken: 'NEU'
-  },
   turing: {
     chain: 'Turing Network',
     genesisHash: '0x0f62b701fb12d02237a33b84818c11f621653d2b1614c777973babf4652b535d',
@@ -1499,17 +1437,18 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
   },
   mangatax: {
     chain: 'MangataX Public Testnet',
-    genesisHash: '0x8032ad7a75a2b9732315592c672ec6d0ddf95308de03a19878ed8627ae8796cc',
+    genesisHash: '0x797fe0d6ea6917b5a36707961d819dca1826628123510730425c3bafc65ccf59',
     ss58Format: 42,
     providers: {
-      mangatax: 'wss://v4-prod-collator-01.mangatafinance.cloud'
+      mangatax: 'wss://roccoco-testnet-collator-01.mangatafinance.cloud'
     },
     currentProvider: 'mangatax',
     currentProviderMode: 'ws',
     active: false,
     key: 'mangatax',
     groups: ['TEST_NET'],
-    nativeToken: 'MGAT'
+    nativeToken: 'MGAT',
+    decimals: 18
   },
   mangatax_para: {
     chain: 'Mangata Kusama Mainnet',
@@ -1610,38 +1549,6 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'IMBU',
     decimals: 12
   },
-  subspace: {
-    key: 'subspace',
-    chain: 'Subspace Farmnet',
-    genesisHash: '0x332ef6e751e25426e38996c51299dfc53bcd56f40b53dce2b2fc8442ae9c4a74',
-    ss58Format: 2254,
-    providers: {
-      subspace: 'wss://farm-rpc.subspace.network/ws'
-    },
-    active: false,
-    currentProviderMode: 'ws',
-    currentProvider: 'subspace',
-    groups: ['MAIN_NET'],
-    nativeToken: 'tSSC',
-    decimals: 18
-  },
-  subspace_gemini: {
-    key: 'subspace_gemini',
-    chain: 'Subspace Gemini 1',
-    genesisHash: '0x9ee86eefc3cc61c71a7751bba7f25e442da2512f408e6286153b3ccc055dccf0',
-    ss58Format: 2254,
-    providers: {
-      subspaceAsia: 'wss://apac.gemini-1b.subspace.network/ws',
-      subspaceEU: 'wss://eu.gemini-1b.subspace.network/ws',
-      subspaceUS: 'wss://na.gemini-1b.subspace.network/ws'
-    },
-    active: false,
-    currentProviderMode: 'ws',
-    currentProvider: 'subspaceUS',
-    groups: ['MAIN_NET'],
-    nativeToken: 'tSSC',
-    decimals: 18
-  },
   subspace_test: {
     key: 'subspace_test',
     chain: 'Subspace Testnet',
@@ -1656,6 +1563,24 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     groups: ['TEST_NET'],
     nativeToken: 'tSSC',
     decimals: 18
+  },
+  subspace_gemini_2a: {
+    key: 'subspace_gemini_2a',
+    chain: 'Subspace Gemini 2a',
+    genesisHash: '0x43d10ffd50990380ffe6c9392145431d630ae67e89dbc9c014cac2a417759101',
+    ss58Format: 2254,
+    providers: {
+      'Europe 0': 'wss://eu-0.gemini-2a.subspace.network/ws',
+      'Europe 1': 'wss://eu-1.gemini-2a.subspace.network/ws',
+      'Europe 2': 'wss://eu-2.gemini-2a.subspace.network/ws'
+    },
+    active: false,
+    currentProviderMode: 'ws',
+    currentProvider: 'Europe 0',
+    groups: ['TEST_NET'],
+    nativeToken: 'tSSC',
+    decimals: 18,
+    blockExplorer: 'https://subspace.subscan.io'
   },
   origintrail: {
     key: 'origintrail',
@@ -1712,11 +1637,13 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x35a06bfec2edf0ff4be89a6428ccd9ff5bd0167d618c5a0d4341f9600a458d14',
     ss58Format: 1337,
     providers: {
-      AjunaNetwork: 'wss://rpc-parachain.bajun.network'
+      AjunaNetwork: 'wss://rpc-parachain.bajun.network',
+      OnFinality: 'wss://bajun.api.onfinality.io/public-ws',
+      Dwellir: 'wss://bajun-rpc.dwellir.com'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'AjunaNetwork',
+    currentProvider: 'Dwellir',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2119,
     nativeToken: 'BAJU',
@@ -1761,10 +1688,12 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     genesisHash: '0x19a3733beb9cb8a970a308d835599e9005e02dc007a35440e461a451466776f8',
     ss58Format: 7013,
     providers: {
-      gmDie: 'wss://kusama.gmordie.com'
+      gmDie: 'wss://kusama.gmordie.com',
+      bLdNodes: 'wss://ws.gm.bldnodes.org',
+      TerraBioDAO: 'wss://ws-node-gm.terrabiodao.org'
     },
     active: false,
-    currentProvider: 'gmDie',
+    currentProvider: 'bLdNodes',
     currentProviderMode: 'ws',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2123,
@@ -1784,24 +1713,11 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     currentProvider: 'ternoa',
     nativeToken: 'CAPS',
     groups: ['MAIN_NET'],
-    decimals: 18
+    decimals: 18,
+    coinGeckoKey: 'coin-capsule',
+    supportBonding: true,
+    getStakingOnChain: true
   },
-  // ternoaEvm: {
-  //   key: 'ternoaEvm',
-  //   chain: 'Ternoa Mainnet - EVM',
-  //   genesisHash: '0x6859c81ca95ef624c9dfe4dc6e3381c33e5d6509e35e147092bfbc780f777c4e_1',
-  //   ss58Format: 42,
-  //   providers: {
-  //     ternoa: 'wss://mainnet.ternoa.network'
-  //   },
-  //   active: false,
-  //   isEthereum: true,
-  //   currentProviderMode: 'ws',
-  //   currentProvider: 'ternoa',
-  //   nativeToken: 'CAPS',
-  //   groups: ['MAIN_NET'],
-  //   decimals: 18
-  // },
   tanganika: {
     key: 'tanganika',
     chain: 'DataHighway Tanganika',
@@ -1831,54 +1747,54 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'AMPE',
     groups: ['KUSAMA_PARACHAIN'],
     decimals: 12
+  },
+  gear_testnet: {
+    key: 'gear_testnet',
+    chain: 'Gear Staging Testnet',
+    genesisHash: '0x6f022bd353c56b3e441507e1173601fd9dc0fb7547e6a95bbaf9b21f311bcab6',
+    ss58Format: 42,
+    providers: {
+      gear: 'wss://rpc-node.gear-tech.io'
+    },
+    currentProvider: 'gear',
+    active: false,
+    currentProviderMode: 'ws',
+    nativeToken: 'Unit',
+    decimals: 12,
+    groups: ['TEST_NET']
+  },
+  arctic_testnet: {
+    key: 'arctic_testnet',
+    chain: 'Arctic Testnet',
+    genesisHash: '0x5c4207232d344710a176b1982471acf9b058f40b4a57470c25410b68b684c766',
+    ss58Format: 2207,
+    providers: {
+      arctic: 'wss://arctic-rpc.icenetwork.io:9944'
+    },
+    currentProvider: 'arctic',
+    active: false,
+    currentProviderMode: 'ws',
+    nativeToken: 'ICY',
+    decimals: 18,
+    groups: ['TEST_NET']
+  },
+  ternoa_alphanet: {
+    key: 'ternoa_alphanet',
+    chain: 'Ternoa Alphanet',
+    genesisHash: '0x18bcdb75a0bba577b084878db2dc2546eb21504eaad4b564bb7d47f9d02b6ace',
+    ss58Format: 42,
+    providers: {
+      ternoa: 'wss://alphanet.ternoa.com'
+    },
+    active: false,
+    currentProviderMode: 'ws',
+    currentProvider: 'ternoa',
+    nativeToken: 'CAPS',
+    groups: ['TEST_NET'],
+    decimals: 18,
+    supportBonding: true,
+    getStakingOnChain: true
   }
-  // contractsRococo: {
-  //   key: 'contractsRococo',
-  //   chain: 'Contracts on Rococo',
-  //   genesisHash: '0xc5442742bb6288bb3835ea1c9032981f06433ee5fc65d6e216c4422c0c19b989',
-  //   ss58Format: 42,
-  //   providers: {
-  //     testnet: 'wss://rococo-contracts-rpc.polkadot.io'
-  //   },
-  //   active: false,
-  //   currentProviderMode: 'ws',
-  //   currentProvider: 'testnet',
-  //   groups: ['TEST_NET'],
-  //   nativeToken: 'ROC',
-  //   decimals: 12,
-  //   paraId: 1002
-  // }
-  // acala_dev: {
-  //   key: 'acala_dev',
-  //   chain: 'Acala Karura Dev',
-  //   genesisHash: '0x102c0b94289f766d68d41b788c48b3440baa46d40f7d46b413c59a1a2b1b4079',
-  //   ss58Format: 8,
-  //   providers: {
-  //     testnet: 'wss://crosschain-dev.polkawallet.io:9908/'
-  //   },
-  //   active: false,
-  //   currentProviderMode: 'ws',
-  //   currentProvider: 'testnet',
-  //   groups: ['TEST_NET'],
-  //   nativeToken: 'KAR',
-  //   decimals: 12,
-  //   paraId: 2000
-  // },
-  // moonbase_relay: {
-  //   key: 'moonbase_relay',
-  //   chain: 'Moonbase Relay Testnet',
-  //   genesisHash: '0xe1ea3ab1d46ba8f4898b6b4b9c54ffc05282d299f89e84bd0fd08067758c9443',
-  //   ss58Format: 42,
-  //   providers: {
-  //     testnet: 'wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network/'
-  //   },
-  //   active: false,
-  //   currentProviderMode: 'ws',
-  //   currentProvider: 'testnet',
-  //   groups: ['TEST_NET'],
-  //   nativeToken: 'Unit',
-  //   decimals: 12
-  // },
 };
 
 function getGenesisHashes () {
