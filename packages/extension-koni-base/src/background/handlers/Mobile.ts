@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { ActiveCronAndSubscriptionMap, CronServiceType, RequestInitCronAndSubscription, SubscriptionServiceType } from '@subwallet/extension-base/background/KoniTypes';
+import { ActiveCronAndSubscriptionMap, CronServiceType, RequestCronAndSubscriptionAction, RequestInitCronAndSubscription, SubscriptionServiceType } from '@subwallet/extension-base/background/KoniTypes';
 import { MessageTypes, RequestTypes, ResponseType } from '@subwallet/extension-base/background/types';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
 import WebRunnerCron from '@subwallet/extension-koni-base/background/webRunnerCron';
@@ -31,7 +31,7 @@ export default class Mobile {
     { cron: { activeServices: activeCronServices, intervalMap: cronIntervalMap },
       subscription: { activeServices: activeSubscriptionServices } }: RequestInitCronAndSubscription): ActiveCronAndSubscriptionMap {
     this.webRunnerSubscription.init(activeSubscriptionServices);
-    this.webRunnerCron.init(cronIntervalMap, activeCronServices);
+    this.webRunnerCron.init(cronIntervalMap, activeCronServices, true);
 
     return {
       cron: this.webRunnerCron.getActiveServiceMap(),
@@ -70,6 +70,42 @@ export default class Mobile {
       cron: this.webRunnerCron.getActiveServiceMap(),
       subscription: this.webRunnerSubscription.getActiveServiceMap()
     };
+  }
+
+  public startCronAndSubscriptionServices ({ cronServices, subscriptionServices }: RequestCronAndSubscriptionAction): void {
+    subscriptionServices.forEach((sv) => {
+      this.webRunnerSubscription.startService(sv);
+    });
+
+    cronServices.forEach((sv) => {
+      this.webRunnerCron.startService(sv);
+    });
+
+    this.webRunnerCron.getActiveServiceMapSubject().next(this.webRunnerCron.getActiveServiceMap());
+  }
+
+  public stopCronAndSubscriptionServices ({ cronServices, subscriptionServices }: RequestCronAndSubscriptionAction): void {
+    subscriptionServices.forEach((sv) => {
+      this.webRunnerSubscription.stopService(sv);
+    });
+
+    cronServices.forEach((sv) => {
+      this.webRunnerCron.stopService(sv);
+    });
+
+    this.webRunnerCron.getActiveServiceMapSubject().next(this.webRunnerCron.getActiveServiceMap());
+  }
+
+  public restartCronAndSubscriptionServices ({ cronServices, subscriptionServices }: RequestCronAndSubscriptionAction): void {
+    subscriptionServices.forEach((sv) => {
+      this.webRunnerSubscription.restartService(sv);
+    });
+
+    cronServices.forEach((sv) => {
+      this.webRunnerCron.restartService(sv);
+    });
+
+    this.webRunnerCron.getActiveServiceMapSubject().next(this.webRunnerCron.getActiveServiceMap());
   }
 
   public startCronServices (services: CronServiceType[]): void {
@@ -131,6 +167,12 @@ export default class Mobile {
         return this.initCronAndSubscription(request as RequestInitCronAndSubscription);
       case 'mobile(cronAndSubscription.activeService.subscribe)':
         return this.subscribeActiveCronAndSubscriptionServiceMap(id, port);
+      case 'mobile(cronAndSubscription.start)':
+        return this.startCronAndSubscriptionServices(request as RequestCronAndSubscriptionAction);
+      case 'mobile(cronAndSubscription.stop)':
+        return this.stopCronAndSubscriptionServices(request as RequestCronAndSubscriptionAction);
+      case 'mobile(cronAndSubscription.restart)':
+        return this.restartCronAndSubscriptionServices(request as RequestCronAndSubscriptionAction);
       case 'mobile(cron.start)':
         return this.startCronServices(request as CronServiceType[]);
       case 'mobile(cron.stop)':

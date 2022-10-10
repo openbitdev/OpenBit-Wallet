@@ -369,7 +369,7 @@ export default class WebRunnerCron {
     }
   };
 
-  public init = (intervalMap: Partial<Record<CronType, number>>, activeServices: CronServiceType[]) => {
+  public init = (intervalMap: Partial<Record<CronType, number>>, activeServices: CronServiceType[], isEmitActiveServiceMap?: boolean) => {
     Object.assign(this.intervalMap, intervalMap);
 
     if (activeServices.length) {
@@ -380,7 +380,9 @@ export default class WebRunnerCron {
       });
     }
 
-    this.activeServiceMapSubject.next(this.activeServiceMap);
+    if (isEmitActiveServiceMap) {
+      this.activeServiceMapSubject.next(this.activeServiceMap);
+    }
   };
 
   public getActiveServiceMap = () => {
@@ -468,6 +470,17 @@ export default class WebRunnerCron {
               this.refreshHistory(currentAccountInfo.address, this.state.getNetworkMap()),
               this.intervalMap.refreshHistory);
           }).catch(this.logger.warn);
+        },
+        (serviceInfo) => {
+          const { address } = serviceInfo.currentAccountInfo;
+
+          this.resetHistory(address).then(() => {
+            this.removeCron('refreshHistory');
+
+            this.addCron('refreshHistory',
+              this.refreshHistory(address, serviceInfo.networkMap),
+              this.intervalMap.refreshHistory);
+          }).catch((err) => this.logger.warn(err));
         }
       );
     }

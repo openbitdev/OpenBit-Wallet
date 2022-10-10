@@ -178,7 +178,7 @@ export default class WebRunnerSubscription {
     }
   };
 
-  public init = (activeServices: SubscriptionServiceType[]) => {
+  public init = (activeServices: SubscriptionServiceType[], isEmitActiveServiceMap?: boolean) => {
     if (activeServices && activeServices.length) {
       activeServices.forEach((type) => {
         if (!this.activeServiceMap[type]) {
@@ -187,7 +187,9 @@ export default class WebRunnerSubscription {
       });
     }
 
-    this.activeServiceMapSubject.next(this.activeServiceMap);
+    if (isEmitActiveServiceMap) {
+      this.activeServiceMapSubject.next(this.activeServiceMap);
+    }
   };
 
   public getActiveServiceMap = () => {

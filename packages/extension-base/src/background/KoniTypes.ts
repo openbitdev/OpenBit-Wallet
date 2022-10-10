@@ -1360,6 +1360,11 @@ export interface RequestInitCronAndSubscription {
   }
 }
 
+export interface RequestCronAndSubscriptionAction {
+  subscriptionServices: SubscriptionServiceType[];
+  cronServices: CronServiceType[];
+}
+
 export interface ActiveCronAndSubscriptionMap {
   subscription: Record<SubscriptionServiceType, boolean>;
   cron: Record<CronServiceType, boolean>;
@@ -1514,6 +1519,9 @@ export interface KoniRequestSignatures {
   // Mobile
   'mobile(cronAndSubscription.init)': [RequestInitCronAndSubscription, ActiveCronAndSubscriptionMap];
   'mobile(cronAndSubscription.activeService.subscribe)': [null, ActiveCronAndSubscriptionMap, ActiveCronAndSubscriptionMap];
+  'mobile(cronAndSubscription.start)': [RequestCronAndSubscriptionAction[], void];
+  'mobile(cronAndSubscription.stop)': [RequestCronAndSubscriptionAction[], void];
+  'mobile(cronAndSubscription.restart)': [RequestCronAndSubscriptionAction[], void];
   'mobile(cron.start)': [CronServiceType[], void];
   'mobile(cron.stop)': [CronServiceType[], void];
   'mobile(cron.restart)': [CronServiceType[], void];
