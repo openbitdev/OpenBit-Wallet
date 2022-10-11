@@ -63,8 +63,8 @@ describe('test DotSama APIs', () => {
       const dappIcon = isUrl(dapp.iconUrl as string) ? dapp.iconUrl as string : undefined;
       const _contractInfo = await apiPromise.query.dappsStaking.contractEraStake({ Evm: dappAddress }, era);
       const contractInfo = _contractInfo.toHuman() as Record<string, any>;
-      const totalStake = parseRawNumber(contractInfo.total as string);
-      const stakerCount = parseRawNumber(contractInfo.numberOfStakers as string);
+      const totalStake = parseRawNumber((contractInfo?.total || '0') as string);
+      const stakerCount = parseRawNumber((contractInfo?.numberOfStakers || '0') as string);
 
       result.push({
         address: dappAddress,

@@ -150,7 +150,7 @@ function getCommission (commissionString: string) {
 
 describe('test DotSama APIs', () => {
   test('test get Validator', async () => {
-    const provider = new WsProvider(getCurrentProvider(PREDEFINED_NETWORKS.hydradx), DOTSAMA_AUTO_CONNECT_MS);
+    const provider = new WsProvider(getCurrentProvider(PREDEFINED_NETWORKS.aleph), DOTSAMA_AUTO_CONNECT_MS);
     const api = new ApiPromise({ provider });
     const apiPromise = await api.isReady;
 
@@ -189,11 +189,11 @@ describe('test DotSama APIs', () => {
       const otherStake = parsedTotalStake - parsedOwnStake;
 
       // @ts-ignore
-      const totalStakeString = parseBalanceString(PREDEFINED_NETWORKS.hydradx.decimals, parsedTotalStake, PREDEFINED_NETWORKS.hydradx.nativeToken);
+      const totalStakeString = parseBalanceString(PREDEFINED_NETWORKS.aleph.decimals, parsedTotalStake, PREDEFINED_NETWORKS.aleph.nativeToken);
       // @ts-ignore
-      const ownStakeString = parseBalanceString(PREDEFINED_NETWORKS.hydradx.decimals, parsedOwnStake, PREDEFINED_NETWORKS.hydradx.nativeToken);
+      const ownStakeString = parseBalanceString(PREDEFINED_NETWORKS.aleph.decimals, parsedOwnStake, PREDEFINED_NETWORKS.aleph.nativeToken);
       // @ts-ignore
-      const otherStakeString = parseBalanceString(PREDEFINED_NETWORKS.hydradx.decimals, otherStake, PREDEFINED_NETWORKS.hydradx.nativeToken);
+      const otherStakeString = parseBalanceString(PREDEFINED_NETWORKS.aleph.decimals, otherStake, PREDEFINED_NETWORKS.aleph.nativeToken);
 
       let nominatorCount = 0;
 
@@ -270,8 +270,8 @@ describe('test DotSama APIs', () => {
       } as ValidatorExtraInfo;
     }));
 
-    const inflation = calculateInflation(totalEraStake, parsedTotalIssuance, numAuctions, 'hydradx');
-    const stakedReturn = calculateChainStakedReturn(inflation, totalEraStake, parsedTotalIssuance, 'hydradx');
+    const inflation = calculateInflation(totalEraStake, parsedTotalIssuance, numAuctions, 'aleph');
+    const stakedReturn = calculateChainStakedReturn(inflation, totalEraStake, parsedTotalIssuance, 'aleph');
     const avgStake = totalEraStake / result.length;
 
     for (const validator of result) {

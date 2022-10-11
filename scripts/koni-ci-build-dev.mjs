@@ -35,7 +35,10 @@ function runCheck() {
 }
 
 function runTest() {
-  execSync('yarn test');
+  if (manifestVersion === 2) {
+    execSync('yarn test');
+  }
+  // Todo: enable test for MV3
 }
 
 function runBuild() {
