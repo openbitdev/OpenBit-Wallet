@@ -1,6 +1,8 @@
 name: Koni Dev MV3
 on:
-  pull_request: { }
+  pull_request:
+    branches:
+      - koni-dev-mv3
   push:
     branches:
       - koni-dev-mv3

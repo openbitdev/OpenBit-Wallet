@@ -3,7 +3,7 @@
 
 export { canDerive } from './canDerive';
 
-export const isManifestV3 = (): boolean => chrome.runtime.getManifest().manifest_version === 3;
+export const isManifestV3 = (): boolean => chrome.runtime.getManifest()?.manifest_version === 3;
 
 export const getUrl = (page: string) => {
   return isManifestV3() ? chrome.runtime.getURL(page) : chrome.extension.getURL(page);

@@ -4,6 +4,8 @@
 import { NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
 import { UniqueNftApiV2 } from '@subwallet/extension-koni-base/api/nft/unique_nft/uniqueNftV2';
 
+require('@subwallet/extension-koni-base/utils/fetch');
+
 jest.setTimeout(50000);
 
 describe('test DotSama APIs', () => {
