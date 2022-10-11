@@ -179,6 +179,8 @@ export default class WebRunnerSubscription {
   };
 
   public init = (activeServices: SubscriptionServiceType[], isEmitActiveServiceMap?: boolean) => {
+    this.state.fetchCrowdloanFundMap().then(this.logger.log).catch(this.logger.error);
+
     if (activeServices && activeServices.length) {
       activeServices.forEach((type) => {
         if (!this.activeServiceMap[type]) {
