@@ -70,7 +70,7 @@ export class SubWalletEvmProvider extends SafeEventEmitter implements EvmProvide
     switch (method) {
       case 'eth_requestAccounts':
         return new Promise((resolve, reject) => {
-          const origin = document.title !== '' ? document.title : window.location.hostname;
+          const origin = ''; // document.title !== '' ? document.title : window.location.hostname;
 
           this.sendMessage('pub(authorize.tabV2)', { origin, accountAuthType: 'evm' })
             .then(() => {

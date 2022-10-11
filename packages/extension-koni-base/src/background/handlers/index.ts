@@ -12,6 +12,9 @@ import Migration from '@subwallet/extension-koni-base/migration';
 
 import { assert } from '@polkadot/util';
 
+// Register global fetch
+require('@subwallet/extension-koni-base/utils/fetch');
+
 export const state = new KoniState();
 export const extension = new KoniExtension(state);
 export const tabs = new KoniTabs(state);

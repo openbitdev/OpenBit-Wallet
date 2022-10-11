@@ -9,7 +9,7 @@ import type { SubjectInfo } from '@polkadot/ui-keyring/observable/types';
 import type { MessageTypes, RequestAccountList, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestTypes, ResponseRpcListProviders, ResponseSigning, ResponseTypes, SubscriptionMessageTypes } from '../types';
 
 import { PHISHING_PAGE_REDIRECT } from '@subwallet/extension-base/defaults';
-import { canDerive, isManifestV3 } from '@subwallet/extension-base/utils';
+import { canDerive, getUrl } from '@subwallet/extension-base/utils';
 
 import { checkIfDenied } from '@polkadot/phishing';
 import keyring from '@polkadot/ui-keyring';
@@ -147,7 +147,7 @@ export default class Tabs {
   private redirectPhishingLanding (phishingWebsite: string): void {
     const nonFragment = phishingWebsite.split('#')[0];
     const encodedWebsite = encodeURIComponent(nonFragment);
-    const url = `${isManifestV3() ? chrome.runtime.getURL('index.html') : chrome.extension.getURL('index.html')}#${PHISHING_PAGE_REDIRECT}/${encodedWebsite}`;
+    const url = `${getUrl('index.html')}#${PHISHING_PAGE_REDIRECT}/${encodedWebsite}`;
 
     chrome.tabs.query({ url: nonFragment }, (tabs) => {
       tabs

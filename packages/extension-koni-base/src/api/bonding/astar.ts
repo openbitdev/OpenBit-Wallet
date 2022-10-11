@@ -5,7 +5,6 @@ import { ApiProps, BasicTxInfo, DelegationItem, NetworkJson, UnlockingStakeInfo,
 import { ERA_LENGTH_MAP } from '@subwallet/extension-koni-base/api/bonding/utils';
 import { getFreeBalance } from '@subwallet/extension-koni-base/api/dotsama/balance';
 import { isUrl, parseNumberToDisplay, parseRawNumber } from '@subwallet/extension-koni-base/utils';
-import fetch from 'cross-fetch';
 import Web3 from 'web3';
 
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';

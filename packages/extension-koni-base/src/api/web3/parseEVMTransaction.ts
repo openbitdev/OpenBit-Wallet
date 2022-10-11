@@ -5,7 +5,6 @@ import { EVMTransactionArg, NestedArray, NetworkJson, ParseEVMTransactionData, R
 import { ERC20Contract, ERC721Contract, initWeb3Api } from '@subwallet/extension-koni-base/api/web3/web3';
 import { createTransactionFromRLP, Transaction as QrTransaction } from '@subwallet/extension-koni-base/utils/eth';
 import { InputDataDecoder } from '@subwallet/extension-koni-base/utils/eth/parseTransactionData';
-import axios from 'axios';
 import BigN from 'bignumber.js';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -130,17 +129,10 @@ export const parseTransactionData = async (input: string, contractAddress: strin
 
   if (contractAddress) {
     if (network?.abiExplorer) {
-      const res = await axios.get(network?.abiExplorer, {
-        params: {
-          address: contractAddress
-        }
-      });
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const res = await fetch(`${network.abiExplorer}?address=${contractAddress}`).then((doc) => doc && doc.json());
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (res.status === 200 && res.data.status === '1') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        _ABIs.unshift(res.data.result);
-      }
+      _ABIs.unshift(res);
     }
   }
 
@@ -226,17 +218,10 @@ export const parseEVMTransaction = async (data: string, networkMap: Record<strin
   if (tx.action && network) {
     if (await isContractAddress(tx.action, network)) {
       if (network?.abiExplorer) {
-        const res = await axios.get(network?.abiExplorer, {
-          params: {
-            address: tx.action
-          }
-        });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const res = await fetch(`${network.abiExplorer}?address=${tx.action}`).then((doc) => doc && doc.json());
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (res.status === 200 && res.data.status === '1') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          _ABIs.unshift(res.data.result);
-        }
+        _ABIs.unshift(res);
       }
     }
   }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // import { Promise as _Promise } from 'bluebird';
-// import fetch from 'cross-fetch';
+// import fetch from '@subwallet/extension-koni-base/utils/fetch';
 //
 // jest.setTimeout(50000);
 //

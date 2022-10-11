@@ -9,7 +9,7 @@ import type { KeypairType } from '@polkadot/util-crypto/types';
 import type { AccountJson, AllowedPath, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeApprove, RequestAuthorizeReject, RequestBatchRestore, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApprovePassword, RequestSigningApproveSignature, RequestSigningCancel, RequestSigningIsLocked, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseSigningIsLocked, ResponseType, SigningRequest } from '../types';
 
 import { ALLOWED_PATH, PASSWORD_EXPIRY_MS } from '@subwallet/extension-base/defaults';
-import { isManifestV3 } from '@subwallet/extension-base/utils';
+import { getUrl } from '@subwallet/extension-base/utils';
 
 import { TypeRegistry } from '@polkadot/types';
 import keyring from '@polkadot/ui-keyring';
@@ -498,7 +498,7 @@ export default class Extension {
   }
 
   private windowOpen (path: AllowedPath): boolean {
-    const url = isManifestV3() ? `${chrome.runtime.getURL('index.html')}#${path}` : `${chrome.extension.getURL('index.html')}#${path}`;
+    const url = `${getUrl('index.html')}#${path}`;
 
     if (!ALLOWED_PATH.includes(path)) {
       console.error('Not allowed to open the url:', url);

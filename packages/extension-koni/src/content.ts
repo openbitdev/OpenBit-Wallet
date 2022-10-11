@@ -5,7 +5,7 @@ import type { Message } from '@subwallet/extension-base/types';
 
 import { TransportRequestMessage } from '@subwallet/extension-base/background/types';
 import { MESSAGE_ORIGIN_CONTENT, MESSAGE_ORIGIN_PAGE, PORT_CONTENT } from '@subwallet/extension-base/defaults';
-import { isManifestV3 } from '@subwallet/extension-base/utils';
+import { getUrl } from '@subwallet/extension-base/utils';
 import { getId } from '@subwallet/extension-base/utils/getId';
 import { chrome } from '@subwallet/extension-inject/chrome';
 
@@ -92,7 +92,7 @@ const container = document.head || document.documentElement;
 const placeholderScript = document.createElement('script');
 const script = document.createElement('script');
 
-script.src = chrome.extension.getURL('page.js');
+script.src = getUrl('page.js');
 
 placeholderScript.textContent = `class SubWalletPlaceholder {
   provider = undefined;
@@ -176,7 +176,7 @@ window.SubWallet = new Proxy(new SubWalletPlaceholder(), {
     }
   }
 })`;
-script.src = isManifestV3() ? chrome.runtime.getURL('page.js') : chrome.extension.getURL('page.js');
+script.src = getUrl('page.js');
 
 container.insertBefore(script, container.children[0]);
 container.insertBefore(placeholderScript, container.children[0]);
