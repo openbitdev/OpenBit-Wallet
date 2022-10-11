@@ -39,9 +39,9 @@
     "eventemitter3": "^4.0.7",
     "rlp": "^3.0.0",
     "rxjs": "^7.5.7",
-    "web3": "^1.8.0",
-    "web3-core": "^1.8.0",
-    "web3-core-helpers": "^1.8.0"
+    "web3": "1.7.5",
+    "web3-core": "1.7.5",
+    "web3-core-helpers": "1.7.5"
   },
   "devDependencies": {
     "@subwallet/extension-mocks": "^0.6.7-0"
