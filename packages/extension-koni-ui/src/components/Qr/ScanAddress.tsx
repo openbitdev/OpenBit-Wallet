@@ -56,11 +56,11 @@ const ScanAddress = (props: Props) => {
           isEthereum = true;
           onError && onError(new Error(`Invalid prefix received, expected '${ACCEPT_PREFIXES.join(' or ')}' , found '${prefix}'`));
 
-          throw Error(`Invalid prefix received, expected '${SUBSTRATE_PREFIX} or ${SECRET_PREFIX} or ${ETHEREUM_PREFIX}' , found '${prefix}'`);
+          throw Error(`Invalid prefix received, expected '${ACCEPT_PREFIXES.join(' or ')}' , found '${prefix}'`);
         } else {
           onError && onError(new Error(`Invalid prefix received, expected '${ACCEPT_PREFIXES.join(' or ')}' , found '${prefix}'`));
 
-          throw Error(`Invalid prefix received, expected '${SUBSTRATE_PREFIX} or ${SECRET_PREFIX} or ${ETHEREUM_PREFIX}' , found '${prefix}'`);
+          throw Error(`Invalid prefix received, expected '${ACCEPT_PREFIXES.join(' or ')}' , found '${prefix}'`);
         }
 
         const isAddress = prefix !== SECRET_PREFIX;
