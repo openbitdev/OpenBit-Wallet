@@ -14,8 +14,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       Parity: 'wss://rpc.polkadot.io',
       OnFinality: 'wss://polkadot.api.onfinality.io/public-ws',
       // 'Geometry Labs': 'wss://polkadot.geometry.io/websockets', // https://github.com/polkadot-js/apps/pull/6746
-      Dwellir: 'wss://polkadot-rpc.dwellir.com'
-      // 'light client': 'light://substrate-connect/polkadot'
+      Dwellir: 'wss://polkadot-rpc.dwellir.com',
+      'light client': 'light://substrate-connect/polkadot'
       // Pinknode: 'wss://rpc.pinknode.io/polkadot/explorer' // https://github.com/polkadot-js/apps/issues/5721
     },
     active: true,
@@ -38,8 +38,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       Parity: 'wss://kusama-rpc.polkadot.io',
       OnFinality: 'wss://kusama.api.onfinality.io/public-ws',
       // 'Geometry Labs': 'wss://kusama.geometry.io/websockets', // https://github.com/polkadot-js/apps/pull/6746
-      Dwellir: 'wss://kusama-rpc.dwellir.com'
-      // 'light client': 'light://substrate-connect/kusama'
+      Dwellir: 'wss://kusama-rpc.dwellir.com',
+      'light client': 'light://substrate-connect/kusama'
       // Pinknode: 'wss://rpc.pinknode.io/kusama/explorer' // https://github.com/polkadot-js/apps/issues/5721
     },
     active: true,
@@ -61,8 +61,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     providers: {
       Parity: 'wss://westend-rpc.polkadot.io',
       Pinknode: 'wss://rpc.pinknode.io/westend/explorer',
-      Dwellir: 'wss://westend-rpc.dwellir.com'
-      // 'light client': 'light://substrate-connect/westend'
+      Dwellir: 'wss://westend-rpc.dwellir.com',
+      'light client': 'light://substrate-connect/westend'
     },
     active: false,
     currentProvider: 'Parity',
@@ -83,8 +83,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       Parity: 'wss://rococo-rpc.polkadot.io',
       OnFinality: 'wss://rococo.api.onfinality.io/public-ws', // After reset, node misses host functions
       Pinknode: 'wss://rpc.pinknode.io/rococo/explorer', // After reset, syncs to old chain
-      'Ares Protocol': 'wss://rococo.aresprotocol.com' // https://github.com/polkadot-js/apps/issues/5767
-      // 'light client': 'light://substrate-connect/rococo'
+      'Ares Protocol': 'wss://rococo.aresprotocol.com', // https://github.com/polkadot-js/apps/issues/5767
+      'light client': 'light://substrate-connect/rococo'
     },
     active: false,
     currentProvider: 'Parity',
