@@ -66,21 +66,12 @@ const ACCOUNT_ALL_JSON: AccountJson = {
 };
 
 export default class KoniExtension extends Extension {
-  private cancelSubscriptionMap: Record<string, () => void> = {};
-
   private cancelSubscription (id: string): boolean {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    if (isSubscriptionRunning(id)) {
-      unsubscribe(id);
-    }
+    return state.cancelSubscription(id);
+  }
 
-    if (this.cancelSubscriptionMap[id]) {
-      this.cancelSubscriptionMap[id]();
-
-      delete this.cancelSubscriptionMap[id];
-    }
-
-    return true;
+  private createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
+    state.createUnsubscriptionHandle(id, unsubscribe);
   }
 
   public decodeAddress = (key: string | Uint8Array, ignoreChecksum?: boolean, ss58Format?: Prefix): Uint8Array => {
@@ -138,9 +129,10 @@ export default class KoniExtension extends Extension {
       }, 100);
     });
 
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      subscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -156,7 +148,7 @@ export default class KoniExtension extends Extension {
       cb(optionsInputAddress);
     });
 
-    this.cancelSubscriptionMap[id] = subscription.unsubscribe;
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -213,9 +205,10 @@ export default class KoniExtension extends Extension {
       cb(requests)
     );
 
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      subscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -283,6 +276,10 @@ export default class KoniExtension extends Extension {
       cb(items);
     });
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return true;
   }
 
@@ -303,6 +300,10 @@ export default class KoniExtension extends Extension {
 
     this._forgetAllSite((items) => {
       cb(items);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -327,6 +328,10 @@ export default class KoniExtension extends Extension {
 
     this._changeAuthorizationAll(data.connectValue, (items) => {
       cb(items);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -363,6 +368,10 @@ export default class KoniExtension extends Extension {
 
     this._changeAuthorization(data.url, data.connectValue, (items) => {
       cb(items);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -413,6 +422,10 @@ export default class KoniExtension extends Extension {
       cb(items);
     });
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return true;
   }
 
@@ -452,7 +465,7 @@ export default class KoniExtension extends Extension {
     });
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -474,7 +487,7 @@ export default class KoniExtension extends Extension {
     });
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -486,7 +499,7 @@ export default class KoniExtension extends Extension {
     state.setTheme(data, cb);
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -501,9 +514,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, balancesVisibilitySubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      balancesVisibilitySubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return await this.getSettings();
@@ -518,9 +532,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, authorizeUrlSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      authorizeUrlSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return await state.getAuthList();
@@ -558,7 +573,7 @@ export default class KoniExtension extends Extension {
     this._saveCurrentAccountAddress(data.address, cb);
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -581,9 +596,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, priceSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      priceSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getPrice();
@@ -603,9 +619,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, balanceSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      balanceSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getBalance(true);
@@ -624,9 +641,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, balanceSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      balanceSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getCrowdloan(true);
@@ -645,9 +663,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      subscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getChainRegistryMap();
@@ -943,9 +962,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, nftTransferSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      nftTransferSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getNftTransfer();
@@ -963,9 +983,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, nftCollectionSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      nftCollectionSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getNftCollection();
@@ -983,9 +1004,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, nftSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      nftSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getNft();
@@ -1007,9 +1029,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, stakingRewardSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      stakingRewardSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getStakingReward();
@@ -1027,9 +1050,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, stakingSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      stakingSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getStaking(true);
@@ -1044,9 +1068,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, historySubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      historySubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return state.getHistoryMap();
@@ -1062,7 +1087,7 @@ export default class KoniExtension extends Extension {
     });
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return true;
@@ -1433,7 +1458,7 @@ export default class KoniExtension extends Extension {
           cb({ step: TransferStep.ERROR, errors: [({ code: TransferErrorCode.TRANSFER_ERROR, message: e.message })] });
           console.error('Transfer error', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
 
           // todo: add condition to lock KeyPair
@@ -1442,7 +1467,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -1503,7 +1528,7 @@ export default class KoniExtension extends Extension {
           cb({ step: TransferStep.ERROR, errors: [({ code: TransferErrorCode.TRANSFER_ERROR, message: e.message })] });
           console.error('Transfer error', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
 
           // todo: add condition to lock KeyPair
@@ -1512,7 +1537,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -1607,7 +1632,7 @@ export default class KoniExtension extends Extension {
       updateState(txState);
 
       port.onDisconnect.addListener((): void => {
-        unsubscribe(id);
+        this.cancelSubscription(id);
       });
 
       return txState;
@@ -1656,7 +1681,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return txState;
@@ -1674,9 +1699,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, networkMapSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      networkMapSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return this.getNetworkMap();
@@ -1965,9 +1991,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, evmTokenSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      evmTokenSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return state.getEvmTokenState();
@@ -2068,8 +2095,10 @@ export default class KoniExtension extends Extension {
     token }: RequestFreeBalance, id: string, port: chrome.runtime.Port): Promise<string> {
     const cb = createSubscription<'pri(freeBalance.subscribe)'>(id, port);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment
-    this.cancelSubscriptionMap[id] = await subscribeFreeBalance(networkKey, address, state.getDotSamaApiMap(), state.getWeb3ApiMap(), token, cb);
+    this.createUnsubscriptionHandle(
+      id,
+      await subscribeFreeBalance(networkKey, address, state.getDotSamaApiMap(), state.getWeb3ApiMap(), token, cb)
+    );
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
@@ -2197,6 +2226,10 @@ export default class KoniExtension extends Extension {
       txState.passwordError = passwordError;
       updateState(txState);
     }
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
 
     return txState;
   }
@@ -2590,13 +2623,13 @@ export default class KoniExtension extends Extension {
           }
 
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -2661,13 +2694,13 @@ export default class KoniExtension extends Extension {
           cb({ step: TransferStep.ERROR, errors: [({ code: TransferErrorCode.TRANSFER_ERROR, message: e.message })] });
           console.error('Transfer error', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -2736,13 +2769,13 @@ export default class KoniExtension extends Extension {
 
           console.error('Error transferring nft', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -2804,7 +2837,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error transferring nft', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -2812,7 +2845,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -2878,7 +2911,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error staking', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -2886,7 +2919,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -2949,7 +2982,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error un-staking', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -2957,7 +2990,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -3015,7 +3048,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error withdraw-staking', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -3023,7 +3056,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -3092,13 +3125,13 @@ export default class KoniExtension extends Extension {
           }
 
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -3163,13 +3196,13 @@ export default class KoniExtension extends Extension {
           cb({ step: TransferStep.ERROR, errors: [({ code: TransferErrorCode.TRANSFER_ERROR, message: e.message })] });
           console.error('Transfer error', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -3239,13 +3272,13 @@ export default class KoniExtension extends Extension {
 
           console.error('Error transferring nft', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return errors;
@@ -3310,7 +3343,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error transferring nft', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -3318,7 +3351,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -3377,7 +3410,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error un-staking', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -3385,7 +3418,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -3443,7 +3476,7 @@ export default class KoniExtension extends Extension {
 
           console.error('Error withdraw-staking', e);
           setTimeout(() => {
-            unsubscribe(id);
+            this.cancelSubscription(id);
           }, 500);
         });
     } catch (e) {
@@ -3451,7 +3484,7 @@ export default class KoniExtension extends Extension {
     }
 
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
+      this.cancelSubscription(id);
     });
 
     return [];
@@ -3498,10 +3531,13 @@ export default class KoniExtension extends Extension {
   private subscribeConfirmations (id: string, port: chrome.runtime.Port) {
     const cb = createSubscription<'pri(confirmations.subscribe)'>(id, port);
 
+    const subscription = state.getConfirmationsQueueSubject().subscribe(cb);
+
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
     });
-    state.getConfirmationsQueueSubject().subscribe(cb);
 
     return state.getConfirmationsQueueSubject().getValue();
   }
@@ -3617,6 +3653,10 @@ export default class KoniExtension extends Extension {
       callback(result);
     }));
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return result;
   }
 
@@ -3724,6 +3764,10 @@ export default class KoniExtension extends Extension {
       callback(txState);
     }
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return txState;
   }
 
@@ -3807,6 +3851,10 @@ export default class KoniExtension extends Extension {
       callback(txState);
     }
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return txState;
   }
 
@@ -3885,6 +3933,10 @@ export default class KoniExtension extends Extension {
       callback(txState);
     }
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return txState;
   }
 
@@ -3959,6 +4011,10 @@ export default class KoniExtension extends Extension {
       callback(txState);
     }
 
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
     return txState;
   }
 
@@ -3976,9 +4032,10 @@ export default class KoniExtension extends Extension {
       }
     });
 
+    this.createUnsubscriptionHandle(id, unlockingInfoSubscription.unsubscribe);
+
     port.onDisconnect.addListener((): void => {
-      unsubscribe(id);
-      unlockingInfoSubscription.unsubscribe();
+      this.cancelSubscription(id);
     });
 
     return state.getStakeUnlockingInfo();

@@ -4,6 +4,7 @@
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import State, { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
 import { AccountRefMap, APIItemState, ApiMap, AuthRequestV2, BalanceItem, BalanceJson, ChainRegistry, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CustomEvmToken, DeleteEvmTokenParams, EvmSendTransactionParams, EvmSendTransactionRequestQr, EvmSignatureRequestQr, EvmTokenJson, ExternalRequestPromise, ExternalRequestPromiseStatus, NETWORK_STATUS, NetworkJson, NftCollection, NftItem, NftJson, NftTransferExtra, PriceJson, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ResponseSettingsType, ResultResolver, ServiceInfo, SingleModeJson, StakeUnlockingJson, StakingItem, StakingJson, StakingRewardJson, ThemeTypes, TokenInfo, TransactionHistoryItemType } from '@subwallet/extension-base/background/KoniTypes';
+import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
 import { AuthorizeRequest, RequestAuthorizeTab } from '@subwallet/extension-base/background/types';
 import { Web3Transaction } from '@subwallet/extension-base/signers/types';
 import { getId } from '@subwallet/extension-base/utils/getId';
@@ -44,9 +45,6 @@ import { assert, BN, hexToU8a, logger as createLogger, u8aToHex } from '@polkado
 import { Logger } from '@polkadot/util/types';
 import { base64Decode, isEthereumAddress } from '@polkadot/util-crypto';
 
-import { KoniCron } from '../cron';
-import { KoniSubscription } from '../subscription';
-
 function generateDefaultStakingMap () {
   const stakingMap: Record<string, StakingItem> = {};
 
@@ -76,6 +74,8 @@ function generateDefaultCrowdloanMap () {
 }
 
 export default class KoniState extends State {
+  private readonly unsubscriptionMap: Record<string, () => void> = {};
+
   public readonly authSubjectV2: BehaviorSubject<AuthorizeRequest[]> = new BehaviorSubject<AuthorizeRequest[]>([]);
 
   private readonly networkMapStore = new NetworkMapStore(); // persist custom networkMap by user
@@ -153,8 +153,8 @@ export default class KoniState extends State {
 
   private lazyMap: Record<string, unknown> = {};
   public dbService: DatabaseService;
-  private cron: KoniCron;
-  private subscription: KoniSubscription;
+  // private cron: KoniCron;
+  // private subscription: KoniSubscription;
   private logger: Logger;
   private ready = false;
 
@@ -163,8 +163,8 @@ export default class KoniState extends State {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     super(args);
     this.dbService = new DatabaseService();
-    this.subscription = new KoniSubscription(this, this.dbService);
-    this.cron = new KoniCron(this, this.subscription, this.dbService);
+    // this.subscription = new KoniSubscription(this, this.dbService);
+    // this.cron = new KoniCron(this, this.subscription, this.dbService);
     this.logger = createLogger('State');
     this.init();
   }
@@ -189,8 +189,8 @@ export default class KoniState extends State {
   }
 
   private onReady () {
-    this.subscription.start();
-    this.cron.start();
+    // this.subscription.start();
+    // this.cron.start();
 
     this.ready = true;
   }
@@ -2317,7 +2317,7 @@ export default class KoniState extends State {
         networkKey,
         change: transaction.value?.toString() || '0',
         changeSymbol: undefined,
-        fee: receipt.effectiveGasPrice.toString(),
+        fee: (receipt.gasUsed * receipt.effectiveGasPrice).toString(),
         feeSymbol: network?.nativeToken,
         action: 'send',
         extrinsicHash: receipt.transactionHash
@@ -2592,14 +2592,32 @@ export default class KoniState extends State {
   }
 
   public async sleep () {
-    this.cron.stop();
-    this.subscription.stop();
+    // this.cron.stop();
+    // this.subscription.stop();
     await this.pauseAllNetworks(undefined, 'IDLE mode');
   }
 
   public async wakeup () {
     await this.resumeAllNetworks();
-    this.cron.start();
-    this.subscription.start();
+    // this.cron.start();
+    // this.subscription.start();
+  }
+
+  public cancelSubscription (id: string): boolean {
+    if (isSubscriptionRunning(id)) {
+      unsubscribe(id);
+    }
+
+    if (this.unsubscriptionMap[id]) {
+      this.unsubscriptionMap[id]();
+
+      delete this.unsubscriptionMap[id];
+    }
+
+    return true;
+  }
+
+  public createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
+    this.unsubscriptionMap[id] = unsubscribe;
   }
 }
