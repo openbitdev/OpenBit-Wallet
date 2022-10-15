@@ -62,6 +62,20 @@ global.chrome.runtime = {
   lastError: undefined
 };
 
+global.chrome.windows = {
+  // @ts-ignore
+  getCurrent: () => {
+    // void
+  }
+};
+
+global.chrome.tabs = {
+  // @ts-ignore
+  query: () => {
+    // void
+  }
+};
+
 global.chrome.storage = {
   local: {
     // @ts-ignore
