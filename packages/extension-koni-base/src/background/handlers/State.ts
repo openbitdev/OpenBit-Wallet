@@ -1662,7 +1662,7 @@ export default class KoniState extends State {
     this.networkMapStore.set('NetworkMap', this.networkMap);
 
     for (const key of targetNetworkKeys) {
-      await this.apiMap.dotSama[key].api.disconnect();
+      this.apiMap.dotSama[key].api.disconnect && await this.apiMap.dotSama[key].api.disconnect();
       delete this.apiMap.dotSama[key];
 
       if (this.networkMap[key].isEthereum && this.networkMap[key].isEthereum) {
@@ -1777,7 +1777,7 @@ export default class KoniState extends State {
     this.networkMapStore.set('NetworkMap', this.networkMap);
 
     for (const key of targetNetworkKeys) {
-      await this.apiMap.dotSama[key].api.disconnect();
+      this.apiMap.dotSama[key].api.disconnect && await this.apiMap.dotSama[key].api.disconnect();
       delete this.apiMap.dotSama[key];
 
       if (this.networkMap[key].isEthereum && this.networkMap[key].isEthereum) {
