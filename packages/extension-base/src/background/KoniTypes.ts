@@ -486,6 +486,7 @@ export interface RequestCheckPublicAndSecretKey {
 export interface ResponseCheckPublicAndSecretKey {
   address: string;
   isValid: boolean;
+  isEthereum: boolean;
 }
 
 export interface RequestSeedCreateV2 {
@@ -938,6 +939,7 @@ export interface RequestAccountCreateWithSecretKey {
   password: string;
   name: string;
   isAllow: boolean;
+  isEthereum: boolean;
 }
 
 export interface ResponseAccountCreateWithSecretKey {
