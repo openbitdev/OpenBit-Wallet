@@ -1491,6 +1491,7 @@ export interface KoniRequestSignatures {
   'pri(accounts.saveRecent)': [RequestSaveRecentAccount, SingleAddress];
   'pri(accounts.triggerSubscription)': [null, boolean];
   'pri(accounts.get.meta)': [RequestAccountMeta, ResponseAccountMeta];
+  'pri(accounts.updateCurrentAddress)': [string, boolean];
   'pri(currentAccount.saveAddress)': [RequestCurrentAccountAddress, boolean, CurrentAccountInfo];
   'pri(settings.changeBalancesVisibility)': [null, boolean, ResponseSettingsType];
   'pri(settings.subscribe)': [null, ResponseSettingsType, ResponseSettingsType];
