@@ -1491,6 +1491,7 @@ export interface KoniRequestSignatures {
   'pri(accounts.saveRecent)': [RequestSaveRecentAccount, SingleAddress];
   'pri(accounts.triggerSubscription)': [null, boolean];
   'pri(accounts.get.meta)': [RequestAccountMeta, ResponseAccountMeta];
+  'pri(accounts.updateCurrentAddress)': [string, boolean];
   'pri(currentAccount.saveAddress)': [RequestCurrentAccountAddress, boolean, CurrentAccountInfo];
   'pri(settings.changeBalancesVisibility)': [null, boolean, ResponseSettingsType];
   'pri(settings.subscribe)': [null, ResponseSettingsType, ResponseSettingsType];
@@ -1551,9 +1552,9 @@ export interface KoniRequestSignatures {
   // Mobile
   'mobile(cronAndSubscription.init)': [RequestInitCronAndSubscription, ActiveCronAndSubscriptionMap];
   'mobile(cronAndSubscription.activeService.subscribe)': [null, ActiveCronAndSubscriptionMap, ActiveCronAndSubscriptionMap];
-  'mobile(cronAndSubscription.start)': [RequestCronAndSubscriptionAction[], void];
-  'mobile(cronAndSubscription.stop)': [RequestCronAndSubscriptionAction[], void];
-  'mobile(cronAndSubscription.restart)': [RequestCronAndSubscriptionAction[], void];
+  'mobile(cronAndSubscription.start)': [RequestCronAndSubscriptionAction, void];
+  'mobile(cronAndSubscription.stop)': [RequestCronAndSubscriptionAction, void];
+  'mobile(cronAndSubscription.restart)': [RequestCronAndSubscriptionAction, void];
   'mobile(cron.start)': [CronServiceType[], void];
   'mobile(cron.stop)': [CronServiceType[], void];
   'mobile(cron.restart)': [CronServiceType[], void];

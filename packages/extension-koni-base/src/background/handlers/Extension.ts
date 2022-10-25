@@ -567,6 +567,14 @@ export default class KoniExtension extends Extension {
     });
   }
 
+  private updateCurrentAccountAddress (address: string): boolean {
+    this._saveCurrentAccountAddress(address, () => {
+      this.triggerAccountsSubscription();
+    });
+
+    return true;
+  }
+
   private saveCurrentAccountAddress (data: RequestCurrentAccountAddress, id: string, port: chrome.runtime.Port): boolean {
     const cb = createSubscription<'pri(currentAccount.saveAddress)'>(id, port);
 
@@ -4284,6 +4292,8 @@ export default class KoniExtension extends Extension {
         return this.triggerAccountsSubscription();
       case 'pri(currentAccount.saveAddress)':
         return this.saveCurrentAccountAddress(request as RequestCurrentAccountAddress, id, port);
+      case 'pri(accounts.updateCurrentAddress)':
+        return this.updateCurrentAccountAddress(request as string);
       case 'pri(settings.changeBalancesVisibility)':
         return this.toggleBalancesVisibility(id, port);
       case 'pri(settings.subscribe)':
