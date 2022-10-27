@@ -94,7 +94,8 @@ function ImportQr ({ className }: Props): React.ReactElement<Props> {
             address: account.content,
             genesisHash: account.genesisHash,
             isEthereum: isEthereum,
-            isAllowed: isConnectWhenCreate
+            isAllowed: isConnectWhenCreate,
+            isReadOnly: false
           })
             .then((errors) => {
               if (errors.length) {

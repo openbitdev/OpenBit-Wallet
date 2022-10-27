@@ -38,6 +38,7 @@ export interface AccountJson extends KeyringPair$Meta {
   originGenesisHash?: string | null;
   isExternal?: boolean;
   isHardware?: boolean;
+  isReadOnly?: boolean;
   isHidden?: boolean;
   name?: string;
   parentAddress?: string;

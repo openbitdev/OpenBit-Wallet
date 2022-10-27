@@ -2309,6 +2309,7 @@ export default class KoniExtension extends Extension {
   private async accountsCreateExternalV2 ({ address,
     genesisHash,
     isAllowed,
+    isReadOnly,
     isEthereum,
     name }: RequestAccountCreateExternalV2): Promise<AccountExternalError[]> {
     try {
@@ -2327,11 +2328,11 @@ export default class KoniExtension extends Extension {
       }
 
       if (isEthereum) {
-        result = keyring.keyring.addFromAddress(address, { name, isExternal: true }, null, 'ethereum');
+        result = keyring.keyring.addFromAddress(address, { name, isExternal: true, isReadOnly: isReadOnly }, null, 'ethereum');
 
         keyring.saveAccount(result);
       } else {
-        result = keyring.addExternal(address, { genesisHash, name }).pair;
+        result = keyring.addExternal(address, { genesisHash, name, isReadOnly: isReadOnly }).pair;
       }
 
       const _address = result.address;
