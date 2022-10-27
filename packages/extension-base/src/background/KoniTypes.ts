@@ -26,7 +26,7 @@ export interface ServiceInfo {
   isLock?: boolean;
   currentAccountInfo: CurrentAccountInfo;
   chainRegistry: Record<string, ChainRegistry>;
-  customErc721Registry: CustomEvmToken[];
+  customNftRegistry: CustomToken[];
 }
 
 export enum ApiInitStatus {
@@ -166,8 +166,10 @@ export interface NftItem {
   description?: string;
   properties?: Record<any, any> | null;
   chain?: string;
+  type?: CustomTokenType.erc721 | CustomTokenType.psp34 | RMRK_VER; // for sending
   rmrk_ver?: RMRK_VER;
   owner?: string;
+  onChainOption?: any; // for sending PSP-34 tokens, should be done better
 }
 
 export interface NftCollection {
@@ -267,6 +269,7 @@ export interface ApiProps extends ApiState {
   isApiReadyOnce: boolean;
   isApiConnected: boolean;
   isEthereum: boolean;
+  isEthereumOnly: boolean;
   isApiInitialized: boolean;
   isReady: Promise<ApiProps>;
   apiRetry?: number;
@@ -291,14 +294,19 @@ export interface NetWorkInfo {
   decimals?: number;
 }
 
+export enum ContractType {
+  wasm = 'wasm',
+  evm = 'evm'
+}
+
 export interface NetworkJson {
-  // General Informations
+  // General Information
   key: string; // Key of network in NetworkMap
   chain: string; // Name of the network
   icon?: string; // Icon name, available with known network
   active: boolean; // Network is active or not
 
-  // Provider Informations
+  // Provider Information
   providers: Record<string, string>; // Predefined provider map
   currentProvider: string; // Current provider key
   currentProviderMode: 'http' | 'ws'; // Current provider mode, compute depend on provider protocol. the feature need to know this to decide use subscribe or cronjob to use this features.
@@ -313,7 +321,7 @@ export interface NetworkJson {
   chainType?: 'substrate' | 'ethereum';
   crowdloanUrl?: string;
 
-  // Ethereum informations for predefine network only
+  // Ethereum related information for predefined network only
   isEthereum?: boolean; // Only show network with isEthereum=true when select one EVM account // user input
   evmChainId?: number;
 
@@ -323,13 +331,14 @@ export interface NetworkJson {
   nativeToken?: string;
   decimals?: number;
 
-  // Other informations
+  // Other information
   coinGeckoKey?: string; // Provider key to get token price from CoinGecko // user input
   blockExplorer?: string; // Link to block scanner to check transaction with extrinsic hash // user input
   abiExplorer?: string; // Link to block scanner to check transaction with extrinsic hash // user input
   dependencies?: string[]; // Auto active network in dependencies if current network is activated
   getStakingOnChain?: boolean; // support get bonded on chain
   supportBonding?: boolean;
+  supportSmartContract?: ContractType[]; // if network supports PSP smart contracts
 
   apiStatus?: NETWORK_STATUS;
   requestId?: string;
@@ -381,13 +390,15 @@ export type TokenInfo = {
   isMainToken: boolean,
   symbol: string,
   symbolAlt?: string, // Alternate display for symbol
-  erc20Address?: string,
-  assetIndex?: number | string,
+  contractAddress?: string,
+  type?: CustomTokenType, // to differentiate custom tokens from native tokens
   decimals: number,
   name: string,
   coinGeckoKey?: string,
+  // TODO: unify specialOption, assetId, assetIndex
   specialOption?: object,
-  assetId?: string // for moon assets
+  assetId?: string, // for moon assets
+  assetIndex?: number | string,
 }
 
 // all Accounts and the address of the current Account
@@ -474,6 +485,18 @@ export interface RequestAccountExportPrivateKey {
 
 export interface ResponseAccountExportPrivateKey {
   privateKey: string;
+  publicKey: string;
+}
+
+export interface RequestCheckPublicAndSecretKey {
+  secretKey: string;
+  publicKey: string;
+}
+
+export interface ResponseCheckPublicAndSecretKey {
+  address: string;
+  isValid: boolean;
+  isEthereum: boolean;
 }
 
 export interface RequestSeedCreateV2 {
@@ -711,7 +734,7 @@ export interface ResponseTransferLedger extends ResponseTransferExternal{
   ledgerState?: LedgerState;
 }
 
-export interface EvmNftTransactionRequest {
+export interface NftTransactionRequest {
   networkKey: string,
   senderAddress: string,
   recipientAddress: string,
@@ -764,40 +787,52 @@ export interface DisableNetworkResponse {
   activeNetworkCount?: number
 }
 
-export interface CustomEvmToken {
-  name?: string,
+export enum CustomTokenType {
+  erc20 = 'erc20',
+  erc721 = 'erc721',
+  psp22 = 'psp22',
+  psp34 = 'psp34'
+}
+
+export interface CustomToken { // general interface for all kinds of tokens
   smartContract: string,
+  chain: string,
+  type: CustomTokenType,
+
+  name?: string,
   symbol?: string,
   decimals?: number,
-  chain: string,
-  type: 'erc20' | 'erc721',
   isCustom?: boolean,
   isDeleted?: boolean,
   image?: string
 }
 
-export interface EvmTokenJson {
-  erc20: CustomEvmToken[],
-  erc721: CustomEvmToken[]
+export interface CustomTokenJson {
+  [CustomTokenType.erc20]: CustomToken[],
+  [CustomTokenType.erc721]: CustomToken[],
+  [CustomTokenType.psp22]: CustomToken[],
+  [CustomTokenType.psp34]: CustomToken[]
 }
 
-export interface DeleteEvmTokenParams {
+export interface DeleteCustomTokenParams {
   smartContract: string,
   chain: string,
-  type: 'erc20' | 'erc721'
+  type: CustomTokenType
 }
 
-export interface ValidateEvmTokenRequest {
+export interface ValidateCustomTokenRequest {
   smartContract: string,
   chain: string,
-  type: 'erc20' | 'erc721'
+  type: CustomTokenType,
+  contractCaller?: string
 }
 
-export interface ValidateEvmTokenResponse {
+export interface ValidateCustomTokenResponse {
   name: string,
   symbol: string,
   decimals?: number,
-  isExist: boolean
+  isExist: boolean,
+  contractError: boolean
 }
 
 export interface SupportTransferResponse {
@@ -828,13 +863,6 @@ export interface RequestTransferExistentialDeposit {
 
 export interface RequestSaveRecentAccount {
   accountId: string;
-}
-
-export interface SubstrateNftTransactionRequest {
-  params: Record<string, any>;
-  senderAddress: string;
-  recipientAddress: string;
-  networkKey: string;
 }
 
 export interface SubstrateNftTransaction {
@@ -918,6 +946,20 @@ export enum AccountExternalErrorCode {
 export interface AccountExternalError{
   code: AccountExternalErrorCode;
   message: string;
+}
+
+export interface RequestAccountCreateWithSecretKey {
+  publicKey: string;
+  secretKey: string;
+  password: string;
+  name: string;
+  isAllow: boolean;
+  isEthereum: boolean;
+}
+
+export interface ResponseAccountCreateWithSecretKey {
+  errors: AccountExternalError[];
+  success: boolean;
 }
 
 export type RequestEvmEvents = null;
@@ -1022,7 +1064,7 @@ export interface EvmSignatureRequestQr extends EvmSignatureRequest, EvmRequestQr
 
 export interface ConfirmationDefinitions {
   addNetworkRequest: [ConfirmationsQueueItem<NetworkJson>, ConfirmationResult<NetworkJson>],
-  addTokenRequest: [ConfirmationsQueueItem<CustomEvmToken>, ConfirmationResult<boolean>],
+  addTokenRequest: [ConfirmationsQueueItem<CustomToken>, ConfirmationResult<boolean>],
   switchNetworkRequest: [ConfirmationsQueueItem<SwitchNetworkRequest>, ConfirmationResult<boolean>],
   evmSignatureRequest: [ConfirmationsQueueItem<EvmSignatureRequest>, ConfirmationResult<string>],
   evmSignatureRequestQr: [ConfirmationsQueueItem<EvmSignatureRequestQr>, ConfirmationResultQr<string>],
@@ -1319,7 +1361,7 @@ export interface TuringStakeCompoundResp {
 
 export interface TransakNetwork {
   networks: string[];
-  tokens: string[];
+  tokens?: string[];
 }
 
 export interface CheckExistingTuringCompoundParams {
@@ -1343,6 +1385,7 @@ export interface TuringCancelStakeCompoundParams {
 }
 
 export interface KoniRequestSignatures {
+  // Bonding functions
   'pri(staking.submitTuringCancelCompound)': [TuringCancelStakeCompoundParams, BasicTxResponse, BasicTxResponse];
   'pri(staking.turingCancelCompound)': [TuringCancelStakeCompoundParams, BasicTxInfo];
   'pri(staking.checkTuringCompoundTask)': [CheckExistingTuringCompoundParams, ExistingTuringCompoundTask];
@@ -1360,9 +1403,9 @@ export interface KoniRequestSignatures {
   'pri(bonding.submitTransaction)': [BondingSubmitParams, BasicTxResponse, BasicTxResponse];
   'pri(bonding.getChainBondingBasics)': [NetworkJson[], Record<string, ChainBondingBasics>, Record<string, ChainBondingBasics>];
   'pri(bonding.getBondingOptions)': [BondingOptionParams, BondingOptionInfo];
+
+  // Network, APIs, Custom tokens functions
   'pri(networkMap.recoverDotSama)': [string, boolean];
-  'pri(substrateNft.submitTransaction)': [SubstrateNftSubmitTransaction, NftTransactionResponse, NftTransactionResponse]
-  'pri(substrateNft.getTransaction)': [SubstrateNftTransactionRequest, SubstrateNftTransaction];
   'pri(networkMap.disableAll)': [null, boolean];
   'pri(networkMap.enableAll)': [null, boolean];
   'pri(networkMap.resetDefault)': [null, boolean];
@@ -1375,31 +1418,42 @@ export interface KoniRequestSignatures {
   'pri(networkMap.upsert)': [NetworkJson, boolean];
   'pri(networkMap.getNetworkMap)': [null, Record<string, NetworkJson>];
   'pri(networkMap.getSubscription)': [null, Record<string, NetworkJson>, Record<string, NetworkJson>];
-  'pri(evmTokenState.validateEvmToken)': [ValidateEvmTokenRequest, ValidateEvmTokenResponse];
-  'pri(evmTokenState.deleteMany)': [DeleteEvmTokenParams[], boolean];
-  'pri(evmTokenState.upsertEvmTokenState)': [CustomEvmToken, boolean];
-  'pri(evmTokenState.getEvmTokenState)': [null, EvmTokenJson];
-  'pri(evmTokenState.getSubscription)': [null, EvmTokenJson, EvmTokenJson];
+  'pri(customTokenState.validateCustomToken)': [ValidateCustomTokenRequest, ValidateCustomTokenResponse];
+  'pri(customTokenState.deleteMany)': [DeleteCustomTokenParams[], boolean];
+  'pri(customTokenState.upsertCustomTokenState)': [CustomToken, boolean];
+  'pri(customTokenState.getCustomTokenState)': [null, CustomTokenJson];
+  'pri(customTokenState.getSubscription)': [null, CustomTokenJson, CustomTokenJson];
+
+  // NFT functions
   'pri(evmNft.submitTransaction)': [EvmNftSubmitTransaction, NftTransactionResponse, NftTransactionResponse];
-  'pri(evmNft.getTransaction)': [EvmNftTransactionRequest, EvmNftTransaction];
+  'pri(evmNft.getTransaction)': [NftTransactionRequest, EvmNftTransaction];
+  'pri(substrateNft.submitTransaction)': [SubstrateNftSubmitTransaction, NftTransactionResponse, NftTransactionResponse];
+  'pri(substrateNft.getTransaction)': [NftTransactionRequest, SubstrateNftTransaction];
   'pri(nftTransfer.setNftTransfer)': [NftTransferExtra, boolean];
   'pri(nftTransfer.getNftTransfer)': [null, NftTransferExtra];
   'pri(nftTransfer.getSubscription)': [null, NftTransferExtra, NftTransferExtra];
   'pri(nft.forceUpdate)': [RequestNftForceUpdate, boolean];
-  'pri(staking.getStaking)': [null, StakingJson];
-  'pri(staking.getSubscription)': [RequestSubscribeStaking, StakingJson, StakingJson];
-  'pri(stakingReward.getStakingReward)': [null, StakingRewardJson];
-  'pri(stakingReward.getSubscription)': [RequestSubscribeStakingReward, StakingRewardJson, StakingRewardJson];
   'pri(nft.getNft)': [null, NftJson];
   'pri(nft.getSubscription)': [RequestSubscribeNft, NftJson, NftJson];
   'pri(nftCollection.getNftCollection)': [null, NftCollectionJson];
   'pri(nftCollection.getSubscription)': [null, NftCollection[], NftCollection[]];
+  'pri(wasmNft.getTransaction)': [NftTransactionRequest, SubstrateNftTransaction];
+
+  // Staking functions
+  'pri(staking.getStaking)': [null, StakingJson];
+  'pri(staking.getSubscription)': [RequestSubscribeStaking, StakingJson, StakingJson];
+  'pri(stakingReward.getStakingReward)': [null, StakingRewardJson];
+  'pri(stakingReward.getSubscription)': [RequestSubscribeStakingReward, StakingRewardJson, StakingRewardJson];
+
+  // Price, balance, crowdloan functions
   'pri(price.getPrice)': [RequestPrice, PriceJson];
   'pri(price.getSubscription)': [RequestSubscribePrice, PriceJson, PriceJson];
   'pri(balance.getBalance)': [RequestBalance, BalanceJson];
   'pri(balance.getSubscription)': [RequestSubscribeBalance, BalanceJson, BalanceJson];
   'pri(crowdloan.getCrowdloan)': [RequestCrowdloan, CrowdloanJson];
   'pri(crowdloan.getSubscription)': [RequestSubscribeCrowdloan, CrowdloanJson, CrowdloanJson];
+
+  // Auth
   'pri(authorize.listV2)': [null, ResponseAuthorizeList];
   'pri(authorize.requestsV2)': [RequestAuthorizeSubscribe, boolean, AuthorizeRequest[]];
   'pri(authorize.approveV2)': [RequestAuthorizeApproveV2, boolean];
@@ -1412,12 +1466,15 @@ export interface KoniRequestSignatures {
   'pri(authorize.forgetAllSite)': [null, boolean, AuthUrls];
   'pri(authorize.rejectV2)': [RequestAuthorizeReject, boolean];
   'pri(authorize.cancelV2)': [RequestAuthorizeCancel, boolean];
+
+  // Account management
   'pri(seed.createV2)': [RequestSeedCreateV2, ResponseSeedCreateV2];
   'pri(seed.validateV2)': [RequestSeedValidateV2, ResponseSeedValidateV2];
   'pri(privateKey.validateV2)': [RequestSeedValidateV2, ResponsePrivateKeyValidateV2];
   'pri(accounts.create.suriV2)': [RequestAccountCreateSuriV2, ResponseAccountCreateSuriV2];
   'pri(accounts.create.externalV2)': [RequestAccountCreateExternalV2, AccountExternalError[]];
   'pri(accounts.create.hardwareV2)': [RequestAccountCreateHardwareV2, boolean];
+  'pri(accounts.create.withSecret)': [RequestAccountCreateWithSecretKey, ResponseAccountCreateWithSecretKey];
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ResponseCheckTransfer];
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ResponseCheckCrossChainTransfer];
   'pri(accounts.transfer)': [RequestTransfer, Array<TransferError>, ResponseTransfer];
@@ -1426,16 +1483,21 @@ export interface KoniRequestSignatures {
   'pri(json.restoreV2)': [RequestJsonRestoreV2, void];
   'pri(json.batchRestoreV2)': [RequestBatchRestoreV2, void];
   'pri(accounts.exportPrivateKey)': [RequestAccountExportPrivateKey, ResponseAccountExportPrivateKey];
+  'pri(accounts.checkPublicAndSecretKey)': [RequestCheckPublicAndSecretKey, ResponseCheckPublicAndSecretKey];
   'pri(accounts.subscribeWithCurrentAddress)': [RequestAccountSubscribe, boolean, AccountsWithCurrentAddress];
   'pri(accounts.subscribeAccountsInputAddress)': [RequestAccountSubscribe, string, OptionInputAddress];
   'pri(accounts.saveRecent)': [RequestSaveRecentAccount, SingleAddress];
   'pri(accounts.triggerSubscription)': [null, boolean];
   'pri(accounts.get.meta)': [RequestAccountMeta, ResponseAccountMeta];
   'pri(currentAccount.saveAddress)': [RequestCurrentAccountAddress, boolean, CurrentAccountInfo];
+
+  // Settings
   'pri(settings.changeBalancesVisibility)': [null, boolean, ResponseSettingsType];
   'pri(settings.subscribe)': [null, ResponseSettingsType, ResponseSettingsType];
   'pri(settings.saveAccountAllLogo)': [string, boolean, ResponseSettingsType];
   'pri(settings.saveTheme)': [ThemeTypes, boolean, ResponseSettingsType];
+
+  // Subscription
   'pri(chainRegistry.getSubscription)': [null, Record<string, ChainRegistry>, Record<string, ChainRegistry>];
   'pri(transaction.history.getSubscription)': [null, Record<string, TransactionHistoryItemType[]>, Record<string, TransactionHistoryItemType[]>];
   'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItemType[]];

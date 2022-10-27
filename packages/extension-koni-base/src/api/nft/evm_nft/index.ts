@@ -1,18 +1,17 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CustomEvmToken, NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
+import { CustomToken, CustomTokenType, NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
 import { getRandomIpfsGateway } from '@subwallet/extension-koni-base/api/nft/config';
 import { BaseNftApi, HandleNftParams } from '@subwallet/extension-koni-base/api/nft/nft';
-import { ERC721Contract } from '@subwallet/extension-koni-base/api/web3/web3';
+import { ERC721Contract } from '@subwallet/extension-koni-base/api/tokens/evm/web3';
 import { isUrl } from '@subwallet/extension-koni-base/utils';
 import Web3 from 'web3';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
-export class Web3NftApi extends BaseNftApi {
-  isConnected = false;
-  evmContracts: CustomEvmToken[] = [];
+export class EvmNftApi extends BaseNftApi {
+  evmContracts: CustomToken[] = [];
 
   constructor (web3: Web3 | null, addresses: string[], chain: string) {
     super(chain, undefined, addresses);
@@ -21,7 +20,7 @@ export class Web3NftApi extends BaseNftApi {
     this.isEthereum = true;
   }
 
-  setEvmContracts (evmContracts: CustomEvmToken[]) {
+  setEvmContracts (evmContracts: CustomToken[]) {
     this.evmContracts = evmContracts;
   }
 
@@ -140,6 +139,7 @@ export class Web3NftApi extends BaseNftApi {
               parsedItem.collectionId = smartContract;
               parsedItem.id = nftId;
               parsedItem.owner = address;
+              parsedItem.type = CustomTokenType.erc721;
 
               if (parsedItem) {
                 if (parsedItem.image) {

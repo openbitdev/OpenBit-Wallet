@@ -30,16 +30,16 @@ async function retrieve (registry: Registry, api: ApiPromise): Promise<ChainData
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const [systemChain, systemChainType, systemName, systemVersion] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-    api.rpc.system.chain(),
+    api.rpc.system?.chain(),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    api.rpc.system.chainType
+    api.rpc.system?.chainType
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-      ? api.rpc.system.chainType()
+      ? api.rpc.system?.chainType()
       : Promise.resolve(registry.createType('ChainType', 'Live')),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-    api.rpc.system.name(),
+    api.rpc.system?.name(),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-    api.rpc.system.version()
+    api.rpc.system?.version()
   ]);
 
   return {
@@ -116,7 +116,48 @@ async function loadOnReady (registry: Registry, api: ApiPromise): Promise<ApiSta
 //   }
 // }
 
+function generateEvmHttpApi (apiUrl: string): ApiProps {
+  const registry = new TypeRegistry();
+
+  return ({
+    api: new Proxy({}, {
+      get (target, prop, receiver) {
+        console.debug('Access virtual API', target, prop, receiver);
+      }
+    }),
+    apiDefaultTx: undefined,
+    apiDefaultTxSudo: undefined,
+    apiError: undefined,
+    apiUrl,
+    defaultFormatBalance: undefined,
+    isApiConnected: true,
+    isApiReadyOnce: true,
+    isApiInitialized: true,
+    isApiReady: true,
+    isEthereum: true,
+    isEthereumOnly: true,
+    registry,
+    specName: '',
+    specVersion: '',
+    systemChain: '',
+    systemName: '',
+    systemVersion: '',
+    apiRetry: 0,
+    recoverConnect: () => {
+      console.log('Reconnect http API', apiUrl);
+    },
+    get isReady () {
+      return Promise.resolve(this);
+    }
+  }) as unknown as ApiProps;
+}
+
 export function initApi (networkKey: string, apiUrl: string, isEthereum?: boolean): ApiProps {
+  if (isEthereum && apiUrl.startsWith('http')) {
+    // return EVM HTTP Placeholder
+    return generateEvmHttpApi(apiUrl);
+  }
+
   const registry = new TypeRegistry();
 
   // TODO: Implement light client for MV3
@@ -155,6 +196,7 @@ export function initApi (networkKey: string, apiUrl: string, isEthereum?: boolea
     isApiInitialized: true,
     isApiReady: false,
     isEthereum,
+    isEthereumOnly: false,
     registry,
     specName: '',
     specVersion: '',
