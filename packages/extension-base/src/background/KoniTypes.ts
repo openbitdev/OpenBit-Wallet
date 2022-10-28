@@ -1550,6 +1550,7 @@ export interface KoniRequestSignatures {
   'pri(authorize.subscribe)': [null, AuthUrls, AuthUrls];
 
   // Mobile
+  'mobile(ping)': [null, string];
   'mobile(cronAndSubscription.init)': [RequestInitCronAndSubscription, ActiveCronAndSubscriptionMap];
   'mobile(cronAndSubscription.activeService.subscribe)': [null, ActiveCronAndSubscriptionMap, ActiveCronAndSubscriptionMap];
   'mobile(cronAndSubscription.start)': [RequestCronAndSubscriptionAction, void];

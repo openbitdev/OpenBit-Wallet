@@ -27,6 +27,10 @@ export default class Mobile {
     this.state.createUnsubscriptionHandle(id, unsubscribe);
   }
 
+  public ping (): string {
+    return 'mobile:ping';
+  }
+
   public initCronAndSubscription (
     { cron: { activeServices: activeCronServices, intervalMap: cronIntervalMap },
       subscription: { activeServices: activeSubscriptionServices } }: RequestInitCronAndSubscription): ActiveCronAndSubscriptionMap {
@@ -163,6 +167,8 @@ export default class Mobile {
     request: RequestTypes[TMessageType],
     port: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
     switch (type) {
+      case 'mobile(ping)':
+        return this.ping();
       case 'mobile(cronAndSubscription.init)':
         return this.initCronAndSubscription(request as RequestInitCronAndSubscription);
       case 'mobile(cronAndSubscription.activeService.subscribe)':
