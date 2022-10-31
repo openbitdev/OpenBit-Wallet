@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomEvmToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
 import { getAllSubsquidStaking } from '@subwallet/extension-koni-base/api/staking/subsquidStaking';
@@ -101,8 +101,9 @@ export default class WebRunnerCron {
     addresses: string[],
     dotSamaApiMap: Record<string, ApiProps>,
     web3ApiMap: Record<string, Web3>,
-    customErc721Registry:
-    CustomEvmToken[]) => {
+    customNftRegistry: CustomToken[],
+    contractSupportedNetworkMap: Record<string, NetworkJson>
+  ) => {
     const { cronUpdate, forceUpdate, selectedNftCollection } = this.state.getNftTransfer();
 
     if (forceUpdate && !cronUpdate) {
@@ -118,11 +119,12 @@ export default class WebRunnerCron {
         forceUpdate: false,
         selectedNftCollection
       } as NftTransferExtra);
-      nftHandler.setApiProps(dotSamaApiMap);
-      nftHandler.setWeb3ApiMap(web3ApiMap);
+
+      nftHandler.setContractSupportedNetworkMap(contractSupportedNetworkMap);
+      nftHandler.setDotSamaApiMap(dotSamaApiMap);
       nftHandler.setAddresses(addresses);
       nftHandler.handleNfts(
-        customErc721Registry,
+        customNftRegistry,
         (...args) => this.state.updateNftData(...args),
         (...args) => this.state.setNftCollection(...args),
         (...args) => this.state.updateNftIds(...args),
@@ -134,7 +136,7 @@ export default class WebRunnerCron {
     }
   };
 
-  private refreshNft = (address: string, apiMap: ApiMap, customErc721Registry: CustomEvmToken[]) => {
+  private refreshNft = (address: string, apiMap: ApiMap, customNftRegistry: CustomToken[], contractSupportedNetworkMap: Record<string, NetworkJson>) => {
     return () => {
       this.logger.log('Refresh Nft state');
       this.state.getDecodedAddresses(address)
@@ -143,7 +145,7 @@ export default class WebRunnerCron {
             return;
           }
 
-          this.nftHandle(addresses, apiMap.dotSama, apiMap.web3, customErc721Registry);
+          this.nftHandle(addresses, apiMap.dotSama, apiMap.web3, customNftRegistry, contractSupportedNetworkMap);
         })
         .catch(this.logger.warn);
     };
@@ -329,6 +331,18 @@ export default class WebRunnerCron {
     }
   };
 
+  private getActiveContractSupportedNetworks = (networkMap: Record<string, NetworkJson>): Record<string, NetworkJson> => {
+    const contractSupportedNetworkMap: Record<string, NetworkJson> = {};
+
+    Object.entries(networkMap).forEach(([key, network]) => {
+      if (network.active && network.supportSmartContract && network.supportSmartContract.length > 0) {
+        contractSupportedNetworkMap[key] = network;
+      }
+    });
+
+    return contractSupportedNetworkMap;
+  };
+
   private addCron = (name: CronType, callback: () => void, interval: number, runFirst = true) => {
     if (runFirst) {
       callback();
@@ -417,7 +431,8 @@ export default class WebRunnerCron {
           this.addCron('refreshNft',
             this.refreshNft(currentAccountInfo.address,
               this.state.getApiMap(),
-              this.state.getActiveErc721Tokens()),
+              this.state.getActiveNftContracts(),
+              this.state.getActiveContractSupportedNetworks()),
             this.intervalMap.refreshNft);
         },
         (serviceInfo) => {
@@ -427,7 +442,10 @@ export default class WebRunnerCron {
           this.resetNftTransferMeta();
           this.removeCron('refreshNft');
           this.addCron('refreshNft',
-            this.refreshNft(address, serviceInfo.apiMap, serviceInfo.customErc721Registry),
+            this.refreshNft(address,
+              serviceInfo.apiMap,
+              serviceInfo.customNftRegistry,
+              this.getActiveContractSupportedNetworks(serviceInfo.networkMap)),
             this.intervalMap.refreshNft);
         }
       );
