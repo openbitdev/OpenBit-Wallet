@@ -17,7 +17,7 @@ export const state = new KoniState();
 export const mobile = new Mobile(state);
 export const extension = new KoniExtension(state);
 export const tabs = new KoniTabs(state);
-export const nftHandler = new NftHandler(state.getDotSamaApiMap(), [], state.getWeb3ApiMap());
+export const nftHandler = new NftHandler();
 
 // Migration
 async function makeSureStateReady () {
