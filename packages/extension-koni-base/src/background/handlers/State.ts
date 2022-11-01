@@ -359,6 +359,7 @@ export default class KoniState extends State {
         : confirmCount > 0 ? confirmCount.toString() : ''
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     withErrorLog(() => isManifestV3() ? chrome.action.setBadgeText({ text }) : chrome.browserAction.setBadgeText({ text }));
 
     if (shouldClose && text === '') {
@@ -695,7 +696,9 @@ export default class KoniState extends State {
   }
 
   public updateCollectionIds (chain: string, address: string, collectionIds: string[] = []): void {
-    this.dbService.deleteNftsFromRemovedCollection(this.getNetworkGenesisHashByKey(chain), address, collectionIds);
+    this.dbService.deleteNftsFromRemovedCollection(this.getNetworkGenesisHashByKey(chain), address, collectionIds)
+      .then()
+      .catch(console.error);
   }
 
   public async getNft (): Promise<NftJson | undefined> {
