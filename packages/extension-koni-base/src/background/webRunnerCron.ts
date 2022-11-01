@@ -510,23 +510,23 @@ export default class WebRunnerCron {
     }
   };
 
-  public stopService = (ServiceType: CronServiceType, isEmitActiveServiceMap?: boolean) => {
-    if (!this.activeServiceMap[ServiceType]) {
-      this.logger.log(`Ignore stopService, cron service "${ServiceType}" is not active`);
+  public stopService = (serviceType: CronServiceType, isEmitActiveServiceMap?: boolean) => {
+    if (!this.activeServiceMap[serviceType]) {
+      this.logger.log(`Ignore stopService, cron service "${serviceType}" is not active`);
 
       return;
     }
 
-    if (this.serviceInfoSubscriptionMap[ServiceType]) {
-      this.serviceInfoSubscriptionMap[ServiceType]?.unsubscribe();
-      this.serviceInfoSubscriptionMap[ServiceType] = undefined;
+    if (this.serviceInfoSubscriptionMap[serviceType]) {
+      this.serviceInfoSubscriptionMap[serviceType]?.unsubscribe();
+      this.serviceInfoSubscriptionMap[serviceType] = undefined;
     }
 
-    cronServiceRelationMap[ServiceType].forEach((cronType) => {
+    cronServiceRelationMap[serviceType].forEach((cronType) => {
       this.removeCron(cronType);
     });
 
-    this.activeServiceMap[ServiceType] = false;
+    this.activeServiceMap[serviceType] = false;
 
     if (isEmitActiveServiceMap) {
       this.activeServiceMapSubject.next(this.activeServiceMap);
