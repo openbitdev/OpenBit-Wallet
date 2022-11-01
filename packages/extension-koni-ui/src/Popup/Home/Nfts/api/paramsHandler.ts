@@ -1,8 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetworkJson, NftItem } from '@subwallet/extension-base/background/KoniTypes';
-import { SUPPORTED_TRANSFER_CHAIN_NAME } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/types';
+import { CustomTokenType, NftItem } from '@subwallet/extension-base/background/KoniTypes';
+import { SUPPORTED_TRANSFER_CHAIN_NAME } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 
 const RMRK_PREFIX = 'RMRK';
 const RMRK_OP_TYPE = 'SEND';
@@ -14,7 +14,7 @@ function acalaParser (nftItem: NftItem) {
   return {
     collectionId,
     itemId,
-    networkKey: SUPPORTED_TRANSFER_CHAIN_NAME.acala
+    networkKey: nftItem.chain
   };
 }
 
@@ -28,7 +28,7 @@ function rmrkParser (nftItem: NftItem) {
 
   return {
     remark,
-    networkKey: SUPPORTED_TRANSFER_CHAIN_NAME.kusama
+    networkKey: nftItem.chain
   };
 }
 
@@ -39,7 +39,7 @@ function uniqueParser (nftItem: NftItem) {
   return {
     collectionId,
     itemId,
-    networkKey: SUPPORTED_TRANSFER_CHAIN_NAME.unique_network
+    networkKey: nftItem.chain
   };
 }
 
@@ -50,7 +50,7 @@ function statemineParser (nftItem: NftItem) {
   return {
     collectionId,
     itemId,
-    networkKey: SUPPORTED_TRANSFER_CHAIN_NAME.statemine
+    networkKey: nftItem.chain
   };
 }
 
@@ -64,9 +64,23 @@ function web3Parser (nftItem: NftItem) {
   };
 }
 
-export default function paramsHandler (nftItem: NftItem, networkKey: string, networkJson: NetworkJson) {
-  if (networkJson.isEthereum && networkJson.isEthereum) {
+function psp34Parser (nftItem: NftItem) {
+  const contractAddress = nftItem.collectionId as string;
+  const onChainOption = nftItem.onChainOption as Record<string, string>;
+
+  return {
+    contractAddress,
+    onChainOption,
+    isPsp34: true,
+    networkKey: nftItem.chain
+  };
+}
+
+export default function paramsHandler (nftItem: NftItem, networkKey: string) {
+  if (nftItem.type === CustomTokenType.erc721) {
     return web3Parser(nftItem);
+  } else if (nftItem.type === CustomTokenType.psp34) {
+    return psp34Parser(nftItem);
   } else {
     switch (networkKey) {
       case SUPPORTED_TRANSFER_CHAIN_NAME.acala:

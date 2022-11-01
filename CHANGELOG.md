@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## 0.6.8 (Koni)
+Build date: Oct 31, 2022.
+
+Update:
+- Support sending PSP tokens (#742)
+- Support transfer and XCM for Statemine/Statemint (#684)
+- Keystone - adding brand name (#752)
+
+Bug fixes:
+- Update the "expected return" to staking for some chain (#719)
+- Infinite load when stake/unstake in the following cases (#724)
+- Issue sending Bit.Country NFT and displaying BIT token (#747)
+- Unable to send NFT with QR Account in case of network not selected (#759)
+
+## 0.6.7 (Koni)
+Build date: Oct 22, 2022.
+
+Update:
+- Support token import for PSP-22 and PSP-34 (#477)
+- Add USDT on Polkadot (#679)
+- Enable xcm transfer for Acala chain (#695)
+- Update provider URL for some chains (#697)
+- Support export account via QR (#709)
+- Support Ethereum and Binance Smart Chain (#426)
+- Support on-ramp for Binance & Etheneum network (#736)
+- Support Snow Parachain (#734)
+
+Bug fixes:
+- Still shows deleted NFTs (#497)
+- Some errors occurred when updating the caching mechanism (#583)
+- Do not show crowdloan status (#705)
+- An error occurs when a user deletes tokens in case the tokens to be deleted have the same address contract (#714)
+- Can't unstake, withdraw on parachain when using a QR signer account (#717)
+
 ## 0.6.6 (Koni)
 Build date: Sep 30, 2022.
 

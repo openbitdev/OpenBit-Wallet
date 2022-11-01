@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
+import { ContractType, NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
 
 export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
   polkadot: {
@@ -15,8 +15,10 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       OnFinality: 'wss://polkadot.api.onfinality.io/public-ws',
       // 'Geometry Labs': 'wss://polkadot.geometry.io/websockets', // https://github.com/polkadot-js/apps/pull/6746
       Dwellir: 'wss://polkadot-rpc.dwellir.com',
-      'light client': 'light://substrate-connect/polkadot'
-      // Pinknode: 'wss://rpc.pinknode.io/polkadot/explorer' // https://github.com/polkadot-js/apps/issues/5721
+      'light client': 'light://substrate-connect/polkadot',
+      RadiumBlock: 'wss://polkadot.public.curie.radiumblock.io/ws',
+      '1RPC': 'wss://1rpc.io/dot',
+      Pinknode: 'wss://public-rpc.pinknode.io/polkadot' // https://github.com/polkadot-js/apps/issues/5721
     },
     active: true,
     currentProvider: 'Parity',
@@ -39,8 +41,10 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       OnFinality: 'wss://kusama.api.onfinality.io/public-ws',
       // 'Geometry Labs': 'wss://kusama.geometry.io/websockets', // https://github.com/polkadot-js/apps/pull/6746
       Dwellir: 'wss://kusama-rpc.dwellir.com',
-      'light client': 'light://substrate-connect/kusama'
-      // Pinknode: 'wss://rpc.pinknode.io/kusama/explorer' // https://github.com/polkadot-js/apps/issues/5721
+      'light client': 'light://substrate-connect/kusama',
+      Pinknode: 'wss://public-rpc.pinknode.io/kusama',
+      RadiumBlock: 'wss://kusama.public.curie.radiumblock.xyz/ws',
+      '1RPC': 'wss://1rpc.io/ksm'
     },
     active: true,
     currentProvider: 'Parity',
@@ -102,15 +106,18 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     providers: {
       Parity: 'wss://statemint-rpc.polkadot.io',
       OnFinality: 'wss://statemint.api.onfinality.io/public-ws',
-      Dwellir: 'wss://statemint-rpc.dwellir.com'
+      Dwellir: 'wss://statemint-rpc.dwellir.com',
+      PinkNode: 'wss://public-rpc.pinknode.io/statemint',
+      RadiumBlock: 'wss://statemint.public.curie.radiumblock.xyz/ws'
     },
     active: false,
-    currentProvider: 'Dwellir',
+    currentProvider: 'Parity',
     currentProviderMode: 'ws',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 1000,
-    nativeToken: 'KSM',
-    decimals: 10
+    nativeToken: 'DOT',
+    decimals: 10,
+    coinGeckoKey: 'polkadot'
   },
   pioneer: {
     key: 'pioneer',
@@ -151,7 +158,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 1,
     supportBonding: false,
     getStakingOnChain: false,
-    abiExplorer: 'https://etherscan.io'
+    abiExplorer: 'https://etherscan.io',
+    supportSmartContract: [ContractType.evm]
   },
   ethereum_goerli: {
     key: 'ethereum_goerli',
@@ -173,7 +181,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 1,
     supportBonding: false,
     getStakingOnChain: false,
-    abiExplorer: 'https://goerli.etherscan.io'
+    abiExplorer: 'https://goerli.etherscan.io',
+    supportSmartContract: [ContractType.evm]
   },
   binance: {
     key: 'binance',
@@ -197,7 +206,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 56,
     supportBonding: false,
     getStakingOnChain: false,
-    abiExplorer: 'https://bscscan.com'
+    abiExplorer: 'https://bscscan.com',
+    supportSmartContract: [ContractType.evm]
   },
   binance_test: {
     key: 'binance_test',
@@ -218,7 +228,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 97,
     supportBonding: false,
     getStakingOnChain: false,
-    abiExplorer: 'https://testnet.bscscan.com'
+    abiExplorer: 'https://testnet.bscscan.com',
+    supportSmartContract: [ContractType.evm]
   },
   moonbeam: {
     key: 'moonbeam',
@@ -228,11 +239,14 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     providers: {
       'Moonbeam Foundation': 'wss://wss.api.moonbeam.network',
       OnFinality: 'wss://moonbeam.api.onfinality.io/public-ws',
-      Dwellir: 'wss://moonbeam-rpc.dwellir.com'
+      Dwellir: 'wss://moonbeam-rpc.dwellir.com',
+      '1rpc': 'wss://1rpc.io/glmr',
+      PinkNode: 'wss://public-rpc.pinknode.io/moonbeam',
+      Blast: 'wss://moonbeam.public.blastapi.io'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'Moonbeam Foundation',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2004,
     isEthereum: true,
@@ -243,7 +257,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 1284,
     supportBonding: true,
     getStakingOnChain: true,
-    abiExplorer: 'https://api-moonbeam.moonscan.io/api?module=contract&action=getabi'
+    abiExplorer: 'https://api-moonbeam.moonscan.io/api?module=contract&action=getabi',
+    supportSmartContract: [ContractType.evm]
   },
   astar: {
     key: 'astar',
@@ -254,11 +269,13 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       OnFinality: 'wss://astar.api.onfinality.io/public-ws',
       Dwellir: 'wss://astar-rpc.dwellir.com',
       Astar: 'wss://rpc.astar.network',
-      PinkNode: 'wss://public-rpc.pinknode.io/astar'
+      PinkNode: 'wss://public-rpc.pinknode.io/astar',
+      Blast: 'wss://astar.public.blastapi.io',
+      '1rpc': 'wss://1rpc.io/astr'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'Astar',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2006,
     nativeToken: 'ASTR',
@@ -266,7 +283,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 18,
     getStakingOnChain: true,
     supportBonding: true,
-    coinGeckoKey: 'astar'
+    coinGeckoKey: 'astar',
+    supportSmartContract: [ContractType.wasm]
   },
   astarEvm: {
     key: 'astarEvm',
@@ -277,7 +295,9 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       OnFinality: 'wss://astar.api.onfinality.io/public-ws',
       Dwellir: 'wss://astar-rpc.dwellir.com',
       Astar: 'wss://rpc.astar.network',
-      PinkNode: 'wss://public-rpc.pinknode.io/astar'
+      PinkNode: 'wss://public-rpc.pinknode.io/astar',
+      Blast: 'wss://astar.public.blastapi.io',
+      '1rpc': 'wss://1rpc.io/astr'
     },
     isEthereum: true,
     active: false,
@@ -289,7 +309,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 18,
     coinGeckoKey: 'astar',
     evmChainId: 592,
-    paraId: 2006
+    paraId: 2006,
+    supportSmartContract: [ContractType.evm]
   },
   acala: {
     key: 'acala',
@@ -307,7 +328,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'Acala Foundation 0',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2000,
     nativeToken: 'ACA',
@@ -371,7 +392,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'CLV',
     crowdloanUrl: 'https://lucky.clover.finance/?type=support',
     decimals: 18,
-    coinGeckoKey: 'clover-finance'
+    coinGeckoKey: 'clover-finance',
+    supportSmartContract: [ContractType.evm]
   },
   hydradx_main: {
     key: 'hydradx_main',
@@ -384,7 +406,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'Galactic Council',
     groups: ['POLKADOT_PARACHAIN'],
     paraId: 2034,
     nativeToken: 'HDX',
@@ -638,7 +660,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'TZERO',
     decimals: 12,
     getStakingOnChain: true,
-    supportBonding: true
+    supportBonding: true,
+    supportSmartContract: [ContractType.wasm]
   },
   opal: {
     key: 'opal',
@@ -680,7 +703,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 1287,
     supportBonding: true,
     getStakingOnChain: true,
-    paraId: 1000
+    paraId: 1000,
+    supportSmartContract: [ContractType.evm]
   },
   efinity: {
     key: 'efinity',
@@ -781,7 +805,9 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     providers: {
       Parity: 'wss://statemine-rpc.polkadot.io',
       OnFinality: 'wss://statemine.api.onfinality.io/public-ws',
-      Dwellir: 'wss://statemine-rpc.dwellir.com'
+      Dwellir: 'wss://statemine-rpc.dwellir.com',
+      RadiumBlock: 'wss://statemine.public.curie.radiumblock.xyz/ws',
+      PinkNode: 'wss://public-rpc.pinknode.io/statemine'
     },
     active: false,
     currentProviderMode: 'ws',
@@ -807,7 +833,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'Acala Foundation 2',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2000,
     nativeToken: 'KAR',
@@ -823,8 +849,9 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     providers: {
       'Moonbeam Foundation': 'wss://wss.api.moonriver.moonbeam.network',
       OnFinality: 'wss://moonriver.api.onfinality.io/public-ws',
-      Dwellir: 'wss://moonriver-rpc.dwellir.com'
-      // Pinknode: 'wss://rpc.pinknode.io/moonriver/explorer' // https://github.com/polkadot-js/apps/issues/7058
+      Dwellir: 'wss://moonriver-rpc.dwellir.com',
+      Blast: 'wss://moonriver.public.blastapi.io',
+      Pinknode: 'wss://public-rpc.pinknode.io/moonriver' // https://github.com/polkadot-js/apps/issues/7058
     },
     active: false,
     currentProviderMode: 'ws',
@@ -839,7 +866,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     evmChainId: 1285,
     supportBonding: true,
     getStakingOnChain: true,
-    abiExplorer: 'https://api-moonriver.moonscan.io/api?module=contract&action=getabi'
+    abiExplorer: 'https://api-moonriver.moonscan.io/api?module=contract&action=getabi',
+    supportSmartContract: [ContractType.evm]
   },
   shiden: {
     key: 'shiden',
@@ -850,17 +878,19 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
       StakeTechnologies: 'wss://rpc.shiden.astar.network',
       OnFinality: 'wss://shiden.api.onfinality.io/public-ws',
       Pinknode: 'wss://rpc.pinknode.io/shiden/explorer',
-      Dwellir: 'wss://shiden-rpc.dwellir.com'
+      Dwellir: 'wss://shiden-rpc.dwellir.com',
+      Blast: 'wss://shiden.public.blastapi.io'
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Pinknode',
+    currentProvider: 'StakeTechnologies',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2007,
     nativeToken: 'SDN',
     crowdloanUrl: 'https://polkadot.js.org/apps/#/parachains/crowdloan',
     decimals: 18,
-    coinGeckoKey: 'shiden'
+    coinGeckoKey: 'shiden',
+    supportSmartContract: [ContractType.wasm]
   },
   shidenEvm: {
     key: 'shidenEvm',
@@ -877,7 +907,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'SDN',
     evmChainId: 336,
     isEthereum: true,
-    paraId: 2007
+    paraId: 2007,
+    supportSmartContract: [ContractType.evm]
   },
   shibuya: {
     key: 'shibuya',
@@ -895,7 +926,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'SBY',
     decimals: 18,
     getStakingOnChain: true,
-    supportBonding: true
+    supportBonding: true,
+    supportSmartContract: [ContractType.wasm]
   },
   shibuyaEvm: {
     key: 'shibuyaEvm',
@@ -912,7 +944,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     groups: ['TEST_NET'],
     evmChainId: 81,
     nativeToken: 'SBY',
-    decimals: 18
+    decimals: 18,
+    supportSmartContract: [ContractType.evm]
   },
   khala: {
     key: 'khala',
@@ -1004,7 +1037,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'KILT Protocol',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2086,
     nativeToken: 'KILT',
@@ -1043,7 +1076,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'HydraDX',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2090,
     coinGeckoKey: 'basilisk',
@@ -1402,7 +1435,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     coinGeckoKey: 'darwinia-crab-network',
     isEthereum: true,
     evmChainId: 44,
-    blockExplorer: 'https://crab.subscan.io'
+    blockExplorer: 'https://crab.subscan.io',
+    supportSmartContract: [ContractType.evm]
   },
   pangolin: {
     key: 'pangolin',
@@ -1437,7 +1471,8 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 18,
     isEthereum: true,
     evmChainId: 43,
-    blockExplorer: 'https://pangolin.subscan.io'
+    blockExplorer: 'https://pangolin.subscan.io',
+    supportSmartContract: [ContractType.evm]
   },
   bitcountry: {
     key: 'bitcountry',
@@ -1733,7 +1768,7 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     },
     active: false,
     currentProviderMode: 'ws',
-    currentProvider: 'Dwellir',
+    currentProvider: 'AjunaNetwork',
     groups: ['KUSAMA_PARACHAIN'],
     paraId: 2119,
     nativeToken: 'BAJU',
@@ -1852,6 +1887,21 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     nativeToken: 'Unit',
     decimals: 12,
     groups: ['TEST_NET']
+  },
+  snow: {
+    key: 'snow',
+    chain: 'Snow Network',
+    genesisHash: '0xb34f6cd03a41f0fab38ba9fd5b11cce5f303633c46f39f0c6fdc7c3c602bafa9',
+    ss58Format: 2207,
+    providers: {
+      snow: 'wss://snow-rpc.icenetwork.io'
+    },
+    currentProvider: 'snow',
+    active: false,
+    currentProviderMode: 'ws',
+    nativeToken: 'ICZ',
+    decimals: 18,
+    groups: ['KUSAMA_PARACHAIN']
   },
   arctic_testnet: {
     key: 'arctic_testnet',
