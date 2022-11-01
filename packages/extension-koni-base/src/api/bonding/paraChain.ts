@@ -52,18 +52,15 @@ export async function getParaBondingBasics (networkKey: string, dotSamaApi: ApiP
     unvestedAllocation = parseRawNumber(rawUnvestedAllocation);
   }
 
-  const rawTotalStake = _totalStake.toHuman() as string;
-  const totalStake = parseRawNumber(rawTotalStake);
-
-  const rawTotalIssuance = _totalIssuance.toHuman() as string;
-  let totalIssuance = parseRawNumber(rawTotalIssuance);
+  const totalStake = new BN(_totalStake.toString());
+  const totalIssuance = new BN(_totalIssuance.toString());
 
   if (unvestedAllocation) {
-    totalIssuance += unvestedAllocation; // for Turing network, read more at https://hackmd.io/@sbAqOuXkRvyiZPOB3Ryn6Q/Sypr3ZJh5
+    totalIssuance.addn(unvestedAllocation); // for Turing network, read more at https://hackmd.io/@sbAqOuXkRvyiZPOB3Ryn6Q/Sypr3ZJh5
   }
 
   const inflationConfig = _inflation.toHuman() as unknown as InflationConfig;
-  const currentInflation = getParaCurrentInflation(totalStake, inflationConfig);
+  const currentInflation = getParaCurrentInflation(parseRawNumber(totalStake.toString()), inflationConfig);
   const rewardDistribution = PARACHAIN_INFLATION_DISTRIBUTION[networkKey] ? PARACHAIN_INFLATION_DISTRIBUTION[networkKey].reward : PARACHAIN_INFLATION_DISTRIBUTION.default.reward;
   const rewardPool = currentInflation * rewardDistribution;
 
@@ -192,7 +189,9 @@ export async function getParaCollatorsInfo (networkKey: string, dotSamaApi: ApiP
     const rawInfo = _info.toHuman() as Record<string, any>;
     const rawIdentity = _identity.toHuman() as Record<string, any> | null;
 
-    const bond = parseRawNumber(rawInfo?.bond as string);
+    const bnDecimals = new BN((10 ** decimals).toString());
+    const rawBond = rawInfo?.bond as string;
+    const bond = new BN(rawBond.replaceAll(',', ''));
     const delegationCount = parseRawNumber(rawInfo?.delegationCount as string);
     const minDelegation = parseRawNumber(rawInfo?.lowestTopDelegationAmount as string);
     const active = rawInfo?.status === 'Active';
@@ -234,7 +233,7 @@ export async function getParaCollatorsInfo (networkKey: string, dotSamaApi: ApiP
     extraInfoMap[validator.address] = {
       identity,
       isVerified: isReasonable,
-      bond: bond / 10 ** decimals,
+      bond: bond.div(bnDecimals).toNumber(),
       minDelegation: Math.max(minDelegation, chainMinDelegation) / 10 ** decimals,
       delegationCount,
       active
