@@ -95,6 +95,14 @@ export abstract class BaseNftApi {
       return input;
     }
 
+    if (input.startsWith('/ipfs/')) {
+      return getRandomIpfsGateway() + input.split('/ipfs/')[1];
+    }
+
+    if (!input.includes('ipfs://') && !input.includes('ipfs://ipfs/')) {
+      return getRandomIpfsGateway() + input;
+    }
+
     if (!input.includes('ipfs://') && !input.includes('ipfs://ipfs/')) {
       return getRandomIpfsGateway() + input;
     }
