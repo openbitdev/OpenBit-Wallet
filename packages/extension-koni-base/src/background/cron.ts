@@ -198,7 +198,7 @@ export class KoniCron {
     }
 
     this.state.getCurrentAccount(({ address }) => {
-      this.subscriptions?.subscribeBalancesAndCrowdloans && this.subscriptions.subscribeBalancesAndCrowdloans(address, this.state.getDotSamaApiMap(), this.state.getWeb3ApiMap());
+      this.subscriptions?.subscribeBalanceAndCrowdloan && this.subscriptions.subscribeBalanceAndCrowdloan(address, this.state.getDotSamaApiMap(), this.state.getWeb3ApiMap());
     });
   };
 

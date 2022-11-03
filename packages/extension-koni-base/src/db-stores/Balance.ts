@@ -4,7 +4,7 @@
 import { BalanceJson } from '@subwallet/extension-base/background/KoniTypes';
 import { liveQuery, Subscription } from 'dexie';
 
-import { IBalance } from '../databases';
+import { IBalance } from '../databases/dexie';
 import BaseStoreWithAddress from '../db-stores/BaseStoreWithAddress';
 
 export default class BalanceStore extends BaseStoreWithAddress<IBalance> {

@@ -73,12 +73,12 @@ export class KoniSubscription {
   }
 
   start () {
-    this.logger.log('Stating subscrition');
+    this.logger.log('Stating subscription');
     this.state.getCurrentAccount((currentAccountInfo) => {
       if (currentAccountInfo) {
         const { address } = currentAccountInfo;
 
-        this.subscribeBalancesAndCrowdloans(address, this.state.getDotSamaApiMap(), this.state.getWeb3ApiMap());
+        this.subscribeBalanceAndCrowdloan(address, this.state.getDotSamaApiMap(), this.state.getWeb3ApiMap());
         this.subscribeStakingOnChain(address, this.state.getDotSamaApiMap());
       }
     });
@@ -89,14 +89,14 @@ export class KoniSubscription {
           const { address } = serviceInfo.currentAccountInfo;
 
           this.state.initChainRegistry();
-          this.subscribeBalancesAndCrowdloans(address, serviceInfo.apiMap.dotSama, serviceInfo.apiMap.web3);
+          this.subscribeBalanceAndCrowdloan(address, serviceInfo.apiMap.dotSama, serviceInfo.apiMap.web3);
           this.subscribeStakingOnChain(address, serviceInfo.apiMap.dotSama);
         }
       }));
   }
 
   stop () {
-    this.logger.log('Stopping subscrition');
+    this.logger.log('Stopping subscription');
 
     if (this.serviceSubscription) {
       this.serviceSubscription.unsubscribe();
@@ -135,14 +135,14 @@ export class KoniSubscription {
       if (currentAccountInfo) {
         const { address } = currentAccountInfo;
 
-        this.subscribeBalancesAndCrowdloans(address, this.state.getDotSamaApiMap(), this.state.getWeb3ApiMap(), true);
+        this.subscribeBalanceAndCrowdloan(address, this.state.getDotSamaApiMap(), this.state.getWeb3ApiMap(), true);
         this.subscribeStakingOnChain(address, this.state.getDotSamaApiMap(), true);
         // this.stopAllSubscription();
       }
     });
   }
 
-  subscribeBalancesAndCrowdloans (address: string, dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, onlyRunOnFirstTime?: boolean) {
+  subscribeBalanceAndCrowdloan (address: string, dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>, onlyRunOnFirstTime?: boolean) {
     this.state.switchAccount(address).then(() => {
       this.state.getDecodedAddresses(address)
         .then((addresses) => {
@@ -235,7 +235,7 @@ export class KoniSubscription {
     const { cronUpdate, forceUpdate, selectedNftCollection } = this.state.getNftTransfer();
 
     if (forceUpdate && !cronUpdate) {
-      this.logger.log('skipping set nft state due to transfer');
+      this.logger.log('Skipping NFT state update due to transfer');
       this.state.setNftTransfer({
         cronUpdate: true,
         forceUpdate: true,
@@ -260,7 +260,7 @@ export class KoniSubscription {
         (...args) => this.state.updateNftIds(...args),
         (...args) => this.state.updateCollectionIds(...args))
         .then(() => {
-          this.logger.log('nft state updated');
+          this.logger.log('NFT state updated');
         })
         .catch(this.logger.log);
     }
@@ -284,7 +284,7 @@ export class KoniSubscription {
     getAllSubsquidStaking(addresses, activeNetworks)
       .then((result) => {
         this.state.setStakingReward(result);
-        this.logger.log('set staking reward state done', result);
+        this.logger.log('Staking reward state updated', result);
       })
       .catch(this.logger.error);
   }

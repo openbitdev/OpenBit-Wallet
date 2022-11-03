@@ -7,7 +7,7 @@ import { Subscription } from 'dexie';
 import { logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 
-import KoniDatabase, { INft } from '../databases';
+import KoniDatabase, { INft } from '../databases/dexie';
 import { BalanceStore, CrowdloanStore, MigrationStore, NftCollectionStore, NftStore, StakingStore, TransactionStore } from '../db-stores';
 
 export default class DatabaseService {

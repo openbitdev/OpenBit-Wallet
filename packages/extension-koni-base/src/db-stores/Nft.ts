@@ -3,7 +3,7 @@
 
 import { liveQuery } from 'dexie';
 
-import { INft } from '../databases';
+import { INft } from '../databases/dexie';
 import BaseStoreWithAddress from '../db-stores/BaseStoreWithAddress';
 
 export default class NftStore extends BaseStoreWithAddress<INft> {

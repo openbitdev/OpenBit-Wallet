@@ -4,7 +4,7 @@
 import { BalanceItem, CrowdloanItem, NftCollection, NftItem, StakingItem, TransactionHistoryItemType } from '@subwallet/extension-base/background/KoniTypes';
 import Dexie, { Table, Transaction } from 'dexie';
 
-const DEFAULT_DATABASE = 'SubWalletDB';
+const DEFAULT_DATABASE = 'SubWalletDB_Old';
 
 export interface DefaultDoc {
   chain: string,
