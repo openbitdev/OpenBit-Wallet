@@ -20,7 +20,8 @@ export const state = new KoniState();
 export const extension = new KoniExtension(state);
 export const tabs = new KoniTabs(state);
 export const nftHandler = new NftHandler();
-export const pouchDB = new PouchDB('SubWalletDB');
+export const POUCH_DB_NAME = 'SubWalletDB';
+export const pouchDB = new PouchDB(POUCH_DB_NAME);
 
 // Migration
 async function makeSureStateReady () {

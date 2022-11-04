@@ -24,8 +24,10 @@ import { initEvmTokenState } from '@subwallet/extension-koni-base/api/tokens/evm
 import { initWeb3Api } from '@subwallet/extension-koni-base/api/tokens/evm/web3';
 import { initWasmTokenState } from '@subwallet/extension-koni-base/api/tokens/wasm/utils';
 import { EvmRpcError } from '@subwallet/extension-koni-base/background/errors/EvmRpcError';
+import { pouchDB } from '@subwallet/extension-koni-base/background/handlers/index';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH } from '@subwallet/extension-koni-base/constants';
 import DatabaseService from '@subwallet/extension-koni-base/services/DatabaseService';
+import DBService from '@subwallet/extension-koni-base/services/DBService';
 import { CurrentAccountStore, NetworkMapStore, PriceStore } from '@subwallet/extension-koni-base/stores';
 import AccountRefStore from '@subwallet/extension-koni-base/stores/AccountRef';
 import AuthorizeStore from '@subwallet/extension-koni-base/stores/Authorize';
@@ -164,7 +166,10 @@ export default class KoniState extends State {
   private chainRegistrySubject = new Subject<Record<string, ChainRegistry>>();
 
   private lazyMap: Record<string, unknown> = {};
+
   public dbService: DatabaseService;
+  public dbServiceV2: DBService;
+
   private cron: KoniCron;
   private subscription: KoniSubscription;
   private logger: Logger;
@@ -175,8 +180,9 @@ export default class KoniState extends State {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     super(args);
     this.dbService = new DatabaseService();
+    this.dbServiceV2 = new DBService(pouchDB);
     this.subscription = new KoniSubscription(this);
-    this.cron = new KoniCron(this, this.subscription, this.dbService);
+    this.cron = new KoniCron(this, this.subscription);
     this.logger = createLogger('State');
     this.init();
   }
