@@ -11,20 +11,17 @@ import { Subject, Subscription } from 'rxjs';
 import { logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 
-import DatabaseService from '../services/DatabaseService';
 import KoniState from './handlers/State';
 
 export class KoniCron {
   subscriptions: KoniSubscription;
   public status: 'pending' | 'running' | 'stopped' = 'pending';
   private serviceSubscription: Subscription | undefined;
-  public dbService: DatabaseService;
   private state: KoniState;
   private logger: Logger;
 
-  constructor (state: KoniState, subscriptions: KoniSubscription, dbService: DatabaseService) {
+  constructor (state: KoniState, subscriptions: KoniSubscription) {
     this.subscriptions = subscriptions;
-    this.dbService = dbService;
     this.state = state;
     this.logger = createLogger('Cron');
     // this.init();

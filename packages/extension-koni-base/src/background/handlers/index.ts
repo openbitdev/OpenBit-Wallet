@@ -9,6 +9,7 @@ import KoniExtension from '@subwallet/extension-koni-base/background/handlers/Ex
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
 import KoniTabs from '@subwallet/extension-koni-base/background/handlers/Tabs';
 import Migration from '@subwallet/extension-koni-base/migration';
+import PouchDB from 'pouchdb';
 
 import { assert } from '@polkadot/util';
 
@@ -19,6 +20,7 @@ export const state = new KoniState();
 export const extension = new KoniExtension(state);
 export const tabs = new KoniTabs(state);
 export const nftHandler = new NftHandler();
+export const pouchDB = new PouchDB('SubWalletDB');
 
 // Migration
 async function makeSureStateReady () {

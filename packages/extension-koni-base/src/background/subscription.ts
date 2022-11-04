@@ -16,7 +16,6 @@ import { logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
-import DatabaseService from '../services/DatabaseService';
 import KoniState from './handlers/State';
 
 type SubscriptionName = 'balance' | 'crowdloan' | 'stakingOnChain';
@@ -29,12 +28,10 @@ export class KoniSubscription {
     stakingOnChain: undefined
   };
 
-  public dbService: DatabaseService;
   private state: KoniState;
   private logger: Logger;
 
-  constructor (state: KoniState, dbService: DatabaseService) {
-    this.dbService = dbService;
+  constructor (state: KoniState) {
     this.state = state;
     this.logger = createLogger('Subscription');
     this.init();

@@ -175,7 +175,7 @@ export default class KoniState extends State {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     super(args);
     this.dbService = new DatabaseService();
-    this.subscription = new KoniSubscription(this, this.dbService);
+    this.subscription = new KoniSubscription(this);
     this.cron = new KoniCron(this, this.subscription, this.dbService);
     this.logger = createLogger('State');
     this.init();
