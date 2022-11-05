@@ -1414,7 +1414,7 @@ export default class KoniState extends State {
 
     if (this.networkMap[data.key].active) { // update API map if network is active
       if (data.key in this.apiMap.dotSama) {
-        await this.apiMap.dotSama[data.key].api.disconnect();
+        this.apiMap.dotSama[data.key].api?.disconnect && await this.apiMap.dotSama[data.key].api.disconnect();
         delete this.apiMap.dotSama[data.key];
       }
 
@@ -1459,7 +1459,7 @@ export default class KoniState extends State {
     }
 
     this.lockNetworkMap = true;
-    await this.apiMap.dotSama[networkKey]?.api.disconnect();
+    this.apiMap.dotSama[networkKey].api.disconnect && await this.apiMap.dotSama[networkKey].api.disconnect();
     delete this.apiMap.dotSama[networkKey];
 
     if (this.networkMap[networkKey].isEthereum && this.networkMap[networkKey].isEthereum) {
