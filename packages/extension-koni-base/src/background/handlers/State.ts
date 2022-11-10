@@ -1663,6 +1663,10 @@ export default class KoniState extends State {
   }
 
   public updateNetworkStatus (networkKey: string, status: NETWORK_STATUS) {
+    if (this.networkMap[networkKey].apiStatus === status) {
+      return;
+    }
+
     this.networkMap[networkKey].apiStatus = status;
 
     this.networkMapSubject.next(this.networkMap);
