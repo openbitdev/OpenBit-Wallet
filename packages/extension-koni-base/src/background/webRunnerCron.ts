@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, StakingRewardJson, StakingType, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
 import { getAllSubsquidStaking } from '@subwallet/extension-koni-base/api/staking/subsquidStaking';
@@ -9,13 +9,12 @@ import { fetchDotSamaHistory } from '@subwallet/extension-koni-base/api/subquery
 import { nftHandler } from '@subwallet/extension-koni-base/background/handlers';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
 import WebRunnerSubscription from '@subwallet/extension-koni-base/background/webRunnerSubscription';
-import { CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
+import { ALL_ACCOUNT_KEY, CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
 import { Subject, Subscription } from 'rxjs';
 import Web3 from 'web3';
 
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 const defaultIntervalMap: Record<CronType, number> = {
   recoverApiMap: CRON_AUTO_RECOVER_DOTSAMA_INTERVAL,
@@ -97,6 +96,7 @@ export default class WebRunnerCron {
 
   // nft
 
+  // refer: initNftSubscription in subscription.ts
   private nftHandle = (
     addresses: string[],
     dotSamaApiMap: Record<string, ApiProps>,
@@ -122,7 +122,9 @@ export default class WebRunnerCron {
 
       nftHandler.setContractSupportedNetworkMap(contractSupportedNetworkMap);
       nftHandler.setDotSamaApiMap(dotSamaApiMap);
+      nftHandler.setWeb3ApiMap(web3ApiMap);
       nftHandler.setAddresses(addresses);
+
       nftHandler.handleNfts(
         customNftRegistry,
         (...args) => this.state.updateNftData(...args),
@@ -165,6 +167,7 @@ export default class WebRunnerCron {
 
   // staking
 
+  // refer: subscribeStakingReward in subscription.ts
   private stakingRewardHandle = async (address: string) => {
     const addresses = await this.state.getDecodedAddresses(address);
     const networkMap = this.state.getNetworkMap();
@@ -183,9 +186,18 @@ export default class WebRunnerCron {
     getAllSubsquidStaking(addresses, activeNetworks)
       .then((result) => {
         this.state.setStakingReward(result);
-        this.logger.log('set staking reward state done', result);
+        this.logger.log('Set staking reward state done', result);
       })
       .catch(this.logger.warn);
+  };
+
+  resetStakingReward = (address: string) => {
+    this.state.resetStaking(address).catch((err) => this.logger.warn(err));
+    this.state.setStakingReward({
+      ready: false,
+      details: []
+    } as StakingRewardJson);
+    // this.logger.log('Reset Staking reward state');
   };
 
   private refreshStakingReward = (address: string) => {
@@ -196,33 +208,27 @@ export default class WebRunnerCron {
     };
   };
 
+  // refer: subscribeStakeUnlockingInfo in subscription.ts
   private stakeUnlockingInfoHandle = async (address: string, networkMap: Record<string, NetworkJson>, dotSamaApiMap: Record<string, ApiProps>) => {
     const addresses = await this.state.getDecodedAddresses(address);
     const currentAddress = addresses[0]; // only get info for the current account
 
-    const stakeUnlockingInfo: Record<string, UnlockingStakeInfo> = {};
+    const stakeUnlockingInfo: UnlockingStakeInfo[] = [];
 
     if (!addresses.length) {
       return;
     }
 
-    const currentStakingInfo = this.state.getStaking().details;
+    const stakingItems = await this.state.getStakingRecordsByAddress(currentAddress); // only get records of active networks
 
-    if (!addresses.length) {
-      return;
-    }
+    await Promise.all(stakingItems.map(async (stakingItem) => {
+      const needUpdateUnlockingStake = parseFloat(stakingItem.balance as string) > 0 && stakingItem.type === StakingType.NOMINATED;
+      const networkJson = networkMap[stakingItem.chain];
 
-    await Promise.all(Object.entries(networkMap).map(async ([networkKey, networkJson]) => {
-      const needUpdateUnlockingStake = currentStakingInfo[networkKey] && currentStakingInfo[networkKey].balance && parseFloat(currentStakingInfo[networkKey].balance as string) > 0;
+      if (needUpdateUnlockingStake) {
+        const unlockingInfo = await getUnlockingInfo(dotSamaApiMap[stakingItem.chain], networkJson, stakingItem.chain, currentAddress, stakingItem.type);
 
-      if (isEthereumAddress(currentAddress)) {
-        if (networkJson.supportBonding && networkJson.active && networkJson.isEthereum && needUpdateUnlockingStake) {
-          stakeUnlockingInfo[networkKey] = await getUnlockingInfo(dotSamaApiMap[networkKey], networkJson, networkKey, currentAddress);
-        }
-      } else {
-        if (networkJson.supportBonding && networkJson.active && !networkJson.isEthereum && needUpdateUnlockingStake) {
-          stakeUnlockingInfo[networkKey] = await getUnlockingInfo(dotSamaApiMap[networkKey], networkJson, networkKey, currentAddress);
-        }
+        stakeUnlockingInfo.push(unlockingInfo);
       }
     }));
 
@@ -234,9 +240,11 @@ export default class WebRunnerCron {
 
   private refreshStakeUnlockingInfo = (address: string, networkMap: Record<string, NetworkJson>, dotSamaApiMap: Record<string, ApiProps>) => {
     return () => {
-      this.stakeUnlockingInfoHandle(address, networkMap, dotSamaApiMap)
-        .then(() => this.logger.log('Refresh staking unlocking info done'))
-        .catch(this.logger.warn);
+      if (address.toLowerCase() !== ALL_ACCOUNT_KEY) {
+        this.stakeUnlockingInfoHandle(address, networkMap, dotSamaApiMap)
+          .then(() => this.logger.log('Refresh staking unlocking info done'))
+          .catch(this.logger.warn);
+      }
     };
   };
 

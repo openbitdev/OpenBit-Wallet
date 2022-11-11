@@ -142,7 +142,7 @@ export default class WebRunnerSubscription {
   };
 
   private subscribeStakingOnChain = (address: string, dotSamaApiMap: Record<string, ApiProps>, onlyRunOnFirstTime?: boolean) => {
-    this.state.resetStakingMap(address).then(() => {
+    this.state.resetStaking(address).then(() => {
       this.state.getDecodedAddresses(address)
         .then((addresses) => {
           if (!addresses.length) {
