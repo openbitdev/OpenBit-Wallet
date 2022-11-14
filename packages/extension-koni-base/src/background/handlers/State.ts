@@ -220,8 +220,10 @@ export default class KoniState extends State {
             // check change and override custom providers if exist
             if ('customProviders' in storedNetwork) {
               mergedNetworkMap[key].customProviders = storedNetwork.customProviders;
-              mergedNetworkMap[key].currentProvider = storedNetwork.currentProvider;
             }
+
+            // web runner: prevent current provider from resetting after closing the app
+            mergedNetworkMap[key].currentProvider = storedNetwork.currentProvider;
 
             if (key !== 'polkadot' && key !== 'kusama') {
               mergedNetworkMap[key].active = storedNetwork.active;
