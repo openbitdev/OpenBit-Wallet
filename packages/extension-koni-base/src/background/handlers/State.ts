@@ -2516,22 +2516,4 @@ export default class KoniState extends State {
   public createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
     this.unsubscriptionMap[id] = unsubscribe;
   }
-
-  public cancelSubscription (id: string): boolean {
-    if (isSubscriptionRunning(id)) {
-      unsubscribe(id);
-    }
-
-    if (this.unsubscriptionMap[id]) {
-      this.unsubscriptionMap[id]();
-
-      delete this.unsubscriptionMap[id];
-    }
-
-    return true;
-  }
-
-  public createUnsubscriptionHandle (id: string, unsubscribe: () => void): void {
-    this.unsubscriptionMap[id] = unsubscribe;
-  }
 }
