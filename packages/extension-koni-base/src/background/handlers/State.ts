@@ -1547,14 +1547,16 @@ export default class KoniState extends State {
       return false;
     }
 
-    this.lockNetworkMap = true;
-    this.apiMap.dotSama[networkKey] = initApi(networkKey, getCurrentProvider(this.networkMap[networkKey]), this.networkMap[networkKey].isEthereum);
+    const networkData = this.networkMap[networkKey];
 
-    if (this.networkMap[networkKey].isEthereum && this.networkMap[networkKey].isEthereum) {
-      this.apiMap.web3[networkKey] = initWeb3Api(getCurrentProvider(this.networkMap[networkKey]));
+    this.lockNetworkMap = true;
+    this.apiMap.dotSama[networkKey] = initApi(networkKey, getCurrentProvider(networkData), networkData.isEthereum);
+
+    if (networkData.isEthereum && networkData.isEthereum) {
+      this.apiMap.web3[networkKey] = initWeb3Api(getCurrentProvider(networkData));
     }
 
-    this.networkMap[networkKey].active = true;
+    networkData.active = true;
     this.networkMapSubject.next(this.networkMap);
     this.networkMapStore.set('NetworkMap', this.networkMap);
     this.updateServiceInfo();
