@@ -4,7 +4,7 @@
 import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, StakingRewardJson, StakingType, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
-import { getAllSubsquidStaking } from '@subwallet/extension-koni-base/api/staking/subsquidStaking';
+import { getStakingRewardData } from '@subwallet/extension-koni-base/api/staking';
 import { fetchDotSamaHistory } from '@subwallet/extension-koni-base/api/subquery/history';
 import { nftHandler } from '@subwallet/extension-koni-base/background/handlers';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
@@ -170,25 +170,34 @@ export default class WebRunnerCron {
   // refer: subscribeStakingReward in subscription.ts
   private stakingRewardHandle = async (address: string) => {
     const addresses = await this.state.getDecodedAddresses(address);
-    const networkMap = this.state.getNetworkMap();
-    const activeNetworks: string[] = [];
 
     if (!addresses.length) {
       return;
     }
 
-    Object.entries(networkMap).forEach(([key, network]) => {
-      if (network.active) {
-        activeNetworks.push(key);
+    const pooledStakingItems = await this.state.getPooledStakingRecordsByAddress(addresses);
+
+    const pooledAddresses: string[] = [];
+
+    pooledStakingItems.forEach((pooledItem) => {
+      if (!pooledAddresses.includes(pooledItem.address)) {
+        pooledAddresses.push(pooledItem.address);
       }
     });
 
-    getAllSubsquidStaking(addresses, activeNetworks)
-      .then((result) => {
-        this.state.setStakingReward(result);
-        this.logger.log('Set staking reward state done', result);
-      })
-      .catch(this.logger.warn);
+    const networkMap = this.state.getNetworkMap();
+    const targetNetworkMap: Record<string, NetworkJson> = {};
+
+    Object.entries(networkMap).forEach(([key, network]) => {
+      if (network.active && network.getStakingOnChain) {
+        targetNetworkMap[key] = network;
+      }
+    });
+
+    const result = await getStakingRewardData(addresses, pooledAddresses, targetNetworkMap, this.state.getDotSamaApiMap());
+
+    this.state.setStakingReward(result);
+    this.logger.log('Set staking reward state done', result);
   };
 
   resetStakingReward = (address: string) => {
@@ -202,6 +211,7 @@ export default class WebRunnerCron {
 
   private refreshStakingReward = (address: string) => {
     return () => {
+      this.logger.log('Fetching staking reward data');
       this.stakingRewardHandle(address)
         .then(() => this.logger.log('Refresh staking reward state'))
         .catch(this.logger.warn);
