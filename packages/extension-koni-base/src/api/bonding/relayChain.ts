@@ -405,8 +405,9 @@ export async function getRelayWithdrawalTxInfo (dotSamaAPi: ApiProps, address: s
   const apiPromise = await dotSamaAPi.isReady;
 
   if (apiPromise.api.tx.staking.withdrawUnbonded.meta.args.length === 1) {
-    const slashingSpans = await apiPromise.api.query.staking.slashingSpans(address);
-    const extrinsic = apiPromise.api.tx.staking.withdrawUnbonded(slashingSpans.toHuman());
+    const _slashingSpans = (await apiPromise.api.query.staking.slashingSpans(address)).toHuman() as Record<string, any>;
+    const slashingSpanCount = _slashingSpans !== null ? _slashingSpans.spanIndex as string : '0';
+    const extrinsic = apiPromise.api.tx.staking.withdrawUnbonded(slashingSpanCount);
 
     return extrinsic.paymentInfo(address);
   } else {
@@ -434,6 +435,8 @@ export async function handleRelayWithdrawalTxInfo (address: string, networkKey: 
       balanceError
     } as BasicTxInfo;
   } catch (e) {
+    console.error('Error estimating fee for staking withdrawal', e);
+
     return {
       fee: `0.0000 ${networkJson.nativeToken as string}`,
       balanceError: false
@@ -445,10 +448,52 @@ export async function getRelayWithdrawalExtrinsic (dotSamaAPi: ApiProps, address
   const apiPromise = await dotSamaAPi.isReady;
 
   if (apiPromise.api.tx.staking.withdrawUnbonded.meta.args.length === 1) {
-    const slashingSpans = await apiPromise.api.query.staking.slashingSpans(address);
+    const _slashingSpans = (await apiPromise.api.query.staking.slashingSpans(address)).toHuman() as Record<string, any>;
+    const slashingSpanCount = _slashingSpans !== null ? _slashingSpans.spanIndex as string : '0';
 
-    return apiPromise.api.tx.staking.withdrawUnbonded(slashingSpans.toHuman());
+    return apiPromise.api.tx.staking.withdrawUnbonded(slashingSpanCount);
   } else {
     return apiPromise.api.tx.staking.withdrawUnbonded();
   }
+}
+
+async function getPoolingClaimRewardTxInfo (dotSamaApi: ApiProps, address: string) {
+  const apiProps = await dotSamaApi.isReady;
+
+  const extrinsic = apiProps.api.tx.nominationPools.claimPayout();
+
+  return extrinsic.paymentInfo(address);
+}
+
+export async function handlePoolingClaimRewardTxInfo (address: string, networkKey: string, networkJson: NetworkJson, dotSamaApiMap: Record<string, ApiProps>, web3ApiMap: Record<string, Web3>) {
+  try {
+    const [txInfo, balance] = await Promise.all([
+      getPoolingClaimRewardTxInfo(dotSamaApiMap[networkKey], address),
+      getFreeBalance(networkKey, address, dotSamaApiMap, web3ApiMap)
+    ]);
+
+    const feeString = parseNumberToDisplay(txInfo.partialFee, networkJson.decimals) + ` ${networkJson.nativeToken ? networkJson.nativeToken : ''}`;
+    const rawFee = parseRawNumber(txInfo.partialFee.toString());
+    const binaryBalance = new BN(balance);
+    const balanceError = txInfo.partialFee.gt(binaryBalance);
+
+    return {
+      rawFee,
+      fee: feeString,
+      balanceError
+    } as BasicTxInfo;
+  } catch (e) {
+    console.error('Error handling nomination pool reward claiming', e);
+
+    return {
+      fee: `0.0000 ${networkJson.nativeToken as string}`,
+      balanceError: false
+    } as BasicTxInfo;
+  }
+}
+
+export async function getPoolingClaimRewardExtrinsic (dotSamaApi: ApiProps) {
+  const apiProps = await dotSamaApi.isReady;
+
+  return apiProps.api.tx.nominationPools.claimPayout();
 }
