@@ -1493,7 +1493,8 @@ export type CronType =
   'refreshNft' |
   'refreshPrice' |
   'refreshStakeUnlockingInfo' |
-  'refreshStakingReward';
+  'refreshStakingReward' |
+  'refreshPoolingStakingReward';
 
 export interface RequestInitCronAndSubscription {
   subscription: {

@@ -1,15 +1,15 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, StakingRewardJson, StakingType, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, StakingType, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
-import { getStakingRewardData } from '@subwallet/extension-koni-base/api/staking';
+import { getNominationStakingRewardData, getPoolingStakingRewardData } from '@subwallet/extension-koni-base/api/staking';
 import { fetchDotSamaHistory } from '@subwallet/extension-koni-base/api/subquery/history';
 import { nftHandler } from '@subwallet/extension-koni-base/background/handlers';
 import KoniState from '@subwallet/extension-koni-base/background/handlers/State';
 import WebRunnerSubscription from '@subwallet/extension-koni-base/background/webRunnerSubscription';
-import { ALL_ACCOUNT_KEY, CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
+import { ALL_ACCOUNT_KEY, CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS, CRON_REFRESH_HISTORY_INTERVAL, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_POOLING_STAKING_REWARD_INTERVAL, CRON_REFRESH_PRICE_INTERVAL, CRON_REFRESH_STAKE_UNLOCKING_INFO, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-koni-base/constants';
 import { Subject, Subscription } from 'rxjs';
 import Web3 from 'web3';
 
@@ -23,7 +23,8 @@ const defaultIntervalMap: Record<CronType, number> = {
   refreshNft: CRON_REFRESH_NFT_INTERVAL,
   refreshPrice: CRON_REFRESH_PRICE_INTERVAL,
   refreshStakeUnlockingInfo: CRON_REFRESH_STAKE_UNLOCKING_INFO,
-  refreshStakingReward: CRON_REFRESH_STAKING_REWARD_INTERVAL
+  refreshStakingReward: CRON_REFRESH_STAKING_REWARD_INTERVAL,
+  refreshPoolingStakingReward: CRON_REFRESH_POOLING_STAKING_REWARD_INTERVAL
 };
 
 const cronServiceRelationMap: Record<CronServiceType, CronType[]> = {
@@ -32,7 +33,7 @@ const cronServiceRelationMap: Record<CronServiceType, CronType[]> = {
   history: ['refreshHistory'],
   nft: ['refreshNft'],
   price: ['refreshPrice'],
-  staking: ['refreshStakeUnlockingInfo', 'refreshStakingReward']
+  staking: ['refreshStakeUnlockingInfo', 'refreshStakingReward', 'refreshPoolingStakingReward']
 };
 
 export default class WebRunnerCron {
@@ -74,7 +75,8 @@ export default class WebRunnerCron {
       refreshNft: undefined,
       refreshPrice: undefined,
       refreshStakeUnlockingInfo: undefined,
-      refreshStakingReward: undefined
+      refreshStakingReward: undefined,
+      refreshPoolingStakingReward: undefined
     };
   }
 
@@ -175,6 +177,29 @@ export default class WebRunnerCron {
       return;
     }
 
+    const networkMap = this.state.getNetworkMap();
+    const targetNetworkMap: Record<string, NetworkJson> = {};
+
+    Object.entries(networkMap).forEach(([key, network]) => {
+      if (network.active && network.getStakingOnChain) {
+        targetNetworkMap[key] = network;
+      }
+    });
+
+    const result = await getNominationStakingRewardData(addresses, targetNetworkMap);
+
+    this.state.updateStakingReward(result);
+    this.logger.log('Set staking reward state done', result);
+  };
+
+  // refer: subscribeNominationPoolReward in subscription.ts
+  async nominationPoolRewardHandle (address: string) {
+    const addresses = await this.state.getDecodedAddresses(address);
+
+    if (!addresses.length) {
+      return;
+    }
+
     const pooledStakingItems = await this.state.getPooledStakingRecordsByAddress(addresses);
 
     const pooledAddresses: string[] = [];
@@ -185,6 +210,10 @@ export default class WebRunnerCron {
       }
     });
 
+    if (pooledAddresses.length === 0) {
+      return;
+    }
+
     const networkMap = this.state.getNetworkMap();
     const targetNetworkMap: Record<string, NetworkJson> = {};
 
@@ -194,20 +223,11 @@ export default class WebRunnerCron {
       }
     });
 
-    const result = await getStakingRewardData(addresses, pooledAddresses, targetNetworkMap, this.state.getDotSamaApiMap());
+    const result = await getPoolingStakingRewardData(pooledAddresses, targetNetworkMap, this.state.getDotSamaApiMap());
 
-    this.state.setStakingReward(result);
-    this.logger.log('Set staking reward state done', result);
-  };
-
-  resetStakingReward = (address: string) => {
-    this.state.resetStaking(address).catch((err) => this.logger.warn(err));
-    this.state.setStakingReward({
-      ready: false,
-      details: []
-    } as StakingRewardJson);
-    // this.logger.log('Reset Staking reward state');
-  };
+    this.state.updateStakingReward(result);
+    this.logger.log('Set pooling staking reward state done', result);
+  }
 
   private refreshStakingReward = (address: string) => {
     return () => {
@@ -215,6 +235,15 @@ export default class WebRunnerCron {
       this.stakingRewardHandle(address)
         .then(() => this.logger.log('Refresh staking reward state'))
         .catch(this.logger.warn);
+    };
+  };
+
+  private refreshPoolingStakingReward = (address: string) => {
+    return () => {
+      this.logger.log('Fetching staking reward data');
+      this.nominationPoolRewardHandle(address)
+        .then(() => this.logger.log('Refresh pooling staking reward state'))
+        .catch(this.logger.error);
     };
   };
 
@@ -483,12 +512,16 @@ export default class WebRunnerCron {
               this.state.getNetworkMap(),
               this.state.getDotSamaApiMap()),
             this.intervalMap.refreshStakeUnlockingInfo);
+          this.addCron('refreshPoolingStakingReward',
+            this.refreshPoolingStakingReward(currentAccountInfo.address),
+            this.intervalMap.refreshPoolingStakingReward);
         },
         (serviceInfo) => {
           const { address } = serviceInfo.currentAccountInfo;
 
           this.removeCron('refreshStakeUnlockingInfo');
           this.removeCron('refreshStakingReward');
+          this.removeCron('refreshPoolingStakingReward');
 
           this.addCron('refreshStakingReward',
             this.refreshStakingReward(address),
@@ -496,6 +529,9 @@ export default class WebRunnerCron {
           this.addCron('refreshStakeUnlockingInfo',
             this.refreshStakeUnlockingInfo(address, serviceInfo.networkMap, serviceInfo.apiMap.dotSama),
             this.intervalMap.refreshStakeUnlockingInfo);
+          this.addCron('refreshPoolingStakingReward',
+            this.refreshPoolingStakingReward(address),
+            this.intervalMap.refreshPoolingStakingReward);
         }
       );
     } else if (type === 'recoverApi') {
