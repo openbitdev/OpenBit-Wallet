@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApiMap, ApiProps, CronServiceType, CronType, CurrentAccountInfo, CustomToken, NETWORK_STATUS, NetworkJson, NftTransferExtra, ServiceInfo, StakingType, SubscriptionServiceType, UnlockingStakeInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
+import { CHAIN_TYPES, getUnlockingInfo } from '@subwallet/extension-koni-base/api/bonding';
 import { getTokenPrice } from '@subwallet/extension-koni-base/api/coingecko';
 import { getNominationStakingRewardData, getPoolingStakingRewardData } from '@subwallet/extension-koni-base/api/staking';
 import { fetchDotSamaHistory } from '@subwallet/extension-koni-base/api/subquery/history';
@@ -265,7 +265,17 @@ export default class WebRunnerCron {
       const networkJson = networkMap[stakingItem.chain];
 
       if (needUpdateUnlockingStake) {
-        const unlockingInfo = await getUnlockingInfo(dotSamaApiMap[stakingItem.chain], networkJson, stakingItem.chain, currentAddress, stakingItem.type);
+        let extraCollatorAddress;
+
+        if (CHAIN_TYPES.amplitude.includes(stakingItem.chain)) {
+          const extraDelegationInfo = await this.state.getExtraDelegationInfo(stakingItem.chain, stakingItem.address);
+
+          if (extraDelegationInfo) {
+            extraCollatorAddress = extraDelegationInfo.collatorAddress;
+          }
+        }
+
+        const unlockingInfo = await getUnlockingInfo(dotSamaApiMap[stakingItem.chain], networkJson, stakingItem.chain, currentAddress, stakingItem.type, extraCollatorAddress);
 
         stakeUnlockingInfo.push(unlockingInfo);
       }
