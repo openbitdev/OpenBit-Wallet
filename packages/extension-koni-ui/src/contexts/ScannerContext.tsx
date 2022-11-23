@@ -5,12 +5,12 @@ import { ResponseParseTransactionSubstrate, ResponseQrParseRLP, SignerDataType }
 import { createTransactionFromRLP, Transaction } from '@subwallet/extension-koni-base/utils/eth';
 import { SCANNER_QR_STEP } from '@subwallet/extension-koni-ui/constants/qr';
 import { AccountContext } from '@subwallet/extension-koni-ui/contexts/index';
-import { parseEVMTransaction, qrSignEvm, qrSignSubstrate } from '@subwallet/extension-koni-ui/messaging';
+import { parseEVMTransaction, parseSubstrateTransaction, qrSignEvm, qrSignSubstrate } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { CompletedParsedData, EthereumParsedData, MessageQRInfo, MultiFramesInfo, QrInfo, SubstrateCompletedParsedData, SubstrateMessageParsedData, SubstrateTransactionParsedData, TxQRInfo } from '@subwallet/extension-koni-ui/types/scanner';
 import { findAccountByAddress } from '@subwallet/extension-koni-ui/util/account';
 import { getNetworkJsonByInfo } from '@subwallet/extension-koni-ui/util/getNetworkJsonByGenesisHash';
-import { constructDataFromBytes, encodeNumber, parseSubstratePayload } from '@subwallet/extension-koni-ui/util/scanner/decoders';
+import { constructDataFromBytes, encodeNumber } from '@subwallet/extension-koni-ui/util/scanner/decoders';
 import { isEthereumCompletedParsedData, isSubstrateMessageParsedData } from '@subwallet/extension-koni-ui/util/scanner/sign';
 import BigN from 'bignumber.js';
 import React, { useCallback, useContext, useReducer } from 'react';
@@ -349,7 +349,7 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
 
   // signing data with legacy account.
   const signDataLegacy = useCallback(async (savePass: boolean, password = ''): Promise<void> => {
-    const { dataToSign, evmChainId, genesisHash, isEthereumStructure, rawPayload, senderAddress, type } = state;
+    const { dataToSign, evmChainId, genesisHash, isEthereumStructure, isHash, rawPayload, senderAddress, type } = state;
     const sender = !!senderAddress && findAccountByAddress(accounts, senderAddress);
     const info: undefined | number | string = isEthereumStructure ? evmChainId : genesisHash;
     const senderNetwork = getNetworkJsonByInfo(networkMap, isEthereumAddress(senderAddress || ''), isEthereumStructure, info);
@@ -380,6 +380,8 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
           signable = dataToSign;
         } else if (isAscii(dataToSign)) {
           signable = dataToSign;
+        } else if (isHash) {
+          signable = dataToSign;
         } else {
           throw new Error('Signing Error: cannot signing message');
         }
@@ -400,7 +402,7 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
           signable = u8aToHex(dataToSign.toU8a(true));
         } else if (isU8a(dataToSign)) {
           signable = u8aToHex(dataToSign);
-        } else if (isAscii(dataToSign)) {
+        } else if (isAscii(dataToSign) || isHash) {
           signable = dataToSign;
         } else {
           throw new Error('Signing Error: cannot signing message');
@@ -431,7 +433,7 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
           if (genesisHash && rawPayload) {
             const _rawPayload = isString(rawPayload) ? rawPayload : u8aToHex(rawPayload);
 
-            return parseSubstratePayload(_rawPayload);
+            return parseSubstrateTransaction({ data: _rawPayload, networkKey: senderNetwork.key });
           } else {
             return null;
           }
