@@ -192,6 +192,8 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
         missedFrames: nextMissedFrames,
         totalFrameCount
       };
+    } else {
+      return _integrateMultiPartData(multipartData, totalFrameCount);
     }
 
     return {
@@ -290,7 +292,7 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
 
     if (isSubstrateMessageParsedData(signRequest)) {
       if (signRequest.data.crypto !== 'sr25519') {
-        throw new Error('Stylo only supports accounts using sr25519 crypto');
+        throw new Error('Subwallet only supports accounts using sr25519 crypto');
       }
 
       isHash = signRequest.isHash;
@@ -306,7 +308,7 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
     const sender = findAccountByAddress(accounts, address);
 
     if (!sender) {
-      throw new Error(`No account found in Stylo for: ${address}.`);
+      throw new Error(`No account found in Subwallet for: ${address}.`);
     }
 
     const qrInfo: MessageQRInfo = {
@@ -354,7 +356,7 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
     }
 
     if (!senderNetwork.active) {
-      throw new Error('Signing Error: Network is not active.');
+      throw new Error(`Signing Error: Network ${senderNetwork.chain?.replace(' Relay Chain', '')} is not active.`);
     }
 
     if (!sender) {
@@ -411,6 +413,10 @@ export function ScannerContextProvider ({ children }: ScannerContextProviderProp
             password: password,
             networkKey: senderNetwork.key
           });
+
+          if (type === 'message') {
+            return hexStripPrefix(signature).substring(2);
+          }
 
           return hexStripPrefix(signature);
         } catch (e) {

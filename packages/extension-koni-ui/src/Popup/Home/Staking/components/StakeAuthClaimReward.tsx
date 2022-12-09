@@ -25,9 +25,10 @@ interface Props extends ThemeProps {
   address: string;
   networkKey: string;
   stakingType: StakingType;
+  claimable: string | undefined;
 }
 
-function StakeAuthClaimReward ({ address, className, hideModal, networkKey, stakingType }: Props): React.ReactElement<Props> {
+function StakeAuthClaimReward ({ address, claimable, className, hideModal, networkKey, stakingType }: Props): React.ReactElement<Props> {
   const networkJson = useGetNetworkJson(networkKey);
   const { t } = useTranslation();
 
@@ -128,6 +129,7 @@ function StakeAuthClaimReward ({ address, className, hideModal, networkKey, stak
                     <SigningRequest
                       account={account}
                       balanceError={balanceError}
+                      className='signing-request-wrapper'
                       handleSignLedger={claimRewardLedger}
                       handleSignPassword={submitStakeClaimReward}
                       handleSignQr={claimRewardQr}
@@ -152,6 +154,18 @@ function StakeAuthClaimReward ({ address, className, hideModal, networkKey, stak
                       />
 
                       <div className={'transaction-info-container'}>
+                        {
+                          claimable && <div className={'transaction-info-row'}>
+                            <div className={'transaction-info-title'}>Claimable staking reward</div>
+                            <div className={'transaction-info-value'}>
+                              <FeeValue
+                                _length={9}
+                                feeString={`${claimable} ${networkJson.nativeToken as string}`}
+                              />
+                            </div>
+                          </div>
+                        }
+
                         <div className={'transaction-info-row'}>
                           <div className={'transaction-info-title'}>Reward claiming fee</div>
                           <div className={'transaction-info-value'}>
@@ -189,6 +203,10 @@ export default React.memo(styled(StakeAuthClaimReward)(({ theme }: Props) => `
   .container-spinner {
     height: 65px;
     width: 65px;
+  }
+
+  .signing-request-wrapper {
+    overflow: auto;
   }
 
   .transaction-info-container {

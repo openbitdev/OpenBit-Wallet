@@ -323,6 +323,8 @@ const LogosMap: Record<string, string> = {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   subspace_gemini_2a: require('./46.Subspace.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  subspace_gemini_3a: require('./46.Subspace.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   subspace_test: require('./46.Subspace.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   xcpara: require('./90.Parallel.png'),
@@ -470,6 +472,28 @@ const LogosMap: Record<string, string> = {
   bobabeam: require('./163.boba.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   // zstake: require('./164.zstake.jpg'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  xx_network: require('./164.xxnetwork.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  watr_network: require('./165.watr.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  watr_network_evm: require('./165.watr.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  fusotao: require('./166.fusotao.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  discovol: require('./167.discovol.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  discovol_testnet: require('./167.discovol.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  atocha: require('./168.atocha.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  myriad: require('./169.myriad.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  deBio: require('./170.dbio.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  barnacle: require('./171.barnacle.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  barnacle_evm: require('./171.barnacle.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   default: require('./73.Default.png')
 };
