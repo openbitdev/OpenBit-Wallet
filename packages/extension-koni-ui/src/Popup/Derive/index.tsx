@@ -34,7 +34,7 @@ function Derive ({ className, isLocked }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
   const { accounts } = useContext(AccountContext);
-  const { address } = useParams<AddressState>();
+  const address = useParams<Partial<AddressState>>().address || '';
   const [isBusy, setIsBusy] = useState(false);
   const [account, setAccount] = useState<null | PathState>(null);
   const [parentPassword, setParentPassword] = useState<string | null>(null);
