@@ -5,7 +5,6 @@ import type { AccountJson, AccountsContext, AuthorizeRequest, MetadataRequest, S
 import type { SettingsStruct } from '@polkadot/ui-settings/types';
 
 import { AccountsWithCurrentAddress, ConfirmationsQueue, ConfirmationType, CurrentAccountInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { PHISHING_PAGE_REDIRECT } from '@subwallet/extension-base/defaults';
 import { canDerive } from '@subwallet/extension-base/utils';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-koni-base/constants';
 import ToastProvider from '@subwallet/extension-koni-ui/components/Toast/ToastProvider';
@@ -16,57 +15,19 @@ import { ScannerContextProvider } from '@subwallet/extension-koni-ui/contexts/Sc
 import { SigningContextProvider } from '@subwallet/extension-koni-ui/contexts/SigningContext';
 import useSetupStore from '@subwallet/extension-koni-ui/hooks/store/useSetupStore';
 import { saveCurrentAccountAddress, subscribeAccountsWithCurrentAddress, subscribeAuthorizeRequestsV2, subscribeConfirmations, subscribeMetadataRequests, subscribeSigningRequests } from '@subwallet/extension-koni-ui/messaging';
-import ExternalRequest from '@subwallet/extension-koni-ui/Popup/ExternalRequest';
-import Home from '@subwallet/extension-koni-ui/Popup/Home';
-import XcmTransfer from '@subwallet/extension-koni-ui/Popup/XcmTransfer/XcmTransfer';
 import { store } from '@subwallet/extension-koni-ui/stores';
 import { updateCurrentAccount } from '@subwallet/extension-koni-ui/stores/updater';
 import { buildHierarchy } from '@subwallet/extension-koni-ui/util/buildHierarchy';
 import * as Bowser from 'bowser';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
-import { Route, Switch } from 'react-router';
+import { RouterProvider } from 'react-router';
 
 import uiSettings from '@polkadot/ui-settings';
-// import Home from './Home';
 
-const StakeCompoundSubmitTransaction = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Home/Staking/StakeCompoundSubmitTransaction'));
-const UnbondingSubmitTransaction = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Bonding/UnbondingSubmitTransaction'));
-const BondingSubmitTransaction = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Bonding/BondingSubmitTransaction'));
-const BondingValidatorSelection = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Bonding/BondingValidatorSelection'));
-const BondingNetworkSelection = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Bonding/BondingNetworkSelection'));
-const TokenEdit = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Settings/TokenSetting/CustomTokenEdit'));
-const TokenSetting = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Settings/TokenSetting/CustomTokenSetting'));
-const Welcome = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Welcome'));
-const Signing = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Signing'));
-const Confirmation = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Confirmation'));
-const RestoreJson = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/RestoreJson'));
-const PhishingDetected = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/PhishingDetected'));
-const Metadata = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Metadata'));
-const ImportSeed = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/ImportSeed'));
-const AttachQrSigner = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Attach/AttachQrSigner'));
-const ImportSecretQr = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Attach/ImportSecretQr'));
-const AttachReadOnly = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Attach/AttachReadOnly'));
-const ImportMetamaskPrivateKey = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/ImportMetamaskPrivateKey'));
-const Forget = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Forget'));
-const Export = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Export'));
-const Derive = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Derive'));
-const CreateAccount = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/CreateAccount'));
-const Authorize = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Authorize'));
-const AuthList = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/AuthManagement'));
-const LoadingContainer = React.lazy(() => import('@subwallet/extension-koni-ui/components/LoadingContainer'));
-const TransferNftContainer = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Home/Nfts/transfer/TransferNftContainer'));
-const ImportLedger = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/ImportLedger'));
-const ImportNft = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/ImportToken/ImportNft'));
-const ImportToken = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/ImportToken/ImportToken'));
-const SendFund = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Sending/SendFund'));
-const Settings = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Settings'));
-const GeneralSetting = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Settings/GeneralSetting'));
-const NetworkCreate = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Settings/NetworkSettings/NetworkEdit'));
-const Networks = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Settings/NetworkSettings/Networks'));
-const Rendering = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Rendering'));
-const Donate = React.lazy(() => import('@subwallet/extension-koni-ui/Popup/Sending/Donate'));
-const ErrorBoundary = React.lazy(() => import('@subwallet/extension-koni-ui/components/ErrorBoundary'));
+import LoadingContainer from '../components/LoadingContainer';
+import Rendering from './Rendering';
+import { router } from './routes';
 
 const startSettings = uiSettings.get();
 
@@ -246,21 +207,21 @@ export default function Popup (): React.ReactElement {
       .catch(console.error);
   }, [cameraOn]);
 
-  function wrapWithErrorBoundary (component: React.ReactElement, trigger?: string): React.ReactElement {
-    return <ErrorBoundary trigger={trigger}>{component}</ErrorBoundary>;
+  if (isWelcomeDone) {
+    if (authRequests && authRequests.length) {
+      router.navigate('/authorize');
+    } else if (metaRequests && metaRequests.length) {
+      router.navigate('/metadata');
+    } else if (signRequests && signRequests.length) {
+      router.navigate('/signing');
+    } else if (checkConfirmation()) {
+      router.navigate('/confirmation');
+    } else {
+      router.navigate('/');
+    }
+  } else {
+    router.navigate('/welcome');
   }
-
-  const Root = isWelcomeDone
-    ? authRequests && authRequests.length
-      ? wrapWithErrorBoundary(<Authorize />, 'authorize')
-      : metaRequests && metaRequests.length
-        ? wrapWithErrorBoundary(<Metadata />, 'metadata')
-        : signRequests && signRequests.length
-          ? wrapWithErrorBoundary(<Signing />, 'signing')
-          : checkConfirmation()
-            ? wrapWithErrorBoundary(<Confirmation />, 'confirmation')
-            : wrapWithErrorBoundary(<Home />, 'Home')
-    : wrapWithErrorBoundary(<Welcome />, 'welcome');
 
   return (
     <LoadingContainer>{accounts && authRequests && metaRequests && signRequests && (
@@ -280,48 +241,7 @@ export default function Popup (): React.ReactElement {
                               <QRContextProvider>
                                 <ToastProvider>
                                   <Rendering />
-                                  <Switch>
-                                    <Route path='/auth-list'>{wrapWithErrorBoundary(<AuthList />, 'auth-list')}</Route>
-                                    <Route path='/confirmation'>{wrapWithErrorBoundary(<AuthList />, 'confirmation')}</Route>
-                                    <Route path='/account/create'>{wrapWithErrorBoundary(<CreateAccount />, 'account-creation')}</Route>
-                                    <Route path='/account/forget/:address'>{wrapWithErrorBoundary(<Forget />, 'forget-address')}</Route>
-                                    <Route path='/account/export/:address'>{wrapWithErrorBoundary(<Export />, 'export-address')}</Route>
-                                    {/* <Route path='/account/export-all'>{wrapWithErrorBoundary(<ExportAll />, 'export-all-address')}</Route> */}
-                                    <Route path='/account/import-ledger'>{wrapWithErrorBoundary(<ImportLedger />, 'import-ledger')}</Route>
-                                    <Route path='/account/attach-qr-signer'>{wrapWithErrorBoundary(<AttachQrSigner />, 'attach-qr-signer')}</Route>
-                                    <Route path='/account/attach-read-only'>{wrapWithErrorBoundary(<AttachReadOnly />, 'attach-read-only')}</Route>
-                                    <Route path='/account/import-secret-qr'>{wrapWithErrorBoundary(<ImportSecretQr />, 'import-secret-qr')}</Route>
-                                    <Route path='/account/scan-qr'>{wrapWithErrorBoundary(<ExternalRequest />, 'scan-qr')}</Route>
-                                    <Route path='/account/import-seed'>{wrapWithErrorBoundary(<ImportSeed />, 'import-seed')}</Route>
-                                    <Route path='/account/import-metamask-private-key'>{wrapWithErrorBoundary(<ImportMetamaskPrivateKey />, 'import-metamask-private-key')}</Route>
-                                    <Route path='/account/restore-json'>{wrapWithErrorBoundary(<RestoreJson />, 'restore-json')}</Route>
-                                    <Route path='/account/derive/:address/locked'>{wrapWithErrorBoundary(<Derive isLocked />, 'derived-address-locked')}</Route>
-                                    <Route path='/account/derive/:address'>{wrapWithErrorBoundary(<Derive />, 'derive-address')}</Route>
-                                    <Route path='/account/settings'>{wrapWithErrorBoundary(<Settings />, 'account-settings')}</Route>
-                                    <Route path='/account/general-setting'>{wrapWithErrorBoundary(<GeneralSetting />, 'account-general-settings')}</Route>
-                                    <Route path='/account/networks'>{wrapWithErrorBoundary(<Networks />, 'account-networks')}</Route>
-                                    <Route path='/account/config-network'>{wrapWithErrorBoundary(<NetworkCreate />, 'account-network-edit')}</Route>
-                                    <Route path='/account/xcm-transfer'>{wrapWithErrorBoundary(<XcmTransfer />, 'xcm-transfer')}</Route>
-                                    <Route path='/account/send-fund'>{wrapWithErrorBoundary(<SendFund />, 'send-fund')}</Route>
-                                    <Route path='/account/donate'>{wrapWithErrorBoundary(<Donate />, 'donate')}</Route>
-                                    <Route path='/account/send-nft'>{wrapWithErrorBoundary(<TransferNftContainer />, 'send-nft')}</Route>
-                                    <Route path='/account/import-token'>{wrapWithErrorBoundary(<ImportToken />, 'import-token')}</Route>
-                                    <Route path='/account/import-nft'>{wrapWithErrorBoundary(<ImportNft />, 'import-nft')}</Route>
-                                    <Route path='/account/token-setting'>{wrapWithErrorBoundary(<TokenSetting />, 'token-setting')}</Route>
-                                    <Route path='/account/token-edit'>{wrapWithErrorBoundary(<TokenEdit />, 'token-edit')}</Route>
-                                    <Route path='/account/select-bonding-network'>{wrapWithErrorBoundary(<BondingNetworkSelection />, 'bonding-network')}</Route>
-                                    <Route path='/account/select-bonding-validator'>{wrapWithErrorBoundary(<BondingValidatorSelection />, 'bonding-validator')}</Route>
-                                    <Route path='/account/bonding-auth'>{wrapWithErrorBoundary(<BondingSubmitTransaction />, 'bonding-auth')}</Route>
-                                    <Route path='/account/unbonding-auth'>{wrapWithErrorBoundary(<UnbondingSubmitTransaction />, 'unbonding-auth')}</Route>
-                                    <Route path='/account/stake-compounding-auth'>{wrapWithErrorBoundary(<StakeCompoundSubmitTransaction />, 'stake-compounding-auth')}</Route>
-                                    <Route path={`${PHISHING_PAGE_REDIRECT}/:website`}>{wrapWithErrorBoundary(<PhishingDetected />, 'phishing-page-redirect')}</Route>
-                                    <Route
-                                      exact
-                                      path='/'
-                                    >
-                                      {Root}
-                                    </Route>
-                                  </Switch>
+                                  <RouterProvider router={router}></RouterProvider>
                                 </ToastProvider>
                               </QRContextProvider>
                             </ScannerContextProvider>

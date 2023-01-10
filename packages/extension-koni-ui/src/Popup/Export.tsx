@@ -3,6 +3,7 @@
 
 import type { Theme, ThemeProps } from '../types';
 
+import { ALL_ACCOUNT_KEY } from '@subwallet/extension-koni-base/constants';
 import cloneLogo from '@subwallet/extension-koni-ui/assets/clone.svg';
 import useToast from '@subwallet/extension-koni-ui/hooks/useToast';
 import Header from '@subwallet/extension-koni-ui/partials/Header';
@@ -13,7 +14,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import CopyToClipboard from 'react-copy-to-clipboard';
 import QRCode from 'react-qr-code';
 import { useSelector } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router';
+import { useParams } from 'react-router';
 import styled, { ThemeContext } from 'styled-components';
 
 import { AccountContext, AccountInfoEl, ActionBar, ActionContext, ActionText, Button, InputWithLabel, Label, Warning } from '../components';
@@ -22,11 +23,11 @@ import { exportAccount, exportAccountPrivateKey } from '../messaging';
 
 const MIN_LENGTH = 6;
 
-interface Props extends RouteComponentProps<{ address: string }>, ThemeProps {
+interface Props extends ThemeProps {
   className?: string;
 }
 
-function ExportAccount ({ className, match: { params: { address } } }: Props): React.ReactElement<Props> {
+function ExportAccount ({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const onAction = useContext(ActionContext);
   const accounts = useContext(AccountContext);
@@ -39,6 +40,7 @@ function ExportAccount ({ className, match: { params: { address } } }: Props): R
   const { show } = useToast();
   const [error, setError] = useState('');
   const themeContext = useContext(ThemeContext as React.Context<Theme>);
+  const address = useParams<{address: string}>().address || ALL_ACCOUNT_KEY;
   const _isAllAccount = isAccountAll(address);
   const currentAccount = useSelector((state: RootState) => state.currentAccount);
 
@@ -276,7 +278,7 @@ function ExportAccount ({ className, match: { params: { address } } }: Props): R
   );
 }
 
-export default withRouter(styled(ExportAccount)(({ theme }: Props) => `
+export default styled(ExportAccount)(({ theme }: Props) => `
   display: flex;
   flex-direction: column;
   position: relative;
@@ -379,4 +381,4 @@ export default withRouter(styled(ExportAccount)(({ theme }: Props) => `
       font-size: 16px;
       line-height: 26px;
   }
-`));
+`);
