@@ -95,6 +95,10 @@ function Component (
 
 export const TokenSelectionItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
+    '.ant-network-item-content': {
+      cursor: 'default'
+    },
+
     '.__chain-name': {
       color: token.colorTextLight4,
       fontSize: token.fontSizeSM,

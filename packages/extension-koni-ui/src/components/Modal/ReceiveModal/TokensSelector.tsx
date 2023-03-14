@@ -79,7 +79,7 @@ function Component ({ address, className = '', id, onChangeSelectedNetwork }: Pr
         renderWhenEmpty={renderEmpty}
         searchFunction={searchFunction}
         searchMinCharactersCount={2}
-        searchPlaceholder={t('Search chain')}
+        searchPlaceholder={t('Token name')}
       />
     </SwModal>
   );
@@ -88,9 +88,14 @@ function Component ({ address, className = '', id, onChangeSelectedNetwork }: Pr
 export const TokensSelector = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
     '& .ant-sw-modal-body': {
-      padding: `${token.padding}px 0 0`,
+      padding: 0,
       marginBottom: 0,
       display: 'flex'
+    },
+
+    '.ant-sw-list-search-input': {
+      marginBottom: token.marginXS,
+      padding: `${token.padding}px ${token.padding}px 0`
     },
 
     '.ant-sw-list-section': {

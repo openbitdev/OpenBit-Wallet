@@ -161,6 +161,7 @@ const ReceiveQrModal = styled(Component)<Props>(({ theme: { token } }: Props) =>
       position: 'relative',
       marginTop: 16,
       marginBottom: 16,
+      cursor: 'default',
 
       '.ant-account-item-address': {
         fontSize: token.fontSize,

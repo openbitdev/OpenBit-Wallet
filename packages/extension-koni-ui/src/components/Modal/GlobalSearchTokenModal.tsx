@@ -1,13 +1,16 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import EmptyList from '@subwallet/extension-koni-ui/components/EmptyList';
 import { TokenBalanceSelectionItem } from '@subwallet/extension-koni-ui/components/TokenItem/TokenBalanceSelectionItem';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
 import { AccountBalanceHookType, TokenGroupHookType } from '@subwallet/extension-koni-ui/types/hook';
 import { TokenDetailParam } from '@subwallet/extension-koni-ui/types/navigation';
 import { SwList, SwModal } from '@subwallet/react-ui';
+import { Coin } from 'phosphor-react';
 import React, { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -34,6 +37,7 @@ function getTokenBalances (
 
 function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalanceMap }: Props): React.ReactElement<Props> {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const tokenBalances = useMemo<TokenBalanceItemType[]>(() => {
     return getTokenBalances(tokenBalanceMap, sortedTokenSlugs);
   }, [tokenBalanceMap, sortedTokenSlugs]);
@@ -71,6 +75,16 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
     );
   }, []);
 
+  const emptyTokenList = useCallback(() => {
+    return (
+      <EmptyList
+        emptyMessage={t<string>('Your token will appear here.')}
+        emptyTitle={t<string>('No token')}
+        phosphorIcon={Coin}
+      />
+    );
+  }, [t]);
+
   return (
     <SwModal
       className={className}
@@ -83,6 +97,7 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
         enableSearchInput
         list={tokenBalances}
         renderItem={renderItem}
+        renderWhenEmpty={emptyTokenList}
         rowGap = {'8px'}
         searchFunction={searchFunc}
         searchMinCharactersCount={2}
@@ -105,7 +120,8 @@ export const GlobalSearchTokenModal = styled(Component)<Props>(({ theme: { token
     },
 
     '.ant-sw-list-search-input': {
-      marginBottom: token.marginXS
+      marginBottom: token.marginXS,
+      padding: `${token.padding}px ${token.padding}px 0`
     },
 
     '.ant-sw-list': {

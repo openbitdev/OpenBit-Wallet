@@ -89,6 +89,10 @@ export const FilterModal = styled(Component)<Props>(({ theme: { token } }: Props
       paddingBottom: 12
     },
 
+    '.ant-sw-modal-footer': {
+      paddingBottom: 0
+    },
+
     '.__option-item': {
       display: 'flex'
     },
