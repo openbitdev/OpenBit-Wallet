@@ -1061,8 +1061,10 @@ export default class KoniState {
     if (assetSetting.visible) {
       const assetInfo = this.chainService.getAssetBySlug(assetSlug);
 
-      this.chainService.enableChain(assetInfo.originChain);
+      this.enableChain(assetInfo.originChain, false);
     }
+
+    this.updateServiceInfo();
   }
 
   public subscribeAssetSettings () {
