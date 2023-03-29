@@ -2,12 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ApiProps, BasicTxInfo, ChainBondingBasics, NetworkJson, StakingType, UnlockingStakeInfo, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { calculateAlephZeroValidatorReturn, calculateChainStakedReturn, calculateInflation, calculateValidatorStakedReturn, ERA_LENGTH_MAP, getCommission, Unlocking, ValidatorExtraInfo } from '@subwallet/extension-koni-base/api/bonding/utils';
+import { calculateAlephZeroValidatorReturn, calculateChainStakedReturn, calculateInflation, calculateTernoaValidatorReturn, calculateValidatorStakedReturn, ERA_LENGTH_MAP, getCommission, Unlocking, ValidatorExtraInfo } from '@subwallet/extension-koni-base/api/bonding/utils';
 import { getFreeBalance } from '@subwallet/extension-koni-base/api/dotsama/balance';
 import { parseNumberToDisplay, parseRawNumber } from '@subwallet/extension-koni-base/utils';
 import Web3 from 'web3';
 
 import { BN, BN_ONE, BN_ZERO } from '@polkadot/util';
+
+interface TernoaStakingRewardsStakingRewardsData {
+  sessionEraPayout: number;
+  sessionExtraRewardPayout: number;
+}
 
 export async function getRelayChainBondingBasics (networkKey: string, dotSamaApi: ApiProps) {
   const apiProps = await dotSamaApi.isReady;
@@ -58,14 +63,15 @@ export async function getRelayValidatorsInfo (networkKey: string, dotSamaApi: Ap
   const allValidators: string[] = [];
   const result: ValidatorInfo[] = [];
 
-  const [_totalEraStake, _eraStakers, _totalIssuance, _auctionCounter, _minBond, _existedValidators, _bondedInfo] = await Promise.all([
+  const [_totalEraStake, _eraStakers, _totalIssuance, _auctionCounter, _minBond, _existedValidators, _bondedInfo, _eraPayout] = await Promise.all([
     apiProps.api.query.staking.erasTotalStake(parseInt(currentEra)),
     apiProps.api.query.staking.erasStakers.entries(parseInt(currentEra)),
     apiProps.api.query.balances.totalIssuance(),
     apiProps.api.query.auctions?.auctionCounter(),
     apiProps.api.query.staking.minNominatorBond(),
     apiProps.api.query.staking.nominators(address),
-    apiProps.api.query.staking.bonded(address)
+    apiProps.api.query.staking.bonded(address),
+    apiProps.api.query?.stakingRewards?.data()
   ]);
 
   const bnTotalEraStake = new BN(_totalEraStake.toString());
@@ -84,6 +90,10 @@ export async function getRelayValidatorsInfo (networkKey: string, dotSamaApi: Ap
   const numAuctions = _auctionCounter ? _auctionCounter.toHuman() as number : 0;
   const rawMinBond = _minBond.toHuman() as string;
   const minBond = parseFloat(rawMinBond.replaceAll(',', ''));
+
+  // for Ternoa
+  const eraRewardInfo = _eraPayout ? _eraPayout.toPrimitive() as unknown as TernoaStakingRewardsStakingRewardsData : {} as TernoaStakingRewardsStakingRewardsData;
+  const bnTotalReward = new BN(eraRewardInfo.sessionEraPayout).add(new BN(eraRewardInfo.sessionExtraRewardPayout));
 
   const totalStakeMap: Record<string, BN> = {};
   const bnDecimals = new BN((10 ** decimals).toString());
@@ -192,9 +202,14 @@ export async function getRelayValidatorsInfo (networkKey: string, dotSamaApi: Ap
 
     const bnValidatorStake = totalStakeMap[validator.address].div(bnDecimals);
 
-    validator.expectedReturn = ['aleph', 'alephTest'].includes(networkKey)
-      ? calculateAlephZeroValidatorReturn(stakedReturn, getCommission(commission))
-      : calculateValidatorStakedReturn(stakedReturn, bnValidatorStake, bnAvgStake, getCommission(commission));
+    if (['aleph', 'alephTest'].includes(networkKey)) {
+      validator.expectedReturn = calculateAlephZeroValidatorReturn(stakedReturn, getCommission(commission));
+    } else if (['ternoa', 'ternoa_alphanet'].includes(networkKey)) {
+      validator.expectedReturn = calculateTernoaValidatorReturn(bnTotalReward, allValidators.length, totalStakeMap[validator.address], parseFloat(commission.split('%')[0]));
+    } else {
+      validator.expectedReturn = calculateValidatorStakedReturn(stakedReturn, bnValidatorStake, bnAvgStake, getCommission(commission));
+    }
+
     validator.commission = parseFloat(commission.split('%')[0]);
     validator.blocked = extraInfoMap[validator.address].blocked;
     validator.identity = extraInfoMap[validator.address].identity;

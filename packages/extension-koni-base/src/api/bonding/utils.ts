@@ -184,6 +184,20 @@ export function calculateAlephZeroValidatorReturn (chainStakedReturn: number, co
   return chainStakedReturn * (100 - commission) / 100;
 }
 
+export function calculateTernoaValidatorReturn (bnTotalReward: BN, validatorCount: number, bnValidatorStake: BN, commission: number) {
+  const rewardPerValidator = bnTotalReward.div(new BN(validatorCount));
+  const rewardPercentageForNominators = 1 - (commission / 100);
+
+  const rewardForNominators = rewardPerValidator.muln(rewardPercentageForNominators);
+  console.log('rewardForNominators', rewardForNominators.toString(), bnValidatorStake.toString());
+
+  const bnApr = rewardForNominators.toNumber() / bnValidatorStake.toNumber();
+
+  console.log('bnApr', bnApr.toString());
+
+  return bnApr * 365 * 100;
+}
+
 export function calculateValidatorStakedReturn (chainStakedReturn: number, totalValidatorStake: BN, avgStake: BN, commission: number) {
   const bnAdjusted = avgStake.mul(BN_HUNDRED).div(totalValidatorStake);
   const adjusted = bnAdjusted.toNumber() * chainStakedReturn;
