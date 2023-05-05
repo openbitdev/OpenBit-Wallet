@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## 0.8.5 (Koni)
-Build date: Mar 31, 2023.
+Build date: May 05 , 2023.
 
 Update:
 - Support Subspace Gemini 3d (#1315)
