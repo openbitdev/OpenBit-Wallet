@@ -1767,6 +1767,23 @@ export const PREDEFINED_NETWORKS: Record<string, NetworkJson> = {
     decimals: 18,
     blockExplorer: 'https://explorer.subspace.network/#/gemini-3c'
   },
+  subspace_gemini_3d: {
+    key: 'subspace_gemini_3d',
+    chain: 'Subspace Gemini 3d',
+    genesisHash: '0x7f489750cfe91e17fc19b42a5acaba41d1975cedd3440075d4a4b4171ad0ac20',
+    ss58Format: 2254,
+    providers: {
+      'Europe 0': 'wss://eu-0.gemini-3d.subspace.network/ws',
+      'Europe 1': 'wss://eu-1.gemini-3d.subspace.network/ws'
+    },
+    active: false,
+    currentProviderMode: 'ws',
+    currentProvider: 'Europe 0',
+    groups: ['TEST_NET'],
+    nativeToken: 'tSSC',
+    decimals: 18,
+    blockExplorer: 'https://explorer.subspace.network/#/gemini-3d'
+  },
   origintrail: {
     key: 'origintrail',
     chain: 'OriginTrail Parachain',

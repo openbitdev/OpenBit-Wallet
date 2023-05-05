@@ -63,7 +63,7 @@ export async function checkSupportTransfer (networkKey: string, token: string, d
     };
   }
 
-  if (['subspace_gemini_3c', 'kulupu', 'joystream', 'genshiro_testnet', 'genshiro'].includes(networkKey)) {
+  if (['subspace_gemini_3c', 'subspace_gemini_3d', 'kulupu', 'joystream', 'genshiro_testnet', 'genshiro'].includes(networkKey)) {
     return {
       supportTransfer: false,
       supportTransferAll: false
