@@ -9,7 +9,7 @@ import { EvmChainHandler } from '@subwallet/extension-base/services/chain-servic
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _ChainBaseApi, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
-import { _isAssetFungibleToken, _isAssetSmartContractNft, _isChainEnabled, _isCustomAsset, _isCustomChain, _isEqualContractAddress, _isEqualSmartContractAsset, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey } from '@subwallet/extension-base/services/chain-service/utils';
+import { _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isEqualContractAddress, _isEqualSmartContractAsset, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { IChain } from '@subwallet/extension-base/services/storage-service/databases';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -25,7 +25,11 @@ export class ChainService {
     chainInfoMap: {},
     chainStateMap: {},
     assetRegistry: {},
-    assetRefMap: {}
+    assetRefMap: {},
+    multiChainAssetMap: {},
+
+    assetLogoMap: {},
+    chainLogoMap: {}
   };
 
   private dbService: DatabaseService; // to save chain, token settings from user
@@ -42,6 +46,8 @@ export class ChainService {
   private assetRegistrySubject = new Subject<Record<string, _ChainAsset>>();
   private multiChainAssetMapSubject = new Subject<Record<string, _MultiChainAsset>>();
   private xcmRefMapSubject = new Subject<Record<string, _AssetRef>>();
+  private assetLogoMap = new Subject<Record<string, string>>();
+  private chainLogoMap = new Subject<Record<string, string>>();
 
   // Todo: Update to new store indexed DB
   private store: AssetSettingStore = new AssetSettingStore();
@@ -55,12 +61,6 @@ export class ChainService {
 
     this.substrateChainHandler = new SubstrateChainHandler();
     this.evmChainHandler = new EvmChainHandler();
-
-    this.chainInfoMapSubject.next(this.dataMap.chainInfoMap);
-    this.chainStateMapSubject.next(this.dataMap.chainStateMap);
-    this.assetRegistrySubject.next(this.dataMap.assetRegistry);
-    this.xcmRefMapSubject.next(this.getXcmRefMap());
-
     this.logger = createLogger('chain-service');
 
     this.refreshChainStateInterval(3000, 6);
@@ -68,15 +68,8 @@ export class ChainService {
 
   // Getter
   public getXcmRefMap () {
-    const result: Record<string, _AssetRef> = {};
-
-    Object.entries(AssetRefMap).forEach(([key, assetRef]) => {
-      if (assetRef.path === _AssetRefPath.XCM) {
-        result[key] = assetRef;
-      }
-    });
-
-    return result;
+    // might change if there are more types of reference
+    return this.dataMap.assetRefMap;
   }
 
   public getEvmApi (slug: string) {
@@ -131,7 +124,7 @@ export class ChainService {
   }
 
   public getMultiChainAssetMap () {
-    return MultiChainAssetMap;
+    return this.dataMap.multiChainAssetMap;
   }
 
   public getSmartContractTokens () {
