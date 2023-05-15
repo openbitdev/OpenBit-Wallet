@@ -25,11 +25,11 @@ export class ChainService {
     chainInfoMap: {},
     chainStateMap: {},
     assetRegistry: {},
-    assetRefMap: {},
-    multiChainAssetMap: {},
+    assetRefMap: AssetRefMap,
+    multiChainAssetMap: MultiChainAssetMap,
 
-    assetLogoMap: {},
-    chainLogoMap: {}
+    assetLogoMap: AssetLogoMap,
+    chainLogoMap: ChainLogoMap
   };
 
   private dbService: DatabaseService; // to save chain, token settings from user
@@ -46,8 +46,6 @@ export class ChainService {
   private assetRegistrySubject = new Subject<Record<string, _ChainAsset>>();
   private multiChainAssetMapSubject = new Subject<Record<string, _MultiChainAsset>>();
   private xcmRefMapSubject = new Subject<Record<string, _AssetRef>>();
-  private assetLogoMap = new Subject<Record<string, string>>();
-  private chainLogoMap = new Subject<Record<string, string>>();
 
   // Todo: Update to new store indexed DB
   private store: AssetSettingStore = new AssetSettingStore();
@@ -454,23 +452,17 @@ export class ChainService {
 
   // Business logic
   public async init () {
-    // TODO: reconsider the flow of initiation
-    const [latestAssetRefMap, latestMultiChainAssetMap] = await Promise.all([
-      this.fetchLatestData(_ASSET_REF_SRC, AssetRefMap),
-      this.fetchLatestData(_MULTI_CHAIN_ASSET_SRC, MultiChainAssetMap)
-    ]);
+    this.multiChainAssetMapSubject.next(this.getMultiChainAssetMap());
+    this.xcmRefMapSubject.next(this.getXcmRefMap());
 
-    this.multiChainAssetMapSubject.next(latestMultiChainAssetMap as Record<string, _MultiChainAsset>);
-    this.dataMap.assetRefMap = latestAssetRefMap as Record<string, _AssetRef>;
-
+    // init chainInfoMap, chainStateMap and assetRegistry
     await this.initChains();
+    this.initApis();
+    await this.initAssetSettings();
+
     this.chainInfoMapSubject.next(this.getChainInfoMap());
     this.chainStateMapSubject.next(this.getChainStateMap());
     this.assetRegistrySubject.next(this.getAssetRegistry());
-
-    this.initApis();
-    await this.initAssetSettings();
-    this.logger.log('Initiated chains, assets and APIs');
   }
 
   private initApis () { // TODO: this might be async
@@ -633,7 +625,6 @@ export class ChainService {
     //   if (resp.ok) {
     //     try {
     //       result = await resp.json();
-    //       console.log('Fetched latest data', src);
     //     } catch (err) {
     //       console.warn('Error parsing latest data', src, err);
     //     }
@@ -649,7 +640,7 @@ export class ChainService {
 
   private async initChains () {
     const storedChainSettings = await this.dbService.getAllChainStore();
-    const latestChainInfoMap = await this.fetchLatestData(_CHAIN_INFO_SRC, ChainInfoMap) as Record<string, _ChainInfo>;
+    const defaultChainInfoMap = ChainInfoMap; // might change
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
@@ -661,8 +652,8 @@ export class ChainService {
     const deprecatedChainMap: Record<string, string> = {};
 
     if (storedChainSettings.length === 0) {
-      this.dataMap.chainInfoMap = latestChainInfoMap;
-      Object.values(latestChainInfoMap).forEach((chainInfo) => {
+      this.dataMap.chainInfoMap = defaultChainInfoMap;
+      Object.values(defaultChainInfoMap).forEach((chainInfo) => {
         this.dataMap.chainStateMap[chainInfo.slug] = {
           currentProvider: Object.keys(chainInfo.providers)[0],
           slug: chainInfo.slug,
@@ -678,10 +669,10 @@ export class ChainService {
         });
       });
     } else {
-      const mergedChainInfoMap: Record<string, _ChainInfo> = latestChainInfoMap;
+      const mergedChainInfoMap: Record<string, _ChainInfo> = defaultChainInfoMap;
 
       for (const [storedSlug, storedChainInfo] of Object.entries(storedChainSettingMap)) {
-        if (storedSlug in latestChainInfoMap) { // check predefined chains first, keep setting for providers and currentProvider
+        if (storedSlug in defaultChainInfoMap) { // check predefined chains first, keep setting for providers and currentProvider
           mergedChainInfoMap[storedSlug].providers = { ...storedChainInfo.providers, ...mergedChainInfoMap[storedSlug].providers };
           this.dataMap.chainStateMap[storedSlug] = {
             currentProvider: storedChainInfo.currentProvider,
@@ -697,7 +688,7 @@ export class ChainService {
           });
         } else { // only custom chains are left
           // check custom chain duplicated with predefined chain => merge into predefined chain
-          const duplicatedDefaultSlug = this.checkExistedPredefinedChain(latestChainInfoMap, storedChainInfo.substrateInfo?.genesisHash, storedChainInfo.evmInfo?.evmChainId);
+          const duplicatedDefaultSlug = this.checkExistedPredefinedChain(defaultChainInfoMap, storedChainInfo.substrateInfo?.genesisHash, storedChainInfo.evmInfo?.evmChainId);
 
           if (duplicatedDefaultSlug.length > 0) { // merge custom chain with existed chain
             mergedChainInfoMap[duplicatedDefaultSlug].providers = { ...storedChainInfo.providers, ...mergedChainInfoMap[duplicatedDefaultSlug].providers };
@@ -1245,9 +1236,7 @@ export class ChainService {
     // Object.entries(this.apiMap.web3).forEach(([key, network]) => {
     //   if (network.currentProvider instanceof Web3.providers.WebsocketProvider) {
     //     if (network.currentProvider?.connected) {
-    //       console.log(`[Web3] ${key} is connected`);
     //       network.currentProvider?.disconnect(code, reason);
-    //       console.log(`[Web3] ${key} is ${network.currentProvider.connected ? 'connected' : 'disconnected'} now`);
     //     }
     //   }
     // });
@@ -1262,9 +1251,7 @@ export class ChainService {
 
     //   if (currentProvider instanceof Web3.providers.WebsocketProvider) {
     //     if (!currentProvider.connected) {
-    //       console.log(`[Web3] ${key} is disconnected`);
     //       currentProvider?.connect();
-    //       setTimeout(() => console.log(`[Web3] ${key} is ${currentProvider.connected ? 'connected' : 'disconnected'} now`), 500);
     //     }
     //   }
     // });
@@ -1342,7 +1329,6 @@ export class ChainService {
     await Promise.all(promiseList);
 
     if (update) {
-      console.log('Update chain connection state');
       this.chainStateMapSubject.next(chainStateMap);
     }
   }
@@ -1366,9 +1352,9 @@ export class ChainService {
       });
 
       this.setAssetSettings(assetSettings, false);
-    }
 
-    this.eventService.emit('asset.ready', true);
+      this.assetSettingSubject.next(assetSettings);
+    }
   }
 
   public setAssetSettings (assetSettings: Record<string, AssetSetting>, emitEvent = true): void {
@@ -1453,12 +1439,12 @@ export class ChainService {
     return this.assetSettingSubject;
   }
 
-  public async getChainLogoMap (): Promise<Record<string, string>> {
-    return await this.fetchLatestData(_CHAIN_LOGO_MAP_SRC, ChainLogoMap) as Record<string, string>;
+  public getChainLogoMap (): Record<string, string> {
+    return this.dataMap.chainLogoMap;
   }
 
-  public async getAssetLogoMap (): Promise<Record<string, string>> {
-    return await this.fetchLatestData(_ASSET_LOGO_MAP_SRC, AssetLogoMap) as Record<string, string>;
+  public getAssetLogoMap (): Record<string, string> {
+    return this.dataMap.assetLogoMap;
   }
 
   public resetWallet (resetAll: boolean) {

@@ -271,12 +271,12 @@ export default class KoniState {
     await this.chainService.init();
     await this.migrationService.run();
     this.startSubscription();
-    this.eventService.emit('chain.ready', true);
+    // this.eventService.emit('asset.ready', true);
+    // this.eventService.emit('chain.ready', true);
 
     this.onReady();
     this.onAccountAdd();
     this.onAccountRemove();
-    this.logger.log('Done init state');
   }
 
   private startSubscription () {

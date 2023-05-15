@@ -3151,12 +3151,10 @@ export default class KoniExtension {
     return Promise.resolve(false);
   }
 
-  private async getLogoMap () {
-    const [chainLogoMap, assetLogoMap] = await Promise.all([this.#koniState.chainService.getChainLogoMap(), this.#koniState.chainService.getAssetLogoMap()]);
-
+  private getLogoMap () {
     return {
-      chainLogoMap,
-      assetLogoMap
+      chainLogoMap: this.#koniState.chainService.getChainLogoMap(),
+      assetLogoMap: this.#koniState.chainService.getAssetLogoMap()
     };
   }
 
@@ -3551,7 +3549,7 @@ export default class KoniExtension {
         return await this.reloadCron(request as CronReloadRequest);
 
       case 'pri(settings.getLogoMaps)':
-        return await this.getLogoMap();
+        return this.getLogoMap();
 
       // Default
       default:
