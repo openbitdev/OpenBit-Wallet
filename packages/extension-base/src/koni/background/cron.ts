@@ -5,7 +5,7 @@ import { _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { ApiMap, ServiceInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { CRON_AUTO_RECOVER_DOTSAMA_INTERVAL, CRON_GET_API_MAP_STATUS, CRON_REFRESH_CHAIN_NOMINATOR_METADATA, CRON_REFRESH_CHAIN_STAKING_METADATA, CRON_REFRESH_NFT_INTERVAL, CRON_REFRESH_STAKING_REWARD_FAST_INTERVAL, CRON_REFRESH_STAKING_REWARD_INTERVAL } from '@subwallet/extension-base/constants';
 import { KoniSubscription } from '@subwallet/extension-base/koni/background/subscription';
-import { _ChainConnectionStatus, _ChainState, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
+import { _ChainState, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _isChainSupportEvmNft, _isChainSupportNativeNft, _isChainSupportSubstrateStaking, _isChainSupportWasmNft } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventItem, EventType } from '@subwallet/extension-base/services/event-service/types';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -77,29 +77,12 @@ export class KoniCron {
     });
   };
 
-  // init = () => {
-  //   const currentAccountInfo = this.state.keyringService.currentAccount;
-  //
-  //   if (!currentAccountInfo?.address) {
-  //     return;
-  //   }
-  //
-  //   if (Object.keys(this.state.getSubstrateApiMap()).length !== 0 || Object.keys(this.state.getEvmApiMap()).length !== 0) {
-  //     this.refreshNft(currentAccountInfo.address, this.state.getApiMap(), this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap());
-  //     this.updateApiMapStatus();
-  //     this.refreshStakingReward(currentAccountInfo.address);
-  //     this.refreshStakingRewardFastInterval(currentAccountInfo.address);
-  //     // this.updateChainStakingMetadata(this.state.getChainInfoMap(), this.state.getChainStateMap(), this.state.getSubstrateApiMap());
-  //     this.updateNominatorMetadata(currentAccountInfo.address, this.state.getChainInfoMap(), this.state.getChainStateMap(), this.state.getSubstrateApiMap());
-  //   } else {
-  //     this.setStakingRewardReady();
-  //   }
-  // };
-
-  start = () => {
+  start = async () => {
     if (this.status === 'running') {
       return;
     }
+
+    await Promise.all([this.state.eventService.waitKeyringReady, this.state.eventService.waitAssetReady]);
 
     const currentAccountInfo = this.state.keyringService.currentAccount;
 

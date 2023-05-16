@@ -4,7 +4,7 @@
 import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, MultiChainAssetMap } from '@subwallet/chain-list';
 import { _AssetRef, _AssetRefPath, _AssetType, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
-import { _ASSET_LOGO_MAP_SRC, _ASSET_REF_SRC, _CHAIN_ASSET_SRC, _CHAIN_INFO_SRC, _CHAIN_LOGO_MAP_SRC, _DEFAULT_ACTIVE_CHAINS, _MULTI_CHAIN_ASSET_SRC } from '@subwallet/extension-base/services/chain-service/constants';
+import { _ASSET_LOGO_MAP_SRC, _ASSET_REF_SRC, _CHAIN_ASSET_SRC, _CHAIN_INFO_SRC, _CHAIN_LOGO_MAP_SRC, _DEFAULT_ACTIVE_CHAINS, _MULTI_CHAIN_ASSET_SRC, UPDATE_DATA_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
@@ -35,6 +35,7 @@ export class ChainService {
   private dbService: DatabaseService; // to save chain, token settings from user
   private eventService: EventService;
 
+  private latestDataTimeout: NodeJS.Timeout | undefined;
   private lockChainInfoMap = false; // prevent unwanted changes (edit, enable, disable) to chainInfoMap
 
   private substrateChainHandler: SubstrateChainHandler;
@@ -463,6 +464,13 @@ export class ChainService {
     this.chainInfoMapSubject.next(this.getChainInfoMap());
     this.chainStateMapSubject.next(this.getChainStateMap());
     this.assetRegistrySubject.next(this.getAssetRegistry());
+
+    this.eventService.emit('chain.ready', true);
+    this.eventService.emit('asset.ready', true);
+
+    setTimeout(() => {
+      this.checkLatestData();
+    }, 10000);
   }
 
   private initApis () { // TODO: this might be async
@@ -476,13 +484,13 @@ export class ChainService {
   private initApiForChain (chainInfo: _ChainInfo) {
     const { endpoint, providerName } = this.getChainCurrentProviderByKey(chainInfo.slug);
 
-    if (chainInfo.substrateInfo !== null) {
+    if (chainInfo.substrateInfo !== null && !this.substrateChainHandler.getSubstrateApiByChain(chainInfo.slug)) {
       const chainApi = this.initApi(chainInfo.slug, endpoint, 'substrate', providerName);
 
       this.substrateChainHandler.setSubstrateApi(chainInfo.slug, chainApi as _SubstrateApi);
     }
 
-    if (chainInfo.evmInfo !== null) {
+    if (chainInfo.evmInfo !== null && !this.evmChainHandler.getEvmApiByChain(chainInfo.slug)) {
       const chainApi = this.initApi(chainInfo.slug, endpoint, 'evm', providerName);
 
       this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi as _EvmApi);
@@ -601,46 +609,74 @@ export class ChainService {
     return duplicatedSlug;
   }
 
-  private async fetchLatestData (src: string, defaultValue: unknown) {
-    return Promise.resolve(defaultValue);
-    // try {
-    //   const timeout = new Promise((resolve) => {
-    //     const id = setTimeout(() => {
-    //       clearTimeout(id);
-    //       resolve(null);
-    //     }, 1500);
-    //   });
-    //   let result = defaultValue;
-    //   const resp = await Promise.race([
-    //     timeout,
-    //     fetch(src)
-    //   ]) as Response || null;
-    //
-    //   if (!resp) {
-    //     console.warn('Error fetching latest data', src);
-    //
-    //     return result;
-    //   }
-    //
-    //   if (resp.ok) {
-    //     try {
-    //       result = await resp.json();
-    //     } catch (err) {
-    //       console.warn('Error parsing latest data', src, err);
-    //     }
-    //   }
-    //
-    //   return result;
-    // } catch (e) {
-    //   console.warn('Error fetching latest data', src, e);
-    //
-    //   return defaultValue;
-    // }
+  private async fetchLatestData (src: string) {
+    try {
+      let result;
+      const resp = await fetch(src);
+
+      if (!resp) {
+        return;
+      }
+
+      if (resp.ok) {
+        try {
+          result = await resp.json() as unknown;
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+
+      return result;
+    } catch (e) {
+      console.warn(e);
+
+      // eslint-disable-next-line
+      return;
+    }
   }
 
-  private async initChains () {
+  private checkLatestData () {
+    clearTimeout(this.latestDataTimeout);
+
+    Promise.all([
+      this.fetchLatestData(_CHAIN_LOGO_MAP_SRC),
+      this.fetchLatestData(_ASSET_LOGO_MAP_SRC),
+      this.fetchLatestData(_CHAIN_INFO_SRC),
+      this.fetchLatestData(_CHAIN_ASSET_SRC),
+      this.fetchLatestData(_ASSET_REF_SRC),
+      this.fetchLatestData(_MULTI_CHAIN_ASSET_SRC)
+    ]).then(([latestChainLogoMap, latestAssetLogoMap, latestChainInfoMap, latestChainAssetMap, latestAssetRefMap, latestMultiChainAssetMap]) => {
+      if (latestChainLogoMap) {
+        this.dataMap.chainLogoMap = latestChainLogoMap as Record<string, string>;
+      }
+
+      if (latestAssetLogoMap) {
+        this.dataMap.assetLogoMap = latestAssetLogoMap as Record<string, string>;
+      }
+
+      if (latestAssetRefMap) {
+        this.dataMap.assetRefMap = latestAssetRefMap as Record<string, _AssetRef>;
+        this.xcmRefMapSubject.next(this.getXcmRefMap());
+      }
+
+      if (latestMultiChainAssetMap) {
+        this.dataMap.multiChainAssetMap = latestMultiChainAssetMap as Record<string, _MultiChainAsset>;
+        this.multiChainAssetMapSubject.next(this.getMultiChainAssetMap());
+      }
+
+      this.initChains(latestChainInfoMap as Record<string, _ChainInfo>, latestChainAssetMap as Record<string, _ChainAsset>).then(() => {
+        this.chainInfoMapSubject.next(this.getChainInfoMap());
+        this.assetRegistrySubject.next(this.getAssetRegistry());
+      }).catch(console.error);
+    }).catch(console.error);
+
+    this.latestDataTimeout = setTimeout(this.checkLatestData.bind(this), UPDATE_DATA_INTERVAL);
+  }
+
+  private async initChains (latestChainInfoMap?: Record<string, _ChainInfo>, latestChainAssetMap?: Record<string, _ChainAsset>) {
     const storedChainSettings = await this.dbService.getAllChainStore();
-    const defaultChainInfoMap = ChainInfoMap; // might change
+    const allowOverride = !!latestChainInfoMap && !!latestChainAssetMap;
+    const defaultChainInfoMap = latestChainInfoMap || ChainInfoMap; // might change
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
@@ -673,7 +709,17 @@ export class ChainService {
 
       for (const [storedSlug, storedChainInfo] of Object.entries(storedChainSettingMap)) {
         if (storedSlug in defaultChainInfoMap) { // check predefined chains first, keep setting for providers and currentProvider
-          mergedChainInfoMap[storedSlug].providers = { ...storedChainInfo.providers, ...mergedChainInfoMap[storedSlug].providers };
+          mergedChainInfoMap[storedSlug] = {
+            slug: storedSlug,
+            name: allowOverride ? defaultChainInfoMap[storedSlug].name : storedChainSettingMap[storedSlug].name,
+            isTestnet: allowOverride ? defaultChainInfoMap[storedSlug].isTestnet : storedChainSettingMap[storedSlug].isTestnet,
+            chainStatus: allowOverride ? defaultChainInfoMap[storedSlug].chainStatus : storedChainSettingMap[storedSlug].chainStatus,
+            providers: { ...storedChainInfo.providers, ...mergedChainInfoMap[storedSlug].providers },
+            substrateInfo: allowOverride ? defaultChainInfoMap[storedSlug].substrateInfo : storedChainSettingMap[storedSlug].substrateInfo,
+            evmInfo: allowOverride ? defaultChainInfoMap[storedSlug].evmInfo : storedChainSettingMap[storedSlug].evmInfo,
+            icon: allowOverride ? defaultChainInfoMap[storedSlug].icon : storedChainSettingMap[storedSlug].icon
+          };
+
           this.dataMap.chainStateMap[storedSlug] = {
             currentProvider: storedChainInfo.currentProvider,
             slug: storedSlug,
@@ -758,17 +804,17 @@ export class ChainService {
 
     await this.dbService.bulkUpdateChainStore(newStorageData);
     await this.dbService.removeFromChainStore(deprecatedChains); // remove outdated records
-    await this.initAssetRegistry(deprecatedChainMap);
+    await this.initAssetRegistry(deprecatedChainMap, latestChainAssetMap);
   }
 
-  private async initAssetRegistry (deprecatedCustomChainMap: Record<string, string>) {
+  private async initAssetRegistry (deprecatedCustomChainMap: Record<string, string>, latestChainAssetMap?: Record<string, _ChainAsset>) {
     const storedAssetRegistry = await this.dbService.getAllAssetStore();
-    const latestAssetRegistry = await this.fetchLatestData(_CHAIN_ASSET_SRC, ChainAssetMap) as Record<string, _ChainAsset>;
+    const defaultAssetRegistry = latestChainAssetMap || ChainAssetMap;
 
     if (storedAssetRegistry.length === 0) {
-      this.dataMap.assetRegistry = latestAssetRegistry;
+      this.dataMap.assetRegistry = defaultAssetRegistry;
     } else {
-      const mergedAssetRegistry: Record<string, _ChainAsset> = latestAssetRegistry;
+      const mergedAssetRegistry: Record<string, _ChainAsset> = defaultAssetRegistry;
 
       const parsedStoredAssetRegistry: Record<string, _ChainAsset> = {};
       const deprecatedAssets: string[] = [];
@@ -793,7 +839,7 @@ export class ChainService {
       for (const assetInfo of Object.values(parsedStoredAssetRegistry)) {
         let duplicated = false;
 
-        for (const defaultChainAsset of Object.values(latestAssetRegistry)) {
+        for (const defaultChainAsset of Object.values(defaultAssetRegistry)) {
           // case merge custom asset with default asset
           if (_isEqualSmartContractAsset(assetInfo, defaultChainAsset)) {
             duplicated = true;
@@ -1108,7 +1154,7 @@ export class ChainService {
 
       return result;
     } catch (e) {
-      console.error('Error connecting to provider', e);
+      console.error(e);
 
       result.success = false;
       result.error = _CHAIN_VALIDATION_ERROR.CONNECTION_FAILURE;

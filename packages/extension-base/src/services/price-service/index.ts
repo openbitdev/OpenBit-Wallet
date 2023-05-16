@@ -78,8 +78,6 @@ export class PriceService implements StoppableServiceInterface, PersistDataServi
       }
     };
 
-    await this.eventService.waitAssetReady;
-
     this.status = ServiceStatus.INITIALIZED;
 
     this.eventService.on('asset.updateState', eventHandler);
@@ -98,6 +96,8 @@ export class PriceService implements StoppableServiceInterface, PersistDataServi
   startPromiseHandler = createPromiseHandler<void>();
   async start (): Promise<void> {
     try {
+      await this.eventService.waitAssetReady;
+
       this.startPromiseHandler = createPromiseHandler<void>();
       this.status = ServiceStatus.STARTING;
       await this.startCron();

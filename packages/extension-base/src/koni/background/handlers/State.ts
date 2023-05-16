@@ -271,8 +271,6 @@ export default class KoniState {
     await this.chainService.init();
     await this.migrationService.run();
     this.startSubscription();
-    // this.eventService.emit('asset.ready', true);
-    // this.eventService.emit('chain.ready', true);
 
     this.onReady();
     this.onAccountAdd();
@@ -290,8 +288,8 @@ export default class KoniState {
   }
 
   public onReady () {
-    this.subscription.start();
-    this.cron.start();
+    this.subscription.start().catch(console.error);
+    this.cron.start().catch(console.error);
     this.historyService.start().catch(console.error);
     this.priceService.start().catch(console.error);
 
@@ -1620,8 +1618,8 @@ export default class KoniState {
 
   public async wakeup () {
     await this.resumeAllNetworks();
-    this.cron.start();
-    this.subscription.start();
+    await this.cron.start();
+    await this.subscription.start();
     await this.historyService.start();
     await this.priceService.start();
   }
