@@ -355,7 +355,6 @@ async function subscribeTokensAccountsPallet (addresses: string[], chain: string
     try {
       const onChainInfo = _getTokenOnChainInfo(tokenInfo);
 
-      // Get Token Balance
       // @ts-ignore
       return await api.query.tokens.accounts.multi(addresses.map((address) => [address, onChainInfo]), (balances: TokenBalanceRaw[]) => {
         const tokenBalance = {
