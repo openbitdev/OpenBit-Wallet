@@ -325,9 +325,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Amount is required'));
     }
 
-    // if ((new BigN(amount)).eq(new BigN(0))) {
-    //   return Promise.reject(t('Amount must be greater than 0'));
-    // }
+    if ((new BigN(amount)).eq(new BigN(0))) {
+      return Promise.reject(t('Amount must be greater than 0'));
+    }
 
     if ((new BigN(amount)).gt(new BigN(maxTransfer))) {
       const maxString = formatBalance(maxTransfer, decimals);
