@@ -5,6 +5,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit/dist';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
 import { ThemeNames, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { DEFAULT_AUTO_LOCK_TIME, DEFAULT_CHAIN_PATROL_ENABLE, DEFAULT_NOTIFICATION_TYPE, DEFAULT_THEME } from '@subwallet/extension-base/services/setting-service/constants';
+import { DefaultAssetLogoMap, DefaultChainLogoMap } from '@subwallet/extension-koni-ui/assets/logo';
 import { AppSettings, ReduxStatus } from '@subwallet/extension-koni-ui/stores/types';
 
 import settings from '@polkadot/ui-settings';
@@ -33,8 +34,8 @@ const initialState: AppSettings = {
 
   reduxStatus: ReduxStatus.INIT,
   logoMaps: {
-    chainLogoMap: {},
-    assetLogoMap: {}
+    chainLogoMap: DefaultChainLogoMap,
+    assetLogoMap: DefaultAssetLogoMap
   }
 };
 
@@ -112,9 +113,20 @@ const settingsSlice = createSlice({
       };
     },
     updateLogoMaps (state, action: PayloadAction<AppSettings['logoMaps']>) {
+      const { assetLogoMap, chainLogoMap } = action.payload;
+
       return {
         ...state,
-        logoMaps: action.payload
+        logoMaps: {
+          assetLogoMap: {
+            ...assetLogoMap,
+            ...DefaultAssetLogoMap
+          },
+          chainLogoMap: {
+            ...chainLogoMap,
+            ...DefaultChainLogoMap
+          }
+        }
       };
     }
   }
