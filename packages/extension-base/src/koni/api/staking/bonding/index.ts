@@ -132,28 +132,30 @@ export function subscribeEssentialChainStakingMetadata (substrateApiMap: Record<
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   Object.values(chainInfoMap).forEach(async (chainInfo: _ChainInfo) => {
-    const substrateApi = await substrateApiMap[chainInfo.slug].isReady;
+    if (substrateApiMap[chainInfo.slug]) {
+      const substrateApi = await substrateApiMap[chainInfo.slug].isReady;
 
-    if (_STAKING_CHAIN_GROUP.astar.includes(chainInfo.slug)) {
-      const unsub = await subscribeAstarStakingMetadata(chainInfo.slug, substrateApi, callback);
+      if (_STAKING_CHAIN_GROUP.astar.includes(chainInfo.slug)) {
+        const unsub = await subscribeAstarStakingMetadata(chainInfo.slug, substrateApi, callback);
 
-      // @ts-ignore
-      unsubList.push(unsub);
-    } else if (_STAKING_CHAIN_GROUP.para.includes(chainInfo.slug)) {
-      const unsub = await subscribeParaChainStakingMetadata(chainInfo.slug, substrateApi, callback);
+        // @ts-ignore
+        unsubList.push(unsub);
+      } else if (_STAKING_CHAIN_GROUP.para.includes(chainInfo.slug)) {
+        const unsub = await subscribeParaChainStakingMetadata(chainInfo.slug, substrateApi, callback);
 
-      // @ts-ignore
-      unsubList.push(unsub);
-    } else if (_STAKING_CHAIN_GROUP.amplitude.includes(chainInfo.slug)) {
-      const unsub = await subscribeAmplitudeStakingMetadata(chainInfo.slug, substrateApi, callback);
+        // @ts-ignore
+        unsubList.push(unsub);
+      } else if (_STAKING_CHAIN_GROUP.amplitude.includes(chainInfo.slug)) {
+        const unsub = await subscribeAmplitudeStakingMetadata(chainInfo.slug, substrateApi, callback);
 
-      // @ts-ignore
-      unsubList.push(unsub);
-    } else if (_STAKING_CHAIN_GROUP.relay.includes(chainInfo.slug)) {
-      const unsub = await subscribeRelayChainStakingMetadata(chainInfo, substrateApi, callback);
+        // @ts-ignore
+        unsubList.push(unsub);
+      } else if (_STAKING_CHAIN_GROUP.relay.includes(chainInfo.slug)) {
+        const unsub = await subscribeRelayChainStakingMetadata(chainInfo, substrateApi, callback);
 
-      // @ts-ignore
-      unsubList.push(unsub);
+        // @ts-ignore
+        unsubList.push(unsub);
+      }
     }
   });
 
