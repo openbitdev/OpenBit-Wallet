@@ -116,7 +116,7 @@ export function subscribeRelayChainStakingMetadata (chainInfo: _ChainInfo, subst
   return substrateApi.api.query.staking.currentEra(async (_currentEra: Codec) => {
     const currentEra = _currentEra.toString();
     const maxNominations = substrateApi.api.consts.staking.maxNominations.toString();
-    const maxUnlockingChunks = substrateApi.api.consts.staking.maxUnlockingChunks.toString();
+    const maxUnlockingChunks = substrateApi.api.consts.staking?.maxUnlockingChunks ? substrateApi.api.consts.staking?.maxUnlockingChunks?.toString() : '1';
     const unlockingEras = substrateApi.api.consts.staking.bondingDuration.toString();
 
     const [_minNominatorBond, _minPoolJoin, _minimumActiveStake] = await Promise.all([
@@ -156,7 +156,7 @@ export async function getRelayChainStakingMetadata (chainInfo: _ChainInfo, subst
   const _era = await chainApi.api.query.staking.currentEra();
   const currentEra = _era.toString();
   const maxNominations = chainApi.api.consts.staking.maxNominations.toString();
-  const maxUnlockingChunks = chainApi.api.consts.staking.maxUnlockingChunks.toString();
+  const maxUnlockingChunks = chainApi.api.consts.staking?.maxUnlockingChunks ? chainApi.api.consts.staking?.maxUnlockingChunks?.toString() : '1';
   const unlockingEras = chainApi.api.consts.staking.bondingDuration.toString();
 
   const [_totalEraStake, _totalIssuance, _auctionCounter, _minimumActiveStake, _minNominatorBond, _minPoolJoin, _eraStakers] = await Promise.all([
@@ -796,14 +796,14 @@ export async function getRelayBondingExtrinsic (substrateApi: _SubstrateApi, amo
   });
 
   if (!nominatorMetadata) {
-    bondTx = chainApi.api.tx.staking.bond(address, binaryAmount, bondDest);
+    bondTx = chainApi.api.tx.staking.bond(address, binaryAmount, ['xx_network'].includes(chainInfo.slug) ? undefined : bondDest);
     nominateTx = chainApi.api.tx.staking.nominate(validatorParamList);
 
     return chainApi.api.tx.utility.batchAll([bondTx, nominateTx]);
   }
 
   if (!nominatorMetadata.isBondedBefore) { // first time
-    bondTx = chainApi.api.tx.staking.bond(nominatorMetadata.address, binaryAmount, bondDest);
+    bondTx = chainApi.api.tx.staking.bond(nominatorMetadata.address, binaryAmount, ['xx_network'].includes(chainInfo.slug) ? undefined : bondDest);
     nominateTx = chainApi.api.tx.staking.nominate(validatorParamList);
 
     return chainApi.api.tx.utility.batchAll([bondTx, nominateTx]);
