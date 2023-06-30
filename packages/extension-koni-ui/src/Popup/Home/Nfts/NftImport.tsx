@@ -5,15 +5,16 @@ import { _AssetType, _ChainInfo } from '@subwallet/chain-list/types';
 import { _getNftTypesSupportedByChain, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import { isValidSubstrateAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, ChainSelector, Layout, PageWrapper, TokenTypeSelector } from '@subwallet/extension-koni-ui/components';
+import NetworkWarningState from '@subwallet/extension-koni-ui/components/Network/NetworkWarningState';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useChainChecker, useGetContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useGetContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { upsertCustomToken, validateCustomToken } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToError, convertFieldToObject, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Form, Icon, Input } from '@subwallet/react-ui';
 import { PlusCircle } from 'phosphor-react';
 import { RuleObject } from 'rc-field-form/lib/interface';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -75,8 +76,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const nftTypeOptions = useMemo(() => {
     return getNftTypeSupported(chainInfoMap[selectedChain]);
   }, [chainInfoMap, selectedChain]);
-
-  const checkChain = useChainChecker();
 
   const goBack = useCallback(() => {
     navigate('/home/nfts/collections');
@@ -216,10 +215,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     });
   }, [form, selectedChain, selectedNftType, t]);
 
-  useEffect(() => {
-    selectedChain && checkChain(selectedChain);
-  }, [selectedChain, checkChain]);
-
   return (
     <PageWrapper
       className={className}
@@ -264,6 +259,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 placeholder={t('Select network')}
                 title={t('Select network')}
               />
+              <NetworkWarningState chain={selectedChain} />
             </Form.Item>
 
             <Form.Item

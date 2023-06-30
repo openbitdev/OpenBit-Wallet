@@ -1,7 +1,10 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AmountData } from '@subwallet/extension-base/background/KoniTypes';
+import NetworkWarningState, { ReConnectNetworkButton } from '@subwallet/extension-koni-ui/components/Network/NetworkWarningState';
 import { useGetBalance } from '@subwallet/extension-koni-ui/hooks';
+import { GetBalanceErrorType } from '@subwallet/extension-koni-ui/hooks/balance/useGetBalance';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, Number, Typography } from '@subwallet/react-ui';
@@ -17,10 +20,78 @@ type Props = ThemeProps & {
   onBalanceReady?: (rs: boolean) => void;
 }
 
-const Component = ({ address, chain, className, label, onBalanceReady, tokenSlug }: Props) => {
+type BalanceProps = {
+  isLoading?: boolean;
+  tokenSlug?: string;
+  label?: string;
+  nativeTokenSlug?: string;
+  nativeTokenBalance: AmountData;
+  tokenBalance?: AmountData;
+}
+
+type ErrorProps = {
+  errorType?: GetBalanceErrorType;
+  chain?: string;
+  chainName?: string;
+}
+
+function BalanceComponent ({ isLoading, label, nativeTokenBalance, nativeTokenSlug, tokenBalance, tokenSlug }: BalanceProps) {
   const { t } = useTranslation();
   const { token } = useTheme() as Theme;
-  const { error, isLoading, nativeTokenBalance, nativeTokenSlug, tokenBalance } = useGetBalance(chain, address, tokenSlug);
+
+  return (<Typography.Paragraph className={'balance-info'}>
+    <span className='__label'>{label || t('Sender available balance:')}</span>
+    {isLoading && <LoadingComponent />}
+    {!isLoading && <Number
+      decimal={nativeTokenBalance.decimals || 18}
+      decimalColor={token.colorTextTertiary}
+      intColor={token.colorTextTertiary}
+      size={14}
+      suffix={nativeTokenBalance.symbol}
+      unitColor={token.colorTextTertiary}
+      value={nativeTokenBalance.value}
+    />}
+    {
+      !isLoading && !!tokenSlug && nativeTokenSlug !== tokenSlug && tokenBalance &&
+      <>
+        <span className={'__name'}>&nbsp;{t('and')}&nbsp;</span>
+        <Number
+          decimal={tokenBalance?.decimals || 18}
+          decimalColor={token.colorTextTertiary}
+          intColor={token.colorTextTertiary}
+          size={14}
+          suffix={tokenBalance?.symbol}
+          unitColor={token.colorTextTertiary}
+          value={tokenBalance.value}
+        />
+      </>
+    }
+  </Typography.Paragraph>);
+}
+
+function LoadingComponent () {
+  return (<ActivityIndicator size={14} />);
+}
+
+function ErrorComponent ({ chain, chainName, errorType }: ErrorProps) {
+  const { t } = useTranslation();
+
+  if (errorType === GetBalanceErrorType.NETWORK_ERROR && chain) {
+    return <NetworkWarningState chain={chain} />;
+  }
+
+  return <>
+    {t('Can\'t not get balance')}
+    {chain && chainName && <ReConnectNetworkButton
+      chain={chain}
+      chainName={chainName} />}
+  </>;
+}
+
+const Component = ({ address, chain, className, label, onBalanceReady, tokenSlug }: Props) => {
+  const { chainInfo, error, isLoading, nativeTokenBalance, nativeTokenSlug, tokenBalance } = useGetBalance(chain, address, tokenSlug);
+
+  console.log(error);
 
   useEffect(() => {
     onBalanceReady?.(!isLoading && !error);
@@ -31,40 +102,21 @@ const Component = ({ address, chain, className, label, onBalanceReady, tokenSlug
   }
 
   return (
-    <Typography.Paragraph className={CN(className, 'free-balance')}>
-      {!error && <span className='__label'>{label || t('Sender available balance:')}</span>}
-      {isLoading && <ActivityIndicator size={14} />}
-      {error && <Typography.Text className={'error-message'}>{error}</Typography.Text>}
-      {
-        !isLoading && !error && !!nativeTokenSlug && (
-          <Number
-            decimal={nativeTokenBalance.decimals || 18}
-            decimalColor={token.colorTextTertiary}
-            intColor={token.colorTextTertiary}
-            size={14}
-            suffix={nativeTokenBalance.symbol}
-            unitColor={token.colorTextTertiary}
-            value={nativeTokenBalance.value}
-          />
-        )
-      }
-      {
-        !isLoading && !error && !!tokenSlug && (tokenSlug !== nativeTokenSlug) && (
-          <>
-            <span className={'__name'}>&nbsp;{t('and')}&nbsp;</span>
-            <Number
-              decimal={tokenBalance?.decimals || 18}
-              decimalColor={token.colorTextTertiary}
-              intColor={token.colorTextTertiary}
-              size={14}
-              suffix={tokenBalance?.symbol}
-              unitColor={token.colorTextTertiary}
-              value={tokenBalance.value}
-            />
-          </>
-        )
-      }
-    </Typography.Paragraph>
+    <div className={CN(className, 'free-balance')}>
+      {error && <ErrorComponent
+        chain={chain}
+        chainName={chainInfo?.name}
+        errorType={error}
+      />}
+      {!error && <BalanceComponent
+        isLoading={isLoading}
+        label={label}
+        nativeTokenBalance={nativeTokenBalance}
+        nativeTokenSlug={nativeTokenSlug}
+        tokenBalance={tokenBalance}
+        tokenSlug={tokenSlug}
+      />}
+    </div>
   );
 };
 
@@ -78,8 +130,8 @@ const FreeBalance = styled(Component)<Props>(({ theme: { token } }: Props) => {
       marginRight: 3
     },
 
-    '.error-message': {
-      color: token.colorError
+    '.balance-info > *': {
+      display: 'inline-block'
     },
 
     '&.ant-typography': {

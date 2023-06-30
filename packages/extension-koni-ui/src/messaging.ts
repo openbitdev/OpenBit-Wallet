@@ -614,6 +614,10 @@ export async function enableChains (targetKeys: string[], enableTokens = true): 
   return sendMessage('pri(chainService.enableChains)', { chainSlugs: targetKeys, enableTokens });
 }
 
+export async function reconnectChain (networkKey: string): Promise<boolean> {
+  return sendMessage('pri(chainService.reconnectChain)', networkKey);
+}
+
 export async function disableChains (targetKeys: string[]): Promise<boolean> {
   return sendMessage('pri(chainService.disableChains)', targetKeys);
 }

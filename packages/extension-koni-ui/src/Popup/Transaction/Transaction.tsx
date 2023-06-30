@@ -6,12 +6,12 @@ import { InfoIcon, Layout, PageWrapper } from '@subwallet/extension-koni-ui/comp
 import { StakingNetworkDetailModalId } from '@subwallet/extension-koni-ui/components/Modal/Staking/StakingNetworkDetailModal';
 import { TRANSACTION_TITLE_MAP } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useChainChecker, useNavigateOnChangeAccount, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useNavigateOnChangeAccount, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ButtonProps, ModalContext, SwSubHeader } from '@subwallet/react-ui';
 import CN from 'classnames';
-import React, { Dispatch, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -136,8 +136,6 @@ function Component ({ className }: Props) {
   const [showRightBtn, setShowRightBtn] = useState<boolean>(false);
   const [disabledRightBtn, setDisabledRightBtn] = useState<boolean>(false);
 
-  const chainChecker = useChainChecker();
-
   const goBack = useCallback(() => {
     navigate(homePath);
   }, [homePath, navigate]);
@@ -169,10 +167,6 @@ function Component ({ className }: Props) {
       ]
       : [];
   }, [disabledRightBtn, onClickRightBtn, showRightBtn]);
-
-  useEffect(() => {
-    chain !== '' && chainChecker(chain);
-  }, [chain, chainChecker]);
 
   return (
     <Layout.Home

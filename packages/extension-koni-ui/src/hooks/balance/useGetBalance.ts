@@ -1,44 +1,64 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _ChainInfo } from '@subwallet/chain-list/types';
-import { AmountData } from '@subwallet/extension-base/background/KoniTypes';
-import { _getChainNativeTokenSlug } from '@subwallet/extension-base/services/chain-service/utils';
+import {_ChainInfo} from '@subwallet/chain-list/types';
+import {AmountData} from '@subwallet/extension-base/background/KoniTypes';
+import {_ChainConnectionStatus, _ChainState} from '@subwallet/extension-base/services/chain-service/types';
+import {_getChainNativeTokenSlug} from '@subwallet/extension-base/services/chain-service/utils';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
-import { getFreeBalance, updateAssetSetting } from '@subwallet/extension-koni-ui/messaging';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {getFreeBalance, updateAssetSetting} from '@subwallet/extension-koni-ui/messaging';
+import {useEffect, useMemo, useState} from 'react';
 
-import { useSelector } from '../common';
+import {useSelector} from '../common';
 
-const DEFAULT_BALANCE = { value: '0', symbol: '', decimals: 18 };
+const DEFAULT_BALANCE = {
+  value: '0',
+  symbol: '',
+  decimals: 18
+};
+
+export enum GetBalanceErrorType {
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  METHOD_ERROR = 'METHOD_ERROR'
+}
+
+const GET_BALANCE_TIMEOUT = 10000;
 
 const useGetBalance = (chain = '', address = '', tokenSlug = '') => {
-  const { t } = useTranslation();
-  const { chainInfoMap, chainStateMap } = useSelector((state) => state.chainStore);
-  const { assetRegistry, assetSettingMap } = useSelector((state) => state.assetRegistry);
+  const {t} = useTranslation();
+  const {
+    chainInfoMap,
+    chainStateMap
+  } = useSelector((state) => state.chainStore);
+  const {
+    assetRegistry,
+    assetSettingMap
+  } = useSelector((state) => state.assetRegistry);
 
   const chainInfo = useMemo((): _ChainInfo | undefined => (chainInfoMap[chain]), [chainInfoMap, chain]);
   const nativeTokenSlug = useMemo(() => chainInfo ? _getChainNativeTokenSlug(chainInfo) : undefined, [chainInfo]);
 
   const [nativeTokenBalance, setNativeTokenBalance] = useState<AmountData>(DEFAULT_BALANCE);
   const [tokenBalance, setTokenBalance] = useState<AmountData>(DEFAULT_BALANCE);
-  const [isRefresh, setIsRefresh] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const refreshBalance = useCallback(() => {
-    setIsRefresh({});
-  }, []);
+  const [error, setError] = useState<GetBalanceErrorType | null>(null);
+  const chainState = useMemo<_ChainState | undefined>(() => {
+    return chainStateMap[chain];
+  }, [chain, chainStateMap]);
+  const [timeoutFlag, setTimeoutFlag] = useState<number>(0);
 
   useEffect(() => {
     let cancel = false;
+    // Add small delay to void enable before context is changed
+    let enableTokenTimeout: NodeJS.Timeout | undefined;
+    // Renew fetch action when after timeout match
+    let getBalanceTimeout: NodeJS.Timeout | undefined;
 
     setIsLoading(true);
     setTokenBalance(DEFAULT_BALANCE);
 
     if (address && chain) {
       const promiseList = [] as Promise<any>[];
-      const isChainActive = chainStateMap[chain]?.active;
       const nativeTokenActive = nativeTokenSlug && assetSettingMap[nativeTokenSlug]?.visible;
       let childTokenActive = true;
 
@@ -46,64 +66,74 @@ const useGetBalance = (chain = '', address = '', tokenSlug = '') => {
         childTokenActive = false;
       }
 
-      if (isChainActive) {
-        if (!childTokenActive) {
-          promiseList.push(updateAssetSetting({
-            tokenSlug,
-            assetSetting: {
-              visible: true
-            },
-            autoEnableNativeToken: true
-          }));
-        } else if (nativeTokenSlug && !nativeTokenActive) {
-          promiseList.push(updateAssetSetting({
-            tokenSlug: nativeTokenSlug,
-            assetSetting: {
-              visible: true
-            }
-          }));
-        }
+      if (chainState?.active && chainState?.connectionStatus === _ChainConnectionStatus.CONNECTED) {
+        setError(null);
 
-        promiseList.push(getFreeBalance({ address, networkKey: chain })
+        // Auto enable token if it is not active
+        enableTokenTimeout = setTimeout(() => {
+          if (!childTokenActive) {
+            updateAssetSetting({
+              tokenSlug,
+              assetSetting: {
+                visible: true
+              },
+              autoEnableNativeToken: true
+            }).catch(console.error);
+          } else if (nativeTokenSlug && !nativeTokenActive) {
+            updateAssetSetting({
+              tokenSlug: nativeTokenSlug,
+              assetSetting: {
+                visible: true
+              }
+            }).catch(console.error);
+          }
+        }, 1000);
+
+        // Get balance for native token and child token
+        promiseList.push(getFreeBalance({
+          address,
+          networkKey: chain
+        })
           .then((balance) => {
             !cancel && setNativeTokenBalance(balance);
           })
           .catch((e: Error) => {
-            !cancel && setError(t('Unable to get balance. Please re-enable the network'));
+            !cancel && setError(GetBalanceErrorType.METHOD_ERROR);
             !cancel && setNativeTokenBalance(DEFAULT_BALANCE);
             console.error(e);
           }));
 
         if (tokenSlug && tokenSlug !== nativeTokenSlug) {
-          promiseList.push(getFreeBalance({ address, networkKey: chain, token: tokenSlug })
+          promiseList.push(getFreeBalance({
+            address,
+            networkKey: chain,
+            token: tokenSlug
+          })
             .then((balance) => {
               !cancel && setTokenBalance(balance);
             })
             .catch((e: Error) => {
-              !cancel && setError(t('Unable to get balance. Please re-enable the network'));
+              !cancel && setError(GetBalanceErrorType.METHOD_ERROR);
               !cancel && setTokenBalance(DEFAULT_BALANCE);
               console.error(e);
             }));
         }
 
+        // Increase timeout flag to renew fetch action
+        getBalanceTimeout = setTimeout(() => {
+          console.log('Re-fetch balance with timeout flag', timeoutFlag);
+          setTimeoutFlag((x) => (x + 1));
+        }, GET_BALANCE_TIMEOUT);
+
         Promise.all(promiseList).finally(() => {
           !cancel && setIsLoading(false);
+          clearTimeout(getBalanceTimeout);
         });
       } else {
-        const tokenNames = [];
-
-        if (!isChainActive && nativeTokenSlug && assetRegistry[nativeTokenSlug]) {
-          tokenNames.push(assetRegistry[nativeTokenSlug].symbol);
-        }
-
-        if (!isChainActive && tokenSlug && tokenSlug !== nativeTokenSlug && assetRegistry[tokenSlug]) {
-          tokenNames.push(assetRegistry[tokenSlug].symbol);
-        }
-
         !cancel && setNativeTokenBalance(DEFAULT_BALANCE);
         !cancel && setTokenBalance(DEFAULT_BALANCE);
         !cancel && setIsLoading(false);
-        !cancel && setError(t('Please enable {{tokenNames}} on {{chain}}', { tokenNames: tokenNames.join(', '), chain: chainInfo?.name }));
+        !cancel && setError(GetBalanceErrorType.NETWORK_ERROR);
       }
     }
 
@@ -111,10 +141,20 @@ const useGetBalance = (chain = '', address = '', tokenSlug = '') => {
       cancel = true;
       setIsLoading(true);
       setError(null);
+      clearTimeout(enableTokenTimeout);
+      clearTimeout(getBalanceTimeout);
     };
-  }, [address, chain, nativeTokenSlug, tokenSlug, isRefresh, assetSettingMap, t, assetRegistry, chainInfo?.name, chainStateMap]);
+  }, [address, chain, nativeTokenSlug, tokenSlug, assetSettingMap, t, assetRegistry, chainState?.active, chainState?.connectionStatus, timeoutFlag]);
 
-  return { refreshBalance, tokenBalance, nativeTokenBalance, nativeTokenSlug, isLoading, error };
+  return {
+    tokenBalance,
+    nativeTokenBalance,
+    nativeTokenSlug,
+    isLoading,
+    error,
+    chainState,
+    chainInfo
+  };
 };
 
 export default useGetBalance;

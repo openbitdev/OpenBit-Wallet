@@ -5,8 +5,9 @@ import { _AssetType, _ChainInfo } from '@subwallet/chain-list/types';
 import { _getTokenTypesSupportedByChain, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import { isValidSubstrateAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, GeneralEmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import NetworkWarningState from '@subwallet/extension-koni-ui/components/Network/NetworkWarningState';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useChainChecker, useDefaultNavigate, useGetContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useDefaultNavigate, useGetContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { upsertCustomToken, validateCustomToken } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps, ValidateStatus } from '@subwallet/extension-koni-ui/types';
@@ -15,7 +16,7 @@ import { FormInstance } from '@subwallet/react-ui/es/form/hooks/useForm';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { CheckCircle, Coin, PlusCircle } from 'phosphor-react';
 import { RuleObject } from 'rc-field-form/lib/interface';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled, { useTheme } from 'styled-components';
 
@@ -75,7 +76,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [contractValidation, setContractValidation] = useState<ValidationInfo>({ status: '' });
   const [loading, setLoading] = useState(false);
 
-  const chainChecker = useChainChecker();
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
   const [decimals, setDecimals] = useState(-1);
@@ -311,10 +311,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, [token.fontSizeXL]);
 
-  useEffect(() => {
-    chainChecker(selectedChain);
-  }, [chainChecker, selectedChain]);
-
   return (
     <PageWrapper
       className={`import_token ${className}`}
@@ -369,6 +365,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 title={t('Select network')}
               />
             </Form.Item>
+
+            <NetworkWarningState chain={selectedChain} />
 
             <Form.Item
               name={'type'}
