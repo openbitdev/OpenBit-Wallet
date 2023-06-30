@@ -1,15 +1,15 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import {_ChainInfo} from '@subwallet/chain-list/types';
-import {AmountData} from '@subwallet/extension-base/background/KoniTypes';
-import {_ChainConnectionStatus, _ChainState} from '@subwallet/extension-base/services/chain-service/types';
-import {_getChainNativeTokenSlug} from '@subwallet/extension-base/services/chain-service/utils';
+import { _ChainInfo } from '@subwallet/chain-list/types';
+import { AmountData } from '@subwallet/extension-base/background/KoniTypes';
+import { _ChainConnectionStatus, _ChainState } from '@subwallet/extension-base/services/chain-service/types';
+import { _getChainNativeTokenSlug } from '@subwallet/extension-base/services/chain-service/utils';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
-import {getFreeBalance, updateAssetSetting} from '@subwallet/extension-koni-ui/messaging';
-import {useEffect, useMemo, useState} from 'react';
+import { getFreeBalance, updateAssetSetting } from '@subwallet/extension-koni-ui/messaging';
+import { useEffect, useMemo, useState } from 'react';
 
-import {useSelector} from '../common';
+import { useSelector } from '../common';
 
 const DEFAULT_BALANCE = {
   value: '0',
@@ -25,15 +25,11 @@ export enum GetBalanceErrorType {
 const GET_BALANCE_TIMEOUT = 10000;
 
 const useGetBalance = (chain = '', address = '', tokenSlug = '') => {
-  const {t} = useTranslation();
-  const {
-    chainInfoMap,
-    chainStateMap
-  } = useSelector((state) => state.chainStore);
-  const {
-    assetRegistry,
-    assetSettingMap
-  } = useSelector((state) => state.assetRegistry);
+  const { t } = useTranslation();
+  const { chainInfoMap,
+    chainStateMap } = useSelector((state) => state.chainStore);
+  const { assetRegistry,
+    assetSettingMap } = useSelector((state) => state.assetRegistry);
 
   const chainInfo = useMemo((): _ChainInfo | undefined => (chainInfoMap[chain]), [chainInfoMap, chain]);
   const nativeTokenSlug = useMemo(() => chainInfo ? _getChainNativeTokenSlug(chainInfo) : undefined, [chainInfo]);

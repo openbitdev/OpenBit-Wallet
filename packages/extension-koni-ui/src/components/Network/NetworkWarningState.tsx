@@ -26,7 +26,7 @@ type NetworkButtonProps = ButtonProps & {
 
 export function EnableNetworkButton (props: NetworkButtonProps) {
   const { t } = useTranslation();
-  const { chain, chainName , ...btnProps} = props;
+  const { chain, chainName, ...btnProps } = props;
   const [loading, setLoading] = useState(false);
   const enableNetwork = useCallback(() => {
     setLoading(true);
@@ -37,10 +37,10 @@ export function EnableNetworkButton (props: NetworkButtonProps) {
 
   return <Button
     className={'action-button'}
-    size={'xs'}
     icon={<Icon phosphorIcon={Plus} />}
     loading={loading}
     onClick={enableNetwork}
+    size={'xs'}
     type={'ghost'}
     {...btnProps}
   >
@@ -61,10 +61,10 @@ export function ReConnectNetworkButton (props: NetworkButtonProps) {
 
   return <Button
     className={'action-button'}
-    size={'xs'}
     icon={<Icon phosphorIcon={ArrowClockwise} />}
     loading={loading}
     onClick={enableNetwork}
+    size={'xs'}
     type={'ghost'}
     {...btnProps}
   >
