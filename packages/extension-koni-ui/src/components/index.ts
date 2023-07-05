@@ -31,3 +31,4 @@ export * from './Setting';
 export * from './StakingItem';
 export * from './TokenItem';
 export * from './Network';
+export * from './WalletConnect';
