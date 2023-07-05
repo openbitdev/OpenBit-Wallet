@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AmountData } from '@subwallet/extension-base/background/KoniTypes';
-import NetworkWarningState, { ReConnectNetworkButton } from '@subwallet/extension-koni-ui/components/Network/NetworkWarningState';
+import { AlertBox, NetworkWarningState } from '@subwallet/extension-koni-ui/components';
+import { ReConnectNetworkButton } from '@subwallet/extension-koni-ui/components/Network/NetworkWarningState';
 import { useGetBalance } from '@subwallet/extension-koni-ui/hooks';
 import { GetBalanceErrorType } from '@subwallet/extension-koni-ui/hooks/balance/useGetBalance';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
@@ -80,12 +81,18 @@ function ErrorComponent ({ chain, chainName, errorType }: ErrorProps) {
     return <NetworkWarningState chain={chain} />;
   }
 
-  return <>
-    {t('Can\'t not get balance')}
+  return <div className={'general-error'}>
+    <AlertBox
+      className='alert-box'
+      description={t('Can\'t not get balance')}
+      title={t('Balance warning')}
+      type={'warning'}
+    />
     {chain && chainName && <ReConnectNetworkButton
       chain={chain}
-      chainName={chainName} />}
-  </>;
+      chainName={chainName}
+    />}
+  </div>;
 }
 
 const Component = ({ address, chain, className, label, onBalanceReady, tokenSlug }: Props) => {
@@ -125,6 +132,14 @@ const FreeBalance = styled(Component)<Props>(({ theme: { token } }: Props) => {
     display: 'flex',
     flexWrap: 'wrap',
     color: token.colorTextTertiary,
+
+    '.general-error': {
+      width: '100%',
+
+      '.ant-btn': {
+        width: '100%'
+      }
+    },
 
     '.__label': {
       marginRight: 3
