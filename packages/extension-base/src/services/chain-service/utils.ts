@@ -93,7 +93,7 @@ export function _isTokenTransferredByEvm (tokenInfo: _ChainAsset) {
 
 export function _checkSmartContractSupportByChain (chainInfo: _ChainInfo, contractType: _AssetType) {
   // EVM chains support smart contract by default so just checking Substrate chains
-  if (chainInfo.substrateInfo === null || (chainInfo.substrateInfo && chainInfo.substrateInfo.supportSmartContract === null)) {
+  if (!chainInfo.substrateInfo || (chainInfo.substrateInfo && chainInfo.substrateInfo.supportSmartContract === null)) {
     return false;
   }
 
@@ -225,12 +225,12 @@ export function _getChainNativeTokenBasicInfo (chainInfo: _ChainInfo): BasicToke
     };
   }
 
-  if (chainInfo.substrateInfo !== null) { // substrate by default
+  if (chainInfo.substrateInfo) { // substrate by default
     return {
       symbol: chainInfo.substrateInfo.symbol,
       decimals: chainInfo.substrateInfo.decimals
     };
-  } else if (chainInfo.evmInfo !== null) {
+  } else if (chainInfo.evmInfo) {
     return {
       symbol: chainInfo.evmInfo.symbol,
       decimals: chainInfo.evmInfo.decimals
@@ -302,7 +302,7 @@ export function _isSubstrateRelayChain (chainInfo: _ChainInfo) {
 }
 
 export function _isSubstrateParaChain (chainInfo: _ChainInfo) {
-  return chainInfo.substrateInfo !== null && chainInfo.substrateInfo.paraId !== null && chainInfo.substrateInfo?.chainType === _SubstrateChainType.PARACHAIN;
+  return chainInfo.substrateInfo && chainInfo.substrateInfo.paraId !== null && chainInfo.substrateInfo?.chainType === _SubstrateChainType.PARACHAIN;
 }
 
 export function _getEvmAbiExplorer (chainInfo: _ChainInfo) {

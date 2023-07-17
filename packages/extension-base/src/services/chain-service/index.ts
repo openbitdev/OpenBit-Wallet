@@ -969,8 +969,8 @@ export class ChainService {
 
     const newChainSlug = this.generateSlugForCustomChain(params.chainEditInfo.chainType as string, params.chainEditInfo.name as string, params.chainSpec.paraId, params.chainSpec.evmChainId);
 
-    let substrateInfo: _SubstrateInfo | null = null;
-    let evmInfo: _EvmInfo | null = null;
+    let substrateInfo: _SubstrateInfo | undefined;
+    let evmInfo: _EvmInfo | undefined;
 
     if (params.chainSpec.genesisHash !== '') {
       substrateInfo = {
@@ -1152,18 +1152,18 @@ export class ChainService {
             // check if same network (with existingChainSlug)
             const existedChainInfo = this.getChainInfoByKey(existingChainSlug);
 
-            if (existedChainInfo.evmInfo !== null) {
+            if (existedChainInfo.evmInfo) {
               if (result.evmChainId !== existedChainInfo.evmInfo.evmChainId) {
                 result.error = _CHAIN_VALIDATION_ERROR.PROVIDER_NOT_SAME_CHAIN;
               }
-            } else if (existedChainInfo.substrateInfo !== null) {
+            } else if (existedChainInfo.substrateInfo) {
               if (result.genesisHash !== existedChainInfo.substrateInfo.genesisHash) {
                 result.error = _CHAIN_VALIDATION_ERROR.PROVIDER_NOT_SAME_CHAIN;
               }
             }
           } else {
             // check if network existed
-            if (result.evmChainId !== null) {
+            if (result.evmChainId) {
               for (const chainInfo of Object.values(this.getEvmChainInfoMap())) {
                 if (chainInfo?.evmInfo?.evmChainId === result.evmChainId) {
                   result.error = _CHAIN_VALIDATION_ERROR.EXISTED_CHAIN;

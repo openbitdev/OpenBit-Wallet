@@ -12,6 +12,7 @@ import { ApiPromise } from '@polkadot/api';
 import { SubmittableExtrinsicFunction } from '@polkadot/api/promise/types';
 import { ChainProperties, ChainType } from '@polkadot/types/interfaces';
 import { Registry } from '@polkadot/types/types';
+import { SigningStargateClient, StargateClient } from '@cosmjs/stargate';
 
 export interface _DataMap {
   chainInfoMap: Record<string, _ChainInfo>,
@@ -89,6 +90,11 @@ export interface _EvmApi extends _ChainBaseApi {
   api: Web3;
 
   isReady: Promise<_EvmApi>;
+}
+
+export interface _CosmosApi extends _ChainBaseApi {
+  api: StargateClient,
+  isReady: Promise<_CosmosApi>
 }
 
 export type _NetworkUpsertParams = {
