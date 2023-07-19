@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _AssetRefPath } from '@subwallet/chain-list/types';
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { AmountData, BasicTxErrorType, BasicTxWarningCode, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, NotificationType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
@@ -9,7 +10,7 @@ import { TransactionWarning } from '@subwallet/extension-base/background/warning
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
-import { _DEFAULT_MANTA_ZK_CHAIN, _TRANSFER_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
+import { _TRANSFER_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _getChainNativeTokenBasicInfo, _getEvmChainId, _isMantaZkAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { HistoryService } from '@subwallet/extension-base/services/history-service';
@@ -393,7 +394,7 @@ export default class TransactionService {
     // Fill data by extrinsicType
     switch (extrinsicType) {
       case ExtrinsicType.TRANSFER_BALANCE: {
-        const inputData = parseTransactionData<ExtrinsicType.TRANSFER_TOKEN>(transaction.data);
+        const inputData = parseTransactionData<ExtrinsicType.TRANSFER_BALANCE>(transaction.data);
 
         historyItem.to = inputData.to;
         const sendingTokenInfo = this.chainService.getAssetBySlug(inputData.tokenSlug);
@@ -600,8 +601,7 @@ export default class TransactionService {
       const isTranferZkAsset = _isMantaZkAsset(transferToken);
       const isMantaPayTransfer = isSameAddress(inputData.to, inputData.from);
 
-      if (inputData.networkKey === _DEFAULT_MANTA_ZK_CHAIN && (isMantaPayTransfer || isTranferZkAsset)) {
-        console.log('zk transaction detected');
+      if (inputData.networkKey.includes(_AssetRefPath.MANTA_ZK) && (isMantaPayTransfer || isTranferZkAsset)) {
         this.eventService.emit('mantaPay.submitTransaction', transaction);
       }
     } else if ([ExtrinsicType.STAKING_BOND, ExtrinsicType.STAKING_UNBOND, ExtrinsicType.STAKING_WITHDRAW, ExtrinsicType.STAKING_CANCEL_UNSTAKE, ExtrinsicType.STAKING_CLAIM_REWARD, ExtrinsicType.STAKING_JOIN_POOL, ExtrinsicType.STAKING_POOL_WITHDRAW, ExtrinsicType.STAKING_LEAVE_POOL].includes(transaction.extrinsicType)) {
