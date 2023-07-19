@@ -9,8 +9,8 @@ import { TransactionWarning } from '@subwallet/extension-base/background/warning
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
-import { _TRANSFER_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
-import { _getChainNativeTokenBasicInfo, _getEvmChainId } from '@subwallet/extension-base/services/chain-service/utils';
+import { _DEFAULT_MANTA_ZK_CHAIN, _TRANSFER_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
+import { _getChainNativeTokenBasicInfo, _getEvmChainId, _isMantaZkAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { HistoryService } from '@subwallet/extension-base/services/history-service';
 import NotificationService from '@subwallet/extension-base/services/notification-service/NotificationService';
@@ -24,6 +24,7 @@ import { SWTransaction, SWTransactionInput, SWTransactionResponse, TransactionEm
 import { getExplorerLink, parseTransactionData } from '@subwallet/extension-base/services/transaction-service/utils';
 import { isWalletConnectRequest } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { Web3Transaction } from '@subwallet/extension-base/signers/types';
+import { isSameAddress } from '@subwallet/extension-base/utils';
 import { anyNumberToBN } from '@subwallet/extension-base/utils/eth';
 import { mergeTransactionAndSignature } from '@subwallet/extension-base/utils/eth/mergeTransactionAndSignature';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
@@ -591,6 +592,17 @@ export default class TransactionService {
           .catch(console.error);
       } catch (e) {
         console.error(e);
+      }
+    } else if ([ExtrinsicType.TRANSFER_TOKEN, ExtrinsicType.TRANSFER_BALANCE].includes(transaction.extrinsicType)) {
+      const inputData = parseTransactionData<ExtrinsicType.TRANSFER_BALANCE>(transaction.data);
+      const transferToken = this.chainService.getAssetBySlug(inputData.tokenSlug);
+
+      const isTranferZkAsset = _isMantaZkAsset(transferToken);
+      const isMantaPayTransfer = isSameAddress(inputData.to, inputData.from);
+
+      if (inputData.networkKey === _DEFAULT_MANTA_ZK_CHAIN && (isMantaPayTransfer || isTranferZkAsset)) {
+        console.log('zk transaction detected');
+        this.eventService.emit('mantaPay.submitTransaction', transaction);
       }
     } else if ([ExtrinsicType.STAKING_BOND, ExtrinsicType.STAKING_UNBOND, ExtrinsicType.STAKING_WITHDRAW, ExtrinsicType.STAKING_CANCEL_UNSTAKE, ExtrinsicType.STAKING_CLAIM_REWARD, ExtrinsicType.STAKING_JOIN_POOL, ExtrinsicType.STAKING_POOL_WITHDRAW, ExtrinsicType.STAKING_LEAVE_POOL].includes(transaction.extrinsicType)) {
       this.eventService.emit('transaction.submitStaking', transaction.chain);

@@ -2,7 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Common from '@ethereumjs/common';
-import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
+import {
+  _AssetRef,
+  _AssetRefPath,
+  _AssetType,
+  _ChainAsset,
+  _ChainInfo,
+  _MultiChainAsset
+} from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { isJsonPayload, SEED_DEFAULT_LENGTH, SEED_LENGTHS } from '@subwallet/extension-base/background/handlers/Extension';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
@@ -24,7 +31,22 @@ import { createXcmExtrinsic } from '@subwallet/extension-base/koni/api/xcm';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ChainConnectionStatus, _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenBasicInfo, _getContractAddressOfToken, _getEvmChainId, _getSubstrateGenesisHash, _getTokenMinAmount, _isAssetSmartContractNft, _isChainEvmCompatible, _isCustomAsset, _isLocalToken, _isMantaZkAsset, _isNativeToken, _isTokenEvmSmartContract, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
+import {
+  _getChainNativeTokenBasicInfo,
+  _getContractAddressOfToken,
+  _getEvmChainId,
+  _getSubstrateGenesisHash,
+  _getTokenMinAmount,
+  _getTokenOnChainAssetId,
+  _isAssetSmartContractNft,
+  _isChainEvmCompatible,
+  _isCustomAsset,
+  _isLocalToken,
+  _isMantaZkAsset,
+  _isNativeToken,
+  _isTokenEvmSmartContract,
+  _isTokenTransferredByEvm
+} from '@subwallet/extension-base/services/chain-service/utils';
 import { EXTENSION_REQUEST_URL } from '@subwallet/extension-base/services/request-service/constants';
 import { AuthUrls } from '@subwallet/extension-base/services/request-service/types';
 import { DEFAULT_AUTO_LOCK_TIME } from '@subwallet/extension-base/services/setting-service/constants';
@@ -1572,15 +1594,18 @@ export default class KoniExtension {
 
   private async makeTransfer (inputData: RequestTransfer): Promise<SWTransactionResponse> {
     const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
+
+    const _networkKey = networkKey.split(`____${_AssetRefPath.MANTA_ZK}`)[0];
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
 
     const warnings: TransactionWarning[] = [];
     const evmApiMap = this.#koniState.getEvmApiMap();
-    const chainInfo = this.#koniState.getChainInfo(networkKey);
+    const chainInfo = this.#koniState.getChainInfo(_networkKey);
 
-    const nativeTokenInfo = this.#koniState.getNativeTokenInfo(networkKey);
+    const nativeTokenInfo = this.#koniState.getNativeTokenInfo(_networkKey);
     const nativeTokenSlug: string = nativeTokenInfo.slug;
     const isTransferNativeToken = nativeTokenSlug === tokenSlug;
+    const isMantaPayTransfer = networkKey.includes(_AssetRefPath.MANTA_ZK);
     let chainType = ChainType.SUBSTRATE;
 
     const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
@@ -1589,7 +1614,7 @@ export default class KoniExtension {
     let transaction: ValidateTransactionResponseInput['transaction'];
 
     // Get native token amount
-    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
+    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: _networkKey, token: tokenSlug });
 
     try {
       if (isEthereumAddress(from) && isEthereumAddress(to) && _isTokenTransferredByEvm(tokenInfo)) { // TODO: review this
@@ -1608,17 +1633,17 @@ export default class KoniExtension {
             transferAmount.value
           ] = await getEVMTransactionObject(chainInfo, to, txVal, !!transferAll, evmApiMap);
         }
-      } else if (_isMantaZkAsset(tokenInfo)) { // TODO
-        transaction = undefined;
-        transferAmount.value = '0';
+      } else if (isMantaPayTransfer) {
+        transaction = await this.#koniState.chainService.getMantaToPrivateTx(_getTokenOnChainAssetId(tokenInfo), value || '0');
+        transferAmount.value = value || '0'; // TODO
       } else {
-        const substrateApi = this.#koniState.getSubstrateApi(networkKey);
+        const substrateApi = this.#koniState.getSubstrateApi(_networkKey);
 
         [transaction, transferAmount.value] = await createTransferExtrinsic({
           transferAll: !!transferAll,
           value: value || '0',
           from: from,
-          networkKey,
+          networkKey: _networkKey,
           tokenInfo,
           to: to,
           substrateApi
@@ -1642,14 +1667,14 @@ export default class KoniExtension {
       const minAmount = tokenInfo.minAmount || '0';
 
       if (!isTransferNativeToken) {
-        const { value: balance } = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
+        const { value: balance } = await this.getAddressFreeBalance({ address: from, networkKey: _networkKey, token: tokenSlug });
 
         if (new BigN(balance).minus(transferAmount.value).lt(minAmount)) {
           inputTransaction.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT, ''));
         }
       }
 
-      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
+      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: from, networkKey: _networkKey, token: tokenSlug });
 
       if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
         const atLeast = new BigN(minAmount).minus(receiverBalance).plus((tokenInfo.decimals || 0) === 0 ? 0 : 1);
@@ -1664,7 +1689,7 @@ export default class KoniExtension {
       errors,
       warnings,
       address: from,
-      chain: networkKey,
+      chain: _networkKey,
       chainType,
       transferNativeAmount,
       transaction,
@@ -3243,21 +3268,21 @@ export default class KoniExtension {
     return this.#koniState.getMultiChainAssetMap();
   }
 
-  private subscribeXcmRefMap (id: string, port: chrome.runtime.Port): Record<string, _AssetRef> {
-    const cb = createSubscription<'pri(chainService.subscribeXcmRefMap)'>(id, port);
-    const xcmRefSubscription = this.#koniState.subscribeXcmRefMap().subscribe({
+  private subscribeAssetRefMap (id: string, port: chrome.runtime.Port): Record<string, _AssetRef> {
+    const cb = createSubscription<'pri(chainService.subscribeAssetRefMap)'>(id, port);
+    const assetRefSubscription = this.#koniState.subscribeAssetRefMap().subscribe({
       next: (rs) => {
         cb(rs);
       }
     });
 
-    this.createUnsubscriptionHandle(id, xcmRefSubscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, assetRefSubscription.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
     });
 
-    return this.#koniState.getXcmRefMap();
+    return this.#koniState.getAssetRefMap();
   }
 
   private getSupportedSmartContractTypes () {
@@ -3860,8 +3885,8 @@ export default class KoniExtension {
         return this.subscribeChainInfoMap(id, port);
       case 'pri(chainService.subscribeChainStateMap)':
         return this.subscribeChainStateMap(id, port);
-      case 'pri(chainService.subscribeXcmRefMap)':
-        return this.subscribeXcmRefMap(id, port);
+      case 'pri(chainService.subscribeAssetRefMap)':
+        return this.subscribeAssetRefMap(id, port);
       case 'pri(chainService.getSupportedContractTypes)':
         return this.getSupportedSmartContractTypes();
       case 'pri(chainService.enableChain)':

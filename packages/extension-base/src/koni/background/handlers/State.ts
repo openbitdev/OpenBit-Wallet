@@ -956,10 +956,6 @@ export default class KoniState {
     return this.chainService.getChainStateMap();
   }
 
-  public getAssetRefMap () {
-    return this.chainService.getAssetRefMap();
-  }
-
   public getChainStateByKey (key: string) {
     return this.chainService.getChainStateByKey(key);
   }
@@ -972,8 +968,8 @@ export default class KoniState {
     return this.chainService.getMultiChainAssetMap();
   }
 
-  public getXcmRefMap () {
-    return this.chainService.getXcmRefMap();
+  public getAssetRefMap () {
+    return this.chainService.getAssetRefMap();
   }
 
   public getAssetByChainAndAsset (chain: string, assetTypes: _AssetType[]) {
@@ -1004,8 +1000,8 @@ export default class KoniState {
     return this.chainService.subscribeMultiChainAssetMap();
   }
 
-  public subscribeXcmRefMap (): Subject<Record<string, _AssetRef>> {
-    return this.chainService.subscribeXcmRefMap();
+  public subscribeAssetRefMap (): Subject<Record<string, _AssetRef>> {
+    return this.chainService.subscribeAssetRefMap();
   }
 
   public async upsertCustomToken (data: _ChainAsset) {
@@ -1978,7 +1974,7 @@ export default class KoniState {
         if (config && config.enabled && config.isInitialSync) {
           this.getMantaZkBalance();
 
-          interval = setInterval(this.getMantaZkBalance, MANTA_PAY_BALANCE_INTERVAL);
+          interval = setInterval(this.getMantaZkBalance.bind(this), MANTA_PAY_BALANCE_INTERVAL);
         }
       })
       .catch(console.warn);
