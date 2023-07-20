@@ -1538,6 +1538,10 @@ export class ChainService {
     return this.dbService.stores.metadata.upsertMetadata(chain, metadata);
   }
 
+  getMetadataByHash (hash: string) {
+    return this.dbService.stores.metadata.getMetadataByGenesisHash(hash);
+  }
+
   public async getMantaToPrivateTx (assetId: string, amount: string) {
     const signedTransactions = await this.mantaPay.getToPrivateTx(assetId, amount);
     const chainApi = await this.getSubstrateApi(_DEFAULT_MANTA_ZK_CHAIN)?.isReady;
