@@ -1542,7 +1542,7 @@ export default class KoniExtension {
   //   }
   // }
 
-  private validateTransfer (tokenSlug: string, from: string, to: string, value: string | undefined, transferAll: boolean | undefined): [TransactionError[], KeyringPair | undefined, BN | undefined, _ChainAsset] {
+  private validateTransfer (tokenSlug: string, from: string, to: string, value: string | undefined, transferAll: boolean | undefined, networkKey?: string): [TransactionError[], KeyringPair | undefined, BN | undefined, _ChainAsset] {
     const errors: TransactionError[] = [];
     const keypair = keyring.getPair(from);
     let transferValue;
@@ -1559,6 +1559,12 @@ export default class KoniExtension {
 
     const tokenInfo = this.#koniState.getAssetBySlug(tokenSlug);
 
+    if (networkKey?.includes(_AssetRefPath.MANTA_ZK) || _isMantaZkAsset(tokenInfo)) {
+      if (!this.#koniState.isMantaPayEnabled) {
+        errors.push(new TransactionError(BasicTxErrorType.INVALID_PARAMS, 'ZK mode has to be enabled'));
+      }
+    }
+
     if (!tokenInfo) {
       errors.push(new TransactionError(BasicTxErrorType.INVALID_PARAMS, 'Not found token from registry'));
     }
@@ -1574,7 +1580,7 @@ export default class KoniExtension {
     const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
 
     const _networkKey = networkKey.split(`____${_AssetRefPath.MANTA_ZK}`)[0];
-    const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
+    const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll, networkKey);
 
     const warnings: TransactionWarning[] = [];
     const evmApiMap = this.#koniState.getEvmApiMap();
@@ -1612,17 +1618,22 @@ export default class KoniExtension {
           ] = await getEVMTransactionObject(chainInfo, to, txVal, !!transferAll, evmApiMap);
         }
       } else if (isMantaPayTransfer) {
-        if (_isMantaZkAsset(tokenInfo)) {
-          if (networkKey.includes(_AssetRefPath.MANTA_ZK)) { // to public
-            transaction = await this.#koniState.chainService.getMantaToPublicTx(_getTokenOnChainAssetId(tokenInfo), value || '0', to);
-            transferAmount.value = value || '0'; // TODO
+        if (!this.#koniState.isMantaPayEnabled) {
+          transaction = undefined;
+          transferAmount.value = value || '0';
+        } else {
+          if (_isMantaZkAsset(tokenInfo)) {
+            if (networkKey.includes(_AssetRefPath.MANTA_ZK)) { // to public
+              transaction = await this.#koniState.chainService.getMantaToPublicTx(_getTokenOnChainAssetId(tokenInfo), value || '0', to);
+              transferAmount.value = value || '0'; // TODO
+            } else {
+              transaction = await this.#koniState.chainService.getMantaZkTransfer(_getTokenOnChainAssetId(tokenInfo), value || '0', 'A1EJJ6cV8wE8Nh8NqExJQDPEVXkRfABQFhUNzhcA9baG');
+              transferAmount.value = value || '0'; // TODO
+            }
           } else {
-            transaction = await this.#koniState.chainService.getMantaZkTransfer(_getTokenOnChainAssetId(tokenInfo), value || '0', 'A1EJJ6cV8wE8Nh8NqExJQDPEVXkRfABQFhUNzhcA9baG');
+            transaction = await this.#koniState.chainService.getMantaToPrivateTx(_getTokenOnChainAssetId(tokenInfo), value || '0');
             transferAmount.value = value || '0'; // TODO
           }
-        } else {
-          transaction = await this.#koniState.chainService.getMantaToPrivateTx(_getTokenOnChainAssetId(tokenInfo), value || '0');
-          transferAmount.value = value || '0'; // TODO
         }
       } else {
         const substrateApi = this.#koniState.getSubstrateApi(_networkKey);

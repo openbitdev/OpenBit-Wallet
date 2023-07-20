@@ -334,12 +334,20 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.resolve();
     }
 
+    if (destChain.includes(_AssetRefPath.MANTA_ZK)) {
+      if (isSameAddress(from, _recipientAddress)) {
+        return Promise.resolve();
+      } else {
+        return Promise.reject(t('The recipient address must be the same as the sender address'));
+      }
+    }
+
     const isOnChain = chain === _destChain;
 
     const account = findAccountByAddress(accounts, _recipientAddress);
 
     if (isOnChain) {
-      if (isSameAddress(from, _recipientAddress) && !destChain.includes(_AssetRefPath.MANTA_ZK)) {
+      if (isSameAddress(from, _recipientAddress)) {
         // todo: change message later
         return Promise.reject(t('The recipient address can not be the same as the sender address'));
       }
