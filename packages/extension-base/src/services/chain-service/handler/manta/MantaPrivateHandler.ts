@@ -180,4 +180,12 @@ export class MantaPrivateHandler {
   public async getToPrivateTx (assetId: string, amount: string) {
     return this._privateWallet?.toPrivateBuild(new BN(assetId), new BN(amount));
   }
+
+  public async getToPublicTx (assetId: string, amount: string, address: string) {
+    return this._privateWallet?.toPublicBuild(new BN(assetId), new BN(amount), address);
+  }
+
+  public async getPrivateTransfer (assetId: string, amount: string, address: string) {
+    return this._privateWallet?.privateTransferBuild(new BN(assetId), new BN(amount), address);
+  }
 }

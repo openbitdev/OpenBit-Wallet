@@ -298,12 +298,12 @@ export default class KoniState {
     await this.startSubscription();
   }
 
-  public async initMantaPay (password: string) {
+  public async initMantaPay (password: string, seedPhrase?: string) {
     const mantaPayConfig = await this.chainService.mantaPay.getMantaPayFirstConfig(_DEFAULT_MANTA_ZK_CHAIN) as MantaPayConfig;
 
     if (mantaPayConfig && mantaPayConfig.enabled && !this.isMantaPayEnabled) { // only init the first login
       console.debug('Initiating MantaPay for', mantaPayConfig.address);
-      await this.enableMantaPay(false, mantaPayConfig.address, password);
+      await this.enableMantaPay(false, mantaPayConfig.address, password, seedPhrase);
       console.debug('Initiated MantaPay for', mantaPayConfig.address);
 
       this.isMantaPayEnabled = true;
@@ -1848,8 +1848,8 @@ export default class KoniState {
 
     await this.chainService.mantaPay.privateWallet?.initialSigner();
 
-    if (updateStore && seedPhrase) { // first time initiation
-      await this.chainService.mantaPay.privateWallet?.loadUserSeedPhrase(seedPhrase);
+    if (updateStore) { // first time initiation
+      seedPhrase && await this.chainService.mantaPay.privateWallet?.loadUserSeedPhrase(seedPhrase); // TODO: load seed phrase
       const authContext = await this.chainService.mantaPay.privateWallet?.getAuthorizationContext();
 
       await this.chainService.mantaPay.privateWallet?.loadAuthorizationContext(authContext as interfaces.AuthContextType);
@@ -1862,6 +1862,7 @@ export default class KoniState {
         data: encryptedData
       });
     } else {
+      seedPhrase && await this.chainService.mantaPay.privateWallet?.loadUserSeedPhrase(seedPhrase);
       const authContext = (await this.chainService.mantaPay.getMantaAuthContext(address, _DEFAULT_MANTA_ZK_CHAIN)) as MantaAuthorizationContext;
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment

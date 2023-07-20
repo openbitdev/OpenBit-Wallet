@@ -1,70 +1,16 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  AssetLogoMap,
-  AssetRefMap,
-  ChainAssetMap,
-  ChainInfoMap,
-  ChainLogoMap,
-  MultiChainAssetMap
-} from '@subwallet/chain-list';
-import {
-  _AssetRef,
-  _AssetRefPath,
-  _AssetType,
-  _ChainAsset,
-  _ChainInfo,
-  _ChainStatus,
-  _EvmInfo,
-  _MultiChainAsset,
-  _SubstrateChainType,
-  _SubstrateInfo
-} from '@subwallet/chain-list/types';
+import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, MultiChainAssetMap } from '@subwallet/chain-list';
+import { _AssetRef, _AssetRefPath, _AssetType, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
-import {
-  _ASSET_LOGO_MAP_SRC,
-  _ASSET_REF_SRC,
-  _CHAIN_ASSET_SRC,
-  _CHAIN_INFO_SRC,
-  _CHAIN_LOGO_MAP_SRC,
-  _DEFAULT_ACTIVE_CHAINS, _DEFAULT_MANTA_ZK_CHAIN,
-  _MANTA_ZK_CHAIN_GROUP,
-  _MULTI_CHAIN_ASSET_SRC,
-  _ZK_ASSET_PREFIX
-} from '@subwallet/extension-base/services/chain-service/constants';
+import { _ASSET_LOGO_MAP_SRC, _ASSET_REF_SRC, _CHAIN_ASSET_SRC, _CHAIN_INFO_SRC, _CHAIN_LOGO_MAP_SRC, _DEFAULT_ACTIVE_CHAINS, _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _MULTI_CHAIN_ASSET_SRC, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
-import {
-  MantaPrivateHandler
-} from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
+import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
-import {
-  _ChainConnectionStatus,
-  _ChainState,
-  _CUSTOM_PREFIX,
-  _DataMap,
-  _EvmApi,
-  _NetworkUpsertParams,
-  _NFT_CONTRACT_STANDARDS,
-  _SMART_CONTRACT_STANDARDS,
-  _SmartContractTokenInfo,
-  _SubstrateApi,
-  _ValidateCustomAssetRequest,
-  _ValidateCustomAssetResponse
-} from '@subwallet/extension-base/services/chain-service/types';
-import {
-  _isAssetFungibleToken,
-  _isChainEnabled,
-  _isCustomAsset,
-  _isCustomChain,
-  _isEqualContractAddress,
-  _isEqualSmartContractAsset,
-  _isMantaZkAsset,
-  _isPureEvmChain,
-  _isPureSubstrateChain,
-  _parseAssetRefKey
-} from '@subwallet/extension-base/services/chain-service/utils';
+import { _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
+import { _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storage-service/databases';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -1594,6 +1540,28 @@ export class ChainService {
 
   public async getMantaToPrivateTx (assetId: string, amount: string) {
     const signedTransactions = await this.mantaPay.getToPrivateTx(assetId, amount);
+    const chainApi = await this.getSubstrateApi(_DEFAULT_MANTA_ZK_CHAIN)?.isReady;
+
+    if (signedTransactions && chainApi) {
+      return chainApi.api.tx.utility.batch(signedTransactions.txs);
+    }
+
+    return undefined;
+  }
+
+  public async getMantaToPublicTx (assetId: string, amount: string, address: string) {
+    const signedTransactions = await this.mantaPay.getToPublicTx(assetId, amount, address);
+    const chainApi = await this.getSubstrateApi(_DEFAULT_MANTA_ZK_CHAIN)?.isReady;
+
+    if (signedTransactions && chainApi) {
+      return chainApi.api.tx.utility.batch(signedTransactions.txs);
+    }
+
+    return undefined;
+  }
+
+  public async getMantaZkTransfer (assetId: string, amount: string, address: string) {
+    const signedTransactions = await this.mantaPay.getPrivateTransfer(assetId, amount, address);
     const chainApi = await this.getSubstrateApi(_DEFAULT_MANTA_ZK_CHAIN)?.isReady;
 
     if (signedTransactions && chainApi) {

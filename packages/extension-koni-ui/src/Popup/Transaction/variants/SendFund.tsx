@@ -320,6 +320,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Recipient address is required'));
     }
 
+    // TODO: validate zkAddress
+
     if (!isAddress(_recipientAddress)) {
       return Promise.reject(t('Invalid Recipient address'));
     }
