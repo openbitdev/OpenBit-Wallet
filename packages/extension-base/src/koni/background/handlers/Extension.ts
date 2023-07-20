@@ -1665,6 +1665,7 @@ export default class KoniExtension {
     const additionalValidator = async (inputTransaction: SWTransactionResponse): Promise<void> => {
       const minAmount = tokenInfo.minAmount || '0';
 
+      // Check ed for sender
       if (!isTransferNativeToken) {
         const { value: balance } = await this.getAddressFreeBalance({ address: from, networkKey: _networkKey, token: tokenSlug });
 
@@ -1673,8 +1674,9 @@ export default class KoniExtension {
         }
       }
 
-      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: from, networkKey: _networkKey, token: tokenSlug });
+      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey: _networkKey, token: tokenSlug });
 
+      // Check ed for receiver
       if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
         const atLeast = new BigN(minAmount).minus(receiverBalance).plus((tokenInfo.decimals || 0) === 0 ? 0 : 1);
 
@@ -1749,6 +1751,7 @@ export default class KoniExtension {
         const destMinAmount = destinationTokenInfo.minAmount || '0';
         const atLeast = new BigN(destMinAmount).multipliedBy(XCM_MIN_AMOUNT_RATIO);
 
+        // Check ed for receiver
         if (new BigN(value).lt(atLeast)) {
           const atLeastStr = formatNumber(atLeast, destinationTokenInfo.decimals || 0, balanceFormatter);
 
@@ -1758,8 +1761,9 @@ export default class KoniExtension {
         const srcMinAmount = originTokenInfo.minAmount || '0';
         const isTransferNativeToken = originTokenInfo.assetType === _AssetType.NATIVE;
 
+        // Check ed for sender
         if (!isTransferNativeToken) {
-          const { value: balance } = await this.#koniState.balanceService.getTokenFreeBalance(from, originNetworkKey, originTokenInfo.slug);
+          const { value: balance } = await this.getAddressFreeBalance({ address: from, networkKey: originNetworkKey, token: originTokenInfo.slug });
 
           if (new BigN(balance).minus(value).lt(srcMinAmount)) {
             inputTransaction.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT, ''));
