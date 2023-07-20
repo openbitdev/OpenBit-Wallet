@@ -2894,9 +2894,12 @@ export default class KoniExtension {
     try {
       keyring.unlockKeyring(password);
       const mantaPayConfig = await this.#koniState.chainService.mantaPay.getMantaPayFirstConfig(_DEFAULT_MANTA_ZK_CHAIN) as MantaPayConfig;
-      const mnemonic = this.keyringExportMnemonic({ address: mantaPayConfig.address, password });
 
-      await this.#koniState.initMantaPay(password, mnemonic.result);
+      if (mantaPayConfig) {
+        const mnemonic = this.keyringExportMnemonic({ address: mantaPayConfig.address, password });
+
+        await this.#koniState.initMantaPay(password, mnemonic.result);
+      }
     } catch (e) {
       return {
         errors: [(e as Error).message],
