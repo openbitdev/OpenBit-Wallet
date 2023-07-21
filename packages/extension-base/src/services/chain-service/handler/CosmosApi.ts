@@ -5,6 +5,7 @@ import { StargateClient } from '@cosmjs/stargate';
 import { Tendermint34Client, TendermintClient } from '@cosmjs/tendermint-rpc';
 import { _CosmosInfo } from '@subwallet/chain-list/types';
 import { _CosmosApi } from '@subwallet/extension-base/services/chain-service/types';
+import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { BehaviorSubject } from 'rxjs';
 
 export class CosmosApi implements _CosmosApi {
@@ -20,7 +21,11 @@ export class CosmosApi implements _CosmosApi {
 
   intervalCheckApi: NodeJS.Timer;
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
-  isReady: Promise<_CosmosApi>;
+  isReadyHandler: PromiseHandler<_CosmosApi>;
+
+  get isReady (): Promise<_CosmosApi> {
+    return this.isReadyHandler.promise;
+  }
 
   get isApiConnected (): boolean {
     return this.isApiConnectedSubject.getValue();
@@ -45,6 +50,7 @@ export class CosmosApi implements _CosmosApi {
     this.restEndpoint = cosmosChainInfo.rest;
     this.api = api;
     this.tendermintClient = tendermint;
+    this.isReadyHandler = createPromiseHandler<_CosmosApi>();
 
     this.intervalCheckApi = this.createIntervalCheckApi();
 
@@ -87,6 +93,8 @@ export class CosmosApi implements _CosmosApi {
 
     this.api = await StargateClient.create(tendermint);
     this.tendermintClient = tendermint;
+
+    await this.isReadyHandler.promise;
   }
 
   async updateApiUrl (apiUrl: string): Promise<void> {
@@ -109,6 +117,10 @@ export class CosmosApi implements _CosmosApi {
       this.isApiReady = true;
     }
 
+    if (this.isApiReadyOnce) {
+      this.isReadyHandler.resolve(this);
+    }
+
     this.updateConnectedStatus(true);
   }
 
@@ -118,6 +130,7 @@ export class CosmosApi implements _CosmosApi {
     if (this.isApiConnected) {
       console.warn(`Disconnected from ${this.chainSlug} of ${this.apiUrl} (Cosmos)`);
       this.isApiReady = false;
+      this.isReadyHandler = createPromiseHandler<_CosmosApi>();
     }
   }
 }

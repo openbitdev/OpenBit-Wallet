@@ -4,6 +4,7 @@
 import { MetadataItem } from '@subwallet/extension-base/background/KoniTypes';
 
 import { ApiPromise } from '@polkadot/api';
+import { _CosmosInfo } from '@subwallet/chain-list/types';
 
 export interface _EvmChainSpec {
   evmChainId: number,
@@ -28,6 +29,7 @@ export interface _ApiOptions {
   metadata?: MetadataItem,
   onUpdateStatus?: (isConnected: boolean) => void;
   externalApiPromise?: ApiPromise;
+  cosmosChainInfo: _CosmosInfo;
 }
 
 export enum _CHAIN_VALIDATION_ERROR {
