@@ -15,12 +15,22 @@ export class CosmosApi implements _CosmosApi {
   tendermintClient: TendermintClient;
   restEndpoint: string;
 
-  isApiConnected: boolean;
   isApiReady: boolean;
   isApiReadyOnce: boolean;
 
   intervalCheckApi: NodeJS.Timer;
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
+  isReady: Promise<_CosmosApi>;
+
+  get isApiConnected (): boolean {
+    return this.isApiConnectedSubject.getValue();
+  }
+
+  private updateConnectedStatus (isConnected: boolean): void {
+    if (isConnected !== this.isApiConnectedSubject.value) {
+      this.isApiConnectedSubject.next(isConnected);
+    }
+  }
 
   static async create (chainSlug: string, apiProvider: string, cosmosChainInfo: _CosmosInfo): Promise<CosmosApi> {
     const tendermint = await Tendermint34Client.connect(apiProvider);
@@ -39,7 +49,6 @@ export class CosmosApi implements _CosmosApi {
     this.intervalCheckApi = this.createIntervalCheckApi();
 
     // TODO: need to research Stargate package
-    this.isApiConnected = true;
     this.isApiReady = true;
     this.isApiReadyOnce = true;
   }
@@ -60,6 +69,7 @@ export class CosmosApi implements _CosmosApi {
   }
 
   connect (): void {
+    console.debug('Cosmos API is connected');
   }
 
   destroy (): Promise<void> {
@@ -67,22 +77,47 @@ export class CosmosApi implements _CosmosApi {
   }
 
   disconnect (): Promise<void> {
+    this.api.disconnect();
+
     return Promise.resolve(undefined);
   }
 
-  recoverConnect (): Promise<void> {
-    return Promise.resolve(undefined);
+  async recoverConnect (): Promise<void> {
+    const tendermint = await Tendermint34Client.connect(this.apiUrl);
+
+    this.api = await StargateClient.create(tendermint);
+    this.tendermintClient = tendermint;
   }
 
-  updateApiUrl (apiUrl: string): Promise<void> {
-    return Promise.resolve(undefined);
+  async updateApiUrl (apiUrl: string): Promise<void> {
+    if (apiUrl === this.apiUrl) {
+      return;
+    }
+
+    await this.disconnect();
+
+    this.apiUrl = apiUrl;
+    const tendermint = await Tendermint34Client.connect(this.apiUrl);
+
+    this.api = await StargateClient.create(tendermint);
+    this.tendermintClient = tendermint;
   }
 
   onConnect () {
+    if (!this.isApiConnected) {
+      console.log(`Connected to ${this.chainSlug} at ${this.apiUrl}`);
+      this.isApiReady = true;
+    }
 
+    this.updateConnectedStatus(true);
   }
 
   onDisconnect () {
+    this.updateConnectedStatus(false);
 
+    if (this.isApiConnected) {
+      console.warn(`Disconnected from ${this.chainSlug} of ${this.apiUrl} (Cosmos)`);
+      this.isApiReady = false;
+    }
   }
 }
