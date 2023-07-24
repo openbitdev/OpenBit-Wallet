@@ -5,6 +5,7 @@ import { AbstractChainHandler } from '@subwallet/extension-base/services/chain-s
 import { _ChainBaseApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { CosmosApi } from '@subwallet/extension-base/services/chain-service/handler/CosmosApi';
+import { _CosmosInfo } from '@subwallet/chain-list/types';
 
 export class CosmosChainHandler extends AbstractChainHandler {
   private cosmosApiMap: Record<string, CosmosApi> = {};
@@ -13,7 +14,7 @@ export class CosmosChainHandler extends AbstractChainHandler {
     return this.cosmosApiMap[chain];
   }
 
-  initApi (chainSlug: string, apiUrl: string, { cosmosChainInfo, onUpdateStatus }: Omit<_ApiOptions, 'metadata'>): Promise<_ChainBaseApi> {
+  initApi (chainSlug: string, apiUrl: string, { cosmosChainInfo }: Omit<_ApiOptions, 'metadata'>): Promise<_ChainBaseApi> {
     const existed = this.getApiByChain(chainSlug);
 
     if (existed) {
@@ -23,12 +24,12 @@ export class CosmosChainHandler extends AbstractChainHandler {
         existed.updateApiUrl(apiUrl).catch(console.error);
       }
 
-      return existed;
+      return Promise.resolve(existed);
     }
 
-    const api = CosmosApi.create(chainSlug, apiUrl, cosmosChainInfo);
+    const api = CosmosApi.create(chainSlug, apiUrl, cosmosChainInfo as _CosmosInfo);
 
-    return Promise.resolve(undefined);
+    return Promise.resolve(api);
   }
 
   recoverApi (chainSlug: string): void {

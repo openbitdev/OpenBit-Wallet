@@ -5974,14 +5974,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subwallet/chain-list@npm:^0.2.7":
-  version: 0.2.7
-  resolution: "@subwallet/chain-list@npm:0.2.7"
+"@subwallet/chain-list@file:C:\\Users\\99999\\Downloads\\builds\\cosmos-build::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 0.2.5-beta.3
+  resolution: "@subwallet/chain-list@file:/C%3A/Users/99999/Downloads/builds/cosmos-build#/C%3A/Users/99999/Downloads/builds/cosmos-build::hash=19b38d&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^10.2.1
     eventemitter3: ^4.0.7
-  checksum: 93124bfe1362687b31c5bae443ab508d28be5fd514de46397f9012733f5f781002050b977ba4a2c90954c7baa766dde898d63305b5083156dd3f02cb2f7f0a9e
+  checksum: e45b1312146a1dff55f48ed1848973e37e130e4842437f5bab92ace4554c6e3c0a5f95ded92cced8ade359b294756ad2283cc03dcc85064d407fa0cdd46b0fae
   languageName: node
   linkType: hard
 

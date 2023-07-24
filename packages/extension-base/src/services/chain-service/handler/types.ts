@@ -29,7 +29,7 @@ export interface _ApiOptions {
   metadata?: MetadataItem,
   onUpdateStatus?: (isConnected: boolean) => void;
   externalApiPromise?: ApiPromise;
-  cosmosChainInfo: _CosmosInfo;
+  cosmosChainInfo?: _CosmosInfo;
 }
 
 export enum _CHAIN_VALIDATION_ERROR {
