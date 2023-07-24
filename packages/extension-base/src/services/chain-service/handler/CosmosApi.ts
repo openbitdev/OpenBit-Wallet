@@ -89,6 +89,8 @@ export class CosmosApi implements _CosmosApi {
   }
 
   async recoverConnect (): Promise<void> {
+    await this.disconnect();
+
     const tendermint = await Tendermint34Client.connect(this.apiUrl);
 
     this.api = await StargateClient.create(tendermint);
