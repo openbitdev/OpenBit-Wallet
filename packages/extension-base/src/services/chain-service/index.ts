@@ -576,7 +576,7 @@ export class ChainService {
     }
 
     if (chainInfo.cosmosInfo) {
-      const chainApi = await this.cosmosChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
+      const chainApi = await this.cosmosChainHandler.initApi(chainInfo.slug, endpoint, { cosmosChainInfo: chainInfo.cosmosInfo, onUpdateStatus });
 
       this.cosmosChainHandler.setCosmosApi(chainInfo.slug, chainApi);
     }

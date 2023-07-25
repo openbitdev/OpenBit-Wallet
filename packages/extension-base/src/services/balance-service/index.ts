@@ -3,7 +3,7 @@
 
 import { BalanceError } from '@subwallet/extension-base/background/errors/BalanceError';
 import { AmountData, BalanceErrorType, BalanceItem } from '@subwallet/extension-base/background/KoniTypes';
-import { subscribeEVMBalance, subscribeSubstrateBalance } from '@subwallet/extension-base/koni/api/dotsama/balance';
+import { subscribeEVMBalance, subscribeSubstrateBalance } from '@subwallet/extension-base/koni/api/balance/balance';
 import { state } from '@subwallet/extension-base/koni/background/handlers';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { _PURE_EVM_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';

@@ -430,3 +430,7 @@ export const findChainInfoByChainId = (chainMap: Record<string, _ChainInfo>, cha
 export function _isMantaZkAsset (chainAsset: _ChainAsset) {
   return _MANTA_ZK_CHAIN_GROUP.includes(chainAsset.originChain) && chainAsset.symbol.startsWith(_ZK_ASSET_PREFIX);
 }
+
+export function _getCosmosTokenDenom (chainAsset: _ChainAsset) {
+  return chainAsset?.metadata?.coinMinimalDenom as string;
+}
