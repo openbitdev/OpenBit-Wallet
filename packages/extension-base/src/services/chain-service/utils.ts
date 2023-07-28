@@ -64,11 +64,15 @@ export function _isPureEvmChain (chainInfo: _ChainInfo) {
 }
 
 export function _isPureSubstrateChain (chainInfo: _ChainInfo) {
-  return (!chainInfo.evmInfo && !!chainInfo.substrateInfo);
+  return (!!chainInfo.substrateInfo && !chainInfo.evmInfo && !chainInfo.cosmosInfo && !chainInfo.solanaInfo);
 }
 
 export function _isPureCosmosChain (chainInfo: _ChainInfo) {
   return (!!chainInfo.cosmosInfo && !chainInfo.substrateInfo && !chainInfo.evmInfo);
+}
+
+export function _isPureSolanaChain (chainInfo: _ChainInfo) {
+  return (!!chainInfo.solanaInfo && !chainInfo.substrateInfo && !chainInfo.evmInfo && !chainInfo.cosmosInfo);
 }
 
 export function _getOriginChainOfAsset (assetSlug: string) {

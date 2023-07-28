@@ -18,6 +18,22 @@ export class SolanaChainHandler extends AbstractChainHandler {
     return this.solanaApiMap[chain];
   }
 
+  getSolanaApiMap () {
+    return this.solanaApiMap;
+  }
+
+  setSolanaApi (chain: string, api: SolanaApi) {
+    this.solanaApiMap[chain] = api;
+  }
+
+  destroySolanaApi (chain: string) {
+    const api = this.solanaApiMap[chain];
+
+    api.disconnect().then(() => {
+      delete this.solanaApiMap[chain];
+    }).catch(console.error);
+  }
+
   async initApi (chainSlug: string, apiUrl: string, { onUpdateStatus }: Omit<_ApiOptions, 'metadata'>) {
     const existed = this.getApiByChain(chainSlug);
 

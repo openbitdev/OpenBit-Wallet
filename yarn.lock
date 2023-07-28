@@ -6017,12 +6017,12 @@ __metadata:
 
 "@subwallet/chain-list@file:C:\\Users\\99999\\Downloads\\builds\\solana-build::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.5-beta.3
-  resolution: "@subwallet/chain-list@file:/C%3A/Users/99999/Downloads/builds/solana-build#/C%3A/Users/99999/Downloads/builds/solana-build::hash=bc8115&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:/C%3A/Users/99999/Downloads/builds/solana-build#/C%3A/Users/99999/Downloads/builds/solana-build::hash=7d3f43&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^10.2.1
     eventemitter3: ^4.0.7
-  checksum: d28347ecb6fb4fdbb4070891c84ae5ab00614a331f6d4d087207d85134a6f997c5ca1335f275fc173f08a2ef71729266108e12fff3ff57f4d8ed77ba7459183a
+  checksum: cc3d2306be338a291db3ff11b891a73114f734a5b90bf00657c07a4b0280882d15696d2abde314d098980f707f43e08c114c5a2fc87d06172bfc2611ed1737a3
   languageName: node
   linkType: hard
 

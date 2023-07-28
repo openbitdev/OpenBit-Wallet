@@ -27,6 +27,7 @@ import { TransactionWarning } from './warnings/TransactionWarning';
 import { CosmosApi } from '@subwallet/extension-base/services/chain-service/handler/CosmosApi';
 import { EvmApi } from '@subwallet/extension-base/services/chain-service/handler/EvmApi';
 import { SubstrateApi } from '@subwallet/extension-base/services/chain-service/handler/SubstrateApi';
+import { SolanaApi } from '@subwallet/extension-base/services/chain-service/handler/SolanaApi';
 
 export enum RuntimeEnvironment {
   Web = 'Web',
@@ -1049,7 +1050,8 @@ export interface ValidateNetworkRequest {
 export interface ApiMap {
   substrate: Record<string, SubstrateApi>;
   evm: Record<string, EvmApi>;
-  cosmos: Record<string, CosmosApi>
+  cosmos: Record<string, CosmosApi>;
+  solana: Record<string, SolanaApi>;
 }
 
 export interface SupportTransferResponse {

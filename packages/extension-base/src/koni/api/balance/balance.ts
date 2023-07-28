@@ -9,8 +9,9 @@ import { subscribeAssetsAccountPallet, subscribeEqBalanceAccountPallet, subscrib
 import { state } from '@subwallet/extension-base/koni/background/handlers';
 import { _BALANCE_CHAIN_GROUP, _PURE_EVM_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _checkSmartContractSupportByChain, _isChainEvmCompatible, _isPureCosmosChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _checkSmartContractSupportByChain, _isChainEvmCompatible, _isPureCosmosChain, _isPureEvmChain, _isPureSolanaChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { categoryAddresses } from '@subwallet/extension-base/utils';
+import { subscribeSolanaBalance } from '@subwallet/extension-base/koni/api/balance/solanaBalance';
 
 export function subscribeBalance (addresses: string[], chainInfoMap: Record<string, _ChainInfo>, apiMap: ApiMap, callback: (rs: BalanceItem) => void) {
   const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
@@ -18,6 +19,7 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
   const evmApiMap = apiMap.evm;
   const substrateApiMap = apiMap.substrate;
   const cosmosApiMap = apiMap.cosmos;
+  const solanaApiMap = apiMap.solana;
 
   // Looping over each chain
   const unsubList = Object.entries(chainInfoMap).map(async ([chainSlug, chainInfo]) => {
@@ -31,6 +33,10 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
 
     if (_isPureCosmosChain(chainInfo)) {
       return subscribeCosmosBalance(chainSlug, ['aura1v9vx354jj05rqfpx07xdrf3a38z97xml6cmh8f', 'aura1v3ccn6kdn2srkdh0vwta69fkzhf663nf9c4662'], cosmosApiMap, callback);
+    }
+
+    if (_isPureSolanaChain(chainInfo)) {
+      return subscribeSolanaBalance(chainSlug, ['7T5pSBUnkrB2XtFRYzChamC4wonRbyyPSgabvp19RAgr'], solanaApiMap, callback);
     }
 
     if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {

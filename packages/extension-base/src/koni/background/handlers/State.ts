@@ -1144,7 +1144,8 @@ export default class KoniState {
     return {
       substrate: this.chainService.getSubstrateApiMap(),
       evm: this.chainService.getEvmApiMap(),
-      cosmos: this.chainService.getCosmosApiMap()
+      cosmos: this.chainService.getCosmosApiMap(),
+      solana: this.chainService.getSolanaApiMap()
     } as ApiMap;
   }
 

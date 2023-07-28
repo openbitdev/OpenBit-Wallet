@@ -8,6 +8,7 @@ import { _ASSET_LOGO_MAP_SRC, _ASSET_REF_SRC, _CHAIN_ASSET_SRC, _CHAIN_INFO_SRC,
 import { CosmosChainHandler } from '@subwallet/extension-base/services/chain-service/handler/CosmosChainHandler';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
+import { SolanaChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SolanaChainHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
@@ -22,7 +23,6 @@ import Web3 from 'web3';
 
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
-import { SolanaChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SolanaChainHandler';
 
 export class ChainService {
   private dataMap: _DataMap = {
@@ -109,6 +109,10 @@ export class ChainService {
 
   public getCosmosApiMap () {
     return this.cosmosChainHandler.getCosmosApiMap();
+  }
+
+  public getSolanaApiMap () {
+    return this.solanaChainHandler.getSolanaApiMap();
   }
 
   public getChainCurrentProviderByKey (slug: string) {
@@ -583,6 +587,12 @@ export class ChainService {
 
       this.cosmosChainHandler.setCosmosApi(chainInfo.slug, chainApi);
     }
+
+    if (chainInfo.solanaInfo) {
+      const chainApi = await this.solanaChainHandler.initApi(chainInfo.slug, endpoint, { onUpdateStatus });
+
+      this.solanaChainHandler.setSolanaApi(chainInfo.slug, chainApi);
+    }
   }
 
   private destroyApiForChain (chainInfo: _ChainInfo) {
@@ -596,6 +606,10 @@ export class ChainService {
 
     if (chainInfo.cosmosInfo) {
       this.cosmosChainHandler.destroyCosmosApi(chainInfo.slug);
+    }
+
+    if (chainInfo.solanaInfo) {
+      this.solanaChainHandler.destroySolanaApi(chainInfo.slug);
     }
   }
 
