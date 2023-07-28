@@ -13,6 +13,7 @@ import { ApiPromise } from '@polkadot/api';
 import { SubmittableExtrinsicFunction } from '@polkadot/api/promise/types';
 import { ChainProperties, ChainType } from '@polkadot/types/interfaces';
 import { Registry } from '@polkadot/types/types';
+import { Connection } from '@solana/web3.js';
 
 export interface _DataMap {
   chainInfoMap: Record<string, _ChainInfo>,
@@ -95,6 +96,11 @@ export interface _EvmApi extends _ChainBaseApi {
 export interface _CosmosApi extends _ChainBaseApi {
   api: StargateClient,
   isReady: Promise<_CosmosApi>
+}
+
+export interface _SolanaApi extends _ChainBaseApi {
+  api: Connection,
+  isReady: Promise<_SolanaApi>
 }
 
 export type _NetworkUpsertParams = {

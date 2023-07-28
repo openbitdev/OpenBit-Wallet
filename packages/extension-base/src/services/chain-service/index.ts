@@ -22,6 +22,7 @@ import Web3 from 'web3';
 
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
+import { SolanaChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SolanaChainHandler';
 
 export class ChainService {
   private dataMap: _DataMap = {
@@ -39,6 +40,7 @@ export class ChainService {
   private substrateChainHandler: SubstrateChainHandler;
   private evmChainHandler: EvmChainHandler;
   private cosmosChainHandler: CosmosChainHandler;
+  private solanaChainHandler: SolanaChainHandler;
   private mantaChainHandler: MantaPrivateHandler | undefined;
 
   public get mantaPay () {
@@ -75,6 +77,7 @@ export class ChainService {
     this.cosmosChainHandler = new CosmosChainHandler(this);
     this.substrateChainHandler = new SubstrateChainHandler(this);
     this.evmChainHandler = new EvmChainHandler(this);
+    this.solanaChainHandler = new SolanaChainHandler(this);
 
     this.logger = createLogger('chain-service');
   }

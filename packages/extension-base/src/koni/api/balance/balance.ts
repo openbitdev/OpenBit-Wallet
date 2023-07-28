@@ -3,6 +3,7 @@
 
 import { _AssetType, _ChainInfo } from '@subwallet/chain-list/types';
 import { APIItemState, ApiMap, BalanceItem } from '@subwallet/extension-base/background/KoniTypes';
+import { subscribeCosmosBalance } from '@subwallet/extension-base/koni/api/balance/cosmosBalance';
 import { subscribeERC20Interval, subscribeEVMBalance } from '@subwallet/extension-base/koni/api/balance/evmBalance';
 import { subscribeAssetsAccountPallet, subscribeEqBalanceAccountPallet, subscribeEquilibriumTokenBalance, subscribePSP22Balance, subscribeTokensAccountsPallet, subscribeWithSystemAccountPallet } from '@subwallet/extension-base/koni/api/balance/substrateBalance';
 import { state } from '@subwallet/extension-base/koni/background/handlers';
@@ -29,9 +30,7 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
     }
 
     if (_isPureCosmosChain(chainInfo)) {
-      console.log('ok', cosmosApiMap);
-
-      return;
+      return subscribeCosmosBalance(chainSlug, ['aura1v9vx354jj05rqfpx07xdrf3a38z97xml6cmh8f', 'aura1v3ccn6kdn2srkdh0vwta69fkzhf663nf9c4662'], cosmosApiMap, callback);
     }
 
     if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {

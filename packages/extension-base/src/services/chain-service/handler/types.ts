@@ -1,10 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { Commitment, ConnectionConfig } from '@solana/web3.js';
+import { _CosmosInfo } from '@subwallet/chain-list/types';
 import { MetadataItem } from '@subwallet/extension-base/background/KoniTypes';
 
 import { ApiPromise } from '@polkadot/api';
-import { _CosmosInfo } from '@subwallet/chain-list/types';
 
 export interface _EvmChainSpec {
   evmChainId: number,
@@ -30,6 +31,7 @@ export interface _ApiOptions {
   onUpdateStatus?: (isConnected: boolean) => void;
   externalApiPromise?: ApiPromise;
   cosmosChainInfo?: _CosmosInfo;
+  solanaCommitment?: Commitment | ConnectionConfig;
 }
 
 export enum _CHAIN_VALIDATION_ERROR {
