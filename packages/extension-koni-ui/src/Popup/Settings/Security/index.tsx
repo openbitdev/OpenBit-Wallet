@@ -9,7 +9,7 @@ import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDef
 import { saveAutoLockTime, saveCameraSetting, saveEnableChainPatrol, windowOpen } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { noop } from '@subwallet/extension-koni-ui/utils';
+import { isFirefox, noop } from '@subwallet/extension-koni-ui/utils';
 import { isNoAccount } from '@subwallet/extension-koni-ui/utils/account/account';
 import { BackgroundIcon, Icon, ModalContext, SettingItem, Switch, SwModal } from '@subwallet/react-ui';
 import CN from 'classnames';
@@ -46,6 +46,8 @@ interface AutoLockOption {
 const modalId = EDIT_AUTO_LOCK_TIME_MODAL;
 
 const timeOptions = [5, 10, 15, 30, 60];
+
+const _isFirefox = isFirefox();
 
 const Component: React.FC<Props> = (props: Props) => {
   const { className } = props;
@@ -254,6 +256,7 @@ const Component: React.FC<Props> = (props: Props) => {
                 rightItem={(
                   <Switch
                     checked={enableChainPatrol}
+                    disabled={_isFirefox}
                     loading={loadingChainPatrol}
                     onClick={updateChainPatrolEnable(enableChainPatrol)}
                   />

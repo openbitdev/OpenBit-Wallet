@@ -20,7 +20,7 @@ import { _NetworkUpsertParams } from '@subwallet/extension-base/services/chain-s
 import { _generateCustomProviderKey } from '@subwallet/extension-base/services/chain-service/utils';
 import { AuthUrls } from '@subwallet/extension-base/services/request-service/types';
 import { DEFAULT_CHAIN_PATROL_ENABLE } from '@subwallet/extension-base/services/setting-service/constants';
-import { canDerive, stripUrl } from '@subwallet/extension-base/utils';
+import { canDerive, isFirefox, stripUrl } from '@subwallet/extension-base/utils';
 import { InjectedMetadataKnown, MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
 import { KeyringPair } from '@subwallet/keyring/types';
 import keyring from '@subwallet/ui-keyring';
@@ -247,7 +247,7 @@ export default class KoniTabs {
       return this.checkPassList(url);
     }
 
-    if (this.#chainPatrolService) {
+    if (this.#chainPatrolService && !isFirefox()) {
       const isInChainPatrolDenyList = await chainPatrolCheckUrl(url);
 
       if (isInChainPatrolDenyList) {

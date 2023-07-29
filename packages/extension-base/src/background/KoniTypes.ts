@@ -2238,4 +2238,5 @@ export interface ApplicationMetadataType {
 }
 
 export type OSType = 'Mac OS' | 'iOS' | 'Windows' | 'Android' | 'Linux' | 'Unknown';
+export type BrowserType = 'Firefox' | 'Chrome' | 'Safari' | 'Opera' | 'IE' | 'Edge' | 'EdgeChromium' | 'Blink' | 'Unknown';
 export const MobileOS: OSType[] = ['iOS', 'Android'];
