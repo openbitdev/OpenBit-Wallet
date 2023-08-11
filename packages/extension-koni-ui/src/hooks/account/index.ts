@@ -20,4 +20,3 @@ export * from './useGetMantaPayConfig';
 export * from './useGetZkAddress';
 export * from './useIsMantaPayAvailable';
 export * from './useIsMantaPayEnabled';
-
