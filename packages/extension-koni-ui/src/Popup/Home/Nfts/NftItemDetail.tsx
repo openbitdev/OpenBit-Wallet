@@ -63,7 +63,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     collectionId: '',
     itemId: '',
     from: '',
-    to: ''
+    to: '',
+    asset: ''
   });
 
   useNavigateOnChangeAccount('/home/nfts/collections');
@@ -90,7 +91,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       collectionId: nftItem.collectionId,
       itemId: nftItem.id,
       from: nftItem.owner,
-      to: ''
+      to: '',
+      asset: ''
     });
   }, [accounts, navigate, nftItem, notify, setStorage, t]);
 
