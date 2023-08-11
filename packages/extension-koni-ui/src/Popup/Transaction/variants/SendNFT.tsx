@@ -5,36 +5,30 @@ import { ExtrinsicType, NftCollection, NftItem } from '@subwallet/extension-base
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, ChainSelector, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
+import { DEFAULT_MODEL_VIEWER_PROPS, NFT_TRANSACTION, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useFocusFormItem, useGetChainPrefixBySlug, useHandleSubmitTransaction, usePreCheckAction, useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { useFocusFormItem, useGetChainPrefixBySlug, useHandleSubmitTransaction, usePersistTransaction, usePreCheckAction, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import { evmNftSubmitTransaction, substrateNftSubmitTransaction } from '@subwallet/extension-koni-ui/messaging';
-import { FormCallbacks, FormFieldData, FormInstance, FormRule, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, FormFieldData, FormInstance, FormRule, SendNftParam, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon, Image, Typography } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { ArrowCircleRight } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useIsFirstRender } from 'usehooks-ts';
 
 import { isAddress, isEthereumAddress } from '@polkadot/util-crypto';
 
 import { nftParamsHandler } from '../helper';
 import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
-import { TransactionContext, TransactionFormBaseProps } from '../Transaction';
+import { TransactionContext } from '../Transaction';
 
 type Props = ThemeProps;
 
-enum FormFieldName {
-  TO = 'to'
-}
-
-interface SendNFTFormProps extends TransactionFormBaseProps {
-  [FormFieldName.TO]: string
-}
+type SendNFTFormProps = SendNftParam;
 
 const DEFAULT_COLLECTION: NftCollection = {
   collectionId: 'unknown',
@@ -48,26 +42,33 @@ const DEFAULT_ITEM: NftItem = {
   id: 'unknown'
 };
 
+const DEFAULT_FORM_STATE: SendNFTFormProps = {
+  asset: '',
+  chain: '',
+  collectionId: '',
+  from: '',
+  to: '',
+  itemId: ''
+};
+
 const Component: React.FC = () => {
+  useSetCurrentPage('/transaction/send-nft');
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  const { chain: nftChain = '', collectionId, itemId, owner = '' } = useParams();
 
   const { chainInfoMap } = useSelector((state) => state.chainStore);
   const { nftCollections, nftItems } = useSelector((state) => state.nft);
   const { accounts } = useSelector((state) => state.accountState);
-  const [isBalanceReady, setIsBalanceReady] = useState(true);
 
-  const nftItem = useMemo((): NftItem =>
-    nftItems.find(
-      (item) =>
-        isSameAddress(item.owner, owner) &&
-        nftChain === item.chain &&
-        item.collectionId === collectionId &&
-        item.id === itemId
-    ) || DEFAULT_ITEM
-  , [collectionId, itemId, nftChain, nftItems, owner]);
+  const [isBalanceReady, setIsBalanceReady] = useState(true);
+  const [valueChange, setValueChange] = useState(0);
+  const isFirstRender = useIsFirstRender();
+
+  const [form] = Form.useForm<SendNFTFormProps>();
+
+  const [storage] = usePersistTransaction<SendNFTFormProps>(form, NFT_TRANSACTION, DEFAULT_FORM_STATE, valueChange);
+
+  const { chain: nftChain = '', collectionId, itemId } = storage;
 
   const collectionInfo = useMemo((): NftCollection =>
     nftCollections.find(
@@ -81,18 +82,26 @@ const Component: React.FC = () => {
   const addressPrefix = useGetChainPrefixBySlug(nftChain);
   const chainGenesisHash = chainInfoMap[nftChain]?.substrateInfo?.genesisHash || '';
 
-  const { chain, from, onDone, setChain, setFrom } = useContext(TransactionContext);
+  const { chain, from, onDone, setChain } = useContext(TransactionContext);
 
-  const { onError, onSuccess } = useHandleSubmitTransaction(onDone);
+  const nftItem = useMemo((): NftItem =>
+    nftItems.find(
+      (item) =>
+        isSameAddress(item.owner, from) &&
+          nftChain === item.chain &&
+          item.collectionId === collectionId &&
+          item.id === itemId
+    ) || DEFAULT_ITEM
+  , [collectionId, itemId, nftChain, nftItems, from]);
 
-  const [form] = Form.useForm<SendNFTFormProps>();
   const formDefault = useMemo(() => {
     return {
+      ...storage,
       from,
-      chain,
-      to: ''
+      chain
     };
-  }, [chain, from]);
+  }, [storage, chain, from]);
+  const { onError, onSuccess } = useHandleSubmitTransaction(onDone);
 
   const [isDisable, setIsDisable] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -139,6 +148,7 @@ const Component: React.FC = () => {
   const onFieldsChange: FormCallbacks<SendNFTFormProps>['onFieldsChange'] = useCallback((changedFields: FormFieldData[], allFields: FormFieldData[]) => {
     const { error } = simpleCheckForm(allFields);
 
+    setValueChange((value) => value + 1);
     setIsDisable(error);
   }, []);
 
@@ -191,14 +201,24 @@ const Component: React.FC = () => {
 
   useEffect(() => {
     setChain(nftChain);
-    setFrom(owner);
-  }, [nftChain, owner, setChain, setFrom]);
+  }, [nftChain, setChain]);
 
   useEffect(() => {
-    if (nftItem === DEFAULT_ITEM || collectionInfo === DEFAULT_COLLECTION) {
-      navigate('/home/nfts/collections');
+    if (!isFirstRender) {
+      if (nftItem === DEFAULT_ITEM || collectionInfo === DEFAULT_COLLECTION) {
+        navigate('/home/nfts/collections');
+      }
     }
-  }, [collectionInfo, navigate, nftItem]);
+  }, [isFirstRender, collectionInfo, navigate, nftItem]);
+
+  // Force validate after restore field
+  useEffect(() => {
+    if (storage.to) {
+      setTimeout(() => {
+        form.validateFields(['to']).catch(console.error);
+      }, 100);
+    }
+  }, [form, storage.to]);
 
   // Focus to the first field
   useFocusFormItem(form, 'to');

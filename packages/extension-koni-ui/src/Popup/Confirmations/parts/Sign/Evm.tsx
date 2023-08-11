@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitions, ConfirmationResult, EvmSendTransactionRequest } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationDefinitions, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import { useGetChainInfoByChainId, useLedger, useNotification } from '@subwallet/extension-koni-ui/hooks';
 import { completeConfirmation } from '@subwallet/extension-koni-ui/messaging';
@@ -10,6 +10,7 @@ import { AccountSignMode } from '@subwallet/extension-koni-ui/types/account';
 import { EvmSignatureSupportType } from '@subwallet/extension-koni-ui/types/confirmation';
 import { isEvmMessage } from '@subwallet/extension-koni-ui/utils';
 import { getSignMode } from '@subwallet/extension-koni-ui/utils/account/account';
+import { removePersist } from '@subwallet/extension-koni-ui/utils/transaction/removePersist';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CheckCircle, QrCode, Swatches, XCircle } from 'phosphor-react';
@@ -25,6 +26,7 @@ interface Props extends ThemeProps {
   id: string;
   type: EvmSignatureSupportType;
   payload: ConfirmationDefinitions[EvmSignatureSupportType][0];
+  extrinsicType?: ExtrinsicType;
 }
 
 const handleConfirm = async (type: EvmSignatureSupportType, id: string, payload: string) => {
@@ -51,7 +53,7 @@ const handleSignature = async (type: EvmSignatureSupportType, id: string, signat
 };
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className, id, payload, type } = props;
+  const { className, extrinsicType, id, payload, type } = props;
   const { payload: { account, canSign, hashPayload } } = payload;
   const chainId = (payload.payload as EvmSendTransactionRequest)?.chainId || 1;
 
@@ -157,6 +159,8 @@ const Component: React.FC<Props> = (props: Props) => {
   }, [account.accountIndex, account.addressOffset, hashPayload, isLedgerConnected, isMessage, ledger, ledgerSignMessage, ledgerSignTransaction, onApproveSignature, refreshLedger]);
 
   const onConfirm = useCallback(() => {
+    removePersist(extrinsicType);
+
     switch (signMode) {
       case AccountSignMode.QR:
         onConfirmQr();
@@ -167,7 +171,7 @@ const Component: React.FC<Props> = (props: Props) => {
       default:
         onApprovePassword();
     }
-  }, [onApprovePassword, onConfirmLedger, onConfirmQr, signMode]);
+  }, [extrinsicType, onApprovePassword, onConfirmLedger, onConfirmQr, signMode]);
 
   useEffect(() => {
     !!ledgerError && notify({

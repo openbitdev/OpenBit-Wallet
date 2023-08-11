@@ -12,7 +12,7 @@ import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useFetchChainState, useGetBalance, useGetChainStakingMetadata, useGetNativeTokenBasicInfo, useGetNativeTokenSlug, useGetNominatorInfo, useGetSupportedStakingTokens, useHandleSubmitTransaction, usePreCheckAction, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import useFetchChainAssetInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainAssetInfo';
 import { submitBonding, submitPoolBonding } from '@subwallet/extension-koni-ui/messaging';
-import { FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, FormFieldData, ThemeProps, TransactionFormBaseProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, isAccountAll, parseNominations, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Divider, Form, Icon } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
@@ -27,7 +27,7 @@ import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { accountFilterFunc, fetchChainValidators } from '../helper';
 import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
-import { TransactionContext, TransactionFormBaseProps } from '../Transaction';
+import { TransactionContext } from '../Transaction';
 
 type Props = ThemeProps
 

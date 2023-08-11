@@ -11,7 +11,7 @@ import { BN_ZERO } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useGetChainStakingMetadata, useGetNativeTokenBasicInfo, useGetNominatorInfo, useHandleSubmitTransaction, usePreCheckAction, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { submitPoolUnbonding, submitUnbonding } from '@subwallet/extension-koni-ui/messaging';
-import { FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, FormFieldData, ThemeProps, TransactionFormBaseProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, isAccountAll, noop, simpleCheckForm, validateUnStakeValue } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
@@ -24,7 +24,7 @@ import styled from 'styled-components';
 
 import { accountFilterFunc } from '../helper';
 import { BondedBalance, FreeBalance, TransactionContent, TransactionFooter } from '../parts';
-import { TransactionContext, TransactionFormBaseProps } from '../Transaction';
+import { TransactionContext } from '../Transaction';
 
 type Props = ThemeProps;
 

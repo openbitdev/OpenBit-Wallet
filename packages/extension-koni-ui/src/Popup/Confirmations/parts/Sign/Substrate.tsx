@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import { useNotification } from '@subwallet/extension-koni-ui/hooks';
@@ -12,6 +13,7 @@ import { PhosphorIcon, SigData, ThemeProps } from '@subwallet/extension-koni-ui/
 import { AccountSignMode } from '@subwallet/extension-koni-ui/types/account';
 import { isSubstrateMessage } from '@subwallet/extension-koni-ui/utils';
 import { getSignMode } from '@subwallet/extension-koni-ui/utils/account/account';
+import { removePersist } from '@subwallet/extension-koni-ui/utils/transaction/removePersist';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CheckCircle, QrCode, Swatches, XCircle } from 'phosphor-react';
@@ -28,6 +30,7 @@ interface Props extends ThemeProps {
   account: AccountJson;
   id: string;
   payload: ExtrinsicPayload | string;
+  extrinsicType?: ExtrinsicType;
 }
 
 const handleConfirm = async (id: string) => await approveSignPasswordV2({ id });
@@ -39,7 +42,7 @@ const handleSignature = async (id: string, { signature }: SigData) => await appr
 const modeCanSignMessage: AccountSignMode[] = [AccountSignMode.QR, AccountSignMode.PASSWORD];
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { account, className, id, payload } = props;
+  const { account, className, extrinsicType, id, payload } = props;
 
   const { t } = useTranslation();
   const notify = useNotification();
@@ -167,6 +170,8 @@ const Component: React.FC<Props> = (props: Props) => {
   ]);
 
   const onConfirm = useCallback(() => {
+    removePersist(extrinsicType);
+
     switch (signMode) {
       case AccountSignMode.QR:
         onConfirmQr();
@@ -177,7 +182,7 @@ const Component: React.FC<Props> = (props: Props) => {
       default:
         onApprovePassword();
     }
-  }, [onApprovePassword, onConfirmLedger, onConfirmQr, signMode]);
+  }, [extrinsicType, onApprovePassword, onConfirmLedger, onConfirmQr, signMode]);
 
   useEffect(() => {
     !!ledgerError && notify({

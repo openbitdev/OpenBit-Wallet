@@ -1,26 +1,19 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
-import { AssetSetting, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountJson } from '@subwallet/extension-base/background/types';
-import { _getAssetDecimals, _getOriginChainOfAsset, _isAssetFungibleToken, _isChainEvmCompatible, _isMantaZkAsset, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
+import { _AssetType } from '@subwallet/chain-list/types';
+import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { _getAssetDecimals, _isChainEvmCompatible, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { detectTranslate, isSameAddress } from '@subwallet/extension-base/utils';
-import { AccountSelector } from '@subwallet/extension-koni-ui/components/Field/AccountSelector';
-import { AddressInput } from '@subwallet/extension-koni-ui/components/Field/AddressInput';
-import AmountInput from '@subwallet/extension-koni-ui/components/Field/AmountInput';
-import { ChainSelector } from '@subwallet/extension-koni-ui/components/Field/ChainSelector';
-import { TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components/Field/TokenSelector';
-import { useGetChainPrefixBySlug, useHandleSubmitTransaction, useNotification, usePreCheckAction, useSelector } from '@subwallet/extension-koni-ui/hooks';
-import { useIsMantaPayEnabled } from '@subwallet/extension-koni-ui/hooks/account/useIsMantaPayEnabled';
+import { AccountSelector, AddressInput, AmountInput, ChainSelector, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
+import { TRANSFER_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
+import { useGetChainPrefixBySlug, useHandleSubmitTransaction, useIsMantaPayEnabled, useNotification, usePersistTransaction, usePreCheckAction, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import { getMaxTransfer, makeCrossChainTransfer, makeTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { ChainItemType, FormCallbacks, SendFundParam, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { findAccountByAddress, formatBalance, isAccountAll, noop } from '@subwallet/extension-koni-ui/utils';
-import { findNetworkJsonByGenesisHash } from '@subwallet/extension-koni-ui/utils/chain/getNetworkJsonByGenesisHash';
+import { ChainItemType, FormCallbacks, FormRule, SendFundParam, Theme, ThemeProps, TransactionFormBaseProps } from '@subwallet/extension-koni-ui/types';
+import { findAccountByAddress, findNetworkJsonByGenesisHash, formatBalance, noop } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon, Input } from '@subwallet/react-ui';
-import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { PaperPlaneRight, PaperPlaneTilt } from 'phosphor-react';
@@ -28,12 +21,14 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { useIsFirstRender } from 'usehooks-ts';
 
 import { BN, BN_ZERO } from '@polkadot/util';
 import { isAddress, isEthereumAddress } from '@polkadot/util-crypto';
 
-import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
-import { TransactionContext, TransactionFormBaseProps } from '../Transaction';
+import { FreeBalance, TransactionContent, TransactionFooter } from '../../parts';
+import { TransactionContext } from '../../Transaction';
+import { filterAccountFunc, getTokenAvailableDestinations, getTokenItems } from './helper';
 
 interface TransferFormProps extends TransactionFormBaseProps {
   to: string;
@@ -43,181 +38,20 @@ interface TransferFormProps extends TransactionFormBaseProps {
 
 type Props = ThemeProps;
 
-function isAssetTypeValid (
-  chainAsset: _ChainAsset,
-  chainInfoMap: Record<string, _ChainInfo>,
-  isAccountEthereum: boolean
-) {
-  return _isChainEvmCompatible(chainInfoMap[chainAsset.originChain]) === isAccountEthereum;
-}
-
-function getTokenItems (
-  address: string,
-  accounts: AccountJson[],
-  chainInfoMap: Record<string, _ChainInfo>,
-  assetRegistry: Record<string, _ChainAsset>,
-  assetSettingMap: Record<string, AssetSetting>,
-  multiChainAssetMap: Record<string, _MultiChainAsset>,
-  tokenGroupSlug?: string, // is ether a token slug or a multiChainAsset slug
-  isZkModeEnabled?: boolean
-): TokenItemType[] {
-  const account = findAccountByAddress(accounts, address);
-
-  if (!account) {
-    return [];
-  }
-
-  const isLedger = !!account.isHardware;
-  const validGen: string[] = account.availableGenesisHashes || [];
-  const validLedgerNetwork = validGen.map((genesisHash) => findNetworkJsonByGenesisHash(chainInfoMap, genesisHash)?.slug);
-  const isAccountEthereum = isEthereumAddress(address);
-  const isSetTokenSlug = !!tokenGroupSlug && !!assetRegistry[tokenGroupSlug];
-  const isSetMultiChainAssetSlug = !!tokenGroupSlug && !!multiChainAssetMap[tokenGroupSlug];
-
-  if (tokenGroupSlug) {
-    if (!(isSetTokenSlug || isSetMultiChainAssetSlug)) {
-      return [];
-    }
-
-    const chainAsset = assetRegistry[tokenGroupSlug];
-    const isValidLedger = isLedger ? (isAccountEthereum || validLedgerNetwork.includes(chainAsset?.originChain)) : true;
-
-    if (isSetTokenSlug) {
-      if (isAssetTypeValid(chainAsset, chainInfoMap, isAccountEthereum) && isValidLedger) {
-        const { name, originChain, slug, symbol } = assetRegistry[tokenGroupSlug];
-
-        return [
-          {
-            name,
-            slug,
-            symbol,
-            originChain
-          }
-        ];
-      } else {
-        return [];
-      }
-    }
-  }
-
-  const items: TokenItemType[] = [];
-
-  Object.values(assetRegistry).forEach((chainAsset) => {
-    const isValidLedger = isLedger ? (isAccountEthereum || validLedgerNetwork.includes(chainAsset?.originChain)) : true;
-    const isTokenFungible = _isAssetFungibleToken(chainAsset);
-
-    if (!(isTokenFungible && isAssetTypeValid(chainAsset, chainInfoMap, isAccountEthereum) && isValidLedger)) {
-      return;
-    }
-
-    if (!isZkModeEnabled && _isMantaZkAsset(chainAsset)) {
-      return;
-    }
-
-    if (isSetMultiChainAssetSlug) {
-      if (chainAsset.multiChainAsset === tokenGroupSlug) {
-        items.push({
-          name: chainAsset.name,
-          slug: chainAsset.slug,
-          symbol: chainAsset.symbol,
-          originChain: chainAsset.originChain
-        });
-      }
-    } else {
-      items.push({
-        name: chainAsset.name,
-        slug: chainAsset.slug,
-        symbol: chainAsset.symbol,
-        originChain: chainAsset.originChain
-      });
-    }
-  });
-
-  return items;
-}
-
-function getTokenAvailableDestinations (tokenSlug: string, xcmRefMap: Record<string, _AssetRef>, chainInfoMap: Record<string, _ChainInfo>): ChainItemType[] {
-  if (!tokenSlug) {
-    return [];
-  }
-
-  const result: ChainItemType[] = [];
-  const originChain = chainInfoMap[_getOriginChainOfAsset(tokenSlug)];
-
-  // Firstly, push the originChain of token
-  result.push({
-    name: originChain.name,
-    slug: originChain.slug
-  });
-
-  Object.values(xcmRefMap).forEach((xcmRef) => {
-    if (xcmRef.srcAsset === tokenSlug) {
-      const destinationChain = chainInfoMap[xcmRef.destChain];
-
-      result.push({
-        name: destinationChain.name,
-        slug: destinationChain.slug
-      });
-    }
-  });
-
-  return result;
-}
-
-const defaultFilterAccount = (account: AccountJson): boolean => !(isAccountAll(account.address) || account.isReadOnly);
-
-const filterAccountFunc = (
-  chainInfoMap: Record<string, _ChainInfo>,
-  assetRegistry: Record<string, _ChainAsset>,
-  multiChainAssetMap: Record<string, _MultiChainAsset>,
-  tokenGroupSlug?: string // is ether a token slug or a multiChainAsset slug
-): (account: AccountJson) => boolean => {
-  const isSetTokenSlug = !!tokenGroupSlug && !!assetRegistry[tokenGroupSlug];
-  const isSetMultiChainAssetSlug = !!tokenGroupSlug && !!multiChainAssetMap[tokenGroupSlug];
-
-  if (!tokenGroupSlug) {
-    return defaultFilterAccount;
-  }
-
-  const chainAssets = Object.values(assetRegistry).filter((chainAsset) => {
-    const isTokenFungible = _isAssetFungibleToken(chainAsset);
-
-    if (isTokenFungible) {
-      if (isSetTokenSlug) {
-        return chainAsset.slug === tokenGroupSlug;
-      }
-
-      if (isSetMultiChainAssetSlug) {
-        return chainAsset.multiChainAsset === tokenGroupSlug;
-      }
-    } else {
-      return false;
-    }
-
-    return false;
-  });
-
-  return (account: AccountJson): boolean => {
-    const isLedger = !!account.isHardware;
-    const isAccountEthereum = isEthereumAddress(account.address);
-    const validGen: string[] = account.availableGenesisHashes || [];
-    const validLedgerNetwork = validGen.map((genesisHash) => findNetworkJsonByGenesisHash(chainInfoMap, genesisHash)?.slug) || [];
-
-    if (!defaultFilterAccount(account)) {
-      return false;
-    }
-
-    return chainAssets.some((chainAsset) => {
-      const isValidLedger = isLedger ? (isAccountEthereum || validLedgerNetwork.includes(chainAsset?.originChain)) : true;
-
-      return isAssetTypeValid(chainAsset, chainInfoMap, isAccountEthereum) && isValidLedger;
-    });
-  };
+const DEFAULT_FORM_STATE: TransferFormProps = {
+  asset: '',
+  chain: '',
+  destChain: '',
+  from: '',
+  to: '',
+  value: ''
 };
 
 const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
+  useSetCurrentPage('/transaction/send-fund');
   const { t } = useTranslation();
   const notification = useNotification();
+  const isFirstRender = useIsFirstRender();
 
   const locationState = useLocation().state as SendFundParam;
   const [sendFundSlug] = useState<string | undefined>(locationState?.slug);
@@ -237,6 +71,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const [isBalanceReady, setIsBalanceReady] = useState(true);
   const [forceUpdateMaxValue, setForceUpdateMaxValue] = useState<object|undefined>(undefined);
   const chainStatus = useMemo(() => chainStateMap[chain]?.connectionStatus, [chain, chainStateMap]);
+  const [valueChange, setValueChange] = useState({});
 
   const handleTransferAll = useCallback((value: boolean) => {
     setForceUpdateMaxValue({});
@@ -246,16 +81,16 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const { onError, onSuccess } = useHandleSubmitTransaction(onDone, handleTransferAll);
 
   const [form] = Form.useForm<TransferFormProps>();
+
+  const [storage] = usePersistTransaction<TransferFormProps>(form, TRANSFER_TRANSACTION, DEFAULT_FORM_STATE, valueChange);
+
   const formDefault = useMemo((): TransferFormProps => {
     return {
+      ...storage,
       from: from,
-      chain: chain,
-      destChain: '',
-      asset: '',
-      to: '',
-      value: ''
+      chain: chain
     };
-  }, [chain, from]);
+  }, [chain, from, storage]);
 
   const destChain = Form.useWatch('destChain', form);
   const transferAmount = Form.useWatch('value', form);
@@ -265,8 +100,14 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   }, [chainInfoMap, asset, xcmRefMap]);
 
   const currentChainAsset = useMemo(() => {
-    return asset ? assetRegistry[asset] : undefined;
-  }, [assetRegistry, asset]);
+    if (isFirstRender) {
+      const _asset = storage.asset || asset;
+
+      return _asset ? assetRegistry[_asset] : undefined;
+    } else {
+      return asset ? assetRegistry[asset] : undefined;
+    }
+  }, [isFirstRender, storage.asset, asset, assetRegistry]);
 
   const decimals = useMemo(() => {
     return currentChainAsset ? _getAssetDecimals(currentChainAsset) : 0;
@@ -305,7 +146,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     );
   }, [accounts, assetRegistry, assetSettingMap, chainInfoMap, from, isZKModeEnabled, multiChainAssetMap, sendFundSlug]);
 
-  const validateRecipientAddress = useCallback((rule: Rule, _recipientAddress: string): Promise<void> => {
+  const validateRecipientAddress = useCallback((rule: FormRule, _recipientAddress: string): Promise<void> => {
     if (!_recipientAddress) {
       return Promise.reject(t('Recipient address is required'));
     }
@@ -360,7 +201,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     return Promise.resolve();
   }, [accounts, chainInfoMap, form, t]);
 
-  const validateAmount = useCallback((rule: Rule, amount: string): Promise<void> => {
+  const validateAmount = useCallback((rule: FormRule, amount: string): Promise<void> => {
     if (!amount) {
       return Promise.reject(t('Amount is required'));
     }
@@ -421,6 +262,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       if (validateField.length) {
         form.validateFields(validateField).catch(noop);
       }
+
+      setValueChange({});
     },
     [setFrom, form, assetRegistry, setChain, setAsset, isTransferAll]
   );

@@ -6,8 +6,10 @@ import { AccountSelectorModal } from '@subwallet/extension-koni-ui/components/Mo
 import ReceiveQrModal from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/ReceiveQrModal';
 import { TokensSelectorModal } from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/TokensSelectorModal';
 import { TokenGroupBalanceItem } from '@subwallet/extension-koni-ui/components/TokenItem/TokenGroupBalanceItem';
+import { TRANSFER_TRANSACTION } from '@subwallet/extension-koni-ui/constants/localStorage';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
+import { useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useReceiveQR from '@subwallet/extension-koni-ui/hooks/screen/home/useReceiveQR';
@@ -15,7 +17,7 @@ import { UpperBlock } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/Upper
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
-import { sortTokenByValue } from '@subwallet/extension-koni-ui/utils';
+import { removeStorage, sortTokenByValue } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon, SwAlert } from '@subwallet/react-ui';
 import classNames from 'classnames';
 import { Coins, FadersHorizontal } from 'phosphor-react';
@@ -27,6 +29,7 @@ import styled from 'styled-components';
 type Props = ThemeProps;
 
 const Component = (): React.ReactElement => {
+  useSetCurrentPage('/home/tokens');
   const { t } = useTranslation();
   const [isShrink, setIsShrink] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -142,6 +145,7 @@ const Component = (): React.ReactElement => {
       return;
     }
 
+    removeStorage(TRANSFER_TRANSACTION);
     navigate('/transaction/send-fund');
   },
   [currentAccount, navigate, notify, t]
