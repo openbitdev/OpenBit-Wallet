@@ -26,6 +26,7 @@ import { CaretLeft, CheckCircle, FadersHorizontal, SortAscending } from 'phospho
 import React, { ForwardedRef, forwardRef, SyntheticEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
+import { useIsFirstRender } from 'usehooks-ts';
 
 import SelectValidatorInput from '../SelectValidatorInput';
 
@@ -76,7 +77,7 @@ const filterOptions = [
 const defaultModalId = 'multi-validator-selector';
 
 const Component = (props: Props, ref: ForwardedRef<InputRef>) => {
-  const { chain, setForceFetchValidator, className = '', from, id = defaultModalId, isSingleSelect: _isSingleSelect = false, onChange, value, loading } = props;
+  const { chain, setForceFetchValidator, className = '', defaultValue, from, id = defaultModalId, isSingleSelect: _isSingleSelect = false, onChange, value, loading } = props;
   const { t } = useTranslation();
   const { activeModal, checkActive } = useContext(ModalContext);
 
@@ -129,6 +130,8 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>) => {
   const [viewDetailItem, setViewDetailItem] = useState<ValidatorDataType | undefined>(undefined);
   const [sortSelection, setSortSelection] = useState<SortKey>(SortKey.DEFAULT);
   const { filterSelectionMap, onApplyFilter, onChangeFilterOption, onCloseFilterModal, onResetFilter, selectedFilters } = useFilterModal(FILTER_MODAL_ID);
+
+  const isFirstRender = useIsFirstRender();
 
   const resultList = useMemo((): ValidatorDataType[] => {
     return [...items].sort((a: ValidatorDataType, b: ValidatorDataType) => {
@@ -255,14 +258,15 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>) => {
   }, [activeModal, id]);
 
   useEffect(() => {
-    const defaultValue = nominations?.map((item) => getValidatorKey(item.validatorAddress, item.validatorIdentity)).join(',') || '';
-    const selected = isSingleSelect ? '' : defaultValue;
+    if (!isFirstRender) {
+      const _defaultValue = nominations?.map((item) => getValidatorKey(item.validatorAddress, item.validatorIdentity)).join(',') || '';
+      const selected = defaultValue || (isSingleSelect ? '' : _defaultValue);
 
-    onInitValidators(defaultValue, selected);
-    onChange && onChange({ target: { value: selected } });
-
+      onInitValidators(_defaultValue, selected);
+      onChange && onChange({ target: { value: selected } });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nominations, onInitValidators, isSingleSelect]);
+  }, [defaultValue, isFirstRender, nominations, onInitValidators, isSingleSelect]);
 
   useEffect(() => {
     if (!isActive) {

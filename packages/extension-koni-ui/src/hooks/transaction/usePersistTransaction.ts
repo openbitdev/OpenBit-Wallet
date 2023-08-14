@@ -36,6 +36,7 @@ const usePersistTransaction = <T extends TransactionFormBaseProps>(form: FormIns
   useEffect(() => {
     if (!isFirstRender) {
       setStorage((values) => ({ ...values, from }));
+      console.log('setStorage 1');
     }
   }, [from, isFirstRender, setStorage]);
 
@@ -44,6 +45,7 @@ const usePersistTransaction = <T extends TransactionFormBaseProps>(form: FormIns
       const formValue = form.getFieldsValue();
 
       setStorage((values) => ({ ...values, ...formValue }));
+      console.log('setStorage 2');
     }
   }, [form, isFirstRender, setStorage, valueChange]);
 

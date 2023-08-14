@@ -6,5 +6,6 @@ export const LANGUAGE = 'current-language';
 export const CURRENT_PAGE = 'page.current';
 export const TRANSFER_TRANSACTION = 'transaction.transfer';
 export const NFT_TRANSACTION = 'transaction.nft';
+export const STAKE_TRANSACTION = 'transaction.staking';
 
-export const TRANSACTION_STORAGES = [TRANSFER_TRANSACTION, NFT_TRANSACTION];
+export const TRANSACTION_STORAGES = [TRANSFER_TRANSACTION, NFT_TRANSACTION, STAKE_TRANSACTION ];

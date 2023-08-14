@@ -13,6 +13,7 @@ import TokenItem from '@subwallet/react-ui/es/web3-block/token-item';
 import { CheckCircle } from 'phosphor-react';
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo } from 'react';
 import styled, { useTheme } from 'styled-components';
+import { useIsFirstRender } from 'usehooks-ts';
 
 import GeneralEmptyList from '../GeneralEmptyList';
 
@@ -43,6 +44,8 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   const { chainInfoMap, chainStateMap } = useSelector((state) => state.chainStore);
 
   const { onSelect } = useSelectModalInputHelper(props, ref);
+
+  const isFirstRender = useIsFirstRender();
 
   const filteredItems = useMemo((): TokenItemType[] => {
     const raw = items.filter((item) => {
@@ -135,18 +138,20 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   }, [chainInfoMap, token.colorSuccess]);
 
   useEffect(() => {
-    if (!value) {
-      if (filteredItems[0]?.slug && filteredItems[0]?.slug !== value) {
-        onSelect(filteredItems[0]?.slug || '');
-      }
-    } else {
-      const existed = filteredItems.find((item) => item.slug === value);
+    if (!isFirstRender) {
+      if (!value) {
+        if (filteredItems[0]?.slug) {
+          onSelect(filteredItems[0]?.slug || '');
+        }
+      } else {
+        const existed = filteredItems.find((item) => item.slug === value);
 
-      if (!existed) {
-        onSelect(filteredItems[0]?.slug || '');
+        if (!existed) {
+          onSelect(filteredItems[0]?.slug || '');
+        }
       }
     }
-  }, [value, filteredItems, onSelect]);
+  }, [isFirstRender, value, filteredItems, onSelect]);
 
   return (
     <SelectModal

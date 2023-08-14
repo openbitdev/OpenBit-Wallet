@@ -5,11 +5,11 @@ import { ExtrinsicType, NftCollection, NftItem } from '@subwallet/extension-base
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, ChainSelector, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { DEFAULT_MODEL_VIEWER_PROPS, NFT_TRANSACTION, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
+import { DEFAULT_MODEL_VIEWER_PROPS, DEFAULT_NFT_PARAMS, NFT_TRANSACTION, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useFocusFormItem, useGetChainPrefixBySlug, useHandleSubmitTransaction, usePersistTransaction, usePreCheckAction, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import { evmNftSubmitTransaction, substrateNftSubmitTransaction } from '@subwallet/extension-koni-ui/messaging';
-import { FormCallbacks, FormFieldData, FormInstance, FormRule, SendNftParam, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, FormFieldData, FormInstance, FormRule, SendNftParams, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon, Image, Typography } from '@subwallet/react-ui';
 import CN from 'classnames';
@@ -28,7 +28,7 @@ import { TransactionContext } from '../Transaction';
 
 type Props = ThemeProps;
 
-type SendNFTFormProps = SendNftParam;
+type SendNFTFormProps = SendNftParams;
 
 const DEFAULT_COLLECTION: NftCollection = {
   collectionId: 'unknown',
@@ -40,15 +40,6 @@ const DEFAULT_ITEM: NftItem = {
   chain: 'unknown',
   owner: 'unknown',
   id: 'unknown'
-};
-
-const DEFAULT_FORM_STATE: SendNFTFormProps = {
-  asset: '',
-  chain: '',
-  collectionId: '',
-  from: '',
-  to: '',
-  itemId: ''
 };
 
 const Component: React.FC = () => {
@@ -66,7 +57,7 @@ const Component: React.FC = () => {
 
   const [form] = Form.useForm<SendNFTFormProps>();
 
-  const [storage] = usePersistTransaction<SendNFTFormProps>(form, NFT_TRANSACTION, DEFAULT_FORM_STATE, valueChange);
+  const [storage] = usePersistTransaction<SendNFTFormProps>(form, NFT_TRANSACTION, DEFAULT_NFT_PARAMS, valueChange);
 
   const { chain: nftChain = '', collectionId, itemId } = storage;
 

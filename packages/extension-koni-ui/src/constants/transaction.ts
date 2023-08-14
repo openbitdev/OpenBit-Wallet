@@ -1,8 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { ExtrinsicType, StakingType } from '@subwallet/extension-base/background/KoniTypes';
 import { detectTranslate } from '@subwallet/extension-base/utils';
+import { SendNftParams, StakeParams } from '@subwallet/extension-koni-ui/types';
+
+import { ALL_KEY } from './common';
 
 export const TRANSACTION_TITLE_MAP: Record<ExtrinsicType, string> = {
   [ExtrinsicType.TRANSFER_BALANCE]: detectTranslate('Transfer'),
@@ -38,3 +41,24 @@ export const ALL_STAKING_ACTIONS: ExtrinsicType[] = [
   ExtrinsicType.STAKING_COMPOUNDING,
   ExtrinsicType.STAKING_CANCEL_COMPOUNDING
 ];
+
+export const DEFAULT_NFT_PARAMS: SendNftParams = {
+  asset: '',
+  chain: '',
+  collectionId: '',
+  from: '',
+  to: '',
+  itemId: ''
+};
+
+export const DEFAULT_STAKE_PARAMS: StakeParams = {
+  asset: '',
+  chain: '',
+  defaultChain: ALL_KEY,
+  defaultType: ALL_KEY,
+  from: '',
+  nominate: '',
+  pool: '',
+  type: '' as StakingType,
+  value: ''
+};

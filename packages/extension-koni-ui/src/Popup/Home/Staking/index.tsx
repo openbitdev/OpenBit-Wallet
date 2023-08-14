@@ -3,17 +3,18 @@
 
 import { ExtrinsicType, StakingType } from '@subwallet/extension-base/background/KoniTypes';
 import { EmptyList, FilterModal, Layout, PageWrapper, SwStakingItem } from '@subwallet/extension-koni-ui/components';
-import { ALL_KEY } from '@subwallet/extension-koni-ui/constants';
+import { ALL_KEY, DEFAULT_STAKE_PARAMS, STAKE_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useFilterModal, useGetStakingList, useNotification, usePreCheckAction, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { reloadCron } from '@subwallet/extension-koni-ui/messaging';
-import { StakingDataType, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { StakeParams, StakingDataType, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { sortStakingByValue } from '@subwallet/extension-koni-ui/utils';
 import { ActivityIndicator, ButtonProps, Icon, ModalContext, SwList } from '@subwallet/react-ui';
 import { ArrowClockwise, FadersHorizontal, Plus, Trophy } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useLocalStorage } from 'usehooks-ts';
 
 import MoreActionModal, { MORE_ACTION_MODAL } from './MoreActionModal';
 import StakingDetailModal, { STAKING_DETAIL_MODAL_ID } from './StakingDetailModal';
@@ -54,6 +55,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const { currentAccount } = useSelector((state) => state.accountState);
 
+  const [, setStorage] = useLocalStorage<StakeParams>(STAKE_TRANSACTION, DEFAULT_STAKE_PARAMS);
   const { filterSelectionMap, onApplyFilter, onChangeFilterOption, onCloseFilterModal, selectedFilters } = useFilterModal(FILTER_MODAL_ID);
 
   const [address] = useState(currentAccount?.address);
@@ -115,8 +117,19 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const preCheck = usePreCheckAction(currentAccount?.address, false);
 
   const onClickStakeMore = useCallback(() => {
-    navigate(`/transaction/stake/${ALL_KEY}/${ALL_KEY}`);
-  }, [navigate]);
+    setStorage({
+      type: '' as StakingType,
+      value: '',
+      nominate: '',
+      pool: '',
+      asset: '',
+      chain: '',
+      from: '',
+      defaultChain: ALL_KEY,
+      defaultType: ALL_KEY
+    });
+    navigate('/transaction/stake');
+  }, [navigate, setStorage]);
 
   const subHeaderButton: ButtonProps[] = useMemo(() => ([
     {

@@ -368,11 +368,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     const updateInfoWithTokenSlug = (tokenSlug: string) => {
       const tokenInfo = assetRegistry[tokenSlug];
 
-      form.setFieldsValue({
-        asset: tokenSlug,
-        chain: tokenInfo.originChain,
-        destChain: tokenInfo.originChain
-      });
+      // form.setFieldsValue({
+      //   asset: tokenSlug,
+      //   chain: tokenInfo.originChain,
+      //   destChain: tokenInfo.originChain
+      // });
       setChain(tokenInfo.originChain);
     };
 
@@ -449,6 +449,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       setIsTransferAll(true);
     }
   }, [maxTransfer, transferAmount]);
+
+  console.log(form.getFieldsValue());
 
   return (
     <>
