@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/webapp authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import './fallback';
 import '@subwallet/extension-inject/crossenv';
 
 import { state as koniState } from '@subwallet/extension-base/koni/background/handlers';

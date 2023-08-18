@@ -25,6 +25,11 @@ import { findChainInfoByGenesisHash } from '@subwallet/extension-koni-ui/utils';
 import { _getKnownHashes, _getKnownNetworks } from './utils/chain/defaultChains';
 import { getSavedMeta, setSavedMeta } from './MetadataCache';
 
+type This = typeof globalThis;
+export interface WebWindow extends This {
+  worker: Worker;
+}
+
 interface Handler {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolve: (data: any) => void;
@@ -36,7 +41,7 @@ interface Handler {
 type Handlers = Record<string, Handler>;
 
 // const port = chrome.runtime.connect({ name: PORT_EXTENSION });
-const port = window;
+const port = (window as Window & WebWindow).worker;
 const handlers: Handlers = {};
 
 // setup a listener for messages, any incoming resolves the promise

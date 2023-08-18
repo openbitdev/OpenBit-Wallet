@@ -107,9 +107,6 @@ const createConfig = (entry, alias = {}, useSplitChunk = false) => {
         Buffer: ['buffer', 'Buffer'],
         process: 'process/browser.js'
       }),
-      new webpack.ProvidePlugin({
-        process: 'process/browser'
-      }),
       new webpack.DefinePlugin({
         'process.env': {
           NODE_ENV: JSON.stringify(mode),
@@ -171,8 +168,8 @@ const createConfig = (entry, alias = {}, useSplitChunk = false) => {
 };
 
 module.exports = createConfig({
-  fallback: './src/fallback.ts',
-  webapp: './src/webRunner.ts',
+  worker: './src/worker.ts',
+  webapp: './src/webapp.ts',
   main: './src/index.tsx'
 }, {
   'manta-extension-sdk': './manta-extension-sdk-empty.ts'

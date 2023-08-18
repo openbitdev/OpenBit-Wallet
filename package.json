@@ -58,6 +58,7 @@
   "dependencies": {
     "@types/node": "^17.0.10",
     "dexie": "^3.2.2",
+    "idb-keyval": "^6.2.1",
     "loglevel": "^1.8.1",
     "typescript": "^4.5.4"
   },
@@ -77,21 +78,7 @@
     "sinon-chrome": "^3.0.1"
   },
   "resolutions": {
-    "@ethereumjs/common": "^2.6.5",
-    "@google/model-viewer": "3.1.1",
-    "@ledgerhq/hw-app-eth": "6.33.4",
     "@polkadot/api": "^10.9.1",
-    "@polkadot/api-contract": "^10.9.1",
-    "@polkadot/networks": "^12.3.2",
-    "@polkadot/types": "^10.9.1",
-    "@polkadot/util": "^12.3.2",
-    "@polkadot/util-crypto": "^12.3.2",
-    "@subwallet/chain-list": "0.2.10",
-    "@subwallet/keyring": "^0.0.10",
-    "@subwallet/ui-keyring": "^0.0.10",
-    "babel-core": "^7.0.0-bridge.0",
-    "rxjs": "^7.8.1",
-    "safe-buffer": "^5.2.1",
-    "typescript": "^4.8.4"
+    "@polkadot/api-contract": "^10.9.1"
   }
 }
