@@ -39,8 +39,8 @@ jobs:
       uses: nwtgck/actions-netlify@v2.0
       with:
         publish-dir: './packages/web-runner/build'
-        production-branch: ${{ github.event.pull_request.head.ref || github.ref }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        production-branch: 'upgrade-ui'
+        github-token: ${{ secrets.GH_PAT }}
         deploy-message: ${{ github.event.head_commit.message }}
         enable-pull-request-comment: true
         enable-commit-comment: true
