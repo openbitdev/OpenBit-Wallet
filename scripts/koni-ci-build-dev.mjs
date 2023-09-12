@@ -33,11 +33,6 @@ function runBuildWebRunner() {
   execSync('yarn web-runner:build');
 }
 
-function runDeployWebRunner(alias) {
-  execSync(`netlify deploy --dir ./packages/web-runner/build --site sw-web-runner --alias ${alias}`);
-  discordHook.send(`Update new web-runner: https://${alias}--sw-web-runner.netlify.app/`)
-}
-
 function npmGetVersion() {
   return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version;
 }
@@ -87,6 +82,5 @@ runBuild();
 
 // Web runner
 runBuildWebRunner();
-runDeployWebRunner(branchName);
 
 uploadBuild()

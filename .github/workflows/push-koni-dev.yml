@@ -5,32 +5,27 @@ on:
     branches:
       - koni-dev
       - upgrade-ui
+      - test-ci
 
 jobs:
   master:
     if: "! startsWith(github.event.head_commit.message, '[CI Skip]')"
-    strategy:
-      matrix:
-        step: ['build:koni-dev']
-    name: ${{ matrix.step }}
-    runs-on: self-hosted
+    runs-on: ubuntu-22.04
+    name: Build Development Preview
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_PAT }}
-    - name: ${{ matrix.step }}
+    - name: Build Dev
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         GH_PAT: ${{ secrets.GH_PAT }}
         GH_RELEASE_GITHUB_API_TOKEN: ${{ secrets.GH_PAT }}
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         NEXTCLOUD_CONFIG: ${{ secrets.NEXTCLOUD_CONFIG }}
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         TRANSAK_API_KEY: ${{ secrets.TRANSAK_API_KEY }}
         COINBASE_PAY_ID: ${{ secrets.COINBASE_PAY_ID }}
-        BANXA_SANDBOX_API_KEY: ${{ secrets.BANXA_SANDBOX_API_KEY }}
-        BANXA_SANBOX_API_SECRET: ${{ secrets.BANXA_SANBOX_API_SECRET }}
         GH_RELEASE_FILES: master-build.zip,master-src.zip
         COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         REF_NAME: ${{ github.ref_name }}
@@ -39,4 +34,18 @@ jobs:
         CURRENT_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
       run: |
         yarn install --immutable | grep -v 'YN0013'
-        yarn ${{ matrix.step }}
+        yarn build:koni-dev
+    - name: Deploy Webrunner to Netlify
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './packages/web-runner/build'
+        production-branch: ${{ github.event.pull_request.head.ref || github.ref }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: ${{ github.event.head_commit.message }}
+        enable-pull-request-comment: true
+        enable-commit-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_WEB_RUNNER_SITE_ID }}
+      timeout-minutes: 1
+
