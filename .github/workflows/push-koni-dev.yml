@@ -17,6 +17,11 @@ jobs:
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_PAT }}
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
     - name: Build Dev
       env:
         CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
@@ -39,7 +44,7 @@ jobs:
       uses: nwtgck/actions-netlify@v2.0
       with:
         publish-dir: './packages/web-runner/build'
-        production-branch: 'upgrade-ui'
+        alias: ${{ github.head_ref }}
         github-token: ${{ secrets.GH_PAT }}
         deploy-message: ${{ github.event.head_commit.message }}
         enable-pull-request-comment: true
