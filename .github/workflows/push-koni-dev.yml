@@ -1,11 +1,13 @@
 name: Koni Dev
 on:
-  pull_request: { }
+  pull_request:
+    branches:
+      - koni-dev
+      - upgrade-ui
   push:
     branches:
       - koni-dev
       - upgrade-ui
-      - test-ci
 
 jobs:
   master:
@@ -71,7 +73,7 @@ jobs:
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
         status: ${{ job.status }}
-        username: GitHub Actions Notifier
+        username: Extension Worker
         title: ${{ github.workflow }}
         description: |
           The Deployment has been completed.
