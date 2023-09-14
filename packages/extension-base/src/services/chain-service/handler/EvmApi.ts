@@ -9,6 +9,8 @@ import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/
 import { BehaviorSubject } from 'rxjs';
 import { Web3, Web3BaseProvider } from 'web3';
 
+const acalaEvmNetworks: string[] = ['acala_evm', 'karura_evm'];
+
 export class EvmApi implements _EvmApi {
   chainSlug: string;
   api: Web3;
@@ -98,12 +100,16 @@ export class EvmApi implements _EvmApi {
     this.clearIntervalCheckApi();
 
     return setInterval(() => {
-      this.api.eth.net.isListening()
-        .then(() => {
-          this.onConnect();
-        }).catch(() => {
-          this.onDisconnect();
-        });
+      if (!acalaEvmNetworks.includes(this.chainSlug)) {
+        this.api.eth.net.isListening()
+          .then(() => {
+            this.onConnect();
+          }).catch(() => {
+            this.onDisconnect();
+          });
+      } else {
+        this.onConnect();
+      }
     }, 10000);
   }
 
@@ -115,18 +121,24 @@ export class EvmApi implements _EvmApi {
     this._connect();
 
     this.updateConnectionStatus(_ChainConnectionStatus.CONNECTING);
+
     // Check if api is ready
-    this.api.eth.net.isListening()
-      .then(() => {
-        this.isApiReadyOnce = true;
-        this.onConnect();
-      }).catch((error) => {
-        this.isApiReadyOnce = false;
-        this.isApiReady = false;
-        this.isReadyHandler.reject(error);
-        this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
-        console.warn(`Can not connect to ${this.chainSlug} (EVM) at ${this.apiUrl}`);
-      });
+    if (!acalaEvmNetworks.includes(this.chainSlug)) {
+      this.api.eth.net.isListening()
+        .then(() => {
+          this.isApiReadyOnce = true;
+          this.onConnect();
+        }).catch((error) => {
+          this.isApiReadyOnce = false;
+          this.isApiReady = false;
+          this.isReadyHandler.reject(error);
+          this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
+          console.warn(`Can not connect to ${this.chainSlug} (EVM) at ${this.apiUrl}`);
+        });
+    } else {
+      this.isApiReadyOnce = true;
+      this.onConnect();
+    }
 
     // Interval to check connecting status
     this.intervalCheckApi = this.createIntervalCheckApi();

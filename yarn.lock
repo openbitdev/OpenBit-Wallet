@@ -5676,14 +5676,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subwallet/chain-list@file:../SubWallet-Chain/packages/chain-list/build/::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.2.13-beta.1
-  resolution: "@subwallet/chain-list@file:../SubWallet-Chain/packages/chain-list/build/#../SubWallet-Chain/packages/chain-list/build/::hash=ec8688&locator=root-workspace-0b6124%40workspace%3A."
+"@subwallet/chain-list@npm:0.2.14-beta.2":
+  version: 0.2.14-beta.2
+  resolution: "@subwallet/chain-list@npm:0.2.14-beta.2"
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^10.2.1
     eventemitter3: ^4.0.7
-  checksum: e2b2700a27af1778cbecc3b2e2ae213446601fb0b75aa33c4fb3b0f96df29a325bb8253b8135909fc866050ed54a6ebc8bb500044f2e255f0ccde7fe830d33e5
+  checksum: c674db6976bd4b6ce162144f71a24248b3ccd807c6d79b278a53a2f1e48cb4f7761cba9bc4b8799922d2026c0920e7fd07792e84d576988ad4f5569084c50f13
   languageName: node
   linkType: hard
 
@@ -5718,14 +5718,14 @@ __metadata:
     "@reduxjs/toolkit": ^1.9.1
     "@sora-substrate/type-definitions": ^1.17.7
     "@substrate/connect": ^0.7.26
-    "@subwallet/chain-list": 0.2.13
+    "@subwallet/chain-list": 0.2.14-beta.2
     "@subwallet/extension-base": ^1.1.11-1
     "@subwallet/extension-chains": ^1.1.11-1
     "@subwallet/extension-dapp": ^1.1.11-1
     "@subwallet/extension-inject": ^1.1.11-1
     "@subwallet/extension-mocks": ^1.1.11-1
-    "@subwallet/keyring": ^0.0.10
-    "@subwallet/ui-keyring": ^0.0.10
+    "@subwallet/keyring": ^0.1.1
+    "@subwallet/ui-keyring": ^0.1.1
     "@types/uuid": ^9.0.1
     "@walletconnect/sign-client": ^2.10.0
     "@walletconnect/types": ^2.10.0
@@ -5755,6 +5755,7 @@ __metadata:
     web3: ^4.1.1
     web3-core: ^4.1.1
     web3-core-helpers: ^1.10.0
+    web3-core-subscriptions: 1.10.0
     web3-eth-abi: ^4.1.1
     web3-eth-contract: ^4.0.5
     web3-types: ^1.1.1
@@ -5847,15 +5848,15 @@ __metadata:
     "@polkadot/util-crypto": ^12.3.2
     "@ramonak/react-progress-bar": ^5.0.3
     "@reduxjs/toolkit": ^1.9.1
-    "@subwallet/chain-list": 0.2.13
+    "@subwallet/chain-list": 0.2.14-beta.2
     "@subwallet/extension-base": ^1.1.11-1
     "@subwallet/extension-chains": ^1.1.11-1
     "@subwallet/extension-dapp": ^1.1.11-1
     "@subwallet/extension-inject": ^1.1.11-1
     "@subwallet/extension-mocks": ^1.1.11-1
-    "@subwallet/keyring": ^0.0.10
+    "@subwallet/keyring": ^0.1.1
     "@subwallet/react-ui": 5.1.2-b69
-    "@subwallet/ui-keyring": ^0.0.10
+    "@subwallet/ui-keyring": ^0.1.1
     "@types/bn.js": ^5.1.1
     "@types/enzyme": ^3.10.12
     "@types/enzyme-adapter-react-16": ^1.0.6
@@ -6055,7 +6056,7 @@ __metadata:
     "@polkadot/ui-settings": 2.9.14
     "@polkadot/util": ^12.2.1
     "@polkadot/util-crypto": ^12.2.1
-    "@subwallet/keyring": ^0.0.10
+    "@subwallet/keyring": ^0.1.1
     mkdirp: ^1.0.4
     rxjs: ^7.5.7
     store: ^2.0.12
