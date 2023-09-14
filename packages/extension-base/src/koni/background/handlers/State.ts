@@ -32,6 +32,7 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
 import { stripUrl } from '@subwallet/extension-base/utils';
+import { bytesToHex } from '@subwallet/extension-base/utils/eth';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -42,7 +43,7 @@ import SimpleKeyring from 'eth-simple-keyring';
 import { t } from 'i18next';
 import { interfaces } from 'manta-extension-sdk';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { TransactionConfig } from 'web3-core';
+import { Transaction as TransactionConfig } from 'web3-types';
 
 import { JsonRpcResponse, ProviderInterface, ProviderInterfaceCallback } from '@polkadot/rpc-provider/types';
 import { assert, BN, hexStripPrefix, hexToU8a, isHex, logger as createLogger, u8aToHex } from '@polkadot/util';
@@ -1524,9 +1525,9 @@ export default class KoniState {
     const isToContract = await isContractAddress(transaction.to || '', evmApi);
     const parseData = isToContract
       ? transaction.data
-        ? (await parseContractInput(transaction.data, transaction.to || '', evmNetwork)).result
+        ? (await parseContractInput(bytesToHex(transaction.data) || '', transaction.to || '', evmNetwork)).result
         : ''
-      : transaction.data || '';
+      : bytesToHex(transaction.data) || '';
 
     const requestPayload: EvmSendTransactionRequest = {
       ...transaction,

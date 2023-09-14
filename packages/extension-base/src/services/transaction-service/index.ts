@@ -24,7 +24,7 @@ import { SWTransaction, SWTransactionInput, SWTransactionResponse, TransactionEm
 import { getExplorerLink, parseTransactionData } from '@subwallet/extension-base/services/transaction-service/utils';
 import { isWalletConnectRequest } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { Web3Transaction } from '@subwallet/extension-base/signers/types';
-import { anyNumberToBN } from '@subwallet/extension-base/utils/eth';
+import { anyNumberToBN, bytesToHex } from '@subwallet/extension-base/utils/eth';
 import { mergeTransactionAndSignature } from '@subwallet/extension-base/utils/eth/mergeTransactionAndSignature';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import keyring from '@subwallet/ui-keyring';
@@ -34,7 +34,7 @@ import { ethers, TransactionLike } from 'ethers';
 import EventEmitter from 'eventemitter3';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
-import { TransactionConfig } from 'web3-core';
+import { DEFAULT_RETURN_FORMAT, Transaction as TransactionConfig } from 'web3-types';
 
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Signer, SignerResult } from '@polkadot/api/types';
@@ -142,7 +142,7 @@ export default class TransactionService {
               const gasPrice = await web3.api.eth.getGasPrice();
               const gasLimit = await web3.api.eth.estimateGas(transaction);
 
-              estimateFee.value = (gasLimit * parseInt(gasPrice)).toString();
+              estimateFee.value = (gasLimit * gasPrice).toString();
             }
           }
         } catch (e) {
@@ -662,12 +662,12 @@ export default class TransactionService {
     const chainInfo = this.chainService.getChainInfoByKey(chain);
 
     const txObject: TransactionLike = {
-      nonce: transaction.nonce ?? 0,
+      nonce: transaction.nonce !== undefined ? parseInt(transaction.nonce.toString()) ?? 0 : 0,
       gasPrice: addHexPrefix(anyNumberToBN(transaction.gasPrice).toString(16)),
       gasLimit: addHexPrefix(anyNumberToBN(transaction.gas).toString(16)),
       to: transaction.to !== undefined ? transaction.to : '',
       value: addHexPrefix(anyNumberToBN(transaction.value).toString(16)),
-      data: transaction.data,
+      data: transaction.data?.toString(),
       chainId: _getEvmChainId(chainInfo)
     };
 
@@ -702,9 +702,9 @@ export default class TransactionService {
       try {
         payload.parseData = isToContract
           ? payload.data
-            ? (await parseContractInput(payload.data || '', payload.to || '', chainInfo)).result
+            ? (await parseContractInput(bytesToHex(payload.data) || '', payload.to || '', chainInfo)).result
             : ''
-          : payload.data || '';
+          : bytesToHex(payload.data) || '';
       } catch (e) {
         console.warn('Unable to parse contract input data');
         payload.parseData = payload.data as string;
@@ -726,6 +726,13 @@ export default class TransactionService {
       payload.chainId = chainInfo.evmInfo?.evmChainId ?? 1;
     }
 
+    // Convert payload
+    payload.nonce = anyNumberToBN(payload.nonce).toNumber() ?? 0;
+    payload.gasPrice = anyNumberToBN(payload.gasPrice).toNumber();
+    payload.gas = anyNumberToBN(payload.gas).toNumber();
+    payload.value = anyNumberToBN(payload.value).toNumber();
+    payload.chainId = anyNumberToBN(payload.chainId).toNumber();
+
     // Autofill from
     if (!payload.from) {
       payload.from = address;
@@ -739,14 +746,14 @@ export default class TransactionService {
     const emitter = new EventEmitter<TransactionEventMap>();
 
     const txObject: Web3Transaction = {
-      nonce: payload.nonce ?? 0,
-      from: payload.from as string,
+      nonce: anyNumberToBN(payload.nonce).toNumber() ?? 0,
+      from: payload.from,
       gasPrice: anyNumberToBN(payload.gasPrice).toNumber(),
       gasLimit: anyNumberToBN(payload.gas).toNumber(),
-      to: payload.to !== undefined ? payload.to : '',
+      to: payload.to ? payload.to : '',
       value: anyNumberToBN(payload.value).toNumber(),
-      data: payload.data,
-      chainId: payload.chainId
+      data: bytesToHex(payload.data),
+      chainId: anyNumberToBN(payload.chainId).toNumber()
     };
 
     const eventData: TransactionEventResponse = {
@@ -789,9 +796,10 @@ export default class TransactionService {
 
           // Add start info
           eventData.nonce = txObject.nonce;
-          eventData.startBlock = await web3Api.eth.getBlockNumber();
+          eventData.startBlock = parseInt((await web3Api.eth.getBlockNumber()).toString(16), 16);
           emitter.emit('send', eventData); // This event is needed after sending transaction with queue
-          signedTransaction && web3Api.eth.sendSignedTransaction(signedTransaction)
+          web3Api.setConfig({ defaultCommon: { customChain: { chainId: chainInfo.evmInfo?.evmChainId || 1, networkId: chainInfo.evmInfo?.evmChainId || 1 } } });
+          signedTransaction && web3Api.eth.sendSignedTransaction(signedTransaction, DEFAULT_RETURN_FORMAT, { checkRevertBeforeSending: false })
             .once('transactionHash', (hash) => {
               eventData.extrinsicHash = hash;
               emitter.emit('extrinsicHash', eventData);
@@ -799,15 +807,17 @@ export default class TransactionService {
             .once('receipt', (rs) => {
               eventData.extrinsicHash = rs.transactionHash;
               eventData.blockHash = rs.blockHash;
-              eventData.blockNumber = rs.blockNumber;
+              eventData.blockNumber = parseInt(rs.blockNumber.toString());
               emitter.emit('success', eventData);
             })
             .once('error', (e) => {
               eventData.errors.push(new TransactionError(BasicTxErrorType.SEND_TRANSACTION_FAILED, t(e.message)));
               emitter.emit('error', eventData);
             })
-            .catch((e: Error) => {
-              eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, t(e.message)));
+            .catch((e) => {
+              const error = e as Error;
+
+              eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, t(error.message)));
               emitter.emit('error', eventData);
             });
         } else {
