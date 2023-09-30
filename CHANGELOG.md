@@ -1,5 +1,66 @@
 # CHANGELOG
 
+## 1.1.15
+Build date: Sep 30, 2023.
+
+Features & Update:
+- Update token’s logo retrieval mechanism (#1947)
+- Support Ledger for more chains (#1942)
+  - Karura
+  - xx network
+  - Polymesh
+  - Edgeware
+- Update chain list (#1941)
+  - Add XCM support for more tokens:
+    - KSM: Kusma —> Amplitude
+    - USDC: Polkadot Asset Hub <—> HydraDX
+  - Integrated Neuroguns NFT Collection on the Astar network
+  - Integrated new networks: Bittensor, Dancebox
+  - Add staking support for Vara network
+  - Update price for some tokens: PANX, VARA
+  - Update RPC for Imbue network
+
+Bugs fixed:
+- Fixed bug Do not scroll the network list in case of connecting dApp via WalletConnect (#1926)
+- Fixed bug Navigate incorrect in case Create one when connect dApp (#1930)
+
+## 1.1.14
+Build date: Sep 26, 2023.
+
+Features & Update:
+- Improve network and asset subscription (#1939)
+- Update transfer function for Pendulum (#1950)
+
+## 1.1.13
+Build date: Sep 21, 2023.
+
+Features & Update:
+- Update empty list screens (#1857)
+- Allow paste Amount to send (#1872)
+- Add injected placeholder to avoid extension cannot load in the first time (#1906)
+
+Bugs fixed:
+- Fixed bug Do not show status of the crowd loans item (Acala) (#1860)
+- Fixed bug Do not auto-lock after imported multiple account (#1910)
+- Fixed bug Do not show selected account (#1919)
+
+
+## 1.1.12
+Build date: Sep 15, 2023.
+
+Features & Update:
+- Handle the case of signing transactions from dApp using a Ledger account (#1874)
+- Update web-runner for i18n for background (#1815)
+- Update chain list (#1896)
+  - Update block explorer for Avalanche C
+  - Add support USDC for Polkadot Asset Hub
+  - Add support Acala EVM network
+
+Bugs fixed:
+- Fixed bug Show incorrect message when the minimum active stake is a real number (#1901)
+- Fixed bug Create incorrect account when connect dApp (#1912)
+
+
 ## 1.1.11
 Build date: Sep 09, 2023.
 

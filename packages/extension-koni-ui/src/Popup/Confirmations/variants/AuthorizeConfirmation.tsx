@@ -5,6 +5,7 @@ import { AccountAuthType, AccountJson, AuthorizeRequest } from '@subwallet/exten
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { AccountItemWithName, ConfirmationGeneralInfo } from '@subwallet/extension-koni-ui/components';
 import { DEFAULT_ACCOUNT_TYPES, EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants';
+import { useSetSelectedAccountTypes } from '@subwallet/extension-koni-ui/hooks';
 import { approveAuthRequestV2, cancelAuthRequestV2, rejectAuthRequestV2 } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -62,6 +63,7 @@ function Component ({ className, request }: Props) {
   const { accountAuthType, allowedAccounts } = request.request;
   const accounts = useSelector((state: RootState) => state.accountState.accounts);
   const navigate = useNavigate();
+  const setSelectedAccountTypes = useSetSelectedAccountTypes(true);
 
   // List all of all accounts by auth type
   const visibleAccounts = useMemo(() => (filterAuthorizeAccounts(accounts, accountAuthType || 'both')),
@@ -112,8 +114,9 @@ function Component ({ className, request }: Props) {
         types = DEFAULT_ACCOUNT_TYPES;
     }
 
-    navigate('/accounts/new-seed-phrase', { state: { accountTypes: types } });
-  }, [navigate, accountAuthType]);
+    setSelectedAccountTypes(types);
+    navigate('/accounts/new-seed-phrase', { state: { useGoBack: true } });
+  }, [accountAuthType, setSelectedAccountTypes, navigate]);
 
   const onAccountSelect = useCallback((address: string) => {
     const isAll = isAccountAll(address);

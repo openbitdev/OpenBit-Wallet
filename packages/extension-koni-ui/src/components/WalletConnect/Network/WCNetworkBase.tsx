@@ -7,7 +7,7 @@ import CN from 'classnames';
 import React, { useCallback, useContext } from 'react';
 import styled from 'styled-components';
 
-import GeneralEmptyList from '../../GeneralEmptyList';
+import { GeneralEmptyList } from '../../EmptyList';
 import WCNetworkInput from './WCNetworkInput';
 import WCNetworkItem from './WCNetworkItem';
 
@@ -89,6 +89,7 @@ const WCNetworkBase = styled(Component)<Props>(({ theme: { token } }: Props) => 
       },
 
       '.ant-sw-list-wrapper': {
+        overflow: 'auto',
         flexBasis: 'auto'
       },
 

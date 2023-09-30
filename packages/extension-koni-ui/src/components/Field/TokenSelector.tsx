@@ -14,7 +14,7 @@ import { CheckCircle } from 'phosphor-react';
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo } from 'react';
 import styled, { useTheme } from 'styled-components';
 
-import GeneralEmptyList from '../GeneralEmptyList';
+import { GeneralEmptyList } from '../EmptyList';
 
 export type TokenItemType = {
   name: string;
@@ -69,7 +69,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
           shape='squircle'
           size={token.controlHeightSM}
           subNetwork={tokenInfo.originChain}
-          token={tokenInfo.symbol.toLowerCase()}
+          token={tokenInfo.slug.toLowerCase()}
         />
       );
   }, [filteredItems, token.controlHeightSM, value]);
@@ -129,7 +129,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
         }
         subName=''
         subNetworkKey={item.originChain}
-        symbol={item.symbol.toLowerCase()}
+        symbol={item.slug.toLowerCase()}
       />
     );
   }, [chainInfoMap, token.colorSuccess]);

@@ -1268,7 +1268,7 @@ export default class KoniExtension {
             address: ALL_ACCOUNT_KEY,
             currentGenesisHash: allGenesisHash || null,
             allGenesisHash
-          });
+          }, undefined, true);
         }
 
         changedAccount = true;
@@ -1288,7 +1288,7 @@ export default class KoniExtension {
     return addressDict;
   }
 
-  private async accountsForgetOverride ({ address }: RequestAccountForget): Promise<boolean> {
+  private async accountsForgetOverride ({ address, lockAfter }: RequestAccountForget): Promise<boolean> {
     keyring.forgetAccount(address);
     await new Promise<void>((resolve) => {
       this.#koniState.removeAccountRef(address, () => {
@@ -1322,6 +1322,10 @@ export default class KoniExtension {
     });
 
     await this.#koniState.disableMantaPay(address);
+
+    if (lockAfter) {
+      this.checkLockAfterMigrate();
+    }
 
     return true;
   }
@@ -1459,9 +1463,9 @@ export default class KoniExtension {
           this._addAddressesToAuthList(addressList, isAllowed);
         });
 
-        if (this.#alwaysLock) {
-          this.keyringLock();
-        }
+        // if (this.#alwaysLock) {
+        //   this.keyringLock();
+        // }
       } catch (error) {
         throw new Error((error as Error).message);
       }
@@ -2918,7 +2922,7 @@ export default class KoniExtension {
 
     this.#koniState.updateKeyringState();
 
-    if (this.#alwaysLock) {
+    if (this.#alwaysLock && !createNew) {
       this.keyringLock();
     }
 
@@ -2930,9 +2934,26 @@ export default class KoniExtension {
 
   // Migrate password
 
+  private checkLockAfterMigrate () {
+    const pairs = keyring.getPairs();
+
+    const needMigrate = !!pairs
+      .filter((acc) => acc.address !== ALL_ACCOUNT_KEY && !acc.meta.isExternal && !acc.meta.isInjected)
+      .filter((acc) => !acc.meta.isMasterPassword)
+      .length;
+
+    if (!needMigrate) {
+      if (this.#alwaysLock) {
+        this.keyringLock();
+      }
+    }
+  }
+
   private keyringMigrateMasterPassword ({ address, password }: RequestMigratePassword): ResponseMigratePassword {
     try {
       keyring.migrateWithMasterPassword(address, password);
+
+      this.checkLockAfterMigrate();
     } catch (e) {
       console.error(e);
 
@@ -3266,11 +3287,14 @@ export default class KoniExtension {
   }
 
   // ChainService -------------------------------------------------
-  private subscribeChainInfoMap (id: string, port: chrome.runtime.Port): Record<string, _ChainInfo> {
+  private async subscribeChainInfoMap (id: string, port: chrome.runtime.Port): Promise<Record<string, _ChainInfo>> {
     const cb = createSubscription<'pri(chainService.subscribeChainInfoMap)'>(id, port);
+    let ready = false;
     const chainInfoMapSubscription = this.#koniState.subscribeChainInfoMap().subscribe({
       next: (rs) => {
-        cb(rs);
+        if (ready) {
+          cb(rs);
+        }
       }
     });
 
@@ -3279,6 +3303,9 @@ export default class KoniExtension {
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
     });
+
+    await this.#koniState.eventService.waitChainReady;
+    ready = true;
 
     return this.#koniState.getChainInfoMap();
   }
@@ -3300,11 +3327,14 @@ export default class KoniExtension {
     return this.#koniState.getChainStateMap();
   }
 
-  private subscribeAssetRegistry (id: string, port: chrome.runtime.Port): Record<string, _ChainAsset> {
+  private async subscribeAssetRegistry (id: string, port: chrome.runtime.Port): Promise<Record<string, _ChainAsset>> {
     const cb = createSubscription<'pri(chainService.subscribeAssetRegistry)'>(id, port);
+    let ready = false;
     const assetRegistrySubscription = this.#koniState.subscribeAssetRegistry().subscribe({
       next: (rs) => {
-        cb(rs);
+        if (ready) {
+          cb(rs);
+        }
       }
     });
 
@@ -3313,6 +3343,9 @@ export default class KoniExtension {
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
     });
+
+    await this.#koniState.eventService.waitAssetReady;
+    ready = true;
 
     return this.#koniState.getAssetRegistry();
   }

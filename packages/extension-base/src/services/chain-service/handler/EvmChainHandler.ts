@@ -8,6 +8,7 @@ import { AbstractChainHandler } from '@subwallet/extension-base/services/chain-s
 import { EvmApi } from '@subwallet/extension-base/services/chain-service/handler/EvmApi';
 import { _ApiOptions, _EvmChainSpec } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _EvmApi, _SmartContractTokenInfo } from '@subwallet/extension-base/services/chain-service/types';
+import BigN from 'bignumber.js';
 
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
@@ -159,7 +160,7 @@ export class EvmChainHandler extends AbstractChainHandler {
         ]);
 
         name = _symbol;
-        decimals = _decimals as number;
+        decimals = new BigN(_decimals.toString()).toNumber();
         symbol = _symbol;
       }
 
