@@ -9,7 +9,7 @@ import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/
 import { BehaviorSubject } from 'rxjs';
 import { Web3, Web3BaseProvider } from 'web3';
 
-const acalaEvmNetworks: string[] = ['acala_evm', 'karura_evm'];
+const networksNoNetListening: string[] = ['acala_evm', 'karura_evm', 'arbitrum_one'];
 
 export class EvmApi implements _EvmApi {
   chainSlug: string;
@@ -100,7 +100,7 @@ export class EvmApi implements _EvmApi {
     this.clearIntervalCheckApi();
 
     return setInterval(() => {
-      if (!acalaEvmNetworks.includes(this.chainSlug)) {
+      if (!networksNoNetListening.includes(this.chainSlug)) {
         this.api.eth.net.isListening()
           .then(() => {
             this.onConnect();
@@ -123,7 +123,7 @@ export class EvmApi implements _EvmApi {
     this.updateConnectionStatus(_ChainConnectionStatus.CONNECTING);
 
     // Check if api is ready
-    if (!acalaEvmNetworks.includes(this.chainSlug)) {
+    if (!networksNoNetListening.includes(this.chainSlug)) {
       this.api.eth.net.isListening()
         .then(() => {
           this.isApiReadyOnce = true;
@@ -151,7 +151,7 @@ export class EvmApi implements _EvmApi {
     // For websocket provider, disconnect it
     const wsProvider = this.provider;
 
-    wsProvider.disconnect && wsProvider.disconnect();
+    wsProvider.supportsSubscriptions() && wsProvider.disconnect();
 
     this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
 

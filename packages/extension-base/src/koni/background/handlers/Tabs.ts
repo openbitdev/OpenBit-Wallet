@@ -28,7 +28,7 @@ import { SingleAddress, SubjectInfo } from '@subwallet/ui-keyring/observable/typ
 import { t } from 'i18next';
 import { Subscription } from 'rxjs';
 import { Web3BaseProvider } from 'web3';
-import { JsonRpcPayload } from 'web3-core-helpers';
+import { JsonRpcRequest } from 'web3-types';
 
 import { checkIfDenied } from '@polkadot/phishing';
 import { JsonRpcResponse } from '@polkadot/rpc-provider/types';
@@ -392,8 +392,8 @@ export default class KoniTabs {
       const evmApi = this.#koniState.getEvmApi(slug);
       const web3 = evmApi?.api;
 
-      if (web3?.currentProvider) {
-        if (web3.currentProvider.getStatus() !== 'connected') {
+      if (web3?.currentProvider?.supportsSubscriptions()) {
+        if (web3.currentProvider?.getStatus() !== 'connected') {
           console.log(`${slug} is disconnected, trying to connect...`);
           this.#koniState.refreshWeb3Api(slug);
           let checkingNum = 0;
@@ -401,7 +401,7 @@ export default class KoniTabs {
           const poll = (resolve: (value: unknown) => void) => {
             checkingNum += 1;
 
-            if (web3.currentProvider && web3.currentProvider.getStatus() === 'connected') {
+            if (web3?.currentProvider?.getStatus() === 'connected') {
               console.log(`${slug} is connected.`);
               resolve(true);
             } else {
@@ -749,7 +749,7 @@ export default class KoniTabs {
 
     const eventMap: Record<string, any> = {};
 
-    eventMap.data = ({ method, params }: JsonRpcPayload) => {
+    eventMap.data = ({ method, params }: JsonRpcRequest) => {
       emitEvent('message', {
         type: method,
         data: params
@@ -762,7 +762,7 @@ export default class KoniTabs {
 
     Object.entries(eventMap).forEach(([event, callback]) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      provider?.on && provider?.on(event, callback);
+      provider?.supportsSubscriptions() && provider?.on(event, callback);
     });
 
     // Add event emitter
@@ -779,7 +779,7 @@ export default class KoniTabs {
 
       Object.entries(eventMap).forEach(([event, callback]) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        provider?.removeListener && provider?.removeListener(event, callback);
+        provider?.supportsSubscriptions() && provider?.removeListener(event, callback);
       });
       accountListSubscription.unsubscribe();
       authUrlSubscription.unsubscribe();
@@ -794,7 +794,7 @@ export default class KoniTabs {
   }
 
   private checkAndHandleProviderStatus (provider: Web3BaseProvider | undefined) {
-    if ((!provider || provider.getStatus() !== 'connected') && provider?.supportsSubscriptions()) { // excludes HttpProvider
+    if (provider?.supportsSubscriptions() && (!provider || provider.getStatus() !== 'connected')) { // excludes HttpProvider
       Object.values(this.evmEventEmitterMap).forEach((m) => {
         Object.values(m).forEach((emitter) => {
           emitter('disconnect', new EvmProviderError(EvmProviderErrorType.CHAIN_DISCONNECTED));

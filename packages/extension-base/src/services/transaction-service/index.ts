@@ -34,9 +34,8 @@ import { ethers, TransactionLike } from 'ethers';
 import EventEmitter from 'eventemitter3';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
-import { DEFAULT_RETURN_FORMAT, Transaction as TransactionConfig, TransactionReceipt } from 'web3-types';
-import { Subscription } from 'web3-core-subscriptions';
-import { BlockHeader } from 'web3-eth';
+import { Web3Subscription } from 'web3-core';
+import { BlockHeaderOutput, DEFAULT_RETURN_FORMAT, Transaction as TransactionConfig, TransactionReceipt } from 'web3-types';
 
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { Signer, SignerResult } from '@polkadot/api/types';
@@ -782,7 +781,7 @@ export default class TransactionService {
             emitter.emit('signed', eventData);
 
             eventData.nonce = txObject.nonce;
-            eventData.startBlock = await web3Api.eth.getBlockNumber() - 3;
+            eventData.startBlock = parseInt((await web3Api.eth.getBlockNumber()).toString()) - 3;
             // Add start info
             emitter.emit('send', eventData); // This event is needed after sending transaction with queue
 
@@ -793,7 +792,7 @@ export default class TransactionService {
 
             this.watchTransactionSubscribes[id] = new Promise<void>((resolve, reject) => {
               // eslint-disable-next-line prefer-const
-              let subscribe: Subscription<BlockHeader>;
+              let subscribe: Web3Subscription<{ data: BlockHeaderOutput }>;
 
               const onComplete = () => {
                 subscribe?.unsubscribe?.()?.then(console.debug).catch(console.debug);
@@ -802,9 +801,9 @@ export default class TransactionService {
 
               const onSuccess = (rs: TransactionReceipt) => {
                 if (rs) {
-                  eventData.extrinsicHash = rs.transactionHash;
-                  eventData.blockHash = rs.blockHash;
-                  eventData.blockNumber = rs.blockNumber;
+                  eventData.extrinsicHash = bytesToHex(rs.transactionHash);
+                  eventData.blockHash = bytesToHex(rs.blockHash);
+                  eventData.blockNumber = anyNumberToBN(rs.blockNumber).toNumber();
                   emitter.emit('success', eventData);
                   onComplete();
                   resolve();
@@ -825,7 +824,9 @@ export default class TransactionService {
                 web3Api.eth.getTransactionReceipt(txHash).then(onSuccess).catch(onError);
               };
 
-              subscribe = web3Api.eth.subscribe('newBlockHeaders', onCheck);
+              web3Api.eth.subscribe('newBlockHeaders', onCheck).then((value) => {
+                subscribe = value;
+              }).catch(console.error);
             });
           } else {
             this.removeTransaction(id);
@@ -876,7 +877,7 @@ export default class TransactionService {
             eventData.nonce = txObject.nonce;
             eventData.startBlock = parseInt((await web3Api.eth.getBlockNumber()).toString(16), 16);
             emitter.emit('send', eventData); // This event is needed after sending transaction with queue
-          web3Api.setConfig({ defaultCommon: { customChain: { chainId: chainInfo.evmInfo?.evmChainId || 1, networkId: chainInfo.evmInfo?.evmChainId || 1 } } });
+            web3Api.setConfig({ defaultCommon: { customChain: { chainId: chainInfo.evmInfo?.evmChainId || 1, networkId: chainInfo.evmInfo?.evmChainId || 1 } } });
             signedTransaction && web3Api.eth.sendSignedTransaction(signedTransaction, DEFAULT_RETURN_FORMAT, { checkRevertBeforeSending: false })
               .once('transactionHash', (hash) => {
                 eventData.extrinsicHash = hash;
@@ -893,7 +894,7 @@ export default class TransactionService {
                 emitter.emit('error', eventData);
               })
               .catch((e) => {
-              const error = e as Error;
+                const error = e as Error;
 
                 eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, t(error.message)));
                 emitter.emit('error', eventData);

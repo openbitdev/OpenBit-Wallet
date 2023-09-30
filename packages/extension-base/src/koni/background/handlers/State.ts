@@ -32,7 +32,7 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
 import { stripUrl } from '@subwallet/extension-base/utils';
-import { bytesToHex } from '@subwallet/extension-base/utils/eth';
+import { anyNumberToBN, bytesToHex } from '@subwallet/extension-base/utils/eth';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -1495,7 +1495,7 @@ export default class KoniState {
 
     transaction.gasPrice = gasPrice;
 
-    const estimateGas = new BN(gasPrice.toString()).mul(new BN(transaction.gas)).toString();
+    const estimateGas = new BN(gasPrice.toString()).mul(new BN(anyNumberToBN(transaction.gas).toString())).toString();
 
     // Address is validated in before step
     const fromAddress = allowedAccounts.find((account) => (account.toLowerCase() === (transaction.from as string).toLowerCase()));
@@ -1513,9 +1513,9 @@ export default class KoniState {
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
     // Validate balance
-    const balance = new BN(await web3.eth.getBalance(fromAddress) || 0);
+    const balance = new BN(anyNumberToBN(await web3.eth.getBalance(fromAddress)).toString() || 0);
 
-    if (balance.lt(new BN(gasPrice.toString()).mul(new BN(transaction.gas)).add(new BN(autoFormatNumber(transactionParams.value) || '0')))) {
+    if (balance.lt(new BN(gasPrice.toString()).mul(new BN(anyNumberToBN(transaction.gas).toString())).add(new BN(autoFormatNumber(transactionParams.value) || '0')))) {
       throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
     }
 

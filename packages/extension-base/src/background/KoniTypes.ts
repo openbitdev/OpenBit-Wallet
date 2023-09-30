@@ -15,8 +15,7 @@ import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { Web3 } from 'web3';
-import { JsonRpcPayload, JsonRpcResponse } from 'web3-core-helpers';
-import { Transaction as TransactionConfig, Web3APIRequest } from 'web3-types';
+import { JsonRpcPayload, JsonRpcResponse, Transaction as TransactionConfig, Web3APIRequest } from 'web3-types';
 
 import { SignerResult } from '@polkadot/types/types/extrinsic';
 import { BN } from '@polkadot/util';
