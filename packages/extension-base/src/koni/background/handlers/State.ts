@@ -1541,7 +1541,12 @@ export default class KoniState {
 
     const eType = transaction.value ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.EVM_EXECUTE;
 
-    const transactionData = { ...transaction };
+    const transactionData = {
+      ...transaction,
+      gas: anyNumberToBN(transaction.gas).toNumber(),
+      gasPrice: anyNumberToBN(transaction.gasPrice).toNumber(),
+      nonce: anyNumberToBN(transaction.nonce).toNumber()
+    };
     const token = this.chainService.getNativeTokenInfo(networkKey);
 
     if (eType === ExtrinsicType.TRANSFER_BALANCE) {
