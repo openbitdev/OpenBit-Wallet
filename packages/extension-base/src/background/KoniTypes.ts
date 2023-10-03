@@ -2112,7 +2112,7 @@ export interface KoniRequestSignatures {
 
   // Auth
   'pri(authorize.listV2)': [null, ResponseAuthorizeList];
-  'pri(authorize.requestsV2)': [RequestAuthorizeSubscribe, boolean, AuthorizeRequest[]];
+  'pri(authorize.requestsV2)': [RequestAuthorizeSubscribe, AuthorizeRequest[], AuthorizeRequest[]];
   'pri(authorize.approveV2)': [RequestAuthorizeApproveV2, boolean];
   'pri(authorize.changeSiteAll)': [RequestAuthorizationAll, boolean, AuthUrls];
   'pri(authorize.changeSite)': [RequestAuthorization, boolean, AuthUrls];
