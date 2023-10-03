@@ -4,9 +4,6 @@
 import { Common, Hardfork } from '@ethereumjs/common';
 import { LegacyTransaction, TypedTransaction } from '@ethereumjs/tx';
 import { LegacyTxData } from '@ethereumjs/tx/src/types';
-
-import { logger as createLogger } from '@polkadot/util';
-import { Logger } from '@polkadot/util/types';
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, EvmProviderErrorType, RequestConfirmationComplete } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
@@ -19,6 +16,9 @@ import { addHexPrefix } from 'ethereumjs-util';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
 import { Numbers, Transaction as TransactionConfig } from 'web3-types';
+
+import { logger as createLogger } from '@polkadot/util';
+import { Logger } from '@polkadot/util/types';
 
 export default class EvmRequestHandler {
   readonly #requestService: RequestService;

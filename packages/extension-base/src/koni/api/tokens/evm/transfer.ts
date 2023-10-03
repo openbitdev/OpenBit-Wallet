@@ -94,8 +94,10 @@ export async function getERC20TransactionObject (
 ): Promise<[TransactionConfig, string]> {
   const networkKey = chainInfo.slug;
   const evmApi = evmApiMap[networkKey];
+
   console.debug('erc20Contract', 'start');
   const erc20Contract = getERC20Contract(evmApi, assetAddress);
+
   console.debug('erc20Contract', 'done');
 
   let freeAmount = new BN(0);
