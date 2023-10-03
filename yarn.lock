@@ -5713,8 +5713,8 @@ __metadata:
     "@subwallet/extension-dapp": ^1.1.15-0
     "@subwallet/extension-inject": ^1.1.15-0
     "@subwallet/extension-mocks": ^1.1.15-0
-    "@subwallet/keyring": ^0.1.1
-    "@subwallet/ui-keyring": ^0.1.1
+    "@subwallet/keyring": ^0.1.2
+    "@subwallet/ui-keyring": ^0.1.2
     "@types/uuid": ^9.0.1
     "@walletconnect/sign-client": ^2.10.0
     "@walletconnect/types": ^2.10.0
@@ -5843,9 +5843,9 @@ __metadata:
     "@subwallet/extension-dapp": ^1.1.15-0
     "@subwallet/extension-inject": ^1.1.15-0
     "@subwallet/extension-mocks": ^1.1.15-0
-    "@subwallet/keyring": ^0.1.1
+    "@subwallet/keyring": ^0.1.2
     "@subwallet/react-ui": 5.1.2-b72
-    "@subwallet/ui-keyring": ^0.1.1
+    "@subwallet/ui-keyring": ^0.1.2
     "@types/bn.js": ^5.1.1
     "@types/enzyme": ^3.10.12
     "@types/enzyme-adapter-react-16": ^1.0.6
@@ -5943,9 +5943,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@subwallet/keyring@file:../SubWallet-Base/packages/keyring/build/::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.0.10
-  resolution: "@subwallet/keyring@file:../SubWallet-Base/packages/keyring/build/#../SubWallet-Base/packages/keyring/build/::hash=468ca5&locator=root-workspace-0b6124%40workspace%3A."
+"@subwallet/keyring@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@subwallet/keyring@npm:0.1.2"
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
@@ -5955,7 +5955,7 @@ __metadata:
     eventemitter3: ^4.0.7
     rxjs: ^7.5.6
     tslib: ^2.6.2
-  checksum: b8d97bc83af273b52dda1fe5ba6bac79996d2b6fc341b129d2addebd2ad1d524c9e18e0b0c1030e71797961d31d4a165c0ac95add330738c96d6f8226d28818d
+  checksum: 203a0e0b3e6343be67637aa6e63ce59f265b61422ae092a79599c375f2de9e276f51aa496238806bd36eb9f4dd46c3c58942c06dd894dbfbee4571526c94ea08
   languageName: node
   linkType: hard
 
@@ -6037,19 +6037,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subwallet/ui-keyring@file:../SubWallet-Base/packages/ui-keyring/build/::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.0.10
-  resolution: "@subwallet/ui-keyring@file:../SubWallet-Base/packages/ui-keyring/build/#../SubWallet-Base/packages/ui-keyring/build/::hash=1eb795&locator=root-workspace-0b6124%40workspace%3A."
+"@subwallet/ui-keyring@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "@subwallet/ui-keyring@npm:0.1.2"
   dependencies:
     "@babel/runtime": ^7.20.1
     "@polkadot/ui-settings": 2.9.14
     "@polkadot/util": ^12.2.1
     "@polkadot/util-crypto": ^12.2.1
-    "@subwallet/keyring": ^0.0.10
+    "@subwallet/keyring": ^0.1.2
     mkdirp: ^1.0.4
     rxjs: ^7.5.7
     store: ^2.0.12
-  checksum: ba311879999f34e0c19316a050d429f0faf69ea586def7cfc39e2f4f889904838a2194771a0f73a0d40399ad381d0e2589fe8bb801e6f9ecba2f5120ff377608
+  checksum: 16bd0888c9b238ec58497b62fa6b8393ecd91b6baf6bd5acb5291f707bcc6e00a5e9d81541be1953123482961f9595fb3e15b0c2249f07608c7452e9051a0471
   languageName: node
   linkType: hard
 
