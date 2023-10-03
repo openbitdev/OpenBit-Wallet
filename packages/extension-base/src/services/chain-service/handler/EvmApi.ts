@@ -10,7 +10,7 @@ import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/
 import { BehaviorSubject } from 'rxjs';
 import { Web3, Web3BaseProvider } from 'web3';
 
-const networksNoNetListening: string[] = [...EVM_PASS_CONNECT_STATUS.acala, 'arbitrum_one'];
+const networksNoNetListening: string[] = Object.values(EVM_PASS_CONNECT_STATUS).flat();
 
 export class EvmApi implements _EvmApi {
   chainSlug: string;
