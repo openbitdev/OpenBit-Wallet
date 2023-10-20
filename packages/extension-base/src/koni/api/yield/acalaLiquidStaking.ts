@@ -271,67 +271,6 @@ export function getAcalaLiquidStakingPosition (substrateApi: _SubstrateApi, useA
   });
 }
 
-export function getAcalaLcDOTLiquidStakingPosition (substrateApi: _SubstrateApi, useAddresses: string[], chainInfo: _ChainInfo, poolInfo: YieldPoolInfo, assetInfoMap: Record<string, _ChainAsset>, positionCallback: (rs: YieldPositionInfo) => void) {
-  // @ts-ignore
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  const lcDOTContract = new Contract(_ERC20_ABI, LDOT_EVM_CONTRACT_ADDRESS);
-  // @ts-ignore
-  const derivativeTokenSlug = poolInfo.derivativeAssets[0];
-
-  async function fetchBalance () {
-    const address = '0xcaaCB40CC7Dba12ce66DCfB53Eb57731DB7b7Ff1';
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-    const encodedData = lcDOTContract.methods.balanceOf(address).encodeABI();
-
-    const chainApi = await substrateApi.isReady;
-
-    const _resp = await chainApi.api.call.evmRuntimeRPCApi.call(
-      address,
-      LDOT_EVM_CONTRACT_ADDRESS,
-      encodedData,
-      0,
-      1000000,
-      0,
-      [],
-      true
-    );
-
-    const resp = _resp.toPrimitive() as unknown as EvmRuntimeResponse;
-    const balanceString = resp.ok.value as string;
-
-    const balance = hexToBn(balanceString);
-
-    positionCallback({
-      slug: poolInfo.slug,
-      chain: chainInfo.slug,
-      address: useAddresses.length > 1 ? ALL_ACCOUNT_KEY : useAddresses[0], // TODO
-      balance: [
-        {
-          slug: derivativeTokenSlug, // token slug
-          totalBalance: balance.toString(),
-          activeBalance: balance.toString()
-        }
-      ],
-
-      metadata: {
-        rewards: []
-      } as YieldPositionStats
-    } as YieldPositionInfo);
-  }
-
-  function fetchBalanceInterval () {
-    fetchBalance().catch(console.error);
-  }
-
-  fetchBalanceInterval();
-
-  const interval = setInterval(fetchBalanceInterval, 30000);
-
-  return () => {
-    clearInterval(interval);
-  };
-}
-
 export async function getAcalaLiquidStakingExtrinsic (address: string, params: OptimalYieldPathParams, path: OptimalYieldPath, currentStep: number, requestData: RequestYieldStepSubmit): Promise<HandleYieldStepData> {
   const inputData = requestData.data as SubmitYieldStepData;
 
@@ -406,10 +345,9 @@ export async function getAcalaLcDOTLiquidStakingExtrinsic (address: string, para
     encodedData,
     0,
     DEFAULT_GAS_PRICE,
-    DEFAULT_GAS_LIMIT
+    DEFAULT_GAS_LIMIT,
+    []
   );
-
-  console.log('extrinsic', extrinsic.toHex());
 
   return {
     txChain: params.poolInfo.chain,
@@ -418,6 +356,10 @@ export async function getAcalaLcDOTLiquidStakingExtrinsic (address: string, para
     txData: requestData,
     transferNativeAmount: '0'
   };
+}
+
+export async function getAcalaLcDOTLiquidStakingRedeem () {
+
 }
 
 export async function getAcalaLiquidStakingRedeem (params: OptimalYieldPathParams, amount: string): Promise<[ExtrinsicType, SubmittableExtrinsic<'promise'>]> {
