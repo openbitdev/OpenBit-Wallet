@@ -3892,18 +3892,18 @@ export default class KoniExtension {
       substrateApiMap: this.#koniState.getSubstrateApiMap()
     };
 
-    const yieldValidation: TransactionError[] = await validateYieldProcess(
-      address,
-      params,
-      path,
-      this.#koniState.balanceService,
-      data
-    ); // TODO: validate, set to fail upon submission
-
-    if (yieldValidation.length > 0) {
-      return this.#koniState.transactionService
-        .generateBeforeHandleResponseErrors(yieldValidation);
-    }
+    // const yieldValidation: TransactionError[] = await validateYieldProcess(
+    //   address,
+    //   params,
+    //   path,
+    //   this.#koniState.balanceService,
+    //   data
+    // ); // TODO: validate, set to fail upon submission
+    //
+    // if (yieldValidation.length > 0) {
+    //   return this.#koniState.transactionService
+    //     .generateBeforeHandleResponseErrors(yieldValidation);
+    // }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { extrinsic, extrinsicType, transferNativeAmount, txChain, txData } = await handleYieldStep(address,

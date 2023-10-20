@@ -1,0 +1,1065 @@
+[
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "DOT",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "HOMA",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "HOMA_MINT_THRESHOLD",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "LCDOT",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "LDOT",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "LIQUID_CROWDLOAN",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "MAX_REWARD_TYPES",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "STABLE_ASSET",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "TDOT",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "WTDOT",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "addPool",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "shareType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+      {
+        "type": "bool",
+        "name": "",
+        "internalType": "bool"
+      }
+    ],
+    "name": "claimRewards",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple",
+        "name": "",
+        "internalType": "struct UpgradeableStakingLST.ConvertInfo",
+        "components": [
+          {
+            "type": "address"
+          },
+          {
+            "type": "uint256"
+          }
+        ]
+      }
+    ],
+    "name": "convertInfos",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "convertLSTPool",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint8",
+        "name": "convertType",
+        "internalType": "enum UpgradeableStakingLST.ConvertType"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "earned",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "who",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+      {
+        "type": "bool",
+        "name": "",
+        "internalType": "bool"
+      }
+    ],
+    "name": "exit",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "initialize",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "initialize",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "dot",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "lcdot",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "ldot",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "tdot",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "homa",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "stableAsset",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "liquidCrowdloan",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "wtdot",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "lastTimeRewardApplicable",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "name": "owner",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "paidAccumulatedRates",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "who",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "pause",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "bool",
+        "name": "",
+        "internalType": "bool"
+      }
+    ],
+    "name": "paused",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "bool",
+        "name": "",
+        "internalType": "bool"
+      }
+    ],
+    "name": "pausedPoolOperations",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint8",
+        "name": "operation",
+        "internalType": "enum PoolOperationPausable.Operation"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "poolIndex",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "renounceOwnership",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "rewardPerShare",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "tuple",
+        "name": "",
+        "internalType": "struct Staking.RewardRule",
+        "components": [
+          {
+            "type": "uint256"
+          },
+          {
+            "type": "uint256"
+          },
+          {
+            "type": "uint256"
+          },
+          {
+            "type": "uint256"
+          }
+        ]
+      }
+    ],
+    "name": "rewardRules",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address[]",
+        "name": "",
+        "internalType": "contract IERC20[]"
+      }
+    ],
+    "name": "rewardTypes",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "rewards",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "who",
+        "internalType": "address"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "rewardsDeductionRates",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "setPoolOperationPause",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint8",
+        "name": "operation",
+        "internalType": "enum PoolOperationPausable.Operation"
+      },
+      {
+        "type": "bool",
+        "name": "paused",
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "setRewardsDeductionRate",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "rate",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "contract IERC20"
+      }
+    ],
+    "name": "shareTypes",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "shares",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "who",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+      {
+        "type": "bool",
+        "name": "",
+        "internalType": "bool"
+      }
+    ],
+    "name": "stake",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "amount",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "view",
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "name": "totalShares",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "newOwner",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "unpause",
+    "inputs": [
+
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+      {
+        "type": "bool",
+        "name": "",
+        "internalType": "bool"
+      }
+    ],
+    "name": "unstake",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "amount",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "outputs": [
+
+    ],
+    "name": "updateRewardRule",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "internalType": "uint256"
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "internalType": "contract IERC20"
+      },
+      {
+        "type": "uint256",
+        "name": "rewardRate",
+        "internalType": "uint256"
+      },
+      {
+        "type": "uint256",
+        "name": "endTime",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "ClaimReward",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "sender",
+        "indexed": true
+      },
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "indexed": true
+      },
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Initialized",
+    "inputs": [
+      {
+        "type": "uint8",
+        "name": "version",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LSTPoolConverted",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "beforeShareType",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "afterShareType",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "beforeShareTokenAmount",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "afterShareTokenAmount",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "NewPool",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "shareType",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationPauseStatusSet",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "uint8",
+        "name": "operation",
+        "indexed": false
+      },
+      {
+        "type": "bool",
+        "name": "paused",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "previousOwner",
+        "indexed": true
+      },
+      {
+        "type": "address",
+        "name": "newOwner",
+        "indexed": true
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Paused",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "account",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RewardRuleUpdate",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "address",
+        "name": "rewardType",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "rewardRate",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "endTime",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RewardsDeductionRateSet",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "rate",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Stake",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "sender",
+        "indexed": true
+      },
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Unpaused",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "account",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Unstake",
+    "inputs": [
+      {
+        "type": "address",
+        "name": "sender",
+        "indexed": true
+      },
+      {
+        "type": "uint256",
+        "name": "poolId",
+        "indexed": false
+      },
+      {
+        "type": "uint256",
+        "name": "amount",
+        "indexed": false
+      }
+    ],
+    "anonymous": false
+  }
+]

@@ -6,7 +6,15 @@ import { TransactionError } from '@subwallet/extension-base/background/errors/Tr
 import { BasicTxErrorType, ChainStakingMetadata, ExtrinsicType, OptimalYieldPath, OptimalYieldPathParams, RequestBondingSubmit, RequestStakePoolingBonding, RequestYieldStepSubmit, StakingType, SubmitJoinNativeStaking, SubmitJoinNominationPool, SubmitYieldStepData, YieldAssetExpectedEarning, YieldCompoundingPeriod, YieldPoolInfo, YieldPoolType, YieldPositionInfo, YieldProcessValidation, YieldStepType, YieldValidationStatus } from '@subwallet/extension-base/background/KoniTypes';
 import { validatePoolBondingCondition, validateRelayBondingCondition } from '@subwallet/extension-base/koni/api/staking/bonding/relayChain';
 import { createXcmExtrinsic } from '@subwallet/extension-base/koni/api/xcm';
-import { getAcalaLiquidStakingExtrinsic, getAcalaLiquidStakingPosition, getAcalaLiquidStakingRedeem, subscribeAcalaLcDOTLiquidStakingStats, subscribeAcalaLiquidStakingStats } from '@subwallet/extension-base/koni/api/yield/acalaLiquidStaking';
+import {
+  getAcalaLcDOTLiquidStakingExtrinsic,
+  getAcalaLcDOTLiquidStakingPosition,
+  getAcalaLiquidStakingExtrinsic,
+  getAcalaLiquidStakingPosition,
+  getAcalaLiquidStakingRedeem,
+  subscribeAcalaLcDOTLiquidStakingStats,
+  subscribeAcalaLiquidStakingStats
+} from '@subwallet/extension-base/koni/api/yield/acalaLiquidStaking';
 import { getBifrostLiquidStakingExtrinsic, getBifrostLiquidStakingPosition, getBifrostLiquidStakingRedeem, subscribeBifrostLiquidStakingStats } from '@subwallet/extension-base/koni/api/yield/bifrostLiquidStaking';
 import { YIELD_POOLS_INFO } from '@subwallet/extension-base/koni/api/yield/data';
 import { DEFAULT_YIELD_FIRST_STEP, fakeAddress, RuntimeDispatchInfo } from '@subwallet/extension-base/koni/api/yield/helper/utils';
@@ -115,6 +123,10 @@ export function subscribeYieldPosition (substrateApiMap: Record<string, Substrat
       const unsub = await getParallelLiquidStakingPosition(substrateApi, useAddresses, chainInfo, poolInfo, assetInfoMap, callback);
 
       unsubList.push(unsub);
+    } else if (poolInfo.slug === 'LcDOT___acala_euphrates_liquid_staking') {
+      getAcalaLcDOTLiquidStakingPosition(substrateApi, useAddresses, chainInfo, poolInfo, assetInfoMap, callback);
+
+      // unsubList.push(unsub);
     }
   });
 
@@ -166,6 +178,8 @@ export async function generateNaiveOptimalPath (params: OptimalYieldPathParams, 
     return generatePathForLiquidStaking(params, balanceService);
   } else if (params.poolInfo.slug === 'DOT___parallel_liquid_staking') {
     return generatePathForLiquidStaking(params, balanceService);
+  } else if (params.poolInfo.slug === 'LcDOT___acala_euphrates_liquid_staking') {
+    return generatePathForLiquidStaking(params, balanceService);
   }
 
   return generatePathForNativeStaking(params);
@@ -188,7 +202,7 @@ export async function generatePathForLiquidStaking (params: OptimalYieldPathPara
 
   const [inputTokenBalance, altInputTokenBalance] = await Promise.all([
     balanceService.getTokenFreeBalance(params.address, inputTokenInfo.originChain, inputTokenSlug),
-    balanceService.getTokenFreeBalance(params.address, altInputTokenInfo.originChain, altInputTokenSlug)
+    altInputTokenInfo && balanceService.getTokenFreeBalance(params.address, altInputTokenInfo.originChain, altInputTokenSlug)
   ]);
 
   const bnInputTokenBalance = new BN(inputTokenBalance.value);
@@ -276,6 +290,18 @@ export async function generatePathForLiquidStaking (params: OptimalYieldPathPara
     });
 
     const _mintFeeInfo = await poolOriginSubstrateApi.api.tx.liquidStaking.stake(params.amount).paymentInfo(fakeAddress);
+    const mintFeeInfo = _mintFeeInfo.toPrimitive() as unknown as RuntimeDispatchInfo;
+
+    mintFee = mintFeeInfo.partialFee.toString();
+  } else if (params.poolInfo.slug === 'LcDOT___acala_euphrates_liquid_staking') {
+    result.steps.push({
+      id: result.steps.length,
+      name: 'Mint LDOT',
+      type: YieldStepType.MINT_LDOT
+    });
+
+    // TODO
+    const _mintFeeInfo = await poolOriginSubstrateApi.api.tx.homa.mint(params.amount).paymentInfo(fakeAddress);
     const mintFeeInfo = _mintFeeInfo.toPrimitive() as unknown as RuntimeDispatchInfo;
 
     mintFee = mintFeeInfo.partialFee.toString();
@@ -440,6 +466,8 @@ export async function handleYieldStep (address: string, yieldPoolInfo: YieldPool
     return getParallelLiquidStakingExtrinsic(address, params, path, currentStep, requestData);
   } else if (yieldPoolInfo.slug === 'DOT___interlay_lending') {
     return getInterlayLendingExtrinsic(address, params, path, currentStep, requestData);
+  } else if (yieldPoolInfo.slug === 'LcDOT___acala_euphrates_liquid_staking') {
+    return getAcalaLcDOTLiquidStakingExtrinsic(address, params, path, currentStep, requestData);
   }
 
   const _data = requestData.data as SubmitJoinNominationPool;

@@ -59,3 +59,6 @@ export function convertDerivativeToOriginToken (amount: string, poolInfo: YieldP
 
   return Math.floor(minAmount * (10 ** originDecimals));
 }
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
+export const ACALA_EUPHRATES_ABI: Record<string, any>[] = require('./acala_euphrates_abi.json');
