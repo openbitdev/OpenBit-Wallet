@@ -4,20 +4,19 @@
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Logo } from '@subwallet/react-ui';
 import CN from 'classnames';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
 import { InfoItemBase } from './types';
 
 export interface ChainInfoItem extends InfoItemBase {
-  chain: string
+  chains: string[]
 }
 
 const Component: React.FC<ChainInfoItem> = (props: ChainInfoItem) => {
-  const { chain, className, label, valueColorSchema = 'default' } = props;
+  const { chains, className, label, valueColorSchema = 'default' } = props;
   const chainInfoMap = useSelector((root: RootState) => root.chainStore.chainInfoMap);
-  const chainInfo = useMemo(() => (chainInfoMap[chain]), [chain, chainInfoMap]);
 
   return (
     <div className={CN(className, '__row -type-chain')}>
@@ -31,17 +30,24 @@ const Component: React.FC<ChainInfoItem> = (props: ChainInfoItem) => {
         )
       }
       <div className={'__col __value-col -to-right'}>
-        <div className={`__chain-item __value -is-wrapper -schema-${valueColorSchema}`}>
-          <Logo
-            className={'__chain-logo'}
-            network={chain}
-            size={24}
-          />
+        {
+          chains.map((chain) => (
+            <div
+              className={`__chain-item __value -is-wrapper -schema-${valueColorSchema}`}
+              key={chain}
+            >
+              <Logo
+                className={'__chain-logo'}
+                network={chain}
+                size={24}
+              />
 
-          <div className={'__chain-name ml-xs'}>
-            {chainInfo?.name}
-          </div>
-        </div>
+              <div className={'__chain-name ml-xs'}>
+                {chainInfoMap[chain]?.name}
+              </div>
+            </div>
+          ))
+        }
       </div>
     </div>
   );

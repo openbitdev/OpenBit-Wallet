@@ -300,7 +300,7 @@ const Component: React.FC<Props> = ({ chainStakingMetadata, className, nominator
         />
 
         <MetaInfo.Chain
-          chain={staking.chain}
+          chains={[staking.chain]}
           label={t('Network')}
         />
       </MetaInfo>

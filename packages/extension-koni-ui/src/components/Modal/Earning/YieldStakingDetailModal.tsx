@@ -324,7 +324,7 @@ const Component: React.FC<Props> = (props: Props) => {
         />
 
         <MetaInfo.Chain
-          chain={yieldPoolInfo.chain}
+          chains={[yieldPoolInfo.chain]}
           label={t('Network')}
         />
       </MetaInfo>

@@ -110,7 +110,7 @@ function Component ({ className = '', data }: Props): React.ReactElement<Props> 
               {
                 !!data.chains && !!data.chains.length && (
                   <MetaInfo.Chain
-                    chain={data.chains[0]}
+                    chains={data.chains}
                     label={t('Network')}
                   />
                 )
@@ -122,7 +122,7 @@ function Component ({ className = '', data }: Props): React.ReactElement<Props> 
                 {status}
               </MetaInfo.Default>
               <MetaInfo.Default
-                className={'-vertical'}
+                className={'-vertical __meta-description'}
                 label={t('Description')}
                 valueColorSchema={'gray'}
               >
@@ -273,6 +273,12 @@ export const MissionDetailModal = styled(Component)<Props>(({ theme: { token } }
         '.__value-col': {
           textAlign: 'left'
         }
+      }
+    },
+
+    '.__meta-description': {
+      '.__value': {
+        'white-space': 'pre-wrap'
       }
     },
 

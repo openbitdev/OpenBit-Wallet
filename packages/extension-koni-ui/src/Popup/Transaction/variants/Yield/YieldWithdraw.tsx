@@ -152,7 +152,7 @@ const Component: React.FC = () => {
               hasBackgroundWrapper={true}
             >
               <MetaInfo.Chain
-                chain={chain}
+                chains={[chain]}
                 label={t('Network')}
               />
               {
