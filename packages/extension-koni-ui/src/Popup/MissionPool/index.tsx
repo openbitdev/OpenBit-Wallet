@@ -292,23 +292,18 @@ const MissionPool = styled(Component)<Props>(({ theme: { token } }: Props) => {
         paddingLeft: 16,
         paddingRight: 16
       },
-
-      '.__tool-area': {
-        '.search-container': {
-          order: 1
-        },
-
-        '.filter-tabs-container': {
-          order: 2
-        }
-      }
     },
 
     '@media (max-width: 767px)': {
       '.__tool-area': {
         gap: token.sizeXS,
 
+        '.filter-tabs-container': {
+          order: 2
+        },
+
         '.search-container': {
+          order: 1,
           minWidth: '100%',
           maxWidth: 'none'
         }

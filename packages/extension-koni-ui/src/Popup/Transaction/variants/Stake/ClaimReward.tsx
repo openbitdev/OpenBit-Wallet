@@ -179,7 +179,7 @@ const Component: React.FC<Props> = (props: Props) => {
                 hasBackgroundWrapper={true}
               >
                 <MetaInfo.Chain
-                  chain={chain}
+                  chains={[chain]}
                   label={t('Network')}
                 />
                 {

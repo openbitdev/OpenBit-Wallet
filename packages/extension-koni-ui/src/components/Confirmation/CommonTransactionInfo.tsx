@@ -41,7 +41,7 @@ const Component: React.FC<Props> = (props: Props) => {
         {toShort(address)}
       </MetaInfo.Default>
       <MetaInfo.Chain
-        chain={network}
+        chains={[network]}
         label={t('Network')}
       />
     </MetaInfo>

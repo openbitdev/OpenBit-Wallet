@@ -110,7 +110,7 @@ function Component ({ className = '', data }: Props): React.ReactElement<Props> 
               {
                 !!data.chains && !!data.chains.length && (
                   <MetaInfo.Chain
-                    chain={data.chains[0]}
+                    chains={data.chains}
                     label={t('Network')}
                   />
                 )

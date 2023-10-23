@@ -120,7 +120,7 @@ const Component: React.FC<Props> = ({ account, className, payload: { era, nonce,
         chainInfo
           ? (
             <MetaInfo.Chain
-              chain={chainInfo.slug}
+              chains={[chainInfo.slug]}
               label={t<string>('Network')}
             />
           )

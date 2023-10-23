@@ -45,7 +45,7 @@ const Component: React.FC<Props> = ({ className, transaction }: Props) => {
           transaction.extrinsicType === ExtrinsicType.TRANSFER_XCM && chainInfo &&
           (
             <MetaInfo.Chain
-              chain={chainInfo.slug}
+              chains={[chainInfo.slug]}
               label={t('Origin network')}
             />
           )
@@ -60,7 +60,7 @@ const Component: React.FC<Props> = ({ className, transaction }: Props) => {
           transaction.extrinsicType === ExtrinsicType.TRANSFER_XCM && chainInfo &&
           (
             <MetaInfo.Chain
-              chain={xcmData.destinationNetworkKey}
+              chains={[xcmData.destinationNetworkKey]}
               label={t('Destination network')}
             />
           )
@@ -70,7 +70,7 @@ const Component: React.FC<Props> = ({ className, transaction }: Props) => {
           transaction.extrinsicType !== ExtrinsicType.TRANSFER_XCM && chainInfo &&
           (
             <MetaInfo.Chain
-              chain={chainInfo.slug}
+              chains={[chainInfo.slug]}
               label={t('Network')}
             />
           )
