@@ -11,7 +11,7 @@ import { getInternalError, getSdkError } from '@walletconnect/utils';
 import { BehaviorSubject } from 'rxjs';
 
 import PolkadotRequestHandler from './handler/PolkadotRequestHandler';
-import { ALL_WALLET_CONNECT_EVENT, DEFAULT_WALLET_CONNECT_OPTIONS, WALLET_CONNECT_SUPPORTED_METHODS } from './constants';
+import { DEFAULT_WALLET_CONNECT_OPTIONS, WALLET_CONNECT_SUPPORTED_METHODS, WALLETCONNECT_CLIENT_EVENTS, WALLETCONNECT_RELAY_EVENTS } from './constants';
 import { convertConnectRequest, convertNotSupportRequest, isSupportWalletConnectChain } from './helpers';
 import { EIP155_SIGNING_METHODS, POLKADOT_SIGNING_METHODS, ResultApproveWalletConnectSession, WalletConnectSigningMethod } from './types';
 
@@ -23,6 +23,7 @@ export default class WalletConnectService {
 
   #client: SignClient | undefined;
   #option: SignClientTypes.Options;
+  #connected = false;
 
   public readonly sessionSubject: BehaviorSubject<SessionTypes.Struct[]> = new BehaviorSubject<SessionTypes.Struct[]>([]);
 
@@ -143,6 +144,21 @@ export default class WalletConnectService {
     }
   }
 
+  #relayConnected () {
+    console.debug('relay connected');
+    this.#connected = true;
+  }
+
+  #relayDisconnect () {
+    console.debug('relay disconnected');
+    this.#connected = false;
+  }
+
+  #relayAutoRetry () {
+    console.debug('relay connection stalled');
+    this.#client?.core.relayer.restartTransport().catch(console.error);
+  }
+
   #createListener () {
     this.#client?.on('session_proposal', this.#onSessionProposal.bind(this));
     this.#client?.on('session_request', this.#onSessionRequest.bind(this));
@@ -150,12 +166,20 @@ export default class WalletConnectService {
     this.#client?.on('session_event', (data) => console.log('event', data));
     this.#client?.on('session_update', (data) => console.log('update', data));
     this.#client?.on('session_delete', this.#updateSessions.bind(this));
+
+    this.#client?.core.relayer.on('relayer_connect', this.#relayConnected.bind(this));
+    this.#client?.core.relayer.on('relayer_disconnect', this.#relayDisconnect.bind(this));
+    this.#client?.core.relayer.on('relayer_connection_stalled', this.#relayAutoRetry.bind(this));
   }
 
   // Remove old listener
   #removeListener () {
-    ALL_WALLET_CONNECT_EVENT.forEach((event) => {
+    WALLETCONNECT_CLIENT_EVENTS.forEach((event) => {
       this.#client?.removeAllListeners(event);
+    });
+
+    WALLETCONNECT_RELAY_EVENTS.forEach((event) => {
+      this.#client?.core.relayer.events.removeAllListeners(event);
     });
   }
 
@@ -182,7 +206,10 @@ export default class WalletConnectService {
 
   public async connect (uri: string) {
     if (!this.#haveData) {
-      await this.#initClient(true);
+      if (!this.#connected) {
+        await this.#initClient(true);
+        this.#connected = true;
+      }
     }
 
     this.#checkClient();

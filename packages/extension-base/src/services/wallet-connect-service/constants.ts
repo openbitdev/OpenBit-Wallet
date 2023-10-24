@@ -21,7 +21,8 @@ export const DEFAULT_WALLET_CONNECT_OPTIONS: SignClientTypes.Options = {
   }
 };
 
-export const ALL_WALLET_CONNECT_EVENT: SignClientTypes.Event[] = ['session_proposal', 'session_update', 'session_extend', 'session_ping', 'session_delete', 'session_expire', 'session_request', 'session_request_sent', 'session_event', 'proposal_expire'];
+export const WALLETCONNECT_CLIENT_EVENTS: SignClientTypes.Event[] = ['session_proposal', 'session_update', 'session_extend', 'session_ping', 'session_delete', 'session_expire', 'session_request', 'session_request_sent', 'session_event', 'proposal_expire'];
+export const WALLETCONNECT_RELAY_EVENTS = ['relayer_connect', 'relayer_disconnect', 'relayer_connection_stalled'];
 
 export const WALLET_CONNECT_SUPPORTED_METHODS: WalletConnectSigningMethod[] = [
   POLKADOT_SIGNING_METHODS.POLKADOT_SIGN_MESSAGE,
