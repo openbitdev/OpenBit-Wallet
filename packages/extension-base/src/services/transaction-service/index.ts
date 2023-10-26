@@ -775,12 +775,13 @@ export default class TransactionService {
 
             const web3Api = this.chainService.getEvmApi(chain).api;
 
+            // Add start info
+            eventData.nonce = txObject.nonce;
+            eventData.startBlock = await web3Api.eth.getBlockNumber() - 3;
+
             // Emit signed event
             emitter.emit('signed', eventData);
 
-            eventData.nonce = txObject.nonce;
-            eventData.startBlock = await web3Api.eth.getBlockNumber() - 3;
-            // Add start info
             emitter.emit('send', eventData); // This event is needed after sending transaction with queue
 
             const txHash = payload;
@@ -863,15 +864,16 @@ export default class TransactionService {
               signedTransaction = signed;
             }
 
+            // Add start info
+            eventData.nonce = txObject.nonce;
+            eventData.startBlock = await web3Api.eth.getBlockNumber();
+
             // Emit signed event
             emitter.emit('signed', eventData);
 
             // Send transaction
             this.handleTransactionTimeout(emitter, eventData);
 
-            // Add start info
-            eventData.nonce = txObject.nonce;
-            eventData.startBlock = await web3Api.eth.getBlockNumber();
             emitter.emit('send', eventData); // This event is needed after sending transaction with queue
             signedTransaction && web3Api.eth.sendSignedTransaction(signedTransaction)
               .once('transactionHash', (hash) => {
@@ -930,14 +932,16 @@ export default class TransactionService {
         }
       } as Signer
     }).then(async (rs) => {
-      // Emit signed event
-      emitter.emit('signed', eventData);
-
-      // Send transaction
       const api = this.chainService.getSubstrateApi(chain);
 
       eventData.nonce = rs.nonce.toNumber();
       eventData.startBlock = (await api.api.query.system.number()).toPrimitive() as number;
+
+      // Emit signed event
+      emitter.emit('signed', eventData);
+
+      // Send transaction
+
       this.handleTransactionTimeout(emitter, eventData);
       emitter.emit('send', eventData); // This event is needed after sending transaction with queue
 
