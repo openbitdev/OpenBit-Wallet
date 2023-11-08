@@ -237,7 +237,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const { chainInfoMap, chainStateMap } = useSelector((root) => root.chainStore);
   const { assetRegistry, assetSettingMap, multiChainAssetMap, xcmRefMap } = useSelector((root) => root.assetRegistry);
   const { accounts, isAllAccount } = useSelector((state: RootState) => state.accountState);
-  const [maxTransfer, setMaxTransfer] = useState<string>('0');
+  const [maxTransfer, setMaxTransfer] = useState<string | null>(null);
+  const [isMaxTransferLoading, setIsMaxTransferLoading] = useState(true);
   const checkAction = usePreCheckAction(from, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
   const isZKModeEnabled = useIsMantaPayEnabled(from);
 
@@ -366,6 +367,15 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Amount is required'));
     }
 
+    if (!maxTransfer) {
+      if (isMaxTransferLoading) {
+        return Promise.resolve();
+      } else {
+        // TODO: Change message
+        return Promise.reject(t('Cannot get balance'));
+      }
+    }
+
     if ((new BN(maxTransfer)).lte(BN_ZERO)) {
       return Promise.reject(t('You don\'t have enough tokens to proceed'));
     }
@@ -381,7 +391,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
 
     return Promise.resolve();
-  }, [decimals, maxTransfer, t]);
+  }, [decimals, isMaxTransferLoading, maxTransfer, t]);
 
   const onValuesChange: FormCallbacks<TransferParams>['onValuesChange'] = useCallback(
     (part: Partial<TransferParams>, values: TransferParams) => {
@@ -516,7 +526,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const onFilterAccountFunc = useMemo(() => filterAccountFunc(chainInfoMap, assetRegistry, multiChainAssetMap, sendFundSlug), [assetRegistry, chainInfoMap, multiChainAssetMap, sendFundSlug]);
 
   const onSetMaxTransferable = useCallback((value: boolean) => {
-    const bnMaxTransfer = new BN(maxTransfer);
+    const bnMaxTransfer = new BN(maxTransfer || '0');
 
     if (!bnMaxTransfer.isZero()) {
       setIsTransferAll(value);
@@ -571,7 +581,23 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   useEffect(() => {
     let cancel = false;
 
+    const validateField = () => {
+      if (!cancel) {
+        const value = form.getFieldValue('value') as string;
+
+        if (value) {
+          setTimeout(() => {
+            form.validateFields(['value']).finally(() => update({}));
+          }, 100);
+        }
+      }
+    };
+
     if (from && asset) {
+      setIsMaxTransferLoading(true);
+      validateField();
+      setMaxTransfer(null);
+
       getMaxTransfer({
         address: from,
         networkKey: assetRegistry[asset].originChain,
@@ -583,18 +609,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           !cancel && setMaxTransfer(balance.value);
         })
         .catch(() => {
-          !cancel && setMaxTransfer('0');
+          !cancel && setMaxTransfer(null);
         })
         .finally(() => {
-          if (!cancel) {
-            const value = form.getFieldValue('value') as string;
-
-            if (value) {
-              setTimeout(() => {
-                form.validateFields(['value']).finally(() => update({}));
-              }, 100);
-            }
-          }
+          setIsMaxTransferLoading(false);
+          validateField();
         });
     }
 
@@ -706,10 +725,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             <AmountInput
               decimals={decimals}
               forceUpdateMaxValue={forceUpdateMaxValue}
-              maxValue={maxTransfer}
+              loading={isMaxTransferLoading}
+              maxValue={maxTransfer || '0'}
               onSetMax={onSetMaxTransferable}
               showMaxButton={true}
-              tooltip={t('Amount')}
+              // TODO: Change waiting message
+              tooltip={isMaxTransferLoading ? t('Waiting to get balance') : t('Amount')}
             />
           </Form.Item>
         </Form>

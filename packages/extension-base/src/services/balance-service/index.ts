@@ -7,6 +7,7 @@ import { subscribeEVMBalance, subscribeSubstrateBalance } from '@subwallet/exten
 import { state } from '@subwallet/extension-base/koni/background/handlers';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { _PURE_EVM_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
+import { _ChainConnectionStatus } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _isChainEvmCompatible, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { categoryAddresses } from '@subwallet/extension-base/utils';
 import { t } from 'i18next';
@@ -33,6 +34,10 @@ export class BalanceService {
 
     if (!chainInfo || !chainState || !chainState.active) {
       return Promise.reject(new BalanceError(BalanceErrorType.NETWORK_ERROR, t('{{chain}} is inactive. Please enable network', { replace: { chain } })));
+    }
+
+    if (chainState.connectionStatus === _ChainConnectionStatus.UNSTABLE || chainState.connectionStatus === _ChainConnectionStatus.DISCONNECTED) {
+      return Promise.reject(new BalanceError(BalanceErrorType.NETWORK_ERROR, t('{{chain}} is disconnect. Please check the network or change provider', { replace: { chain } })));
     }
 
     const tSlug = tokenSlug || _getChainNativeTokenSlug(chainInfo);
