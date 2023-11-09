@@ -72,7 +72,6 @@ const Component: React.FC<Props> = ({ actionBtnIcon,
           placeholder={placeholder}
           prefix={<Icon phosphorIcon={MagnifyingGlass} />}
           size='md'
-          value={searchValue}
           suffix={
             showActionBtn && (
               <Button
@@ -83,6 +82,7 @@ const Component: React.FC<Props> = ({ actionBtnIcon,
               />
             )
           }
+          value={searchValue}
           // onKeyDown={handleKeyDown}
         />
       </div>

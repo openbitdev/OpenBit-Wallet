@@ -8,3 +8,4 @@ export * from './earning';
 export * from './home';
 export * from './nft';
 export * from './staking';
+export * from './history';

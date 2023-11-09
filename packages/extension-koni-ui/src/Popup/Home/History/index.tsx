@@ -5,18 +5,19 @@ import { ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistor
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import { isAccountAll } from '@subwallet/extension-base/utils';
 import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils/address';
-import { EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountSelector, BasicInputEvent, ChainSelector, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { FilterTabItemType, FilterTabs } from '@subwallet/extension-koni-ui/components/FilterTabs';
 import NoContent, { PAGE_TYPE } from '@subwallet/extension-koni-ui/components/NoContent';
-import Search from '@subwallet/extension-koni-ui/components/Search';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
-import { useFilterModal, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
-import { ThemeProps, TransactionHistoryDisplayData, TransactionHistoryDisplayItem } from '@subwallet/extension-koni-ui/types';
+import { useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
+import { cancelSubscription, subscribeTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
+import { ChainItemType, ThemeProps, TransactionHistoryDisplayData, TransactionHistoryDisplayItem } from '@subwallet/extension-koni-ui/types';
 import { customFormatDate, formatHistoryDate, isTypeStaking, isTypeTransfer } from '@subwallet/extension-koni-ui/utils';
-import { Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
-import { Aperture, ArrowDownLeft, ArrowUpRight, Clock, ClockCounterClockwise, Database, FadersHorizontal, Rocket, Spinner } from 'phosphor-react';
+import { ActivityIndicator, Button, ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
+import CN from 'classnames';
+import { Aperture, ArrowDownLeft, ArrowUpRight, ClockCounterClockwise, Database, FadersHorizontal, Rocket, Spinner } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -140,13 +141,51 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const dataContext = useContext(DataContext);
   const { isWebUI } = useContext(ScreenContext);
   const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
-  const { accounts, currentAccount } = useSelector((root) => root.accountState);
-  const { historyList: rawHistoryList } = useSelector((root) => root.transactionHistory);
-  const [searchInput, setSearchInput] = useState<string>('');
+  const { accounts, currentAccount, isAllAccount } = useSelector((root) => root.accountState);
   const { chainInfoMap } = useSelector((root) => root.chainStore);
   const { language } = useSelector((root) => root.settings);
   const [selectedFilterTab, setSelectedFilterTab] = useState<string>(FilterValue.ALL);
   const [listKey, setListKey] = useState<string>(LIST_KEY);
+  const [loading, setLoading] = useState<boolean>(true);
+  const { selectedAddress, selectedChain, setSelectedAddress, setSelectedChain } = useHistorySelection();
+  const [rawHistoryList, setRawHistoryList] = useState<TransactionHistoryItem[]>([]);
+
+  useEffect(() => {
+    let id: string;
+    let isSubscribed = true;
+
+    setLoading(true);
+
+    subscribeTransactionHistory(
+      selectedChain,
+      selectedAddress,
+      (items: TransactionHistoryItem[]) => {
+        if (isSubscribed) {
+          setRawHistoryList(items);
+        }
+      }
+    ).then((res) => {
+      id = res.id;
+
+      if (isSubscribed) {
+        setRawHistoryList(res.items);
+      } else {
+        cancelSubscription(id).catch(console.log);
+      }
+    }).catch((e) => {
+      console.log('subscribeTransactionHistory error:', e);
+    }).finally(() => {
+      setLoading(false);
+    });
+
+    return () => {
+      isSubscribed = false;
+
+      if (id) {
+        cancelSubscription(id).catch(console.log);
+      }
+    };
+  }, [selectedAddress, selectedChain]);
 
   const isActive = checkActive(modalId);
 
@@ -338,7 +377,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     setOpenDetailLink(false);
   }, [inactiveModal]);
 
-  const onClickActionBtn = useCallback(() => {
+  const onClickFilter = useCallback(() => {
     activeModal(FILTER_MODAL_ID);
   }, [activeModal]);
 
@@ -375,18 +414,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [curAdr, currentAccount?.address, inactiveModal]);
 
   const emptyList = useCallback(() => {
-    if (isWebUI) {
-      return <NoContent pageType={PAGE_TYPE.HISTORY} />;
-    }
-
-    return (
-      <EmptyList
-        emptyMessage={t('Your transactions will show up here')}
-        emptyTitle={t('No transactions found')}
-        phosphorIcon={Clock}
-      />
-    );
-  }, [t, isWebUI]);
+    return <NoContent pageType={PAGE_TYPE.HISTORY} />;
+  }, []);
 
   const renderItem = useCallback(
     (item: TransactionHistoryDisplayItem) => {
@@ -400,21 +429,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     },
     [onOpenDetail]
   );
-
-  const searchFunc = useCallback((item: TransactionHistoryItem, searchText: string) => {
-    const searchTextLowerCase = searchText.toLowerCase();
-    const fromName = item.fromName?.toLowerCase();
-    const toName = item.toName?.toLowerCase();
-    const symbol = (item.amount?.symbol || item.fee?.symbol || item.tip?.symbol)?.toLowerCase();
-    const network = chainInfoMap[item.chain]?.name?.toLowerCase();
-
-    return (
-      fromName?.includes(searchTextLowerCase) ||
-        toName?.includes(searchTextLowerCase) ||
-        symbol?.includes(searchTextLowerCase) ||
-        network?.includes(searchTextLowerCase)
-    );
-  }, [chainInfoMap]);
 
   const groupBy = useCallback((item: TransactionHistoryItem) => {
     return formatHistoryDate(item.time, language, 'list');
@@ -481,83 +495,149 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     setListKey(`${LIST_KEY}-${Date.now()}`);
   }, [onApplyFilter]);
 
-  const listSection = useMemo(() => {
-    if (isWebUI) {
-      return (
-        <div className='web-list'>
-          <div className='web-list-tool-area'>
-            <FilterTabs
-              className={'filter-tabs-container'}
-              items={filterTabItems}
-              onSelect={onSelectFilterTab}
-              selectedItem={selectedFilterTab}
-            />
+  const chainItems = useMemo<ChainItemType[]>(() => {
+    return Object.values(chainInfoMap).map((c) => ({
+      name: c.name,
+      slug: c.slug
+    }));
+  }, [chainInfoMap]);
 
-            <Search
-              actionBtnIcon={<Icon phosphorIcon={FadersHorizontal} />}
-              onClickActionBtn={onClickActionBtn}
-              onSearch={setSearchInput}
-              placeholder={'Chain, Address, Type,...'}
-              searchValue={searchInput}
-              showActionBtn
-            />
-          </div>
-          <SwList
-            filterBy={webUiFilterFunction}
-            groupBy={groupBy}
-            groupSeparator={groupSeparator}
-            key={listKey}
-            list={historyList}
-            renderItem={renderItem}
-            renderOnScroll={true}
-            renderWhenEmpty={emptyList}
-            searchBy={searchFunc}
-            searchMinCharactersCount={2}
-            searchTerm={searchInput}
-          />
-        </div>
-      );
-    }
+  const onSelectAccount = useCallback((event: BasicInputEvent) => {
+    setSelectedAddress(event.target.value);
+  }, [setSelectedAddress]);
 
+  const onSelectChain = useCallback((event: BasicInputEvent) => {
+    setSelectedChain(event.target.value);
+  }, [setSelectedChain]);
+
+  const historySelectorsNode = useMemo(() => {
     return (
-      <SwList.Section
-        actionBtnIcon={<Icon phosphorIcon={FadersHorizontal} />}
-        autoFocusSearch={false}
-        enableSearchInput
-        filterBy={filterFunction}
-        groupBy={groupBy}
-        groupSeparator={groupSeparator}
-        list={historyList}
-        onClickActionBtn={onClickActionBtn}
-        renderItem={renderItem}
-        renderOnScroll={true}
-        renderWhenEmpty={emptyList}
-        searchFunction={searchFunc}
-        searchMinCharactersCount={2}
-        searchPlaceholder={t<string>('Search history')}
-        showActionBtn
-      />
+      <>
+        {
+          isAllAccount && (
+            <AccountSelector
+              className={'__history-address-selector'}
+              onChange={onSelectAccount}
+              value={selectedAddress}
+            />
+          )
+        }
+
+        <ChainSelector
+          className={'__history-chain-selector'}
+          items={chainItems}
+          onChange={onSelectChain}
+          title={t('Select chain')}
+          value={selectedChain}
+        />
+      </>
     );
-  }, [emptyList, filterFunction, filterTabItems, groupBy, groupSeparator, historyList, isWebUI, listKey, onClickActionBtn, onSelectFilterTab, renderItem, searchFunc, searchInput, selectedFilterTab, t, webUiFilterFunction]);
+  }, [chainItems, onSelectAccount, onSelectChain, selectedAddress, selectedChain, t, isAllAccount]);
+
+  const listSection = useMemo(() => {
+    return (
+      <>
+        {
+          isWebUI && (
+            <div className={'__page-tool-area-desktop'}>
+              <FilterTabs
+                className={'__page-filter-tabs-container'}
+                items={filterTabItems}
+                onSelect={onSelectFilterTab}
+                selectedItem={selectedFilterTab}
+              />
+
+              <div className={'__page-selection-area'}>
+                <Button
+                  icon={(
+                    <Icon
+                      phosphorIcon={FadersHorizontal}
+                    />
+                  )}
+                  onClick={onClickFilter}
+                  size={'xs'}
+                  type={'ghost'}
+                />
+                {historySelectorsNode}
+              </div>
+            </div>
+          )
+        }
+        {
+          !isWebUI && (
+            <div className={'__page-tool-area-mobile'}>
+              {historySelectorsNode}
+            </div>
+          )
+        }
+        <div className={'__page-list-area'}>
+          {loading && (
+            <div className={'__loading-area'}>
+              <ActivityIndicator
+                loading={true}
+                size={32}
+              />
+            </div>
+          )}
+
+          {!loading && (
+            <SwList
+              filterBy={isWebUI ? webUiFilterFunction : filterFunction}
+              groupBy={groupBy}
+              groupSeparator={groupSeparator}
+              key={listKey}
+              list={historyList}
+              renderItem={renderItem}
+              renderOnScroll={true}
+              renderWhenEmpty={emptyList}
+            />
+          )}
+        </div>
+      </>
+    );
+  }, [isWebUI, filterFunction, groupBy, groupSeparator, historyList, renderItem, emptyList, filterTabItems, onSelectFilterTab, selectedFilterTab, onClickFilter, historySelectorsNode, loading, webUiFilterFunction, listKey]);
+
+  const headerIcons = useMemo<ButtonProps[]>(() => {
+    return [
+      {
+        icon: (
+          <Icon
+            customSize={'24px'}
+            phosphorIcon={FadersHorizontal}
+            type='phosphor'
+          />
+        ),
+        onClick: onClickFilter
+      }
+    ];
+  }, [onClickFilter]);
 
   return (
     <>
       <PageWrapper
-        className={`history ${className}`}
-        resolve={dataContext.awaitStores(['transactionHistory', 'price'])}
+        className={CN(`history ${className}`, {
+          '-desktop': isWebUI,
+          '-mobile': !isWebUI
+        })}
+        resolve={dataContext.awaitStores(['price'])}
       >
         <Layout.Base
           title={t('History')}
         >
           {!isWebUI && (
-            <SwSubHeader
-              background={'transparent'}
-              center={false}
-              className={'history-header'}
-              paddingVertical
-              showBackButton={false}
-              title={t('History')}
-            />
+            <>
+              <SwSubHeader
+                background={'transparent'}
+                center={false}
+                className={'history-header'}
+                paddingVertical
+                rightButtons={headerIcons}
+                showBackButton={false}
+                title={t('History')}
+              />
+
+              <div className={'__page-background'}></div>
+            </>
           )}
 
           {listSection}
@@ -581,33 +661,98 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   );
 }
 
-const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const History = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
   return ({
     display: 'flex',
     flexDirection: 'column',
 
-    '.web-list': {
-      flex: 1,
-      height: '100%',
+    '.__page-tool-area-desktop': {
       display: 'flex',
-      flexDirection: 'column',
+      marginBottom: 24
+    },
 
-      '.web-list-tool-area': {
-        display: 'flex',
-        gap: token.size,
-        alignItems: 'center'
+    '.__page-background': {
+      position: 'relative',
+      zIndex: 1,
+
+      '&:before': {
+        content: '""',
+        display: 'block',
+        height: 190,
+        top: 0,
+        left: 0,
+        right: 0,
+        position: 'absolute',
+        background: 'linear-gradient(180deg, rgba(76, 234, 172, 0.10) 0%, rgba(76, 234, 172, 0.00) 94.17%)'
+      }
+    },
+
+    '.__page-tool-area-mobile': {
+      display: 'flex',
+      padding: token.padding,
+      borderBottomLeftRadius: token.size,
+      borderBottomRightRadius: token.size,
+      backgroundColor: token.colorBgDefault,
+      gap: token.sizeSM,
+      position: 'relative',
+      zIndex: 2,
+
+      '.__history-address-selector, .__history-chain-selector': {
+        height: 40,
+        flex: 1,
+        borderRadius: 32,
+        overflow: 'hidden',
+
+        '&:before': {
+          display: 'none'
+        },
+
+        '.ant-select-modal-input-wrapper': {
+          paddingLeft: token.padding,
+          paddingRight: token.padding
+        }
+      }
+    },
+
+    '.__loading-area': { display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center', height: '100%' },
+
+    '.__page-selection-area': {
+      display: 'flex',
+      flex: 1,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      gap: token.sizeXS,
+
+      '.__history-address-selector, .__history-chain-selector': {
+        height: 48
       },
 
-      '.ant-sw-list': {
-        overflow: 'auto',
-        marginTop: 24,
-        flex: 1
+      '.__history-address-selector': {
+        maxWidth: 280
+      },
+
+      '.__history-chain-selector': {
+        maxWidth: 244
       }
+    },
+
+    '.__page-list-area': {
+      flex: 1,
+      overflow: 'auto',
+      position: 'relative',
+      zIndex: 2
+    },
+
+    '.ant-sw-list': {
+      height: '100%',
+      overflow: 'auto',
+      paddingBottom: token.padding
     },
 
     '.ant-sw-screen-layout-body': {
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      overflow: 'hidden'
     },
 
     '.history-header.ant-sw-sub-header-container': {
@@ -629,6 +774,13 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
       color: token.colorTextLight3,
       fontWeight: token.headingFontWeight,
       marginBottom: token.marginXS
+    },
+
+    '&.-mobile': {
+      '.ant-sw-list': {
+        paddingLeft: token.padding,
+        paddingRight: token.padding
+      }
     }
   });
 });

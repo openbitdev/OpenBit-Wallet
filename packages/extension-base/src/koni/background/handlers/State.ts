@@ -15,7 +15,7 @@ import CampaignService from '@subwallet/extension-base/services/campaign-service
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _PREDEFINED_SINGLE_MODES } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest } from '@subwallet/extension-base/services/chain-service/types';
-import { _getEvmChainId, _getSubstrateGenesisHash, _getSubstrateParaId, _getSubstrateRelayParent, _getTokenOnChainAssetId, _isAssetFungibleToken, _isChainEnabled, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getEvmChainId, _getSubstrateGenesisHash, _getTokenOnChainAssetId, _isAssetFungibleToken, _isChainEnabled, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { HistoryService } from '@subwallet/extension-base/services/history-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
@@ -154,7 +154,7 @@ export default class KoniState {
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this.chainService);
-    this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService);
+    this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.subscanService);
     this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.migrationService = new MigrationService(this, this.eventService);
     this.campaignService = new CampaignService(this);

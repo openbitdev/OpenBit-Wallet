@@ -4,7 +4,7 @@
 import type { WindowOpenParams } from '@subwallet/extension-base/background/types';
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { BalanceJson, ConfirmationsQueue, CronReloadRequest, CrowdloanJson, Notification, PriceJson, RequestGetTransaction, RequestParseEvmContractInput, RequestSubscribeBalance, RequestSubscribeCrowdloan, RequestSubscribePrice, ResponseParseEvmContractInput, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { BalanceJson, ConfirmationsQueue, CronReloadRequest, CrowdloanJson, Notification, PriceJson, RequestGetTransaction, RequestParseEvmContractInput, RequestSubscribeBalance, RequestSubscribeCrowdloan, RequestSubscribePrice, ResponseParseEvmContractInput, ResponseSubscribeHistory, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { sendMessage } from '@subwallet/extension-koni-ui/messaging/base';
@@ -87,6 +87,10 @@ export async function getCrowdloanContributions (relayChain: string, address: st
   return sendMessage('pri(crowdloan.getCrowdloanContributions)', { relayChain,
     address,
     page });
+}
+
+export async function subscribeTransactionHistory (chain: string, address: string, callback: (items: TransactionHistoryItem[]) => void): Promise<ResponseSubscribeHistory> {
+  return sendMessage('pri(transaction.history.subscribe)', { address, chain }, callback);
 }
 
 export * from './accounts';

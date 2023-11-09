@@ -3,8 +3,10 @@
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import SUBSCAN_CHAIN_MAP from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
-import { CrowdloanContributionsResponse, IMultiChainBalance, SubscanRequest, SubscanResponse } from '@subwallet/extension-base/services/subscan-service/types';
+import { CrowdloanContributionsResponse, ExtrinsicItem, ExtrinsicsListResponse, IMultiChainBalance, SubscanRequest, SubscanResponse, TransferItem, TransfersListResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import fetch from 'cross-fetch';
+
+const QUERY_ROW = 100;
 
 export class SubscanService {
   private limitRate = 2; // limit per interval check
@@ -120,7 +122,7 @@ export class SubscanService {
       const rs = await this.postRequest(this.getApiUrl(relayChain, 'api/scan/account/contributions'), {
         include_total: true,
         page,
-        row: 100,
+        row: QUERY_ROW,
         who: address
       });
 
@@ -132,5 +134,93 @@ export class SubscanService {
 
       return jsonData.data;
     });
+  }
+
+  public getExtrinsicsList (chain: string, address: string, page = 0): Promise<ExtrinsicsListResponse> {
+    return this.addRequest<ExtrinsicsListResponse>(async () => {
+      const rs = await this.postRequest(this.getApiUrl(chain, 'api/scan/extrinsics'), {
+        page,
+        row: QUERY_ROW,
+        address
+      });
+
+      if (rs.status !== 200) {
+        throw new SWError('SubscanService.getExtrinsicsList', await rs.text());
+      }
+
+      const jsonData = (await rs.json()) as SubscanResponse<ExtrinsicsListResponse>;
+
+      return jsonData.data;
+    });
+  }
+
+  public async getAllExtrinsicItems (chain: string, address: string): Promise<ExtrinsicItem[]> {
+    let currentPage = 0;
+    const result: ExtrinsicItem[] = [];
+
+    while (true) {
+      try {
+        const res = await this.getExtrinsicsList(chain, address, currentPage);
+
+        if (res.extrinsics) {
+          result.push(...res.extrinsics);
+          ++currentPage;
+
+          if (result.length === res.count) {
+            break;
+          }
+        } else {
+          break;
+        }
+      } catch (e) {
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  public getTransfersList (chain: string, address: string, page = 0): Promise<TransfersListResponse> {
+    return this.addRequest<TransfersListResponse>(async () => {
+      const rs = await this.postRequest(this.getApiUrl(chain, 'api/v2/scan/transfers'), {
+        page,
+        row: QUERY_ROW,
+        address
+      });
+
+      if (rs.status !== 200) {
+        throw new SWError('SubscanService.getTransfersList', await rs.text());
+      }
+
+      const jsonData = (await rs.json()) as SubscanResponse<TransfersListResponse>;
+
+      return jsonData.data;
+    });
+  }
+
+  public async getAllTransferItems (chain: string, address: string): Promise<TransferItem[]> {
+    let currentPage = 0;
+    const result: TransferItem[] = [];
+
+    while (true) {
+      try {
+        const res = await this.getTransfersList(chain, address, currentPage);
+
+        if (res.transfers) {
+          result.push(...res.transfers);
+          ++currentPage;
+
+          if (result.length === res.count) {
+            break;
+          }
+        } else {
+          break;
+        }
+      } catch (e) {
+        break;
+      }
+    }
+
+    return result;
   }
 }
