@@ -3,7 +3,7 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainType, ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
-import { extrinsicParser, getExtrinsicParserKey, supportedExtrinsicParser } from '@subwallet/extension-base/services/history-service/extrinsic-parser';
+import { getExtrinsicParserKey, subscanExtrinsicParserMap, supportedExtrinsicParser } from '@subwallet/extension-base/services/history-service/helpers/subscan-extrinsic-parser-helper';
 import { ExtrinsicItem, TransferItem } from '@subwallet/extension-base/services/subscan-service/types';
 
 import { decodeAddress, encodeAddress, isEthereumAddress } from '@polkadot/util-crypto';
@@ -22,7 +22,13 @@ function autoFormatAddress (address: string): string {
   }
 }
 
-export function parseSubscanExtrinsicData (address: string, extrinsicItem: ExtrinsicItem, chainInfo: _ChainInfo): TransactionHistoryItem {
+export function parseSubscanExtrinsicData (address: string, extrinsicItem: ExtrinsicItem, chainInfo: _ChainInfo): TransactionHistoryItem | null {
+  const extrinsicParserKey = getExtrinsicParserKey(extrinsicItem);
+
+  if (!supportedExtrinsicParser.includes(extrinsicParserKey)) {
+    return null;
+  }
+
   const chainType = chainInfo.substrateInfo ? ChainType.SUBSTRATE : ChainType.EVM;
   const nativeDecimals = chainInfo.substrateInfo?.decimals || chainInfo.evmInfo?.decimals || 18;
   const nativeSymbol = chainInfo.substrateInfo?.symbol || chainInfo.evmInfo?.symbol || '';
@@ -58,13 +64,13 @@ export function parseSubscanExtrinsicData (address: string, extrinsicItem: Extri
     nonce: extrinsicItem.nonce
   };
 
-  const extrinsicParserKey = getExtrinsicParserKey(extrinsicItem);
+  try {
+    return subscanExtrinsicParserMap[extrinsicParserKey](initData);
+  } catch (e) {
+    console.log('parseSubscanExtrinsicData error:', e, initData);
 
-  if (supportedExtrinsicParser.includes(extrinsicParserKey)) {
-    return extrinsicParser[extrinsicParserKey](initData);
+    return null;
   }
-
-  return initData;
 }
 
 export function parseSubscanTransferData (address: string, transferItem: TransferItem, chainInfo: _ChainInfo): TransactionHistoryItem {

@@ -6,8 +6,8 @@ import { CRON_RECOVER_HISTORY_INTERVAL } from '@subwallet/extension-base/constan
 import { PersistDataServiceInterface, ServiceStatus, StoppableServiceInterface } from '@subwallet/extension-base/services/base/types';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { EventService } from '@subwallet/extension-base/services/event-service';
-import { getExtrinsicParserKey, supportedExtrinsicParser } from '@subwallet/extension-base/services/history-service/extrinsic-parser';
 import { historyRecover, HistoryRecoverStatus } from '@subwallet/extension-base/services/history-service/helpers/recoverHistoryStatus';
+import { getExtrinsicParserKey } from '@subwallet/extension-base/services/history-service/helpers/subscan-extrinsic-parser-helper';
 import { parseSubscanExtrinsicData, parseSubscanTransferData } from '@subwallet/extension-base/services/history-service/subscan-history';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -93,18 +93,29 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
   private async fetchSubscanTransactionHistory (chain: string, address: string) {
     const result: TransactionHistoryItem[] = [];
 
+    if (!SUBSCAN_CHAIN_MAP[chain]) {
+      return result;
+    }
+
     // todo: optimise this: reduce unnessary query
     const extrinsicItems = await this.subscanService.getAllExtrinsicItems(chain, address);
     const transferItems = await this.subscanService.getAllTransferItems(chain, address);
     const chainInfo = this.chainService.getChainInfoByKey(chain);
 
     const excludeTransferExtrinsicHash: string[] = [];
+    const excludeExtrinsicParserKeys: string[] = [
+      'balances.transfer_all'
+    ];
 
     extrinsicItems.forEach((x) => {
-      excludeTransferExtrinsicHash.push(x.extrinsic_hash);
+      if (!excludeExtrinsicParserKeys.includes(getExtrinsicParserKey(x))) {
+        excludeTransferExtrinsicHash.push(x.extrinsic_hash);
+      }
 
-      if (supportedExtrinsicParser.includes(getExtrinsicParserKey(x))) {
-        result.push(parseSubscanExtrinsicData(address, x, chainInfo));
+      const item = parseSubscanExtrinsicData(address, x, chainInfo);
+
+      if (item) {
+        result.push(item);
       }
     });
 
@@ -127,13 +138,16 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
       historySubject.next(items.filter(filterHistoryItemByAddressAndChain(chain, _address)));
     });
 
-    if (SUBSCAN_CHAIN_MAP[chain]) {
-      await this.fetchSubscanTransactionHistory(chain, _address);
-    }
+    await this.fetchSubscanTransactionHistory(chain, _address);
 
-    return historySubject.subscribe((items) => {
+    const subscription = historySubject.subscribe((items) => {
       cb(items);
     });
+
+    return {
+      unsubscribe: subscription.unsubscribe,
+      value: this.historySubject.getValue().filter(filterHistoryItemByAddressAndChain(chain, _address))
+    };
   }
 
   async updateHistories (chain: string, extrinsicHash: string, updateData: Partial<TransactionHistoryItem>) {

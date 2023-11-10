@@ -1596,20 +1596,17 @@ export default class KoniExtension {
   private async subscribeHistoryByChainAndAddress ({ address, chain }: RequestSubscribeHistory, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeHistory> {
     const cb = createSubscription<'pri(transaction.history.subscribe)'>(id, port);
 
-    const historySubject = await this.#koniState.historyService.getHistorySubject();
-    const subscription = await this.#koniState.historyService.subscribeHistories(chain, address, cb);
+    const subscribeHistoriesResponse = await this.#koniState.historyService.subscribeHistories(chain, address, cb);
 
-    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+    this.createUnsubscriptionHandle(id, subscribeHistoriesResponse.unsubscribe);
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
     });
 
-    const _address = reformatAddress(address);
-
     return {
       id,
-      items: historySubject.getValue().filter((v) => v.chain === chain && v.address === _address)
+      items: subscribeHistoriesResponse.value
     };
   }
 

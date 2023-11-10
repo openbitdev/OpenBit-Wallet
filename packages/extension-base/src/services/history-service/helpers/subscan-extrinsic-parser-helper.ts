@@ -6,7 +6,7 @@ import { ExtrinsicItem, ExtrinsicParam } from '@subwallet/extension-base/service
 
 import { encodeAddress } from '@polkadot/util-crypto';
 
-export type ExtrinsicParserFunction = (item: TransactionHistoryItem) => TransactionHistoryItem;
+export type ExtrinsicParserFunction = (item: TransactionHistoryItem) => TransactionHistoryItem | null;
 
 export function getExtrinsicParserKey (extrinsicItem: ExtrinsicItem) {
   return `${extrinsicItem.call_module}.${extrinsicItem.call_module_function}`;
@@ -20,13 +20,17 @@ function paramJsonParse (item: TransactionHistoryItem): ExtrinsicParam[] {
   }
 }
 
-function balanceTransferParserFunction (item: TransactionHistoryItem): TransactionHistoryItem {
+function balanceTransferParserFunction (item: TransactionHistoryItem): TransactionHistoryItem | null {
   const params: ExtrinsicParam[] = paramJsonParse(item);
 
   params.forEach((p) => {
     if (p.name === 'dest') {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      item.to = encodeAddress((p.value.id || p.value.Id) as string, 42);
+      const toPublicKey = (p.value.id || p.value.Id) as string;
+
+      if (toPublicKey) {
+        item.to = encodeAddress(toPublicKey, 42);
+      }
     } else if (p.name === 'value') {
       if (item.amount) {
         item.amount.value = p.value as string;
@@ -34,13 +38,18 @@ function balanceTransferParserFunction (item: TransactionHistoryItem): Transacti
     }
   });
 
+  if (!item.to) {
+    return null;
+  }
+
   return item;
 }
 
-export const extrinsicParser: Record<string, ExtrinsicParserFunction> = {
+// todo: will support other type later
+export const subscanExtrinsicParserMap: Record<string, ExtrinsicParserFunction> = {
   'balances.transfer': balanceTransferParserFunction,
   'balances.transfer_keep_alive': balanceTransferParserFunction,
   'balances.transfer_allow_death': balanceTransferParserFunction
 };
 
-export const supportedExtrinsicParser = Object.keys(extrinsicParser);
+export const supportedExtrinsicParser = Object.keys(subscanExtrinsicParserMap);
