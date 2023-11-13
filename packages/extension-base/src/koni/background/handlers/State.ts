@@ -28,7 +28,7 @@ import { AuthUrls, MetaRequest, SignRequest } from '@subwallet/extension-base/se
 import SettingService from '@subwallet/extension-base/services/setting-service/SettingService';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import { SubscanService } from '@subwallet/extension-base/services/subscan-service';
-import { SUBSCAN_CHAIN_MAP_REVERSE } from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
+import SUBSCAN_CHAIN_MAP, { SUBSCAN_CHAIN_MAP_REVERSE } from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
 import TransactionService from '@subwallet/extension-base/services/transaction-service';
 import { TransactionEventResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
@@ -140,16 +140,18 @@ export default class KoniState {
   private waitSleeping: Promise<void> | null = null;
   private waitStarting: Promise<void> | null = null;
 
+  private subscanChainMapReverse: Record<string, string> = SUBSCAN_CHAIN_MAP_REVERSE;
+
   constructor (providers: Providers = {}) {
     this.providers = providers;
 
     this.eventService = new EventService();
     this.dbService = new DatabaseService(this.eventService);
     this.keyringService = new KeyringService(this.eventService);
-    this.subscanService = new SubscanService();
 
     this.notificationService = new NotificationService();
     this.chainService = new ChainService(this.dbService, this.eventService);
+    this.subscanService = new SubscanService(SUBSCAN_CHAIN_MAP);
     this.settingService = new SettingService();
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
@@ -291,9 +293,15 @@ export default class KoniState {
     return balanceMap;
   }
 
+  private afterChainServiceInit () {
+    this.subscanService.setSubscanChainMap(this.chainService.getSubscanChainMap());
+    this.subscanChainMapReverse = this.chainService.getSubscanChainMap(true);
+  }
+
   public async init () {
     await this.eventService.waitCryptoReady;
     await this.chainService.init();
+    this.afterChainServiceInit();
     await this.migrationService.run();
     this.eventService.emit('chain.ready', true);
 
@@ -1801,7 +1809,7 @@ export default class KoniState {
 
     balanceDataList.forEach((balanceData) => {
       balanceData && balanceData.forEach(({ balance, bonded, category, locked, network, symbol }) => {
-        const chain = SUBSCAN_CHAIN_MAP_REVERSE[network];
+        const chain = this.subscanChainMapReverse[network];
         const chainInfo = chain ? chainMap[chain] : null;
         const balanceIsEmpty = (!balance || balance === '0') && (!locked || locked === '0') && (!bonded || bonded === '0');
 
@@ -1894,6 +1902,7 @@ export default class KoniState {
     await this.walletConnectService.resetWallet(resetAll);
 
     await this.chainService.init();
+    this.afterChainServiceInit();
   }
 
   public async enableMantaPay (updateStore: boolean, address: string, password: string, seedPhrase?: string) {

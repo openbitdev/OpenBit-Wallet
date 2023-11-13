@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import SUBSCAN_CHAIN_MAP from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
 import { CrowdloanContributionsResponse, ExtrinsicItem, ExtrinsicsListResponse, IMultiChainBalance, SubscanRequest, SubscanResponse, TransferItem, TransfersListResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import fetch from 'cross-fetch';
 
@@ -19,14 +18,14 @@ export class SubscanService {
     return this.nextId++;
   }
 
-  constructor (options?: {limitRate?: number, intervalCheck?: number, maxRetry?: number}) {
+  constructor (private subscanChainMap: Record<string, string>, options?: {limitRate?: number, intervalCheck?: number, maxRetry?: number}) {
     this.limitRate = options?.limitRate || this.limitRate;
     this.intervalCheck = options?.intervalCheck || this.intervalCheck;
     this.maxRetry = options?.maxRetry || this.maxRetry;
   }
 
   private getApiUrl (chain: string, path: string) {
-    const subscanChain = SUBSCAN_CHAIN_MAP[chain];
+    const subscanChain = this.subscanChainMap[chain];
 
     if (!subscanChain) {
       throw new SWError('NOT_SUPPORTED', 'Chain is not supported');
@@ -102,6 +101,14 @@ export class SubscanService {
     }, this.intervalCheck);
   }
 
+  public checkSupportedSubscanChain (chain: string): boolean {
+    return !!this.subscanChainMap[chain];
+  }
+
+  public setSubscanChainMap (subscanChainMap: Record<string, string>) {
+    this.subscanChainMap = subscanChainMap;
+  }
+
   // Implement Subscan API
   public getMultiChainBalance (address: string): Promise<IMultiChainBalance[]> {
     return this.addRequest(async () => {
@@ -166,7 +173,7 @@ export class SubscanService {
           result.push(...res.extrinsics);
           ++currentPage;
 
-          if (result.length === res.count) {
+          if (result.length >= res.count) {
             break;
           }
         } else {
@@ -210,7 +217,7 @@ export class SubscanService {
           result.push(...res.transfers);
           ++currentPage;
 
-          if (result.length === res.count) {
+          if (result.length >= res.count) {
             break;
           }
         } else {

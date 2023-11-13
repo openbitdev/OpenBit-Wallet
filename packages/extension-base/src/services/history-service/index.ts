@@ -12,7 +12,6 @@ import { parseSubscanExtrinsicData, parseSubscanTransferData } from '@subwallet/
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import { SubscanService } from '@subwallet/extension-base/services/subscan-service';
-import SUBSCAN_CHAIN_MAP from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
 import { reformatAddress } from '@subwallet/extension-base/utils';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { keyring } from '@subwallet/ui-keyring';
@@ -93,7 +92,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
   private async fetchSubscanTransactionHistory (chain: string, address: string) {
     const result: TransactionHistoryItem[] = [];
 
-    if (!SUBSCAN_CHAIN_MAP[chain]) {
+    if (!this.subscanService.checkSupportedSubscanChain(chain)) {
       return result;
     }
 
