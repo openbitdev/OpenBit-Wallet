@@ -40,3 +40,7 @@ export type BuyTokensParam = {
 export type CrowdloanContributionsResultParam = {
   address: string,
 };
+
+export type TransactionDoneParam = {
+  address: string,
+};

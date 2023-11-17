@@ -3,6 +3,7 @@
 
 import { ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
+import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { isAccountAll } from '@subwallet/extension-base/utils';
 import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils/address';
 import { AccountSelector, BasicInputEvent, ChainSelector, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
@@ -22,6 +23,8 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+
+import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { HistoryDetailModal } from './Detail';
 
@@ -147,45 +150,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [selectedFilterTab, setSelectedFilterTab] = useState<string>(FilterValue.ALL);
   const [listKey, setListKey] = useState<string>(LIST_KEY);
   const [loading, setLoading] = useState<boolean>(true);
-  const { selectedAddress, selectedChain, setSelectedAddress, setSelectedChain } = useHistorySelection();
   const [rawHistoryList, setRawHistoryList] = useState<TransactionHistoryItem[]>([]);
-
-  useEffect(() => {
-    let id: string;
-    let isSubscribed = true;
-
-    setLoading(true);
-
-    subscribeTransactionHistory(
-      selectedChain,
-      selectedAddress,
-      (items: TransactionHistoryItem[]) => {
-        if (isSubscribed) {
-          setRawHistoryList(items);
-        }
-      }
-    ).then((res) => {
-      id = res.id;
-
-      if (isSubscribed) {
-        setRawHistoryList(res.items);
-      } else {
-        cancelSubscription(id).catch(console.log);
-      }
-    }).catch((e) => {
-      console.log('subscribeTransactionHistory error:', e);
-    }).finally(() => {
-      setLoading(false);
-    });
-
-    return () => {
-      isSubscribed = false;
-
-      if (id) {
-        cancelSubscription(id).catch(console.log);
-      }
-    };
-  }, [selectedAddress, selectedChain]);
 
   const isActive = checkActive(modalId);
 
@@ -413,6 +378,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }
   }, [curAdr, currentAccount?.address, inactiveModal]);
 
+  const { selectedAddress, selectedChain, setSelectedAddress, setSelectedChain } = useHistorySelection();
+
   const emptyList = useCallback(() => {
     return <NoContent pageType={PAGE_TYPE.HISTORY} />;
   }, []);
@@ -496,11 +463,23 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [onApplyFilter]);
 
   const chainItems = useMemo<ChainItemType[]>(() => {
-    return Object.values(chainInfoMap).map((c) => ({
-      name: c.name,
-      slug: c.slug
-    }));
-  }, [chainInfoMap]);
+    if (!selectedAddress) {
+      return [];
+    }
+
+    const result: ChainItemType[] = [];
+
+    Object.values(chainInfoMap).forEach((c) => {
+      if (_isChainEvmCompatible(c) === isEthereumAddress(selectedAddress)) {
+        result.push({
+          name: c.name,
+          slug: c.slug
+        });
+      }
+    });
+
+    return result;
+  }, [chainInfoMap, selectedAddress]);
 
   const onSelectAccount = useCallback((event: BasicInputEvent) => {
     setSelectedAddress(event.target.value);
@@ -611,6 +590,57 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       }
     ];
   }, [onClickFilter]);
+
+  useEffect(() => {
+    let id: string;
+    let isSubscribed = true;
+
+    setLoading(true);
+
+    subscribeTransactionHistory(
+      selectedChain,
+      selectedAddress,
+      (items: TransactionHistoryItem[]) => {
+        if (isSubscribed) {
+          setRawHistoryList(items);
+        }
+      }
+    ).then((res) => {
+      id = res.id;
+
+      if (isSubscribed) {
+        setRawHistoryList(res.items);
+      } else {
+        cancelSubscription(id).catch(console.log);
+      }
+    }).catch((e) => {
+      console.log('subscribeTransactionHistory error:', e);
+    }).finally(() => {
+      setLoading(false);
+    });
+
+    return () => {
+      isSubscribed = false;
+
+      if (id) {
+        cancelSubscription(id).catch(console.log);
+      }
+    };
+  }, [selectedAddress, selectedChain]);
+
+  useEffect(() => {
+    if (chainItems.length) {
+      setSelectedChain((prevChain) => {
+        if (prevChain && chainInfoMap[prevChain]) {
+          if (_isChainEvmCompatible(chainInfoMap[prevChain]) === isEthereumAddress(selectedAddress)) {
+            return prevChain;
+          }
+        }
+
+        return chainItems[0].slug;
+      });
+    }
+  }, [chainInfoMap, chainItems, selectedAddress, setSelectedChain]);
 
   return (
     <>

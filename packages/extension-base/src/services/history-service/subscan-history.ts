@@ -45,7 +45,7 @@ export function parseSubscanExtrinsicData (address: string, extrinsicItem: Extri
     blockNumber: extrinsicItem.block_num,
     blockHash: '',
     chain: chainInfo.slug,
-    type: ExtrinsicType.TRANSFER_BALANCE,
+    type: ExtrinsicType.UNKNOWN,
     to: '',
     toName: undefined,
     extrinsicHash: extrinsicItem.extrinsic_hash,

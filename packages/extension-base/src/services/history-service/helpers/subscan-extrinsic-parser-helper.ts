@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { ExtrinsicType, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { ExtrinsicItem, ExtrinsicParam } from '@subwallet/extension-base/services/subscan-service/types';
 
 import { encodeAddress } from '@polkadot/util-crypto';
@@ -37,6 +37,8 @@ function balanceTransferParserFunction (item: TransactionHistoryItem): Transacti
       }
     }
   });
+
+  item.type = ExtrinsicType.TRANSFER_BALANCE;
 
   if (!item.to) {
     return null;
