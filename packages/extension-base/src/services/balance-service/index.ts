@@ -36,10 +36,6 @@ export class BalanceService {
       return Promise.reject(new BalanceError(BalanceErrorType.NETWORK_ERROR, t('{{chain}} is inactive. Please enable network', { replace: { chain } })));
     }
 
-    if (chainState.connectionStatus === _ChainConnectionStatus.UNSTABLE || chainState.connectionStatus === _ChainConnectionStatus.DISCONNECTED) {
-      return Promise.reject(new BalanceError(BalanceErrorType.NETWORK_ERROR, t('{{chain}} is disconnect. Please check the network or change provider', { replace: { chain } })));
-    }
-
     const tSlug = tokenSlug || _getChainNativeTokenSlug(chainInfo);
     const tokenInfo = this.chainService.getAssetBySlug(tSlug);
 
