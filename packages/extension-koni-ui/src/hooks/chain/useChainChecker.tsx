@@ -7,7 +7,7 @@ import { CHAIN_CONNECT_STATUS_NEED_CHECK } from '@subwallet/extension-koni-ui/co
 import { enableChain } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Button } from '@subwallet/react-ui';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import { useNotification, useTranslation } from '../common';
@@ -19,6 +19,8 @@ export default function useChainChecker () {
   const notify = useNotification();
   const [connectingChain, setConnectingChain] = useState<string | null>(null);
   const openCheckModal = useOpenUpdateChainModal();
+
+  const updateChainRef = useRef('');
 
   useEffect(() => {
     if (connectingChain && chainStateMap[connectingChain]?.connectionStatus === _ChainConnectionStatus.CONNECTED) {
@@ -62,7 +64,10 @@ export default function useChainChecker () {
           btn
         });
       } else if (chainState && CHAIN_CONNECT_STATUS_NEED_CHECK.includes(chainState.connectionStatus)) {
-        openCheckModal(chain);
+        if (updateChainRef.current !== chain) {
+          openCheckModal(chain);
+          updateChainRef.current = chain;
+        }
       }
     }
   }, [chainInfoMap, chainStateMap, notify, openCheckModal, t]);
