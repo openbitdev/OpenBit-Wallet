@@ -17,7 +17,7 @@ import { useGetChainPrefixBySlug, useHandleSubmitTransaction, useInitValidateTra
 import { useIsMantaPayEnabled } from '@subwallet/extension-koni-ui/hooks/account/useIsMantaPayEnabled';
 import { getMaxTransfer, makeCrossChainTransfer, makeTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { ChainItemType, FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
+import { ChainItemType, FormCallbacks, FormRule, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, formatBalance, isAccountAll, noop } from '@subwallet/extension-koni-ui/utils';
 import { findNetworkJsonByGenesisHash } from '@subwallet/extension-koni-ui/utils/chain/getNetworkJsonByGenesisHash';
 import { Button, Form, Icon } from '@subwallet/react-ui';
@@ -362,35 +362,43 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     return Promise.resolve();
   }, [accounts, chainInfoMap, form, t]);
 
-  const validateAmount = useCallback((rule: Rule, amount: string): Promise<void> => {
-    if (!amount) {
-      return Promise.reject(t('Amount is required'));
-    }
-
-    if (!maxTransfer) {
-      if (isMaxTransferLoading) {
-        return Promise.resolve();
-      } else {
-        // TODO: Change message
-        return Promise.reject(t('Cannot get balance'));
+  const amountRules = useMemo((): FormRule[] => {
+    const validateAmount = (rule: Rule, amount: string): Promise<void> => {
+      if (!amount) {
+        return Promise.reject(t('Amount is required'));
       }
-    }
 
-    if ((new BN(maxTransfer)).lte(BN_ZERO)) {
-      return Promise.reject(t('You don\'t have enough tokens to proceed'));
-    }
+      if (!maxTransfer) {
+        if (isMaxTransferLoading) {
+          return Promise.resolve();
+        } else {
+          // TODO: Change message
+          return Promise.reject(t('Cannot get balance'));
+        }
+      }
 
-    if ((new BigN(amount)).eq(new BigN(0))) {
-      return Promise.reject(t('Amount must be greater than 0'));
-    }
+      if ((new BN(maxTransfer)).lte(BN_ZERO)) {
+        return Promise.reject(t('You don\'t have enough tokens to proceed'));
+      }
 
-    if ((new BigN(amount)).gt(new BigN(maxTransfer))) {
-      const maxString = formatBalance(maxTransfer, decimals);
+      if ((new BigN(amount)).eq(new BigN(0))) {
+        return Promise.reject(t('Amount must be greater than 0'));
+      }
 
-      return Promise.reject(t('Amount must be equal or less than {{number}}', { replace: { number: maxString } }));
-    }
+      if ((new BigN(amount)).gt(new BigN(maxTransfer))) {
+        const maxString = formatBalance(maxTransfer, decimals);
 
-    return Promise.resolve();
+        return Promise.reject(t('Amount must be equal or less than {{number}}', { replace: { number: maxString } }));
+      }
+
+      return Promise.resolve();
+    };
+
+    return [
+      {
+        validator: validateAmount
+      }
+    ];
   }, [decimals, isMaxTransferLoading, maxTransfer, t]);
 
   const onValuesChange: FormCallbacks<TransferParams>['onValuesChange'] = useCallback(
@@ -714,11 +722,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
           <Form.Item
             name={'value'}
-            rules={[
-              {
-                validator: validateAmount
-              }
-            ]}
+            rules={amountRules}
             statusHelpAsTooltip={true}
             validateTrigger='onBlur'
           >
