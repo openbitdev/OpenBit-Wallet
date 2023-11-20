@@ -34,6 +34,8 @@ export const createXcmExtrinsic = async ({ chainInfoMap,
 
   let extrinsic;
 
+  // console.log(originChainInfo.slug, " xTokens")
+
   if (_XCM_CHAIN_GROUP.polkadotXcm.includes(originTokenInfo.originChain)) {
     extrinsic = getExtrinsicByPolkadotXcmPallet(originTokenInfo, originChainInfo, destinationChainInfo, recipient, sendingValue, api);
   } else if (_XCM_CHAIN_GROUP.xcmPallet.includes(originTokenInfo.originChain)) {
@@ -41,6 +43,15 @@ export const createXcmExtrinsic = async ({ chainInfoMap,
   } else {
     extrinsic = getExtrinsicByXtokensPallet(originTokenInfo, originChainInfo, destinationChainInfo, recipient, sendingValue, api);
   }
+
+  // console.log('Done Extrinsic');
+  // console.log('extrinsic', extrinsic.toHex());
+  // console.log('chainInfoMap', chainInfoMap)
+  // console.log('destinationTokenInfo', destinationTokenInfo);
+  // console.log('originTokenInfo', originTokenInfo);
+  // console.log('recipient', recipient);
+  // console.log('sendingValue', sendingValue);
+  // console.log('substrateApi', substrateApi);
 
   return extrinsic;
 };

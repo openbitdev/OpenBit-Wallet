@@ -26,6 +26,8 @@ export function getExtrinsicByXtokensPallet (tokenInfo: _ChainAsset, originChain
   const weightParam = ['pioneer'].includes(originChainInfo.slug) ? FOUR_INSTRUCTIONS_WEIGHT : getDestWeight();
   const destVersion = ['moonbeam', 'moonriver', 'bifrost_dot', 'interlay', 'hydradx_main', 'acala', 'parallel'].includes(originChainInfo.slug) ? 'V3' : undefined;
 
+  
+
   return api.tx.xTokens.transfer(
     getCurrencyId(tokenInfo),
     value,
