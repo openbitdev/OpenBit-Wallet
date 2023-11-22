@@ -129,25 +129,6 @@ export class SubscanService {
       const rs = await this.postRequest(this.getApiUrl(relayChain, 'api/scan/account/contributions'), {
         include_total: true,
         page,
-        row: 100,
-        who: address
-      });
-
-      if (rs.status !== 200) {
-        throw new SWError('SubscanService.getCrowdloanContributions', await rs.text());
-      }
-
-      const jsonData = (await rs.json()) as SubscanResponse<CrowdloanContributionsResponse>;
-
-      return jsonData.data;
-    });
-  }
-
-  public getCrowdloanContributions (relayChain: string, address: string, page = 0): Promise<CrowdloanContributionsResponse> {
-    return this.addRequest<CrowdloanContributionsResponse>(async () => {
-      const rs = await this.postRequest(this.getApiUrl(relayChain, 'api/scan/account/contributions'), {
-        include_total: true,
-        page,
         row: QUERY_ROW,
         who: address
       });
