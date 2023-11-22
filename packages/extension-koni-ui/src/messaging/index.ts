@@ -4,7 +4,22 @@
 import type { WindowOpenParams } from '@subwallet/extension-base/background/types';
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { BalanceJson, ConfirmationsQueue, CronReloadRequest, CrowdloanJson, Notification, PriceJson, RequestGetTransaction, RequestParseEvmContractInput, RequestSubscribeBalance, RequestSubscribeCrowdloan, RequestSubscribePrice, ResponseParseEvmContractInput, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import {
+  BalanceJson,
+  ConfirmationsQueue,
+  CronReloadRequest,
+  CrowdloanJson,
+  Notification,
+  PriceJson,
+  RequestGetTransaction,
+  RequestParseEvmContractInput,
+  RequestSubscribeBalance,
+  RequestSubscribeCrowdloan,
+  RequestSubscribePrice,
+  ResponseParseEvmContractInput,
+  TransactionHistoryItem,
+  ResponseSubscribeHistory
+} from '@subwallet/extension-base/background/KoniTypes';
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { sendMessage } from '@subwallet/extension-koni-ui/messaging/base';
@@ -50,10 +65,6 @@ export async function subscribeHistory (callback: (historyMap: TransactionHistor
   return sendMessage('pri(transaction.history.getSubscription)', null, callback);
 }
 
-export async function cancelSubscription (request: string): Promise<boolean> {
-  return sendMessage('pri(subscription.cancel)', request);
-}
-
 export async function recoverDotSamaApi (request: string): Promise<boolean> {
   return sendMessage('pri(chainService.recoverSubstrateApi)', request);
 }
@@ -84,9 +95,19 @@ export async function passPhishingPage (url: string): Promise<boolean> {
 }
 
 export async function getCrowdloanContributions (relayChain: string, address: string, page?: number): Promise<CrowdloanContributionsResponse> {
-  return sendMessage('pri(crowdloan.getCrowdloanContributions)', { relayChain,
+  return sendMessage('pri(crowdloan.getCrowdloanContributions)', {
+    relayChain,
     address,
-    page });
+    page
+  });
+}
+
+export async function cancelSubscription (request: string): Promise<boolean> {
+  return sendMessage('pri(subscription.cancel)', request);
+}
+
+export async function subscribeTransactionHistory (chain: string, address: string, callback: (items: TransactionHistoryItem[]) => void): Promise<ResponseSubscribeHistory> {
+  return sendMessage('pri(transaction.history.subscribe)', { address, chain }, callback);
 }
 
 export * from './accounts';

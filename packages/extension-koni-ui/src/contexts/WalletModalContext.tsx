@@ -68,17 +68,6 @@ export const WalletModalContext = ({ children }: Props) => {
   useExcludeModal(TRANSACTION_YIELD_CLAIM_MODAL);
   useExcludeModal(BUY_TOKEN_MODAL);
 
-  useEffect(() => {
-    const confirmID = searchParams.get('popup');
-
-    // Auto open confirm modal with method modalContext.activeModal else auto close all modal
-    if (confirmID) {
-      PREDEFINED_MODAL_NAMES.includes(confirmID) && activeModal(confirmID);
-    } else {
-      inactiveModals(PREDEFINED_MODAL_NAMES);
-    }
-  }, [activeModal, inactiveModals, searchParams]);
-
   const onCloseConfirmationModal = useCallback(() => {
     setSearchParams((prev) => {
       prev.delete('popup');
@@ -99,6 +88,17 @@ export const WalletModalContext = ({ children }: Props) => {
     navigate(DEFAULT_ROUTER_PATH);
   }, [navigate]);
 
+  useEffect(() => {
+    const confirmID = searchParams.get('popup');
+
+    // Auto open confirm modal with method modalContext.activeModal else auto close all modal
+    if (confirmID) {
+      PREDEFINED_MODAL_NAMES.includes(confirmID) && activeModal(confirmID);
+    } else {
+      inactiveModals(PREDEFINED_MODAL_NAMES);
+    }
+  }, [activeModal, inactiveModals, searchParams]);
+
   return <>
     <div
       id='popup-container'
@@ -110,14 +110,14 @@ export const WalletModalContext = ({ children }: Props) => {
       onCancel={onCloseConfirmationModal}
     />
     <CreateAccountModal />
+    <ImportAccountModal />
+    <AttachAccountModal />
     <SeedPhraseModal
       modalId={SEED_PHRASE_MODAL}
       onBack={onSeedPhraseModalBack}
       onSubmitSuccess={onSeedPhraseModalSubmitSuccess}
     />
     <NewSeedModal />
-    <ImportAccountModal />
-    <AttachAccountModal />
     <ImportSeedModal />
     <DeriveAccountModal />
     <RequestCreatePasswordModal />
