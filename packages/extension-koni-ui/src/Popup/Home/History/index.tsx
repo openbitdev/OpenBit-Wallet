@@ -2,17 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { isAccountAll } from '@subwallet/extension-base/utils';
 import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils/address';
-import { AccountSelector, BasicInputEvent, ChainSelector, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountSelector, BasicInputEvent, ChainSelector, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { FilterTabItemType, FilterTabs } from '@subwallet/extension-koni-ui/components/FilterTabs';
+import NoContent, { PAGE_TYPE } from '@subwallet/extension-koni-ui/components/NoContent';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import { useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, subscribeTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
 import { ChainItemType, ThemeProps, TransactionHistoryDisplayData, TransactionHistoryDisplayItem } from '@subwallet/extension-koni-ui/types';
 import { customFormatDate, formatHistoryDate, isTypeStaking, isTypeTransfer } from '@subwallet/extension-koni-ui/utils';
-import { ActivityIndicator, ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
-import { Aperture, ArrowDownLeft, ArrowUpRight, Clock, ClockCounterClockwise, Database, FadersHorizontal, Rocket, Spinner } from 'phosphor-react';
+import { ActivityIndicator, Button, ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
+import CN from 'classnames';
+import { Aperture, ArrowDownLeft, ArrowUpRight, ClockCounterClockwise, Database, FadersHorizontal, Rocket, Spinner } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -111,6 +117,8 @@ function getDisplayData (item: TransactionHistoryItem, nameMap: Record<string, s
 const FILTER_MODAL_ID = 'history-filter-id';
 
 enum FilterValue {
+  ALL = 'all',
+  TOKENS = 'tokens',
   SEND = 'send',
   RECEIVED = 'received',
   NFT = 'nft',
@@ -119,6 +127,7 @@ enum FilterValue {
   CROWDLOAN = 'crowdloan',
   SUCCESSFUL = 'successful',
   FAILED = 'failed',
+  EARN = 'earn'
 }
 
 function getHistoryItemKey (item: Pick<TransactionHistoryItem, 'chain' | 'address' | 'extrinsicHash' | 'transactionId'>) {
@@ -127,13 +136,19 @@ function getHistoryItemKey (item: Pick<TransactionHistoryItem, 'chain' | 'addres
 
 const modalId = HISTORY_DETAIL_MODAL;
 
+const LIST_KEY = 'history-list';
+
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   useSetCurrentPage('/home/history');
   const { t } = useTranslation();
+  const dataContext = useContext(DataContext);
+  const { isWebUI } = useContext(ScreenContext);
   const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
   const { accounts, currentAccount, isAllAccount } = useSelector((root) => root.accountState);
   const { chainInfoMap } = useSelector((root) => root.chainStore);
   const { language } = useSelector((root) => root.settings);
+  const [selectedFilterTab, setSelectedFilterTab] = useState<string>(FilterValue.ALL);
+  const [listKey, setListKey] = useState<string>(LIST_KEY);
   const [loading, setLoading] = useState<boolean>(true);
   const [rawHistoryList, setRawHistoryList] = useState<TransactionHistoryItem[]>([]);
 
@@ -180,6 +195,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           if (item.status === ExtrinsicStatus.FAIL) {
             return true;
           }
+        } else if (filter === FilterValue.EARN) {
+          if (YIELD_EXTRINSIC_TYPES.includes(item.type)) {
+            return true;
+          }
         }
       }
 
@@ -196,7 +215,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       { label: t('Claim staking reward'), value: FilterValue.CLAIM },
       // { label: t('Crowdloan transaction'), value: FilterValue.CROWDLOAN }, // support crowdloan later
       { label: t('Successful'), value: FilterValue.SUCCESSFUL },
-      { label: t('Failed'), value: FilterValue.FAILED }
+      { label: t('Failed'), value: FilterValue.FAILED },
+      { label: t('Start earning'), value: FilterValue.EARN }
     ];
   }, [t]);
 
@@ -208,28 +228,47 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }, {} as Record<string, string>);
   }, [accounts]);
 
-  const typeNameMap: Record<string, string> = useMemo(() => ({
+  const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'send' | 'received' | 'submitting' | 'processing', string> => ({
     default: t('Transaction'),
     submitting: t('Submitting...'),
     processing: t('Processing...'),
     send: t('Send'),
     received: t('Receive'),
+    [ExtrinsicType.TRANSFER_BALANCE]: t('Send token'),
+    [ExtrinsicType.TRANSFER_TOKEN]: t('Send token'),
+    [ExtrinsicType.TRANSFER_XCM]: t('Send token'),
     [ExtrinsicType.SEND_NFT]: t('NFT'),
     [ExtrinsicType.CROWDLOAN]: t('Crowdloan'),
     [ExtrinsicType.STAKING_JOIN_POOL]: t('Stake'),
     [ExtrinsicType.STAKING_LEAVE_POOL]: t('Unstake'),
     [ExtrinsicType.STAKING_BOND]: t('Bond'),
-    [ExtrinsicType.STAKING_UNBOND]: t('Unbond'),
+    [ExtrinsicType.STAKING_UNBOND]: t('Unstake'),
     [ExtrinsicType.STAKING_CLAIM_REWARD]: t('Claim Reward'),
     [ExtrinsicType.STAKING_WITHDRAW]: t('Withdraw'),
+    [ExtrinsicType.STAKING_POOL_WITHDRAW]: t('Withdraw'),
     [ExtrinsicType.STAKING_CANCEL_UNSTAKE]: t('Cancel unstake'),
-    [ExtrinsicType.EVM_EXECUTE]: t('EVM Transaction')
+    [ExtrinsicType.STAKING_COMPOUNDING]: t('Compound'),
+    [ExtrinsicType.STAKING_CANCEL_COMPOUNDING]: t('Cancel compound'),
+    [ExtrinsicType.EVM_EXECUTE]: t('EVM Transaction'),
+    [ExtrinsicType.JOIN_YIELD_POOL]: t('Stake'),
+    [ExtrinsicType.MINT_QDOT]: t('Mint qDOT'),
+    [ExtrinsicType.MINT_SDOT]: t('Mint sDOT'),
+    [ExtrinsicType.MINT_LDOT]: t('Mint LDOT'),
+    [ExtrinsicType.MINT_VDOT]: t('Mint vDOT'),
+    [ExtrinsicType.REDEEM_QDOT]: t('Redeem qDOT'),
+    [ExtrinsicType.REDEEM_SDOT]: t('Redeem sDOT'),
+    [ExtrinsicType.REDEEM_LDOT]: t('Redeem LDOT'),
+    [ExtrinsicType.REDEEM_VDOT]: t('Redeem vDOT'),
+    [ExtrinsicType.UNKNOWN]: t('Unknown')
   }), [t]);
 
-  const typeTitleMap: Record<string, string> = useMemo(() => ({
+  const typeTitleMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'send' | 'received', string> => ({
     default: t('Transaction'),
     send: t('Send token'),
     received: t('Receive token'),
+    [ExtrinsicType.TRANSFER_BALANCE]: t('Send token'),
+    [ExtrinsicType.TRANSFER_TOKEN]: t('Send token'),
+    [ExtrinsicType.TRANSFER_XCM]: t('Send token'),
     [ExtrinsicType.SEND_NFT]: t('NFT transaction'),
     [ExtrinsicType.CROWDLOAN]: t('Crowdloan transaction'),
     [ExtrinsicType.STAKING_JOIN_POOL]: t('Stake transaction'),
@@ -238,8 +277,21 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     [ExtrinsicType.STAKING_UNBOND]: t('Unbond transaction'),
     [ExtrinsicType.STAKING_CLAIM_REWARD]: t('Claim Reward transaction'),
     [ExtrinsicType.STAKING_WITHDRAW]: t('Withdraw transaction'),
+    [ExtrinsicType.STAKING_POOL_WITHDRAW]: t('Withdraw transaction'),
     [ExtrinsicType.STAKING_CANCEL_UNSTAKE]: t('Cancel unstake transaction'),
-    [ExtrinsicType.EVM_EXECUTE]: t('EVM Transaction')
+    [ExtrinsicType.STAKING_COMPOUNDING]: t('Compound transaction'),
+    [ExtrinsicType.STAKING_CANCEL_COMPOUNDING]: t('Cancel compound transaction'),
+    [ExtrinsicType.EVM_EXECUTE]: t('EVM Transaction'),
+    [ExtrinsicType.JOIN_YIELD_POOL]: t('Stake transaction'),
+    [ExtrinsicType.MINT_QDOT]: t('Mint qDOT transaction'),
+    [ExtrinsicType.MINT_SDOT]: t('Mint sDOT transaction'),
+    [ExtrinsicType.MINT_LDOT]: t('Mint LDOT transaction'),
+    [ExtrinsicType.MINT_VDOT]: t('Mint vDOT transaction'),
+    [ExtrinsicType.REDEEM_QDOT]: t('Redeem qDOT transaction'),
+    [ExtrinsicType.REDEEM_SDOT]: t('Redeem sDOT transaction'),
+    [ExtrinsicType.REDEEM_LDOT]: t('Redeem LDOT transaction'),
+    [ExtrinsicType.REDEEM_VDOT]: t('Redeem vDOT transaction'),
+    [ExtrinsicType.UNKNOWN]: t('Unknown transaction')
   }), [t]);
 
   // Fill display data to history list
@@ -329,14 +381,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { selectedAddress, selectedChain, setSelectedAddress, setSelectedChain } = useHistorySelection();
 
   const emptyList = useCallback(() => {
-    return (
-      <EmptyList
-        emptyMessage={t('Your transactions will show up here')}
-        emptyTitle={t('No transactions found')}
-        phosphorIcon={Clock}
-      />
-    );
-  }, [t]);
+    return <NoContent pageType={PAGE_TYPE.HISTORY} />;
+  }, []);
 
   const renderItem = useCallback(
     (item: TransactionHistoryDisplayItem) => {
@@ -360,6 +406,61 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       <div className='__group-separator'>{groupLabel}</div>
     );
   }, []);
+
+  const onSelectFilterTab = useCallback((value: string) => {
+    setSelectedFilterTab(value);
+    setListKey(`${LIST_KEY}-${Date.now()}`);
+  }, []);
+
+  const filterTabItems = useMemo<FilterTabItemType[]>(() => {
+    return [
+      {
+        label: t('All'),
+        value: FilterValue.ALL
+      },
+      {
+        label: t('Tokens'),
+        value: FilterValue.TOKENS
+      },
+      {
+        label: t('NFT'),
+        value: FilterValue.NFT
+      },
+      {
+        label: t('Earning'),
+        value: FilterValue.EARN
+      }
+    ];
+  }, [t]);
+
+  const webUiFilterFunction = useCallback((item: TransactionHistoryDisplayItem) => {
+    const filterTabFunction = (_item: TransactionHistoryDisplayItem) => {
+      if (selectedFilterTab === FilterValue.ALL) {
+        return true;
+      }
+
+      if (selectedFilterTab === FilterValue.TOKENS) {
+        return isTypeTransfer(_item.type);
+      }
+
+      if (selectedFilterTab === FilterValue.NFT) {
+        return _item.type === ExtrinsicType.SEND_NFT;
+      }
+
+      if (selectedFilterTab === FilterValue.EARN) {
+        return YIELD_EXTRINSIC_TYPES.includes(_item.type);
+      }
+
+      return false;
+    };
+
+    return filterTabFunction(item) && filterFunction(item);
+  }, [filterFunction, selectedFilterTab]);
+
+  const _onApplyFilter = useCallback(() => {
+    onApplyFilter();
+    setListKey(`${LIST_KEY}-${Date.now()}`);
+  }, [onApplyFilter]);
 
   const chainItems = useMemo<ChainItemType[]>(() => {
     if (!selectedAddress) {
@@ -415,10 +516,39 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const listSection = useMemo(() => {
     return (
       <>
-        <div className={'__page-tool-area'}>
-          {historySelectorsNode}
-        </div>
+        {
+          isWebUI && (
+            <div className={'__page-tool-area-desktop'}>
+              <FilterTabs
+                className={'__page-filter-tabs-container'}
+                items={filterTabItems}
+                onSelect={onSelectFilterTab}
+                selectedItem={selectedFilterTab}
+              />
 
+              <div className={'__page-selection-area'}>
+                <Button
+                  icon={(
+                    <Icon
+                      phosphorIcon={FadersHorizontal}
+                    />
+                  )}
+                  onClick={onClickFilter}
+                  size={'xs'}
+                  type={'ghost'}
+                />
+                {historySelectorsNode}
+              </div>
+            </div>
+          )
+        }
+        {
+          !isWebUI && (
+            <div className={'__page-tool-area-mobile'}>
+              {historySelectorsNode}
+            </div>
+          )
+        }
         <div className={'__page-list-area'}>
           {loading && (
             <div className={'__loading-area'}>
@@ -431,9 +561,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
           {!loading && (
             <SwList
-              filterBy={filterFunction}
+              filterBy={isWebUI ? webUiFilterFunction : filterFunction}
               groupBy={groupBy}
               groupSeparator={groupSeparator}
+              key={listKey}
               list={historyList}
               renderItem={renderItem}
               renderOnScroll={true}
@@ -443,7 +574,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         </div>
       </>
     );
-  }, [filterFunction, groupBy, groupSeparator, historyList, renderItem, emptyList, historySelectorsNode, loading]);
+  }, [isWebUI, filterFunction, groupBy, groupSeparator, historyList, renderItem, emptyList, filterTabItems, onSelectFilterTab, selectedFilterTab, onClickFilter, historySelectorsNode, loading, webUiFilterFunction, listKey]);
 
   const headerIcons = useMemo<ButtonProps[]>(() => {
     return [
@@ -514,20 +645,30 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   return (
     <>
       <PageWrapper
-        className={`history ${className}`}
+        className={CN(`history ${className}`, {
+          '-desktop': isWebUI,
+          '-mobile': !isWebUI
+        })}
+        resolve={dataContext.awaitStores(['price'])}
       >
-        <Layout.Base>
-          <SwSubHeader
-            background={'transparent'}
-            center={false}
-            className={'history-header'}
-            paddingVertical
-            rightButtons={headerIcons}
-            showBackButton={false}
-            title={t('History')}
-          />
+        <Layout.Base
+          title={t('History')}
+        >
+          {!isWebUI && (
+            <>
+              <SwSubHeader
+                background={'transparent'}
+                center={false}
+                className={'history-header'}
+                paddingVertical
+                rightButtons={headerIcons}
+                showBackButton={false}
+                title={t('History')}
+              />
 
-          <div className={'__page-background'}></div>
+              <div className={'__page-background'}></div>
+            </>
+          )}
 
           {listSection}
         </Layout.Base>
@@ -540,7 +681,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
       <FilterModal
         id={FILTER_MODAL_ID}
-        onApplyFilter={onApplyFilter}
+        onApplyFilter={_onApplyFilter}
         onCancel={onCloseFilterModal}
         onChangeOption={onChangeFilterOption}
         optionSelectionMap={filterSelectionMap}
@@ -550,10 +691,15 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   );
 }
 
-const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const History = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
   return ({
     display: 'flex',
     flexDirection: 'column',
+
+    '.__page-tool-area-desktop': {
+      display: 'flex',
+      marginBottom: 24
+    },
 
     '.__page-background': {
       position: 'relative',
@@ -571,7 +717,7 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
       }
     },
 
-    '.__page-tool-area': {
+    '.__page-tool-area-mobile': {
       display: 'flex',
       padding: token.padding,
       borderBottomLeftRadius: token.size,
@@ -600,6 +746,26 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
 
     '.__loading-area': { display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center', height: '100%' },
 
+    '.__page-selection-area': {
+      display: 'flex',
+      flex: 1,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      gap: token.sizeXS,
+
+      '.__history-address-selector, .__history-chain-selector': {
+        height: 48
+      },
+
+      '.__history-address-selector': {
+        maxWidth: 280
+      },
+
+      '.__history-chain-selector': {
+        maxWidth: 244
+      }
+    },
+
     '.__page-list-area': {
       flex: 1,
       overflow: 'auto',
@@ -610,9 +776,7 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
     '.ant-sw-list': {
       height: '100%',
       overflow: 'auto',
-      paddingBottom: token.padding,
-      paddingLeft: token.padding,
-      paddingRight: token.padding
+      paddingBottom: token.padding
     },
 
     '.ant-sw-screen-layout-body': {
@@ -640,6 +804,13 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
       color: token.colorTextLight3,
       fontWeight: token.headingFontWeight,
       marginBottom: token.marginXS
+    },
+
+    '&.-mobile': {
+      '.ant-sw-list': {
+        paddingLeft: token.padding,
+        paddingRight: token.padding
+      }
     }
   });
 });
