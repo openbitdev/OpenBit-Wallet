@@ -22,8 +22,34 @@ export class UniqueNftApi extends BaseNftApi {
   constructor (chain: string, addresses: string[]) {
     super(chain, undefined, addresses);
   }
-  
-//   endpoint = UNIQUE_SCAN_ENDPOINT;
+
+  private handleProperties (nft: Record<string, any>) {
+    const propertiesMap: Record<string, any> = {};
+    const att_record = nft.attributes
+    if (att_record) {
+        for (const item in att_record) {
+            if (att_record[item].name._.toLowerCase() == 'traits') {
+                const traits: string[] = [];
+
+                const trait_values = att_record[item].value;
+                for (const trait in trait_values) {
+                    traits.push(trait_values[trait]._);
+                };
+                    propertiesMap['traits'] = {
+                        value: traits
+                    };
+                }
+            else {
+                propertiesMap[att_record[item].name._] = {
+                    value: att_record[item].value._
+                    };
+            }
+        }
+    }
+
+    return propertiesMap;
+  }
+
   private static parseNftRequest (unique_address: string) {
     return {
       query: `
@@ -91,38 +117,13 @@ export class UniqueNftApi extends BaseNftApi {
         const nfts = await this.getNftByAccount(address);
 
         if (nfts) {
+          const collectionMap : Record <string, NftCollection> = {};
           for (const nft of nfts) {
 
             // Handle properties
-            const propertiesMap: Record<string, any> = {};
-            const att_record = nft.attributes
-            if (att_record) {
-                for (const item in att_record) {
-                    // console.log('sos',att_record[item].value);
-                    if (att_record[item].name._.toLowerCase() == 'traits') {
-                        const traits: string[] = [];
+            const propertiesMap = this.handleProperties(nft);
 
-                        const trait_values = att_record[item].value;
-                        for (const trait in trait_values) {
-                            // console.log('trait: ', trait_values[trait]._);
-                            traits.push(trait_values[trait]._);
-                        //     // propertiesMap['traits'] = propertiesMap['traits'].concat(trait_values[trait]._);
-                        };
-                            propertiesMap['traits'] = {
-                                value: traits
-                            };
-                        }
-                    else {
-                        // console.log(a tt_record[item].name._, att_record[item].value._)
-                        propertiesMap[att_record[item].name._] = {
-                            value: att_record[item].value._
-                            };
-                    }
-                }
-            }
-
-            // console.log('sos', propertiesMap);
-
+            // Update Nft information
             const parsedNft: NftItem = {
               id: nft.token_id.toString(),
               chain: this.chain,
@@ -131,19 +132,22 @@ export class UniqueNftApi extends BaseNftApi {
               image: this.parseUrl(nft.image?.fullUrl),
               description: nft.collection_description,
               collectionId: nft.collection_id.toString(),
-            //   properties: nft.attributes as Record<any, any>
               properties: propertiesMap as Record<any, any>
             };
-            
-            const parsedCollection: NftCollection = {
-              collectionId: nft.collection_id.toString(),
-              chain: this.chain,
-              collectionName: nft.collection_name,
-              image: this.parseUrl(nft.collection_cover)
-            };
-
             params.updateItem(this.chain, parsedNft, address);
-            params.updateCollection(this.chain, parsedCollection);
+
+            // Update Collection information
+            if (!collectionMap[nft.collection_id.toString()]) {
+              const parsedCollection: NftCollection = {
+                collectionId: nft.collection_id.toString(),
+                chain: this.chain,
+                collectionName: nft.collection_name,
+                image: this.parseUrl(nft.collection_cover)
+              };
+              collectionMap[nft.collection_id.toString()] = parsedCollection;
+              params.updateCollection(this.chain, parsedCollection);
+            }
+            
           }
         }
       }));
