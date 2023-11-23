@@ -28,7 +28,7 @@ export class UniqueNftApi extends BaseNftApi {
     const att_record = nft.attributes
     if (att_record) {
         for (const item in att_record) {
-            if (att_record[item].name._.toLowerCase() == 'traits') {
+            if (att_record[item].name._.toLowerCase() === 'traits') {
                 const traits: string[] = [];
 
                 const trait_values = att_record[item].value;
