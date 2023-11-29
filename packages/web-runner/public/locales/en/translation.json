@@ -409,7 +409,6 @@
   "Claim Reward transaction": "",
   "Withdraw transaction": "",
   "Cancel unstake transaction": "",
-  "Search history": "",
   "Your NFT collectible will appear here!": "",
   "No NFT collectible": "",
   "Deleted NFT collection successfully": "",
@@ -860,5 +859,13 @@
   "Won": "",
   "In auction": "",
   "Token Details": "",
-  "Account Details": ""
+  "Account Details": "",
+  "Loading ...": "",
+  "Update network?": "",
+  "Your selected network might have lost connection. Try updating it by either re-enabling it or changing network provider.": "",
+  "Update": "",
+  "Connection failed. Check your internet connection or change your network endpoint.": "",
+  "Cannot get balance": "",
+  "Waiting to get balance": "",
+  "Cannot get boned value": ""
 }
