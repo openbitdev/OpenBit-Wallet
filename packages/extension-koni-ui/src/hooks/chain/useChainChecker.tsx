@@ -20,7 +20,9 @@ export default function useChainChecker () {
   const [connectingChain, setConnectingChain] = useState<string | null>(null);
   const openCheckModal = useOpenUpdateChainModal();
 
-  const updateChainRef = useRef('');
+  const chainRef = useRef('');
+  const updateChainRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (connectingChain && chainStateMap[connectingChain]?.connectionStatus === _ChainConnectionStatus.CONNECTED) {
@@ -31,7 +33,7 @@ export default function useChainChecker () {
     }
   }, [connectingChain, chainInfoMap, chainStateMap, notify, t]);
 
-  const ensureChainEnable = useCallback((chain: string) => {
+  const _ensureChainEnable = useCallback((chain: string) => {
     const chainState = chainStateMap[chain];
     const chainInfo = chainInfoMap[chain];
 
@@ -64,13 +66,27 @@ export default function useChainChecker () {
           btn
         });
       } else if (chainState && CHAIN_CONNECT_STATUS_NEED_CHECK.includes(chainState.connectionStatus)) {
-        if (updateChainRef.current !== chain) {
+        if (!updateChainRef.current) {
           openCheckModal(chain);
-          updateChainRef.current = chain;
+          updateChainRef.current = true;
         }
       }
     }
   }, [chainInfoMap, chainStateMap, notify, openCheckModal, t]);
 
-  return ensureChainEnable;
+  return useCallback((chain: string) => {
+    clearTimeout(timeoutRef.current);
+
+    if (chainRef.current !== chain) {
+      updateChainRef.current = false;
+    }
+
+    chainRef.current = chain;
+
+    const check = () => {
+      _ensureChainEnable(chain);
+    };
+
+    timeoutRef.current = setTimeout(check, 1000);
+  }, [_ensureChainEnable]);
 }
