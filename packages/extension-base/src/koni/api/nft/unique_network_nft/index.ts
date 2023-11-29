@@ -120,6 +120,11 @@ export class UniqueNftApi extends BaseNftApi {
           const collectionMap : Record <string, NftCollection> = {};
           for (const nft of nfts) {
 
+            // Handle case rendering image on Quartz Network (Temporary solution)
+            if (this.chain === 'quartz' && nft.collection_id.toString() === '141') {
+              continue;
+            }
+
             // Handle properties
             const propertiesMap = this.handleProperties(nft);
 
