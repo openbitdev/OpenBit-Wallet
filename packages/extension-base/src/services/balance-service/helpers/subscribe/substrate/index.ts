@@ -97,36 +97,47 @@ async function subscribeWithSystemAccountPallet (addresses: string[], chainInfo:
     }
 
     const items: BalanceItem[] = balances.map((balance: AccountInfo, index) => {
-      let total = balance.data?.free?.toBn() || new BN(0);
+      const free = balance.data?.free?.toBn() || new BN(0);
       const reserved = balance.data?.reserved?.toBn() || new BN(0);
       // @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-      const miscFrozen = balance.data?.miscFrozen?.toBn() || balance?.data?.frozen?.toBn() || new BN(0);
+      const locked = balance.data?.miscFrozen?.toBn() || balance?.data?.frozen?.toBn() || new BN(0);
       const feeFrozen = balance.data?.feeFrozen?.toBn() || new BN(0);
 
-      let locked = reserved.add(miscFrozen);
-
-      total = total.add(reserved);
-
+      let frozen = reserved.add(locked);
+      let total = free.add(reserved);
       const pooledStakingBalance = pooledStakingBalances[index] || BN_ZERO;
+
+      console.log("chain: ", chainInfo.slug);
+      console.log("free: ", free.toString());
+      console.log("reserved: ", reserved.toString());
+      console.log("locked: ", locked.toString());
+      console.log("feeFrozen: ", feeFrozen.toString());
+      console.log("pooledStakingBalance: ", pooledStakingBalance.toString());
+      
+      console.log("frozen: ", frozen.toString());
+      console.log("total: ", total.toString());
 
       if (pooledStakingBalance.gt(BN_ZERO)) {
         total = total.add(pooledStakingBalance);
-        locked = locked.add(pooledStakingBalance);
+        frozen = locked.add(pooledStakingBalance);
       }
 
-      const free = total.sub(locked);
-
+      console.log("new frozen: ", frozen.toString());
+      console.log("new total: ", total.toString());
+      const available = total.sub(frozen); // -> available
+      console.log("new available: ", available.toString());
+      
       return ({
         address: addresses[index],
         tokenSlug: chainNativeTokenSlug,
-        free: free.gte(BN_ZERO) ? free.toString() : '0',
-        locked: locked.toString(),
+        free: available.gte(BN_ZERO) ? available.toString() : '0', // free -> available 
+        locked: frozen.toString(), // locked -> frozen
         state: APIItemState.READY,
         substrateInfo: {
-          miscFrozen: miscFrozen.toString(),
+          miscFrozen: locked.toString(), // miscFrozen -> locked 
           reserved: reserved.toString(),
-          feeFrozen: feeFrozen.toString()
+          feeFrozen: feeFrozen.toString() // do not understand the purpose
         }
       });
     });
