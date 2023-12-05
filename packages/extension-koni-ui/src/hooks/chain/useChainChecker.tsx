@@ -34,6 +34,14 @@ export default function useChainChecker () {
   }, [connectingChain, chainInfoMap, chainStateMap, notify, t]);
 
   const _ensureChainEnable = useCallback((chain: string) => {
+    clearTimeout(timeoutRef.current);
+
+    if (chainRef.current !== chain) {
+      updateChainRef.current = false;
+    }
+
+    chainRef.current = chain;
+
     const chainState = chainStateMap[chain];
     const chainInfo = chainInfoMap[chain];
 
@@ -66,27 +74,15 @@ export default function useChainChecker () {
           btn
         });
       } else if (chainState && CHAIN_CONNECT_STATUS_NEED_CHECK.includes(chainState.connectionStatus)) {
-        if (!updateChainRef.current) {
-          openCheckModal(chain);
-          updateChainRef.current = true;
-        }
+        timeoutRef.current = setTimeout(() => {
+          if (!updateChainRef.current && chainRef.current === chain) {
+            openCheckModal(chain);
+            updateChainRef.current = true;
+          }
+        }, 3000);
       }
     }
   }, [chainInfoMap, chainStateMap, notify, openCheckModal, t]);
 
-  return useCallback((chain: string) => {
-    clearTimeout(timeoutRef.current);
-
-    if (chainRef.current !== chain) {
-      updateChainRef.current = false;
-    }
-
-    chainRef.current = chain;
-
-    const check = () => {
-      _ensureChainEnable(chain);
-    };
-
-    timeoutRef.current = setTimeout(check, 1000);
-  }, [_ensureChainEnable]);
+  return _ensureChainEnable;
 }
