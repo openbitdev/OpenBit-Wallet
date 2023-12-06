@@ -101,43 +101,30 @@ async function subscribeWithSystemAccountPallet (addresses: string[], chainInfo:
       const reserved = balance.data?.reserved?.toBn() || new BN(0);
       // @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-      const locked = balance.data?.miscFrozen?.toBn() || balance?.data?.frozen?.toBn() || new BN(0);
+      const locked = balance.data?.miscFrozen?.toBn() || balance?.data?.frozen?.toBn() || new BN(0); // TODO: check when miscFrozen/frozen
       const feeFrozen = balance.data?.feeFrozen?.toBn() || new BN(0);
 
       let frozen = reserved.add(locked);
       let total = free.add(reserved);
+
       const pooledStakingBalance = pooledStakingBalances[index] || BN_ZERO;
-
-      console.log("chain: ", chainInfo.slug);
-      console.log("free: ", free.toString());
-      console.log("reserved: ", reserved.toString());
-      console.log("locked: ", locked.toString());
-      console.log("feeFrozen: ", feeFrozen.toString());
-      console.log("pooledStakingBalance: ", pooledStakingBalance.toString());
-      
-      console.log("frozen: ", frozen.toString());
-      console.log("total: ", total.toString());
-
       if (pooledStakingBalance.gt(BN_ZERO)) {
         total = total.add(pooledStakingBalance);
         frozen = locked.add(pooledStakingBalance);
       }
 
-      console.log("new frozen: ", frozen.toString());
-      console.log("new total: ", total.toString());
-      const available = total.sub(frozen); // -> available
-      console.log("new available: ", available.toString());
+      const available = total.sub(frozen);
       
       return ({
         address: addresses[index],
         tokenSlug: chainNativeTokenSlug,
-        free: available.gte(BN_ZERO) ? available.toString() : '0', // free -> available 
-        locked: frozen.toString(), // locked -> frozen
+        free: available.gte(BN_ZERO) ? available.toString() : '0',
+        locked: frozen.toString(),
         state: APIItemState.READY,
         substrateInfo: {
-          miscFrozen: locked.toString(), // miscFrozen -> locked 
+          miscFrozen: locked.toString(),
           reserved: reserved.toString(),
-          feeFrozen: feeFrozen.toString() // do not understand the purpose
+          feeFrozen: feeFrozen.toString()
         }
       });
     });
