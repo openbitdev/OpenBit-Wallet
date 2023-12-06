@@ -108,13 +108,14 @@ async function subscribeWithSystemAccountPallet (addresses: string[], chainInfo:
       let total = free.add(reserved);
 
       const pooledStakingBalance = pooledStakingBalances[index] || BN_ZERO;
+
       if (pooledStakingBalance.gt(BN_ZERO)) {
         total = total.add(pooledStakingBalance);
         frozen = locked.add(pooledStakingBalance);
       }
 
       const available = total.sub(frozen);
-      
+
       return ({
         address: addresses[index],
         tokenSlug: chainNativeTokenSlug,
