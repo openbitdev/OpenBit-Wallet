@@ -1040,6 +1040,10 @@ export class ChainService {
       }
     }
 
+    if (params.chainEditInfo.logoUrl !== undefined) {
+      targetChainInfo.icon = params.chainEditInfo.logoUrl;
+    }
+
     this.updateChainInfoMapSubscription();
 
     this.dbService.updateChainStore({
@@ -1101,7 +1105,7 @@ export class ChainService {
       evmInfo,
       isTestnet: false,
       chainStatus: _ChainStatus.ACTIVE,
-      icon: '', // Todo: Allow update with custom chain,
+      icon: params.chainEditInfo.logoUrl as string, // Todo: Allow update with custom chain,
       extraInfo: null
     };
 
@@ -1133,7 +1137,7 @@ export class ChainService {
       slug: '',
       symbol: params.chainEditInfo.symbol as string,
       hasValue: true,
-      icon: ''
+      icon: params.chainEditInfo.logoUrl as string
     });
 
     // update subscription
