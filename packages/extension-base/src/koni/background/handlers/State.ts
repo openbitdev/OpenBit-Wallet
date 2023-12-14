@@ -56,6 +56,7 @@ import { KeypairType } from '@polkadot/util-crypto/types';
 
 import { KoniCron } from '../cron';
 import { KoniSubscription } from '../subscription';
+import { DaService } from '@subwallet/extension-base/services/da-service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const passworder = require('browser-passworder');
@@ -131,6 +132,7 @@ export default class KoniState {
   readonly walletConnectService: WalletConnectService;
   readonly campaignService: CampaignService;
   readonly buyService: BuyService;
+  readonly daService: DaService;
 
   // Handle the general status of the extension
   private generalStatus: ServiceStatus = ServiceStatus.INITIALIZING;
@@ -157,6 +159,7 @@ export default class KoniState {
     this.migrationService = new MigrationService(this, this.eventService);
     this.campaignService = new CampaignService(this);
     this.buyService = new BuyService(this);
+    this.daService = new DaService(this.chainService);
 
     this.subscription = new KoniSubscription(this, this.dbService);
     this.cron = new KoniCron(this, this.subscription, this.dbService);
@@ -308,6 +311,7 @@ export default class KoniState {
     await this.migrationService.run();
     this.campaignService.init();
     this.eventService.emit('chain.ready', true);
+    await this.daService.init();
 
     this.onReady();
     this.onAccountAdd();
@@ -342,6 +346,8 @@ export default class KoniState {
     this.dbService.subscribeMantaPayConfig(_DEFAULT_MANTA_ZK_CHAIN, (data) => {
       this.mantaPayConfigSubject.next(data);
     });
+
+    await this.daService.subscribeAvailHeader();
 
     let unsub: Subscription | undefined;
 

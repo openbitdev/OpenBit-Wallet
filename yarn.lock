@@ -5932,7 +5932,7 @@ __metadata:
     protobufjs: ^7.2.4
     rxjs: ^7.8.1
     uuid: ^9.0.0
-    wasm-avail-light: "file:src/koni/api/data-availability/avail-light/pkg"
+    wasm-avail-light: "file:src/services/da-service/avail-light/pkg"
     web3: ^1.10.0
     web3-core: ^1.10.0
     web3-core-helpers: ^1.10.0
@@ -24536,9 +24536,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wasm-avail-light@file:src/koni/api/data-availability/avail-light/pkg::locator=%40subwallet%2Fextension-base%40workspace%3Apackages%2Fextension-base":
+"wasm-avail-light@file:src/services/da-service/avail-light/pkg::locator=%40subwallet%2Fextension-base%40workspace%3Apackages%2Fextension-base":
   version: 0.1.0
-  resolution: "wasm-avail-light@file:src/koni/api/data-availability/avail-light/pkg#src/koni/api/data-availability/avail-light/pkg::hash=7de10e&locator=%40subwallet%2Fextension-base%40workspace%3Apackages%2Fextension-base"
+  resolution: "wasm-avail-light@file:src/services/da-service/avail-light/pkg#src/services/da-service/avail-light/pkg::hash=7de10e&locator=%40subwallet%2Fextension-base%40workspace%3Apackages%2Fextension-base"
   checksum: 0f7d22442dd9f795a404892e00215a0c45e422824c9558ee46c875132ffaa3f85fbc8ef4f402fbfe636151813ab4500a2dd15076984a9fcb4e71283be16940d5
   languageName: node
   linkType: hard

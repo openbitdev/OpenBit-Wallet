@@ -1,11 +1,12 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AVAIL_CONFIG, generateRandomCells } from '@subwallet/extension-base/koni/api/data-availability/utils';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { Block, BlockHeader, Cell, Matrix } from '@subwallet/extension-base/types/avail-da';
+import { Block, BlockHeader, Cell, Matrix } from '@subwallet/extension-base/services/da-service/types';
+import { AVAIL_CONFIG, generateRandomCells } from '@subwallet/extension-base/services/da-service/utils';
+import { check } from 'wasm-avail-light';
 
-export async function processBlock (substrateApi: _SubstrateApi, callback: (block: Block, matrix: Matrix, randomCells: Cell[], proofs: Uint8Array[], commitments: Uint8Array[]) => void) {
+export async function subscribeHeader (substrateApi: _SubstrateApi, callback: (block: Block, matrix: Matrix, randomCells: Cell[], proofs: Uint8Array[], commitments: Uint8Array[]) => void) {
   const chainApi = await substrateApi.isReady;
 
   return chainApi.api.rpc.chain.subscribeFinalizedHeads(async (_header: any) => {
@@ -26,6 +27,7 @@ export async function processBlock (substrateApi: _SubstrateApi, callback: (bloc
     const blockHash = (await chainApi.api.rpc.chain.getBlockHash(header.number)).toString();
 
     console.log(`New Block with hash: ${blockHash}, Number: ${blockNumber} `);
+    console.log('Commitment: ', commitment);
 
     // Generating SAMPLE_SIZE random cell for sampling
     const totalCellCount = (r * AVAIL_CONFIG.EXTENSION_FACTOR) * c;
@@ -36,6 +38,8 @@ export async function processBlock (substrateApi: _SubstrateApi, callback: (bloc
     }
 
     const randomCells = generateRandomCells(r, c, sampleCount);
+
+    console.log('Random cells: ', randomCells);
 
     // Query data proof for sample 0,0
     // @ts-ignore
@@ -65,4 +69,54 @@ export async function processBlock (substrateApi: _SubstrateApi, callback: (bloc
 
     callback(block, matrix, randomCells, proofs, commitments);
   });
+}
+
+export function validateProof (block: Block, matrix: Matrix, cells: Cell[], proofs: Uint8Array[], commitments: Uint8Array[]) {
+  let verifiedCount = 0;
+  const verifiedCells: Cell[] = [];
+
+  for (let i = 0; i < cells.length; i++) {
+    // if (block.number < (latestBlock?.number || 0)) {
+    //   return;
+    // }
+
+    const cell = cells[i];
+
+    const isVerified = check(
+      proofs[i],
+      commitments[cell.row],
+      matrix.maxCol,
+      cell.row,
+      cell.col
+    );
+
+    if (isVerified) {
+      verifiedCount++;
+      const confidence = 100 * (1 - 1 / Math.pow(2, verifiedCount));
+
+      verifiedCells.push(cell);
+
+      console.log('Confidence: ', confidence);
+
+      // setLatestBlock({
+      //   hash: block.hash,
+      //   number: block.number,
+      //   totalCellCount: block.totalCellCount,
+      //   confidence: confidence,
+      //   sampleCount: block.sampleCount,
+      //   timestamp: block.timestamp
+      // });
+      //
+      // setMatrix({
+      //   maxRow: matrix.maxRow,
+      //   maxCol: matrix.maxCol,
+      //   //@ts-ignore
+      //   verifiedCells,
+      //   totalCellCount: matrix.totalCellCount,
+      // });
+    }
+  }
+
+  console.log('verifiedCells', verifiedCells);
+  console.log('verifiedCount', verifiedCount);
 }

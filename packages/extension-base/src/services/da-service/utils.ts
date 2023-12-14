@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { Cell } from '@subwallet/extension-base/types/avail-da';
+import { Cell } from '@subwallet/extension-base/services/da-service/types';
 
 export const AVAIL_CONFIG = {
   COMMITMENT_SIZE: 48,
@@ -51,3 +51,5 @@ const randomUniqueNum = (range: number, outputCount: number) => {
 
   return result;
 };
+
+export const AVAIL_DEFAULT_NETWORK = 'goldberg_testnet';
