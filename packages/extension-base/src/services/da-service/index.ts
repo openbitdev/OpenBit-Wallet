@@ -30,6 +30,7 @@ export class DaService {
   }
 
   public async init () {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     await init();
   }
 
