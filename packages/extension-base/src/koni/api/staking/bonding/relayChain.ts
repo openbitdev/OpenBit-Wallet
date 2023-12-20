@@ -344,7 +344,7 @@ export async function subscribeRelayChainNominatorMetadata (chainInfo: _ChainInf
     const remainingSlots = eraLength - eraProgress;
     const remainingHours = expectedBlockTime * remainingSlots / 60 / 60;
 
-    const waitingTime = remainingEra * _STAKING_ERA_LENGTH_MAP[chain] + remainingHours;
+    const waitingTime = isClaimable ? 0 : remainingEra * _STAKING_ERA_LENGTH_MAP[chain] + remainingHours;
 
     unstakingList.push({
       chain,
@@ -583,7 +583,7 @@ export async function subscribeRelayChainPoolMemberMetadata (chainInfo: _ChainIn
     const remainingSlots = eraLength - eraProgress;
     const remainingHours = expectedBlockTime * remainingSlots / 60 / 60;
 
-    const waitingTime = remainingEra * _STAKING_ERA_LENGTH_MAP[chainInfo.slug] + remainingHours;
+    const waitingTime = isClaimable ? 0 : remainingEra * _STAKING_ERA_LENGTH_MAP[chainInfo.slug] + remainingHours;
 
     unstakings.push({
       chain: chainInfo.slug,
