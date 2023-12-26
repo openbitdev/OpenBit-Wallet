@@ -25,6 +25,7 @@ import MintCampaignService from '@subwallet/extension-base/services/mint-campaig
 import NotificationService from '@subwallet/extension-base/services/notification-service/NotificationService';
 import { PriceService } from '@subwallet/extension-base/services/price-service';
 import RequestService from '@subwallet/extension-base/services/request-service';
+import { BitcoinService } from '@subwallet/extension-base/services/bitcoin-service';
 import { AuthUrls, MetaRequest, SignRequest } from '@subwallet/extension-base/services/request-service/types';
 import SettingService from '@subwallet/extension-base/services/setting-service/SettingService';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -57,6 +58,7 @@ import { KeypairType } from '@polkadot/util-crypto/types';
 
 import { KoniCron } from '../cron';
 import { KoniSubscription } from '../subscription';
+import { log } from 'console';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const passworder = require('browser-passworder');
@@ -137,6 +139,7 @@ export default class KoniState {
   readonly mintCampaignService: MintCampaignService;
   readonly campaignService: CampaignService;
   readonly buyService: BuyService;
+  readonly bitcoinService: BitcoinService;
 
   // Handle the general status of the extension
   private generalStatus: ServiceStatus = ServiceStatus.INITIALIZING;
@@ -156,6 +159,7 @@ export default class KoniState {
     this.settingService = new SettingService();
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
+    this.bitcoinService = new BitcoinService();
     this.balanceService = new BalanceService(this);
     this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.subscanService);
     this.mintCampaignService = new MintCampaignService(this);
@@ -309,6 +313,7 @@ export default class KoniState {
   }
 
   public async init () {
+    console.log('----START INIT----');
     await this.eventService.waitCryptoReady;
     await this.chainService.init();
     this.afterChainServiceInit();
@@ -324,6 +329,12 @@ export default class KoniState {
     await this.dbService.stores.crowdloan.removeEndedCrowdloans();
 
     await this.startSubscription();
+
+    // await this.bitcoinService.getBalances('bc1p5zy5mrjfz00lr7nvy3vzvusdws85ldxzrqxacgajqwurc70wqsqsdx5ye6', (data: any) => {
+    //       console.log(data);
+    //   })
+    // console.log(await this.bitcoinService.getInscriptionContent("c08dba3e458a06b6aa0435f4761e728d329d7cb20f591029a8c9804290780660i0"));
+    console.log(await this.bitcoinService.fetchInscriptions('bc1p5zy5mrjfz00lr7nvy3vzvusdws85ldxzrqxacgajqwurc70wqsqsdx5ye6'));
   }
 
   public async initMantaPay (password: string) {
