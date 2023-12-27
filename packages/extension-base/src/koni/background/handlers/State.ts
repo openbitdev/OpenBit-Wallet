@@ -58,7 +58,6 @@ import { KeypairType } from '@polkadot/util-crypto/types';
 
 import { KoniCron } from '../cron';
 import { KoniSubscription } from '../subscription';
-import { log } from 'console';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const passworder = require('browser-passworder');
@@ -334,7 +333,10 @@ export default class KoniState {
     //       console.log(data);
     //   })
     // console.log(await this.bitcoinService.getInscriptionContent("c08dba3e458a06b6aa0435f4761e728d329d7cb20f591029a8c9804290780660i0"));
-    console.log(await this.bitcoinService.fetchInscriptions('bc1p5zy5mrjfz00lr7nvy3vzvusdws85ldxzrqxacgajqwurc70wqsqsdx5ye6'));
+    // console.log(await this.bitcoinServizce.fetchInscriptions('bc1p5zy5mrjfz00lr7nvy3vzvusdws85ldxzrqxacgajqwurc70wqsqsdx5ye6'));
+    await this.bitcoinService.getBRC20Balances('bc1pvhegcw7fk4r7uj9an3ha8ajpjm6a22q6su9cwngmmcvjt7mgumcsaxyygr', (data: any) => {
+      console.log(data);
+    });
   }
 
   public async initMantaPay (password: string) {
