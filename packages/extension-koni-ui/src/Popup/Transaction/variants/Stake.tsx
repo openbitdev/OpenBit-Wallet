@@ -431,6 +431,7 @@ const Component: React.FC = () => {
                 <Form.Item name={'asset'}>
                   <TokenSelector
                     disabled={stakingChain !== ALL_KEY || !from}
+                    isShowBalance={true}
                     items={tokenList}
                     prefixShape='circle'
                   />
@@ -453,6 +454,7 @@ const Component: React.FC = () => {
                   <Form.Item name={'asset'}>
                     <TokenSelector
                       disabled={stakingChain !== ALL_KEY || !from}
+                      isShowBalance={true}
                       items={tokenList}
                       prefixShape='circle'
                     />

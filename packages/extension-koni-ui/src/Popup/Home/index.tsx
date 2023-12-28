@@ -23,9 +23,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const chainsByAccountType = useGetChainSlugsByAccountType();
   const tokenGroupStructure = useTokenGroup(chainsByAccountType);
-  const accountBalance = useAccountBalance(tokenGroupStructure.tokenGroupMap);
+  const isShowZeroBalance = useSelector((state: RootState) => state.settings.isShowZeroBalance);
   const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
-
+  const accountBalance = useAccountBalance(tokenGroupStructure.tokenGroupMap, isShowZeroBalance);
   const mantaPayConfig = useGetMantaPayConfig(currentAccount?.address);
   const isZkModeSyncing = useSelector((state: RootState) => state.mantaPay.isSyncing);
   const handleMantaPaySync = useHandleMantaPaySync();

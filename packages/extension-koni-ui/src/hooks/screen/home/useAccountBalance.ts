@@ -293,14 +293,13 @@ function getAccountBalance (
   };
 }
 
-export default function useAccountBalance (tokenGroupMap: Record<string, string[]>): AccountBalanceHookType {
+export default function useAccountBalance (tokenGroupMap: Record<string, string[]>, isShowZeroBalance: boolean): AccountBalanceHookType {
   const balanceMap = useSelector((state: RootState) => state.balance.balanceMap);
   const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
   const priceMap = useSelector((state: RootState) => state.price.priceMap);
   const price24hMap = useSelector((state: RootState) => state.price.price24hMap);
   const assetRegistryMap = useSelector((state: RootState) => state.assetRegistry.assetRegistry);
   const multiChainAssetMap = useSelector((state: RootState) => state.assetRegistry.multiChainAssetMap);
-  const isShowZeroBalance = useSelector((state: RootState) => state.settings.isShowZeroBalance);
   const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
 
   return getAccountBalance(

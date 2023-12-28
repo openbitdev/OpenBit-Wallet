@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { _isAssetFungibleToken } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getMultiChainAsset, _isAssetFungibleToken } from '@subwallet/extension-base/services/chain-service/utils';
 import { BasicInputWrapper } from '@subwallet/extension-koni-ui/components/Field/Base';
-import { useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { useAccountBalance, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { useChainAssets } from '@subwallet/extension-koni-ui/hooks/assets';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { useSelectModalInputHelper } from '@subwallet/extension-koni-ui/hooks/form/useSelectModalInputHelper';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Icon, InputRef, Logo, SelectModal } from '@subwallet/react-ui';
+import { sortTokenByValue } from '@subwallet/extension-koni-ui/utils';
+import { Icon, InputRef, Logo, Number, SelectModal } from '@subwallet/react-ui';
 import TokenItem from '@subwallet/react-ui/es/web3-block/token-item';
 import { CheckCircle } from 'phosphor-react';
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo } from 'react';
@@ -29,6 +30,7 @@ interface Props extends ThemeProps, BasicInputWrapper {
   showChainInSelected?: boolean;
   prefixShape?: 'circle' | 'none' | 'squircle' | 'square';
   filterFunction?: (chainAsset: _ChainAsset) => boolean;
+  isShowBalance?: boolean;
 }
 
 const renderEmpty = () => <GeneralEmptyList />;
@@ -36,12 +38,28 @@ const renderEmpty = () => <GeneralEmptyList />;
 const convertChainActivePriority = (active?: boolean) => active ? 1 : 0;
 
 function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> {
-  const { className = '', disabled, filterFunction = _isAssetFungibleToken, id = 'token-select', items, label, placeholder, showChainInSelected = false, statusHelp, tooltip, value } = props;
+  const { className = '', disabled, filterFunction = _isAssetFungibleToken, id = 'token-select', items, label, placeholder, showChainInSelected = false, statusHelp, tooltip, value, isShowBalance } = props;
   const { t } = useTranslation();
   const { token } = useTheme() as Theme;
-
   const assetRegistry = useChainAssets({}).chainAssetRegistry;
   const { chainInfoMap, chainStateMap } = useSelector((state) => state.chainStore);
+
+  const tokenGroupMap = useMemo(() => {
+    return Object.values(assetRegistry).reduce((tokenGroupMap: Record<string, string[]>, chainAsset) => {
+      const multiChainAsset = _getMultiChainAsset(chainAsset);
+      const tokenGroupKey = multiChainAsset || chainAsset.slug;
+
+      if (tokenGroupMap[tokenGroupKey]) {
+        tokenGroupMap[tokenGroupKey].push(chainAsset.slug);
+      } else {
+        tokenGroupMap[tokenGroupKey] = [chainAsset.slug];
+      }
+
+      return tokenGroupMap;
+    }, {});
+  }, [assetRegistry]);
+
+  const { tokenBalanceMap } = useAccountBalance(tokenGroupMap, true);
 
   const { onSelect } = useSelectModalInputHelper(props, ref);
 
@@ -56,8 +74,12 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
       return convertChainActivePriority(chainStateMap[b.originChain]?.active) - convertChainActivePriority(chainStateMap[a.originChain]?.active);
     });
 
+    isShowBalance && raw.sort((a, b) => {
+      return sortTokenByValue(tokenBalanceMap[a.slug], tokenBalanceMap[b.slug]);
+    });
+
     return raw;
-  }, [assetRegistry, chainStateMap, filterFunction, items]);
+  }, [assetRegistry, chainStateMap, filterFunction, isShowBalance, items, tokenBalanceMap]);
 
   const chainLogo = useMemo(() => {
     const tokenInfo = filteredItems.find((x) => x.slug === value);
@@ -101,31 +123,50 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
         className={'token-item'}
         isShowSubLogo={true}
         middleItem={(
-          <div className='token-info-container'>
-            <div className='token-info'>
-              <span>{item.symbol}</span>
-              {
-                item.name && (
-                  <span className='__token-name'>
-                    &nbsp;(
-                    <span className='name'>{item.name}</span>
-                    )
-                  </span>
-                )
-              }
+          <div className='__token-info-container'>
+            <div className='__token-info-row'>
+              <div className='__token-info'>
+                <span>{item.symbol}</span>
+                {
+                  !!item.name && (
+                    <span className='__token-name-wrapper'>
+                      &nbsp;(
+                      <span className='__token-name'>{item.name}</span>
+                      )
+                    </span>
+                  )
+                }
+              </div>
+              { !!isShowBalance && <Number
+                className={'__value'}
+                decimal={0}
+                decimalOpacity={0.45}
+                value={tokenBalanceMap[item.slug].total.value}
+              /> }
             </div>
-            <div className='token-original-chain'>
-              {chainInfoMap[item.originChain]?.name || item.originChain}
+            <div className='__token-info-row'>
+              <div className='__token-original-chain'>
+                {chainInfoMap[item.originChain]?.name || item.originChain}
+              </div>
+              { !!isShowBalance && <Number
+                className={'__converted-value'}
+                decimal={0}
+                decimalOpacity={0.45}
+                intOpacity={0.45}
+                prefix='$'
+                size={12}
+                unitOpacity={0.45}
+                value={tokenBalanceMap[item.slug].total.convertedValue}
+              />}
             </div>
           </div>
         )}
         name={item.symbol}
         networkMainLogoShape='squircle'
-        networkMainLogoSize={40}
+        networkMainLogoSize={38}
         networkSubLogoShape='circle'
         rightItem={
-          selected &&
-          (
+          selected && (
             <div className={'__check-icon'}>
               <Icon
                 customSize={'20px'}
@@ -135,14 +176,13 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
                 weight='fill'
               />
             </div>
-          )
-        }
+          )}
         subName=''
         subNetworkKey={item.originChain}
         symbol={item.slug.toLowerCase()}
       />
     );
-  }, [chainInfoMap, token.colorSuccess]);
+  }, [chainInfoMap, isShowBalance, token.colorSuccess, tokenBalanceMap]);
 
   useEffect(() => {
     if (!value) {
@@ -226,31 +266,55 @@ export const TokenSelector = styled(forwardRef(Component))<Props>(({ theme: { to
       justifyContent: 'center'
     },
 
-    '.token-info': {
+    '.__token-info-row': {
+      display: 'flex',
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+      gap: token.paddingSM
+    },
+
+    '.__value': {
+      fontSize: token.fontSizeLG,
+      whiteSpace: 'nowrap',
+      lineHeight: token.lineHeightLG
+    },
+
+    '.__converted-value': {
+      lineHeight: token.lineHeight,
+      fontSize: token.fontSizeSM,
+      whiteSpace: 'nowrap'
+    },
+
+    '.ant-number .ant-typography': {
+      fontSize: 'inherit !important',
+      color: 'inherit !important',
+      lineHeight: 'inherit'
+    },
+
+    '.__token-info': {
+      display: 'flex',
+      flexDirection: 'row',
+      overflow: 'hidden',
+      fontSize: token.fontSizeHeading5,
+      lineHeight: token.lineHeightHeading5,
+      fontWeight: token.fontWeightStrong,
+      color: token.colorWhite
+    },
+
+    '.__token-name-wrapper': {
+      color: token.colorTextTertiary,
       display: 'flex',
       flexDirection: 'row',
       overflow: 'hidden',
 
-      fontSize: token.fontSizeHeading5,
-      lineHeight: token.lineHeightHeading5,
-      fontWeight: token.fontWeightStrong,
-      color: token.colorWhite,
-
       '.__token-name': {
-        color: token.colorTextTertiary,
-        display: 'flex',
-        flexDirection: 'row',
+        textOverflow: 'ellipsis',
         overflow: 'hidden',
-
-        '.name': {
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap'
-        }
+        whiteSpace: 'nowrap'
       }
     },
 
-    '.token-original-chain': {
+    '.__token-original-chain': {
       fontSize: token.fontSizeSM,
       lineHeight: token.lineHeightSM,
       color: token.colorTextDescription
