@@ -1,7 +1,4 @@
-// Copyright 2019-2022 @subwallet/extension-base authors & contributors
-// SPDX-License-Identifier: Apache-2.0
-
-const marketingCampaings = `[
+[
   {
     "id": 9,
     "name": "Stake DOT earn many",
@@ -298,6 +295,4 @@ const marketingCampaings = `[
     ],
     "notifications": []
   }
-]`;
-
-export default marketingCampaings;
+]

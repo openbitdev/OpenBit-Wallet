@@ -15,6 +15,6 @@ export async function fetchStaticData<T> (slug: string, targetFile?: string) {
 
     return rs.data as T;
   } catch (e) {
-    return JSON.parse(staticData[slug as StaticKey]) as T;
+    return staticData[slug as StaticKey] as T;
   }
 }

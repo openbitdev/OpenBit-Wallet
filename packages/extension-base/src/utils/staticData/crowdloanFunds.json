@@ -1,7 +1,4 @@
-// Copyright 2019-2022 @subwallet/extension-base authors & contributors
-// SPDX-License-Identifier: Apache-2.0
-
-const crowdloanFunds = `[
+[
   {
     "paraId": 3341,
     "fundId": "3341-73",
@@ -8214,6 +8211,4 @@ const crowdloanFunds = `[
     "endTime": "2025-11-18T01:48:00.000Z",
     "chain": null
   }
-]`;
-
-export default crowdloanFunds;
+]
