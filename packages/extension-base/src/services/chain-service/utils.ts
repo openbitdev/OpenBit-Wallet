@@ -182,9 +182,9 @@ export const _isSupportOrdinal = (chain: string) => {
 export const _isBitcoinChain = (_chain: string) => {
   // TODO: change polkadot to bitcoin
   const chain = 'polkadot';
-  
+
   return chain === _chain;
-}
+};
 
 export function _getNftTypesSupportedByChain (chainInfo: _ChainInfo): _AssetType[] {
   const result: _AssetType[] = [];
