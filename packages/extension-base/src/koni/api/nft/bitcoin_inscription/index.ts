@@ -1,9 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable header/header */
-// [object Object]
+// Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
@@ -100,10 +95,10 @@ async function fetchInscriptions (address: string) {
     const allInscriptions: Inscription[] = [];
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    getBalances(TEST_ADDRESS, async (data: any) => { // need to update address
+    getBalances(TEST_ADDRESS, async (data: any) => { // TODO: need to update address
       try {
         if (data) {
-          const InscriptionsPromises: Promise<Inscription | undefined>[] = data.map(async (insc: { id: string; number: any; address: any; genesis_block_height: string; genesis_block_hash: any; genesis_timestamp: any; genesis_tx_id: any; location: any; output: any; value: string; genesis_fee: string; sat_ordinal: string; sat_rarity: any; content_type: any; content_length: any; }) => {
+          const InscriptionsPromises: Promise<Inscription | undefined>[] = data.map(async (insc: { id: string; number: number; address: string; genesis_block_height: number; genesis_block_hash: string; genesis_timestamp: number; genesis_tx_id: string; location: string; output: string; value: number; genesis_fee: number; sat_ordinal: number; sat_rarity: string; content_type: string; content_length: number; }) => {
             if (insc.content_type === 'text/plain') {
               return undefined;
             }

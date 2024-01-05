@@ -16,7 +16,7 @@ import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storag
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
 import { MODULE_SUPPORT } from '@subwallet/extension-base/utils';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, last, Subject } from 'rxjs';
 import Web3 from 'web3';
 
 import { logger as createLogger } from '@polkadot/util/logger';
@@ -138,6 +138,7 @@ export class ChainService {
   }
 
   public getAssetRegistry () {
+    // console.log(this.dataMap.assetRegistry);
     return this.dataMap.assetRegistry;
   }
 
@@ -721,6 +722,22 @@ export class ChainService {
   }
 
   private async fetchLatestData (src: string, defaultValue: unknown) {
+    // console.log('defaultValue', defaultValue);
+
+    // defaultValue = {
+    //   ARKJ: {
+    //     assetType: 'NATIVE',
+    //     decimals: 10,
+    //     icon: 'https://chain-list-assets.subwallet.app/assets/chain-assets/polkadot-native-dot.png',
+    //     metadata: null,
+    //     name: 'ARKJ',
+    //     slug: 'ARKJ',
+    //     symbol: 'ARKJ'
+    //   }
+    // };
+
+    // console.log('new defaultValue', defaultValue);
+
     return Promise.resolve(defaultValue);
     // try {
     //   const timeout = new Promise((resolve) => {
@@ -922,6 +939,28 @@ export class ChainService {
   private async initAssetRegistry (deprecatedCustomChainMap: Record<string, string>) {
     const storedAssetRegistry = await this.dbService.getAllAssetStore();
     const latestAssetRegistry = await this.fetchLatestData(_CHAIN_ASSET_SRC, ChainAssetMap) as Record<string, _ChainAsset>;
+    
+    // TODO: fetchLastestData of Bitcoin network. Below is a temporary solution
+    
+    console.log('latestAssetRegistry', latestAssetRegistry);
+    
+    latestAssetRegistry['ARKJ'] = {
+        originChain: 'polkadot',
+        slug: 'ARKJ',
+        name: 'ARKJ',
+        symbol: 'ARKJ',
+        decimals: 10,
+        priceId: null,
+        minAmount: null,
+        assetType: _AssetType.NATIVE,
+        metadata: null,
+        multiChainAsset: null,
+        hasValue: false,
+        icon: 'https://chain-list-assets.subwallet.app/assets/chain-assets/polkadot-native-dot.png'
+      };
+
+    console.log('new latestAssetRegistry', latestAssetRegistry);
+
     const availableChains = Object.values(this.dataMap.chainInfoMap)
       .filter((info) => (info.chainStatus === _ChainStatus.ACTIVE))
       .map((chainInfo) => chainInfo.slug);
