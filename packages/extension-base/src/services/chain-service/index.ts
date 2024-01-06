@@ -778,6 +778,24 @@ export class ChainService {
   private async initChains () {
     const storedChainSettings = await this.dbService.getAllChainStore();
     const latestChainInfoMap = await this.fetchLatestData(_CHAIN_INFO_SRC, ChainInfoMap) as Record<string, _ChainInfo>;
+    // console.log(storedChainSettings);
+    // console.log('abc', latestChainInfoMap);
+
+    // latestChainInfoMap.bitcoin = {
+    //   'slug': 'bitcoin',
+    //   'name': 'Bitcoin',
+    //   'isTestnet': false,
+    //   'chainStatus': 'ACTIVE',
+    //   'providers': {
+    //     "BTC": "https://blockstream.info/api/" //?
+    //   },
+    //   'substrateInfo': null,
+    //   'evmInfo': null,
+    //   'icon': 'https://chain-list-assets.subwallet.app/assets/chains/btc.png'
+    // };
+
+    // console.log('new abc', latestChainInfoMap);
+
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
@@ -807,6 +825,8 @@ export class ChainService {
       });
     } else {
       const mergedChainInfoMap: Record<string, _ChainInfo> = latestChainInfoMap;
+      // console.log('mergedChainInfoMap', mergedChainInfoMap);
+      // console.log(Object.entries(storedChainSettingMap));
 
       for (const [storedSlug, storedChainInfo] of Object.entries(storedChainSettingMap)) {
         const chainInfo = latestChainInfoMap[storedSlug];
@@ -816,6 +836,8 @@ export class ChainService {
         if (chainInfo) {
           // Keep customer provider only
           const providers: Record<string, string> = { ...mergedChainInfoMap[storedSlug].providers };
+
+          // console.log('providers', providers);
 
           for (const [key, value] of Object.entries(storedChainInfo.providers)) {
             if (_isCustomProvider(key)) {
@@ -851,6 +873,13 @@ export class ChainService {
             connectionStatus: _ChainConnectionStatus.DISCONNECTED,
             active: canActive && storedChainInfo.active
           };
+
+          // console.log("soss", {
+          //   currentProvider: currentProvider,
+          //   slug: storedSlug,
+          //   connectionStatus: _ChainConnectionStatus.DISCONNECTED,
+          //   active: canActive && storedChainInfo.active
+          // });
 
           newStorageData.push({
             ...mergedChainInfoMap[storedSlug],
@@ -939,27 +968,27 @@ export class ChainService {
   private async initAssetRegistry (deprecatedCustomChainMap: Record<string, string>) {
     const storedAssetRegistry = await this.dbService.getAllAssetStore();
     const latestAssetRegistry = await this.fetchLatestData(_CHAIN_ASSET_SRC, ChainAssetMap) as Record<string, _ChainAsset>;
-    
-    // TODO: fetchLastestData of Bitcoin network. Below is a temporary solution
-    
-    console.log('latestAssetRegistry', latestAssetRegistry);
-    
-    latestAssetRegistry['ARKJ'] = {
-        originChain: 'polkadot',
-        slug: 'ARKJ',
-        name: 'ARKJ',
-        symbol: 'ARKJ',
-        decimals: 10,
-        priceId: null,
-        minAmount: null,
-        assetType: _AssetType.NATIVE,
-        metadata: null,
-        multiChainAsset: null,
-        hasValue: false,
-        icon: 'https://chain-list-assets.subwallet.app/assets/chain-assets/polkadot-native-dot.png'
-      };
 
-    console.log('new latestAssetRegistry', latestAssetRegistry);
+    // TODO: fetchLastestData of Bitcoin network. Below is a temporary solution
+
+    // console.log('latestAssetRegistry', latestAssetRegistry);
+
+    // latestAssetRegistry.ARKJ = {
+    //     originChain: 'polkadot',
+    //     slug: 'ARKJ',
+    //     name: 'ARKJ',
+    //     symbol: 'ARKJ',
+    //     decimals: 10,
+    //     priceId: null,
+    //     minAmount: null,
+    //     assetType: _AssetType.NATIVE,
+    //     metadata: null,
+    //     multiChainAsset: null,
+    //     hasValue: false,
+    //     icon: 'https://chain-list-assets.subwallet.app/assets/chain-assets/polkadot-native-dot.png'
+    // };
+
+    // console.log('new latestAssetRegistry', latestAssetRegistry);
 
     const availableChains = Object.values(this.dataMap.chainInfoMap)
       .filter((info) => (info.chainStatus === _ChainStatus.ACTIVE))

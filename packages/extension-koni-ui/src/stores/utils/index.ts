@@ -199,7 +199,6 @@ export const subscribePrice = lazySubscribeMessage('pri(price.getSubscription)',
 
 export const updateBalance = (data: BalanceJson) => {
   !isEmptyObject(data.details) && addLazy('updateBalance', () => {
-    console.log('hello', data.details);
     store.dispatch({ type: 'balance/update', payload: data.details });
   }, 600, 1800);
 };
