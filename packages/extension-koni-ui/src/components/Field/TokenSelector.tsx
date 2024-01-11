@@ -12,6 +12,7 @@ import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { sortTokenByValue } from '@subwallet/extension-koni-ui/utils';
 import { Icon, InputRef, Logo, Number, SelectModal } from '@subwallet/react-ui';
 import TokenItem from '@subwallet/react-ui/es/web3-block/token-item';
+import CN from 'classnames';
 import { CheckCircle } from 'phosphor-react';
 import React, { ForwardedRef, forwardRef, useCallback, useEffect, useMemo } from 'react';
 import styled, { useTheme } from 'styled-components';
@@ -138,7 +139,9 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
                 }
               </div>
               { !!isShowBalance && <Number
-                className={'__value'}
+                className={CN('__value', {
+                  '-is-not-selected': !selected
+                })}
                 decimal={0}
                 decimalOpacity={0.45}
                 value={tokenBalanceMap[item.slug].total.value}
@@ -149,7 +152,9 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
                 {chainInfoMap[item.originChain]?.name || item.originChain}
               </div>
               { !!isShowBalance && <Number
-                className={'__converted-value'}
+                className={CN('__converted-value', {
+                  '-is-not-selected': !selected
+                })}
                 decimal={0}
                 decimalOpacity={0.45}
                 intOpacity={0.45}
@@ -185,11 +190,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   }, [chainInfoMap, isShowBalance, token.colorSuccess, tokenBalanceMap]);
 
   useEffect(() => {
-    if (!value) {
-      if (filteredItems[0]?.slug) {
-        onSelect(filteredItems[0].slug);
-      }
-    } else {
+    if (value) {
       const existed = filteredItems.find((item) => item.slug === value);
 
       if (!existed) {
@@ -197,6 +198,12 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
       }
     }
   }, [value, filteredItems, onSelect]);
+
+  useEffect(() => {
+    if (!value && items[0]?.slug) {
+      onSelect(items[0]?.slug);
+    }
+  }, [items, onSelect, value]);
 
   return (
     <SelectModal
@@ -283,6 +290,10 @@ export const TokenSelector = styled(forwardRef(Component))<Props>(({ theme: { to
       lineHeight: token.lineHeight,
       fontSize: token.fontSizeSM,
       whiteSpace: 'nowrap'
+    },
+
+    '.-is-not-selected': {
+      marginRight: token.margin * 2
     },
 
     '.ant-number .ant-typography': {
