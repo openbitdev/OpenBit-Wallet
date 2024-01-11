@@ -13,7 +13,7 @@ import { useFetchChainState, useGetBalance, useGetChainStakingMetadata, useGetNa
 import useFetchChainAssetInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainAssetInfo';
 import { submitBonding, submitPoolBonding } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, StakeParams, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { convertFieldToObject, isAccountAll, noop, parseNominations, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
+import { convertFieldToObject, isAccountAll, parseNominations, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Divider, Form, Icon } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
@@ -25,7 +25,6 @@ import styled from 'styled-components';
 import { BN, BN_ZERO } from '@polkadot/util';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
-import useConfirmModal from '../../../hooks/modal/useConfirmModal';
 import { accountFilterFunc, fetchChainValidators } from '../helper';
 import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
@@ -107,16 +106,6 @@ const Component: React.FC = () => {
   const tokenList = useGetSupportedStakingTokens(stakingType, from, stakingChain);
 
   const isRelayChain = useMemo(() => _STAKING_CHAIN_GROUP.relay.includes(chain), [chain]);
-
-  const { handleSimpleConfirmModal } = useConfirmModal({
-    title: t<string>('Warning'),
-    maskClosable: true,
-    closable: true,
-    type: 'warning',
-    subTitle: t<string>('Your staked funds will be locked'),
-    content: t<string>('Once staked, your funds will be locked and become non-transferable. To unlock your funds, you need to unstake manually, wait for the unstaking period to end and then withdraw manually.'),
-    okText: t<string>('Confirm')
-  });
 
   const [loading, setLoading] = useState(false);
   const [poolLoading, setPoolLoading] = useState(false);
@@ -283,46 +272,42 @@ const Component: React.FC = () => {
   }, [nominationPoolInfoMap, chain]);
 
   const onSubmit: FormCallbacks<StakeParams>['onFinish'] = useCallback((values: StakeParams) => {
-    handleSimpleConfirmModal()
-      .then(() => {
-        setLoading(true);
-        const { chain, from, nominate, pool, type, value } = values;
-        let bondingPromise: Promise<SWTransactionResponse>;
+    setLoading(true);
+    const { chain, from, nominate, pool, type, value } = values;
+    let bondingPromise: Promise<SWTransactionResponse>;
 
-        if (pool && type === StakingType.POOLED) {
-          const selectedPool = getSelectedPool(pool);
+    if (pool && type === StakingType.POOLED) {
+      const selectedPool = getSelectedPool(pool);
 
-          bondingPromise = submitPoolBonding({
-            amount: value,
-            chain: chain,
-            nominatorMetadata: nominatorMetadata,
-            selectedPool: selectedPool as NominationPoolInfo,
-            address: from
-          });
-        } else {
-          const selectedValidators = getSelectedValidators(parseNominations(nominate));
-
-          bondingPromise = submitBonding({
-            amount: value,
-            chain: chain,
-            nominatorMetadata: nominatorMetadata,
-            selectedValidators,
-            address: from,
-            type: StakingType.NOMINATED
-          });
-        }
-
-        setTimeout(() => {
-          bondingPromise
-            .then(onSuccess)
-            .catch(onError);
-        }, 300);
-      })
-      .catch(noop)
-      .finally(() => {
-        setLoading(false);
+      bondingPromise = submitPoolBonding({
+        amount: value,
+        chain: chain,
+        nominatorMetadata: nominatorMetadata,
+        selectedPool: selectedPool as NominationPoolInfo,
+        address: from
       });
-  }, [handleSimpleConfirmModal, getSelectedPool, nominatorMetadata, getSelectedValidators, onSuccess, onError]);
+    } else {
+      const selectedValidators = getSelectedValidators(parseNominations(nominate));
+
+      bondingPromise = submitBonding({
+        amount: value,
+        chain: chain,
+        nominatorMetadata: nominatorMetadata,
+        selectedValidators,
+        address: from,
+        type: StakingType.NOMINATED
+      });
+    }
+
+    setTimeout(() => {
+      bondingPromise
+        .then(onSuccess)
+        .catch(onError)
+        .finally(() => {
+          setLoading(false);
+        });
+    }, 300);
+  }, [getSelectedPool, nominatorMetadata, getSelectedValidators, onSuccess, onError]);
 
   const getMetaInfo = useCallback(() => {
     if (chainStakingMetadata) {
