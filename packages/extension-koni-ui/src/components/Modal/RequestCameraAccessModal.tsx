@@ -1,9 +1,10 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseModal } from '@subwallet/extension-koni-ui/components';
 import { REQUEST_CAMERA_ACCESS_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Button, Icon, ModalContext, SwModal } from '@subwallet/react-ui';
+import { Button, Icon, ModalContext } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { GearSix, Warning } from 'phosphor-react';
 import React, { useCallback, useContext } from 'react';
@@ -34,11 +35,13 @@ const Component: React.FC<Props> = (props: Props) => {
   }, [closeModal, navigate]);
 
   return (
-    <SwModal
+    <BaseModal
+      center={true}
       id={modalId}
       onCancel={closeModal}
       title={t('Cannot scan')}
       wrapClassName={CN(className)}
+      zIndex={1005}
     >
       <div className='body-container'>
         <div className='notice'>
@@ -66,7 +69,7 @@ const Component: React.FC<Props> = (props: Props) => {
           {t('Go to Setting')}
         </Button>
       </div>
-    </SwModal>
+    </BaseModal>
   );
 };
 

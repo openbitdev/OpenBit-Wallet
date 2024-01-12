@@ -3,6 +3,7 @@
 
 // Stateless service handle runtime event on background
 import { EventItem, EventRegistry, EventType } from '@subwallet/extension-base/services/event-service/types';
+import { TARGET_ENV } from '@subwallet/extension-base/utils';
 import EventEmitter from 'eventemitter3';
 
 const DEFAULT_LAZY_TIME = 300;
@@ -21,6 +22,7 @@ export class EventService extends EventEmitter<EventRegistry> {
   public readonly waitDatabaseReady: Promise<boolean>;
   public readonly waitKeyringReady: Promise<boolean>;
   public readonly waitAccountReady: Promise<boolean>;
+  public readonly waitInjectReady: Promise<boolean>;
   public readonly waitChainReady: Promise<boolean>;
   public readonly waitAssetReady: Promise<boolean>;
   public readonly waitMigrateReady: Promise<boolean>;
@@ -35,6 +37,8 @@ export class EventService extends EventEmitter<EventRegistry> {
     this.waitDatabaseReady = this.generateWaitPromise('database.ready');
     this.waitKeyringReady = this.generateWaitPromise('keyring.ready');
     this.waitAccountReady = this.generateWaitPromise('account.ready');
+    // TODO: Need to merge logic on web-runner file
+    this.waitInjectReady = TARGET_ENV === 'webapp' ? this.generateWaitPromise('inject.ready') : Promise.resolve(true);
     this.waitChainReady = this.generateWaitPromise('chain.ready');
     this.waitAssetReady = this.generateWaitPromise('asset.ready');
     this.waitMigrateReady = this.generateWaitPromise('migration.done');
@@ -46,6 +50,7 @@ export class EventService extends EventEmitter<EventRegistry> {
   private generateWaitPromise<T extends EventType> (eventType: T): Promise<boolean> {
     return new Promise((resolve) => {
       this.once(eventType, (isReady) => {
+        console.log('===LOG generateWaitPromise eventType', eventType);
         resolve(isReady);
       });
     });

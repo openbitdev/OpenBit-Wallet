@@ -4,23 +4,26 @@
 import { AbstractAddressJson, AccountJson } from '@subwallet/extension-base/background/types';
 import { stripUrl } from '@subwallet/extension-base/utils';
 import { AccountItemWithName, EmptyList, GeneralEmptyList, Layout, MetaInfo, PageWrapper, WCNetworkAvatarGroup } from '@subwallet/extension-koni-ui/components';
+import { BaseModal } from '@subwallet/extension-koni-ui/components/Modal/BaseModal';
+import { WALLET_CONNECT_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useConfirmModal, useNotification, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { disconnectWalletConnectConnection } from '@subwallet/extension-koni-ui/messaging';
 import { ReduxStatus } from '@subwallet/extension-koni-ui/stores/types';
 import { Theme, ThemeProps, WalletConnectChainInfo } from '@subwallet/extension-koni-ui/types';
 import { chainsToWalletConnectChainInfos, getWCAccountList, noop } from '@subwallet/extension-koni-ui/utils';
-import { Icon, Image, ModalContext, NetworkItem, SwList, SwModal, SwModalFuncProps } from '@subwallet/react-ui';
+import { Button, Icon, Image, ModalContext, NetworkItem, SwList, SwModalFuncProps } from '@subwallet/react-ui';
+import { SwModalProps } from '@subwallet/react-ui/es/sw-modal/SwModal';
 import { SessionTypes } from '@walletconnect/types';
 import CN from 'classnames';
 import { Info, MagnifyingGlass, Plugs } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
 interface ComponentProps {
+  isModal?: boolean;
   session: SessionTypes.Struct;
   className?: string;
 }
@@ -31,7 +34,7 @@ const disconnectModalId = 'disconnect-connection-modal';
 const networkModalId = 'connection-detail-networks-modal';
 
 const Component: React.FC<ComponentProps> = (props) => {
-  const { className, session } = props;
+  const { className, isModal, session } = props;
   const { namespaces, peer: { metadata: dAppInfo }, topic } = session;
 
   const { t } = useTranslation();
@@ -156,8 +159,105 @@ const Component: React.FC<ComponentProps> = (props) => {
     );
   }, []);
 
+  const contentNode = (
+    <div className='body-container'>
+      <MetaInfo
+        hasBackgroundWrapper
+      >
+        <MetaInfo.Default
+          className='dapp-info-container'
+          label={t('DApp')}
+        >
+          <div className='dapp-info-content'>
+            <Image
+              className='dapp-info-img'
+              height='var(--img-height)'
+              src={img}
+              width='var(--img-width)'
+            />
+            <div className='dapp-info-domain'>{domain}</div>
+          </div>
+        </MetaInfo.Default>
+        <MetaInfo.Default
+          className='network-container'
+          label={t('Network')}
+        >
+          <div
+            className='network-content'
+            onClick={openNetworkModal}
+          >
+            <WCNetworkAvatarGroup networks={chains} />
+            <div className='network-name'>
+              {t('{{number}} network(s)', { replace: { number: chains.length } })}
+            </div>
+            <Icon
+              phosphorIcon={Info}
+              size='sm'
+              weight='fill'
+            />
+          </div>
+        </MetaInfo.Default>
+      </MetaInfo>
+      <div className='total-account'>
+        {t('{{number}} account connected', { replace: { number: accountItems.length } })}
+      </div>
+      <SwList.Section
+        className='account-list'
+        displayRow
+        list={accountItems}
+        renderItem={renderAccountItem}
+        renderWhenEmpty={renderAccountEmpty}
+        rowGap='var(--row-gap)'
+      />
+      <BaseModal
+        className={CN(className, 'network-modal')}
+        id={networkModalId}
+        onCancel={closeNetworkModal}
+        title={t('Connected network')}
+      >
+        <SwList.Section
+          className='network-list'
+          displayRow
+          enableSearchInput={true}
+          list={chains}
+          renderItem={renderChainItem}
+          renderWhenEmpty={renderNetworkEmpty}
+          rowGap='var(--row-gap)'
+          searchFunction={searchFunction}
+          searchPlaceholder={t<string>('Network name')}
+        />
+      </BaseModal>
+    </div>
+  );
+
+  if (isModal) {
+    return (
+      <>
+        {contentNode}
+
+        <div className='__footer'>
+          <Button
+            block={true}
+            icon={(
+              <Icon
+                phosphorIcon={Plugs}
+                weight='fill'
+              />
+            )}
+            loading={loading}
+            onClick={onDisconnect}
+            schema={'danger'}
+          >
+            {t('Disconnect')}
+          </Button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <Layout.WithSubHeaderOnly
+      className={'setting-pages'}
       onBack={goBack}
       rightFooterButton={{
         icon: (
@@ -173,82 +273,24 @@ const Component: React.FC<ComponentProps> = (props) => {
       }}
       title={t('WalletConnect')}
     >
-      <div className='body-container'>
-        <MetaInfo
-          hasBackgroundWrapper
-        >
-          <MetaInfo.Default
-            className='dapp-info-container'
-            label={t('DApp')}
-          >
-            <div className='dapp-info-content'>
-              <Image
-                className='dapp-info-img'
-                height='var(--img-height)'
-                src={img}
-                width='var(--img-width)'
-              />
-              <div className='dapp-info-domain'>{domain}</div>
-            </div>
-          </MetaInfo.Default>
-          <MetaInfo.Default
-            className='network-container'
-            label={t('Network')}
-          >
-            <div
-              className='network-content'
-              onClick={openNetworkModal}
-            >
-              <WCNetworkAvatarGroup networks={chains} />
-              <div className='network-name'>
-                {t('{{number}} network(s)', { replace: { number: chains.length } })}
-              </div>
-              <Icon
-                phosphorIcon={Info}
-                size='sm'
-                weight='fill'
-              />
-            </div>
-          </MetaInfo.Default>
-        </MetaInfo>
-        <div className='total-account'>
-          {t('{{number}} account connected', { replace: { number: accountItems.length } })}
-        </div>
-        <SwList.Section
-          className='account-list'
-          displayRow
-          list={accountItems}
-          renderItem={renderAccountItem}
-          renderWhenEmpty={renderAccountEmpty}
-          rowGap='var(--row-gap)'
-        />
-        <SwModal
-          className={CN(className, 'network-modal')}
-          id={networkModalId}
-          onCancel={closeNetworkModal}
-          title={t('Connected network')}
-        >
-          <SwList.Section
-            className='network-list'
-            displayRow
-            enableSearchInput={true}
-            list={chains}
-            renderItem={renderChainItem}
-            renderWhenEmpty={renderNetworkEmpty}
-            rowGap='var(--row-gap)'
-            searchFunction={searchFunction}
-            searchPlaceholder={t<string>('Network name')}
-          />
-        </SwModal>
-      </div>
+      {contentNode}
     </Layout.WithSubHeaderOnly>
   );
 };
 
-type Props = ThemeProps;
+type Props = ThemeProps & {
+  topic?: string;
+  isModal?: boolean;
+  modalProps?: {
+    closeIcon?: SwModalProps['closeIcon'],
+    onCancel?: SwModalProps['onCancel'],
+  };
+};
 
 const Wrapper: React.FC<Props> = (props: Props) => {
-  const { className } = props;
+  const { className, isModal, modalProps = {}, topic: topicProp } = props;
+
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
 
@@ -258,18 +300,42 @@ const Wrapper: React.FC<Props> = (props: Props) => {
 
   const params = useParams();
 
-  const topic = params.topic as string;
+  const _topic = params.topic as string;
+
+  const topic = topicProp || _topic;
 
   const session = useMemo(() => sessions[topic], [sessions, topic]);
 
   useEffect(() => {
-    if (!session && reduxStatus === ReduxStatus.READY) {
+    if (!isModal && !session && reduxStatus === ReduxStatus.READY) {
       navigate('/wallet-connect/list');
     }
-  }, [session, reduxStatus, navigate]);
+  }, [session, reduxStatus, navigate, isModal]);
 
   if (!session && reduxStatus === ReduxStatus.READY) {
     return null;
+  }
+
+  if (isModal) {
+    return (
+      <BaseModal
+        {...modalProps}
+        className={CN(className, '-modal')}
+        id={WALLET_CONNECT_DETAIL_MODAL}
+        title={t('WalletConnect')}
+      >
+        <PageWrapper
+          className={'__modal-content'}
+          resolve={dataContext.awaitStores(['walletConnect'])}
+        >
+          <Component
+            className={className}
+            isModal={true}
+            session={session}
+          />
+        </PageWrapper>
+      </BaseModal>
+    );
   }
 
   return (
@@ -309,8 +375,8 @@ const ConnectionDetail = styled(Wrapper)<Props>(({ theme: { token } }: Props) =>
         alignItems: 'center',
 
         '.dapp-info-img': {
-          '--img-height': token.sizeLG,
-          '--img-width': token.sizeLG
+          '--img-height': `${token.sizeLG}px`,
+          '--img-width': `${token.sizeLG}px`
         },
 
         '.dapp-info-domain': {
@@ -362,6 +428,22 @@ const ConnectionDetail = styled(Wrapper)<Props>(({ theme: { token } }: Props) =>
         padding: `${token.padding}px 0 ${token.padding}px`,
         flexDirection: 'column',
         display: 'flex'
+      }
+    },
+
+    '&.-modal': {
+      '.__modal-content': {
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      },
+      '.body-container': {
+        padding: 0,
+        overflow: 'auto',
+        minHeight: 330
+      },
+      '.__footer': {
+        paddingTop: token.padding
       }
     }
   };

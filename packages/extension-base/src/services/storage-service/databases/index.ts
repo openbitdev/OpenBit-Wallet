@@ -3,7 +3,7 @@
 
 import { _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { CampaignData, ChainStakingMetadata, CrowdloanItem, MetadataItem, NftCollection, NftItem, NominatorMetadata, PriceJson, StakingItem, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
-import { BalanceItem } from '@subwallet/extension-base/types';
+import { BalanceItem, YieldPoolInfo, YieldPositionInfo } from '@subwallet/extension-base/types';
 import Dexie, { Table, Transaction } from 'dexie';
 
 const DEFAULT_DATABASE = 'SubWalletDB_v2';
@@ -58,6 +58,9 @@ export default class KoniDatabase extends Dexie {
   public chainStakingMetadata!: Table<ChainStakingMetadata, object>;
   public nominatorMetadata!: Table<NominatorMetadata, object>;
 
+  public yieldPoolInfo!: Table<YieldPoolInfo, object>;
+  public yieldPosition!: Table<YieldPositionInfo, object>;
+
   public mantaPay!: Table<IMantaPayLedger, object>;
   public campaign!: Table<ICampaign, object>;
 
@@ -81,7 +84,6 @@ export default class KoniDatabase extends Dexie {
       stakings: '[chain+address+type], [chain+address], chain, address, type',
       transactions: '[chain+address+extrinsicHash], &[chain+address+extrinsicHash], chain, address, extrinsicHash, action',
       migrations: '[key+name]',
-
       chainStakingMetadata: '[chain+type], chain, type',
       nominatorMetadata: '[chain+address+type], [chain+address], chain, address, type'
     });
@@ -95,6 +97,11 @@ export default class KoniDatabase extends Dexie {
     });
 
     this.conditionalVersion(4, {
+      yieldPoolInfo: 'slug, chain, type',
+      yieldPosition: '[slug+chain+address], [address+slug], address, chain'
+    });
+
+    this.conditionalVersion(5, {
       campaign: 'slug'
     });
   }

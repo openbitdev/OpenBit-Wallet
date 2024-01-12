@@ -4,6 +4,7 @@
 import { _isChainEvmCompatible, _isCustomChain, _isSubstrateChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { FilterModal, Layout, NetworkEmptyList, NetworkToggleItem, OptionType, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import { ChainInfoWithState, useChainInfoWithState, useFilterModal, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ButtonProps, Icon, ModalContext, SwList } from '@subwallet/react-ui';
@@ -28,6 +29,7 @@ const renderEmpty = () => <NetworkEmptyList />;
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const { isWebUI } = useContext(ScreenContext);
   const navigate = useNavigate();
   const dataContext = useContext(DataContext);
   const { activeModal } = useContext(ModalContext);
@@ -88,6 +90,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         chainInfo={chainInfo}
         isShowSubLogo={true}
         key={chainInfo.slug}
+        showDetailNavigation={true}
+        withDivider={true}
       />
     );
   }, []);
@@ -104,10 +108,11 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         ),
         onClick: () => {
           navigate('/settings/chains/import', { state: { isExternalRequest: false } });
-        }
+        },
+        tooltip: isWebUI ? t('Import network') : undefined
       }
     ];
-  }, [navigate]);
+  }, [isWebUI, navigate, t]);
 
   const onBack = useCallback(() => {
     navigate(-1);

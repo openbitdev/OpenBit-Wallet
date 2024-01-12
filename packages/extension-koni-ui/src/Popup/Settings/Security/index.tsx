@@ -3,8 +3,10 @@
 
 import { WalletUnlockType } from '@subwallet/extension-base/background/KoniTypes';
 import { Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { BaseModal } from '@subwallet/extension-koni-ui/components/Modal/BaseModal';
 import { EDIT_AUTO_LOCK_TIME_MODAL, EDIT_UNLOCK_TYPE_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { DEFAULT_ROUTER_PATH } from '@subwallet/extension-koni-ui/constants/router';
+import { WebUIContext } from '@subwallet/extension-koni-ui/contexts/WebUIContext';
 import useIsPopup from '@subwallet/extension-koni-ui/hooks/dom/useIsPopup';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import { saveAutoLockTime, saveCameraSetting, saveEnableChainPatrol, saveUnlockType, windowOpen } from '@subwallet/extension-koni-ui/messaging';
@@ -12,7 +14,7 @@ import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { noop } from '@subwallet/extension-koni-ui/utils';
 import { isNoAccount } from '@subwallet/extension-koni-ui/utils/account/account';
-import { BackgroundIcon, Icon, ModalContext, SettingItem, Switch, SwModal } from '@subwallet/react-ui';
+import { BackgroundIcon, Icon, ModalContext, SettingItem, Switch } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Camera, CaretRight, CheckCircle, GlobeHemisphereEast, Key, LockKeyOpen, LockLaminated, ShieldStar } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -59,8 +61,9 @@ const Component: React.FC<Props> = (props: Props) => {
   const location = useLocation();
   const canGoBack = !!location.state;
   const isPopup = useIsPopup();
-
+  const isCheckCamera = useMemo(() => window.navigator.mediaDevices, []);
   const { activeModal, inactiveModal } = useContext(ModalContext);
+  const { setOnBack } = useContext(WebUIContext);
 
   const { accounts } = useSelector((state: RootState) => state.accountState);
   const { camera, enableChainPatrol, timeAutoLock, unlockType } = useSelector((state: RootState) => state.settings);
@@ -139,13 +142,15 @@ const Component: React.FC<Props> = (props: Props) => {
 
       let openNewTab = false;
 
-      if (!currentValue) {
+      if (!currentValue && isCheckCamera) {
         if (isPopup) {
           openNewTab = true;
         }
+      } else if (!isCheckCamera) {
+        navigate('/unsafe-access');
       }
 
-      saveCameraSetting(!currentValue)
+      saveCameraSetting(window.navigator.mediaDevices ? !currentValue : currentValue)
         .then(() => {
           if (openNewTab) {
             windowOpen({ allowedPath: '/settings/security' })
@@ -159,7 +164,7 @@ const Component: React.FC<Props> = (props: Props) => {
           setLoadingCamera(false);
         });
     };
-  }, [isPopup]);
+  }, [isCheckCamera, isPopup, navigate]);
 
   const updateChainPatrolEnable = useCallback((currentValue: boolean) => {
     return () => {
@@ -253,7 +258,7 @@ const Component: React.FC<Props> = (props: Props) => {
   }, [onClickItem]);
 
   useEffect(() => {
-    if (camera) {
+    if (camera && isCheckCamera) {
       window.navigator.mediaDevices.getUserMedia({ video: true })
         .then((stream) => {
           // Close video
@@ -263,7 +268,15 @@ const Component: React.FC<Props> = (props: Props) => {
         })
         .catch(console.error);
     }
-  }, [camera]);
+  }, [camera, isCheckCamera, navigate]);
+
+  useEffect(() => {
+    setOnBack(onBack);
+
+    return () => {
+      setOnBack(undefined);
+    };
+  }, [onBack, setOnBack]);
 
   return (
     <PageWrapper className={CN(className)}>
@@ -275,7 +288,7 @@ const Component: React.FC<Props> = (props: Props) => {
           <div className='items-container'>
             {items.map(onRenderItem)}
           </div>
-          <div className='setting-config-container'>
+          <div className='setting-config-container hidden'>
             <div className='label'>
               {t('Website access')}
             </div>
@@ -329,7 +342,7 @@ const Component: React.FC<Props> = (props: Props) => {
             />
           </div>
         </div>
-        <SwModal
+        <BaseModal
           className={className}
           id={editAutoLockTimeModalId}
           onCancel={onCloseAutoLockTimeModal}
@@ -365,8 +378,8 @@ const Component: React.FC<Props> = (props: Props) => {
               })
             }
           </div>
-        </SwModal>
-        <SwModal
+        </BaseModal>
+        <BaseModal
           className={className}
           id={editUnlockTypeModalId}
           onCancel={onCloseUnlockTypeModal}
@@ -414,7 +427,7 @@ const Component: React.FC<Props> = (props: Props) => {
               }
             />
           </div>
-        </SwModal>
+        </BaseModal>
       </Layout.WithSubHeaderOnly>
     </PageWrapper>
   );

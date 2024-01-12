@@ -1,19 +1,22 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CampaignBanner } from '@subwallet/extension-base/background/KoniTypes';
-import { CampaignBannerModal, Layout } from '@subwallet/extension-koni-ui/components';
+import { Layout } from '@subwallet/extension-koni-ui/components';
 import { GlobalSearchTokenModal } from '@subwallet/extension-koni-ui/components/Modal/GlobalSearchTokenModal';
 import { GeneralTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/GeneralTermModal';
-import { CONFIRM_GENERAL_TERM, GENERAL_TERM_AND_CONDITION_MODAL, HOME_CAMPAIGN_BANNER_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { CONFIRM_GENERAL_TERM, GENERAL_TERM_AND_CONDITION_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
-import { useAccountBalance, useGetBannerByScreen, useGetChainSlugsByAccountType, useGetMantaPayConfig, useHandleMantaPaySync, useTokenGroup } from '@subwallet/extension-koni-ui/hooks';
-import { RootState } from '@subwallet/extension-koni-ui/stores';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
+import { WebUIContext } from '@subwallet/extension-koni-ui/contexts/WebUIContext';
+import useAccountBalance from '@subwallet/extension-koni-ui/hooks/screen/home/useAccountBalance';
+import { useGetChainSlugsByAccountType } from '@subwallet/extension-koni-ui/hooks/screen/home/useGetChainSlugsByAccountType';
+import useTokenGroup from '@subwallet/extension-koni-ui/hooks/screen/home/useTokenGroup';
+import PortfolioPage from '@subwallet/extension-koni-ui/Popup/Home/PortfolioPage';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ModalContext } from '@subwallet/react-ui';
-import React, { useCallback, useContext, useEffect, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { Outlet } from 'react-router';
+import CN from 'classnames';
+import React, { useCallback, useContext, useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
 
@@ -26,15 +29,11 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const chainsByAccountType = useGetChainSlugsByAccountType();
   const tokenGroupStructure = useTokenGroup(chainsByAccountType);
   const accountBalance = useAccountBalance(tokenGroupStructure.tokenGroupMap);
-  const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
   const [isConfirmedTermGeneral, setIsConfirmedTermGeneral] = useLocalStorage(CONFIRM_GENERAL_TERM, 'nonConfirmed');
-  const mantaPayConfig = useGetMantaPayConfig(currentAccount?.address);
-  const isZkModeSyncing = useSelector((state: RootState) => state.mantaPay.isSyncing);
-  const handleMantaPaySync = useHandleMantaPaySync();
-
-  const banners = useGetBannerByScreen('home');
-
-  const firstBanner = useMemo((): CampaignBanner | undefined => banners[0], [banners]);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { isPortfolio } = useContext(WebUIContext);
+  const { isWebUI } = useContext(ScreenContext);
 
   const onOpenGlobalSearchToken = useCallback(() => {
     activeModal(GlobalSearchTokenModalId);
@@ -49,16 +48,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [setIsConfirmedTermGeneral]);
 
   useEffect(() => {
-    if (mantaPayConfig && mantaPayConfig.enabled && !mantaPayConfig.isInitialSync && !isZkModeSyncing) {
-      handleMantaPaySync(mantaPayConfig.address);
-    }
-  }, [handleMantaPaySync, isZkModeSyncing, mantaPayConfig]);
+    const pathEls = pathname.split('/').filter((i: string) => !!i);
 
-  useEffect(() => {
-    if (firstBanner) {
-      activeModal(HOME_CAMPAIGN_BANNER_MODAL);
+    if (pathEls.length <= 1) {
+      navigate('/home/tokens');
     }
-  }, [activeModal, firstBanner]);
+  }, [navigate, pathname]);
 
   useEffect(() => {
     if (isConfirmedTermGeneral.includes('nonConfirmed')) {
@@ -73,15 +68,17 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         accountBalance
       }}
       >
-        <div className={`home home-container ${className}`}>
-          <Layout.Home
-            onClickSearchIcon={onOpenGlobalSearchToken}
-            showFilterIcon
-            showSearchIcon
-          >
-            <Outlet />
-            <GeneralTermModal onOk={onAfterConfirmTermModal} />
-          </Layout.Home>
+        <div className={CN(className, 'home', 'home-container', { 'portfolio-container': isPortfolio })}>
+          {(isPortfolio && isWebUI)
+            ? <PortfolioPage />
+            : <Layout.Home
+              onClickSearchIcon={onOpenGlobalSearchToken}
+              showFilterIcon
+              showSearchIcon
+            >
+              <Outlet />
+            </Layout.Home>}
+          <GeneralTermModal onOk={onAfterConfirmTermModal} />
         </div>
       </HomeContext.Provider>
 
@@ -91,7 +88,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         sortedTokenSlugs={tokenGroupStructure.sortedTokenSlugs}
         tokenBalanceMap={accountBalance.tokenBalanceMap}
       />
-      {firstBanner && <CampaignBannerModal banner={firstBanner} />}
     </>
   );
 }

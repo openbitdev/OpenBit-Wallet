@@ -22,6 +22,7 @@ const Component = (props: Props) => {
 
   return (
     <Layout.Base
+      className={'layout-with-sub-header-only'}
       showBackButton={showBackButton}
       showSubHeader={true}
       subHeaderBackground='transparent'

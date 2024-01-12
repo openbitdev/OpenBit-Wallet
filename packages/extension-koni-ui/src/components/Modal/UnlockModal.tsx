@@ -1,12 +1,14 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseModal } from '@subwallet/extension-koni-ui/components';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { keyringUnlock } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
-import { Button, Form, Input, ModalContext, SwIconProps, SwModal } from '@subwallet/react-ui';
+import { Button, Form, Input, ModalContext, SwIconProps } from '@subwallet/react-ui';
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
@@ -42,6 +44,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [form] = Form.useForm<LoginFormState>();
   const [loading, setLoading] = useState(false);
   const [isDisable, setIsDisable] = useState(true);
+  const { isWebUI } = useContext(ScreenContext);
 
   const closeModal = useCallback(
     () => {
@@ -92,7 +95,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   useFocusById(passwordInputId);
 
   return (
-    <SwModal
+    <BaseModal
+      center={true}
       className={className}
       id={UNLOCK_MODAL_ID}
       onCancel={closeModal}
@@ -114,7 +118,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 required: true
               }
             ]}
-            statusHelpAsTooltip={true}
+            statusHelpAsTooltip={isWebUI}
           >
             <Input.Password
               containerClassName='password-input'
@@ -134,7 +138,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           </Form.Item>
         </Form>
       </div>
-    </SwModal>
+    </BaseModal>
   );
 }
 
@@ -142,6 +146,10 @@ export const UnlockModal = styled(Component)<Props>(({ theme: { token } }: Props
   return ({
     '.__action-item + .__action-item': {
       marginTop: token.marginXS
+    },
+
+    '.ant-sw-modal-body': {
+      paddingBottom: 0
     }
   });
 });

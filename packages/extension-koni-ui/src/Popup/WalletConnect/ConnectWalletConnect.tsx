@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CloseIcon, Layout, QrScannerErrorNotice, WalletConnect } from '@subwallet/extension-koni-ui/components';
+import { BaseModal } from '@subwallet/extension-koni-ui/components/Modal/BaseModal';
+import { WALLET_CONNECT_CREATE_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import { useDefaultNavigate, useNotification, useOpenQrScanner } from '@subwallet/extension-koni-ui/hooks';
 import { addConnection } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ScannerResult } from '@subwallet/extension-koni-ui/types/scanner';
 import { validWalletConnectUri } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon, Input, ModalContext, PageIcon, SwQrScanner } from '@subwallet/react-ui';
+import { SwModalProps } from '@subwallet/react-ui/es/sw-modal/SwModal';
 import CN from 'classnames';
 import { Scan } from 'phosphor-react';
 import { RuleObject } from 'rc-field-form/lib/interface';
@@ -16,7 +20,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-type Props = ThemeProps;
+type Props = ThemeProps & {
+  isModal?: boolean;
+  modalProps?: {
+    closeIcon?: SwModalProps['closeIcon'],
+    onCancel?: SwModalProps['onCancel'],
+  };
+  onAfterConnect?: () => void;
+};
 
 interface AddConnectionFormState {
   uri: string;
@@ -30,7 +41,7 @@ const scannerId = 'connect-connection-scanner-modal';
 const showScanner = true;
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className } = props;
+  const { className, isModal, modalProps = {}, onAfterConnect } = props;
 
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -38,11 +49,18 @@ const Component: React.FC<Props> = (props: Props) => {
   const { goHome } = useDefaultNavigate();
 
   const { inactiveModal } = useContext(ModalContext);
+  const { isWebUI } = useContext(ScreenContext);
 
   const [form] = Form.useForm<AddConnectionFormState>();
 
   const [loading, setLoading] = useState(false);
   const [scanError, setScanError] = useState('');
+
+  const goBack = useCallback(() => {
+    navigate('/wallet-connect/list');
+  }, [navigate]);
+
+  const _onAfterConnect = onAfterConnect || goBack;
 
   const onConnect = useCallback((uri: string) => {
     setLoading(true);
@@ -52,7 +70,8 @@ const Component: React.FC<Props> = (props: Props) => {
     })
       .then(() => {
         setLoading(false);
-        navigate('/wallet-connect/list');
+        _onAfterConnect();
+        form.resetFields();
       })
       .catch((e) => {
         console.error(e);
@@ -68,7 +87,7 @@ const Component: React.FC<Props> = (props: Props) => {
       .finally(() => {
         setLoading(false);
       });
-  }, [navigate, notification, t]);
+  }, [_onAfterConnect, form, notification, t]);
 
   const onFinish: FormCallbacks<AddConnectionFormState>['onFinish'] = useCallback((values: AddConnectionFormState) => {
     const { uri } = values;
@@ -107,10 +126,6 @@ const Component: React.FC<Props> = (props: Props) => {
     setScanError(error);
   }, []);
 
-  const goBack = useCallback(() => {
-    navigate('/wallet-connect/list');
-  }, [navigate]);
-
   const uriValidator = useCallback((rule: RuleObject, uri: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       const error = validWalletConnectUri(uri, t);
@@ -123,9 +138,130 @@ const Component: React.FC<Props> = (props: Props) => {
     });
   }, [t]);
 
+  const onCloseModal = useCallback(() => {
+    modalProps?.onCancel?.();
+    form.resetFields();
+  }, [form, modalProps]);
+
+  const contentNode = (
+    <div className='body-container'>
+      <div className='description'>
+        {t('By clicking "Connect", you allow this dapp to view your public address')}
+      </div>
+      <div className='page-icon'>
+        <PageIcon
+          color='var(--page-icon-color)'
+          iconProps={{
+            customIcon: (
+              <WalletConnect
+                height='1em'
+                width='1em'
+              />
+            ),
+            type: 'customIcon'
+          }}
+        />
+      </div>
+      <Form
+        form={form}
+        initialValues={DEFAULT_FORM_VALUES}
+        onFinish={onFinish}
+      >
+        <Form.Item
+          name={'uri'}
+          rules={[
+            {
+              required: true,
+              message: t('URI is required')
+            },
+            {
+              validator: uriValidator
+            }
+          ]}
+          statusHelpAsTooltip={isWebUI}
+        >
+          <Input
+            disabled={loading}
+            label={t('URI')}
+            placeholder={t('Please type or paste or scan URI')}
+            suffix={(
+              <>
+                {
+                  showScanner && (
+                    <Button
+                      disabled={loading}
+                      icon={(
+                        <Icon
+                          phosphorIcon={Scan}
+                          size='sm'
+                        />
+                      )}
+                      onClick={onOpenScan}
+                      size='xs'
+                      type='ghost'
+                    />
+                  )
+                }
+              </>
+            )}
+          />
+        </Form.Item>
+      </Form>
+      {
+        showScanner && (
+          <SwQrScanner
+            className={className}
+            id={scannerId}
+            isError={!!scanError}
+            onClose={onCloseScan}
+            onError={onScanError}
+            onSuccess={onSuccess}
+            overlay={scanError && <QrScannerErrorNotice message={scanError} />}
+            selectCameraMotion={isWebUI ? 'move-right' : undefined}
+          />
+        )
+      }
+    </div>
+  );
+
+  if (isModal) {
+    return (
+      <BaseModal
+        className={CN(className, '-modal')}
+        closeIcon={modalProps?.closeIcon}
+        id={WALLET_CONNECT_CREATE_MODAL}
+        onCancel={onCloseModal}
+        title={t('WalletConnect')}
+      >
+        {contentNode}
+
+        <div className='__footer'>
+          <Button
+            block={true}
+            icon={
+              <Icon
+                customIcon={(
+                  <WalletConnect
+                    height='1em'
+                    width='1em'
+                  />
+                )}
+                type='customIcon'
+              />
+            }
+            loading={loading}
+            onClick={form.submit}
+          >
+            {t('Connect')}
+          </Button>
+        </div>
+      </BaseModal>
+    );
+  }
+
   return (
     <Layout.WithSubHeaderOnly
-      className={CN(className)}
+      className={CN(className, 'setting-pages')}
       onBack={goBack}
       rightFooterButton={{
         children: t('Connect'),
@@ -149,83 +285,7 @@ const Component: React.FC<Props> = (props: Props) => {
       }]}
       title={t('WalletConnect')}
     >
-      <div className='body-container'>
-        <div className='description'>
-          {t('By clicking "Connect", you allow this dapp to view your public address')}
-        </div>
-        <div className='page-icon'>
-          <PageIcon
-            color='var(--page-icon-color)'
-            iconProps={{
-              customIcon: (
-                <WalletConnect
-                  height='1em'
-                  width='1em'
-                />
-              ),
-              type: 'customIcon'
-            }}
-          />
-        </div>
-        <Form
-          form={form}
-          initialValues={DEFAULT_FORM_VALUES}
-          onFinish={onFinish}
-        >
-          <Form.Item
-            name={'uri'}
-            rules={[
-              {
-                required: true,
-                message: t('URI is required')
-              },
-              {
-                validator: uriValidator
-              }
-            ]}
-            statusHelpAsTooltip={true}
-          >
-            <Input
-              disabled={loading}
-              label={t('URI')}
-              placeholder={t('Please type or paste or scan URI')}
-              suffix={(
-                <>
-                  {
-                    showScanner && (
-                      <Button
-                        disabled={loading}
-                        icon={(
-                          <Icon
-                            phosphorIcon={Scan}
-                            size='sm'
-                          />
-                        )}
-                        onClick={onOpenScan}
-                        size='xs'
-                        type='ghost'
-                      />
-                    )
-                  }
-                </>
-              )}
-            />
-          </Form.Item>
-        </Form>
-        {
-          showScanner && (
-            <SwQrScanner
-              className={className}
-              id={scannerId}
-              isError={!!scanError}
-              onClose={onCloseScan}
-              onError={onScanError}
-              onSuccess={onSuccess}
-              overlay={scanError && <QrScannerErrorNotice message={scanError} />}
-            />
-          )
-        }
-      </div>
+      {contentNode}
     </Layout.WithSubHeaderOnly>
   );
 };
@@ -253,6 +313,22 @@ const ConnectWalletConnect = styled(Component)<Props>(({ theme: { token } }: Pro
 
       '.ant-input-suffix': {
         minWidth: token.sizeXS
+      }
+    },
+
+    '&.-modal': {
+      '.body-container': {
+        paddingLeft: 0,
+        paddingRight: 0
+      },
+
+      '.page-icon': {
+        marginTop: token.marginXL,
+        marginBottom: token.marginXL
+      },
+
+      '.__footer': {
+        paddingTop: token.paddingXS
       }
     }
   };

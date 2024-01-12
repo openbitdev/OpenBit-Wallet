@@ -52,7 +52,8 @@ function getDefaultBalanceItem (
     priceValue: 0,
     logoKey,
     slug,
-    symbol
+    symbol,
+    relatedChains: []
   };
 }
 
@@ -102,6 +103,8 @@ function getAccountBalance (
   const totalBalanceInfo: AccountBalanceHookType['totalBalanceInfo'] = {
     convertedValue: new BigN(0),
     converted24hValue: new BigN(0),
+    freeValue: new BigN(0),
+    lockedValue: new BigN(0),
     change: {
       value: new BigN(0),
       percent: new BigN(0)
@@ -148,6 +151,11 @@ function getAccountBalance (
       tokenBalance.chainDisplayName = _getChainName(chainInfoMap[originChain]);
       tokenBalance.isTestnet = !_isAssetValuable(chainAsset);
 
+      if (isShowZeroBalance) {
+        !tokenBalance.relatedChains.includes(originChain) && tokenBalance.relatedChains.push(originChain);
+        !tokenGroupBalance.relatedChains.includes(originChain) && tokenGroupBalance.relatedChains.push(originChain);
+      }
+
       if (isTokenBalanceReady) {
         tokenBalance.free.value = tokenBalance.free.value.plus(getBalanceValue(balanceItem.free || '0', decimals));
         tokenGroupBalance.free.value = tokenGroupBalance.free.value.plus(tokenBalance.free.value);
@@ -174,8 +182,13 @@ function getAccountBalance (
           mergeData('feeFrozen');
         }
 
-        if (!isShowZeroBalance && tokenBalance.total.value.eq(BN_0)) {
-          return;
+        if (!isShowZeroBalance) {
+          if (tokenBalance.total.value.eq(BN_0)) {
+            return;
+          }
+
+          !tokenBalance.relatedChains.includes(originChain) && tokenBalance.relatedChains.push(originChain);
+          !tokenGroupBalance.relatedChains.includes(originChain) && tokenGroupBalance.relatedChains.push(originChain);
         }
 
         tokenGroupBalance.total.value = tokenGroupBalance.total.value.plus(tokenBalance.total.value);
@@ -268,6 +281,8 @@ function getAccountBalance (
 
     if (!tokenGroupBalance.isNotSupport) {
       tokenGroupBalanceMap[tokenGroupKey] = tokenGroupBalance;
+      totalBalanceInfo.freeValue = totalBalanceInfo.freeValue.plus(tokenGroupBalance.free.convertedValue);
+      totalBalanceInfo.lockedValue = totalBalanceInfo.lockedValue.plus(tokenGroupBalance.locked.convertedValue);
       totalBalanceInfo.convertedValue = totalBalanceInfo.convertedValue.plus(tokenGroupBalance.total.convertedValue);
       totalBalanceInfo.converted24hValue = totalBalanceInfo.converted24hValue.plus(tokenGroupBalance.total.pastConvertedValue);
     }

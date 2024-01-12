@@ -13,7 +13,7 @@ import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
 import { EvmSignArea, SubstrateSignArea } from '../../parts/Sign';
-import { BaseTransactionConfirmation, BondTransactionConfirmation, CancelUnstakeTransactionConfirmation, ClaimRewardTransactionConfirmation, JoinPoolTransactionConfirmation, LeavePoolTransactionConfirmation, SendNftTransactionConfirmation, TransferBlock, UnbondTransactionConfirmation, WithdrawTransactionConfirmation } from './variants';
+import { BaseTransactionConfirmation, SendNftTransactionConfirmation, TransferBlock } from './variants';
 
 interface Props extends ThemeProps {
   confirmation: ConfirmationQueueItem;
@@ -27,20 +27,33 @@ const getTransactionComponent = (extrinsicType: ExtrinsicType): typeof BaseTrans
       return TransferBlock;
     case ExtrinsicType.SEND_NFT:
       return SendNftTransactionConfirmation;
-    case ExtrinsicType.STAKING_JOIN_POOL:
-      return JoinPoolTransactionConfirmation;
-    case ExtrinsicType.STAKING_LEAVE_POOL:
-      return LeavePoolTransactionConfirmation;
-    case ExtrinsicType.STAKING_BOND:
-      return BondTransactionConfirmation;
-    case ExtrinsicType.STAKING_UNBOND:
-      return UnbondTransactionConfirmation;
-    case ExtrinsicType.STAKING_WITHDRAW:
-      return WithdrawTransactionConfirmation;
-    case ExtrinsicType.STAKING_CLAIM_REWARD:
-      return ClaimRewardTransactionConfirmation;
-    case ExtrinsicType.STAKING_CANCEL_UNSTAKE:
-      return CancelUnstakeTransactionConfirmation;
+    // case ExtrinsicType.STAKING_JOIN_POOL:
+    //   return JoinPoolTransactionConfirmation;
+    // case ExtrinsicType.STAKING_LEAVE_POOL:
+    //   return LeavePoolTransactionConfirmation;
+    // case ExtrinsicType.STAKING_BOND:
+    //   return BondTransactionConfirmation;
+    // case ExtrinsicType.STAKING_UNBOND:
+    //   return UnbondTransactionConfirmation;
+    // case ExtrinsicType.STAKING_WITHDRAW:
+    //   return WithdrawTransactionConfirmation;
+    // case ExtrinsicType.STAKING_CLAIM_REWARD:
+    //   return ClaimRewardTransactionConfirmation;
+    // case ExtrinsicType.STAKING_CANCEL_UNSTAKE:
+    //   return CancelUnstakeTransactionConfirmation;
+    // case ExtrinsicType.MINT_QDOT:
+    // case ExtrinsicType.MINT_LDOT:
+    // case ExtrinsicType.MINT_SDOT:
+    // case ExtrinsicType.MINT_STDOT:
+    // case ExtrinsicType.MINT_VDOT:
+    //   return JoinYieldPoolConfirmation;
+    case ExtrinsicType.REDEEM_QDOT:
+    case ExtrinsicType.REDEEM_LDOT:
+    case ExtrinsicType.REDEEM_SDOT:
+    case ExtrinsicType.REDEEM_STDOT:
+    case ExtrinsicType.REDEEM_VDOT:
+      // return FastWithdrawTransactionConfirmation;
+    // eslint-disable-next-line no-fallthrough
     default:
       return BaseTransactionConfirmation;
   }

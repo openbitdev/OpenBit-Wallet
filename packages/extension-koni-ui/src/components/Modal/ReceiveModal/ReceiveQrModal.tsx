@@ -3,15 +3,17 @@
 
 import { _getChainSubstrateAddressPrefix } from '@subwallet/extension-base/services/chain-service/utils';
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
+import { BaseModal } from '@subwallet/extension-koni-ui/components';
 import InfoIcon from '@subwallet/extension-koni-ui/components/Icon/InfoIcon';
 import { RECEIVE_QR_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useFetchChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { getScanExplorerAddressInfoUrl } from '@subwallet/extension-koni-ui/utils';
+import { getScanExplorerAddressInfoUrl, openInNewTab } from '@subwallet/extension-koni-ui/utils';
 import reformatAddress from '@subwallet/extension-koni-ui/utils/account/reformatAddress';
-import { Button, Icon, Logo, ModalContext, SwModal, SwQRCode } from '@subwallet/react-ui';
+import { Button, Icon, Logo, ModalContext, SwQRCode } from '@subwallet/react-ui';
 import AccountItem from '@subwallet/react-ui/es/web3-block/account-item';
 import CN from 'classnames';
 import { CaretLeft, CopySimple, GlobeHemisphereWest } from 'phosphor-react';
@@ -31,6 +33,7 @@ const Component: React.FC<Props> = ({ address, className, selectedNetwork }: Pro
   const { inactiveModal } = useContext(ModalContext);
   const notify = useNotification();
   const chainInfo = useFetchChainInfo(selectedNetwork || '');
+  const { isWebUI } = useContext(ScreenContext);
 
   const isEvmChain = useMemo(() => {
     if (chainInfo) {
@@ -57,9 +60,12 @@ const Component: React.FC<Props> = ({ address, className, selectedNetwork }: Pro
 
   const handleClickViewOnExplorer = useCallback(() => {
     try {
+      console.log('scanExplorerAddressUrl', scanExplorerAddressUrl);
+
       if (scanExplorerAddressUrl) {
         // eslint-disable-next-line no-void
-        void chrome.tabs.create({ url: scanExplorerAddressUrl, active: true }).then(() => console.log('redirecting'));
+        // void chrome.tabs.create({ url: scanExplorerAddressUrl, active: true }).then(() => console.log('redirecting'));
+        openInNewTab(scanExplorerAddressUrl)();
       }
     } catch (e) {
       console.log('error redirecting to a new tab');
@@ -73,7 +79,8 @@ const Component: React.FC<Props> = ({ address, className, selectedNetwork }: Pro
   }, [inactiveModal]);
 
   return (
-    <SwModal
+    <BaseModal
+      center={true}
       className={CN(className)}
       closeIcon={
         <Icon
@@ -124,14 +131,13 @@ const Component: React.FC<Props> = ({ address, className, selectedNetwork }: Pro
                   }
                   onClick={onClickCopyBtn}
                   size='xs'
-                  tooltip={t('Copy address')}
+                  tooltip={isWebUI ? t('Copy address') : undefined}
                   type='ghost'
                 />
               </CopyToClipboard>
             }
           />
         </div>
-
         <Button
           block
           className={'__view-on-explorer'}
@@ -147,7 +153,7 @@ const Component: React.FC<Props> = ({ address, className, selectedNetwork }: Pro
           onClick={handleClickViewOnExplorer}
         >{t('View account on explorer')}</Button>
       </>
-    </SwModal>
+    </BaseModal>
   );
 };
 

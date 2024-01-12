@@ -229,6 +229,7 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <PageWrapper className={CN(className)}>
       <Layout.WithSubHeaderOnly
+        className={'web-single-column web-cancel-fill-height'}
         onBack={firstStep ? onBack : onPreviousStep}
         rightFooterButton={{
           children: t('Connect Ledger device'),
@@ -355,7 +356,15 @@ const ConnectLedger = styled(Component)<Props>(({ theme: { token } }: Props) => 
       overflow: 'hidden',
       height: '100%',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+
+      '.web-ui-enable &': {
+        paddingTop: 0,
+
+        '.list-container': {
+          maxHeight: 372
+        }
+      }
     },
 
     '.sub-title': {

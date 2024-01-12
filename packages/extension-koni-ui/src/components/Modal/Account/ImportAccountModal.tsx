@@ -1,13 +1,16 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseModal } from '@subwallet/extension-koni-ui/components/Modal/BaseModal';
 import { IMPORT_ACCOUNT_MODAL, IMPORT_SEED_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import { useClickOutSide, useGoBackSelectAccount, useIsPopup, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import usePreloadView from '@subwallet/extension-koni-ui/hooks/router/usePreloadView';
 import { windowOpen } from '@subwallet/extension-koni-ui/messaging';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { renderModalSelector } from '@subwallet/extension-koni-ui/utils';
-import { BackgroundIcon, ModalContext, SwModal } from '@subwallet/react-ui';
+import { BackgroundIcon, ModalContext } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { FileJs, Leaf, QrCode, Wallet } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo } from 'react';
@@ -36,6 +39,14 @@ const Component: React.FC<Props> = ({ className }: Props) => {
 
   const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
   const isActive = checkActive(modalId);
+  const { isWebUI } = useContext(ScreenContext);
+
+  usePreloadView([
+    'ImportSeedPhrase',
+    'ImportPrivateKey',
+    'RestoreJson',
+    'ImportQrCode'
+  ]);
 
   const isPopup = useIsPopup();
   const onBack = useGoBackSelectAccount(modalId);
@@ -64,8 +75,13 @@ const Component: React.FC<Props> = ({ className }: Props) => {
 
   const onClickSeed = useCallback(() => {
     inactiveModal(modalId);
-    activeModal(IMPORT_SEED_MODAL);
-  }, [activeModal, inactiveModal]);
+
+    if (isWebUI) {
+      navigate('/accounts/import-seed-phrase');
+    } else {
+      activeModal(IMPORT_SEED_MODAL);
+    }
+  }, [activeModal, inactiveModal, isWebUI, navigate]);
 
   const items = useMemo((): ImportAccountItem[] => [
     {
@@ -111,16 +127,18 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   }, [token.colorText]);
 
   return (
-    <SwModal
+    <BaseModal
       className={CN(className)}
-      closeIcon={(<BackIcon />)}
+      closeIcon={isWebUI ? undefined : (<BackIcon />)}
       id={modalId}
       maskClosable={false}
-      onCancel={onBack}
-      rightIconProps={{
-        icon: <CloseIcon />,
-        onClick: onCancel
-      }}
+      onCancel={isWebUI ? onCancel : onBack}
+      rightIconProps={isWebUI
+        ? undefined
+        : ({
+          icon: <CloseIcon />,
+          onClick: onCancel
+        })}
       title={t<string>('Import account')}
     >
       <div className='items-container'>
@@ -138,7 +156,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
           );
         })}
       </div>
-    </SwModal>
+    </BaseModal>
   );
 };
 

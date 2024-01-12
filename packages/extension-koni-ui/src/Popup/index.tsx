@@ -8,28 +8,31 @@ import { ThemeProvider } from '@subwallet/extension-koni-ui/contexts/ThemeContex
 import { ModalContextProvider } from '@subwallet/react-ui';
 import NotificationProvider from '@subwallet/react-ui/es/notification/NotificationProvider';
 import React from 'react';
-import { RouterProvider } from 'react-router';
+import { RouterProvider } from 'react-router-dom';
 
 import LoadingScreen from '../components/LoadingScreen';
+import { ScreenContextProvider } from '../contexts/ScreenContext';
 import { router } from './router';
 
 export default function Popup (): React.ReactElement {
   return (
     <DataContextProvider>
-      <ThemeProvider>
-        <ModalContextProvider>
-          <ScannerContextProvider>
-            <NotificationProvider>
-              <InjectContextProvider>
-                <RouterProvider
-                  fallbackElement={<LoadingScreen className='root-loading' />}
-                  router={router}
-                />
-              </InjectContextProvider>
-            </NotificationProvider>
-          </ScannerContextProvider>
-        </ModalContextProvider>
-      </ThemeProvider>
+      <ScreenContextProvider>
+        <ThemeProvider>
+          <ModalContextProvider>
+            <ScannerContextProvider>
+              <NotificationProvider>
+                <InjectContextProvider>
+                  <RouterProvider
+                    fallbackElement={<LoadingScreen className='root-loading' />}
+                    router={router}
+                  />
+                </InjectContextProvider>
+              </NotificationProvider>
+            </ScannerContextProvider>
+          </ModalContextProvider>
+        </ThemeProvider>
+      </ScreenContextProvider>
     </DataContextProvider>
   );
 }

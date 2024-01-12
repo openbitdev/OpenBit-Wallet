@@ -1,21 +1,24 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { BaseModal } from '@subwallet/extension-koni-ui/components';
 import { REQUEST_CREATE_PASSWORD_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Button, Icon, ModalContext, PageIcon, SwModal } from '@subwallet/react-ui';
+import { Button, Icon, ModalContext, PageIcon } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { ShieldPlus, ShieldStar } from 'phosphor-react';
 import React, { useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 type Props = ThemeProps
 
 const modalId = REQUEST_CREATE_PASSWORD_MODAL;
+const createPasswordUrl = '/keyring/create-password';
 
 const Component: React.FC<Props> = (props: Props) => {
+  const location = useLocation();
   const { className } = props;
 
   const { t } = useTranslation();
@@ -24,11 +27,15 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const onClick = useCallback(() => {
     inactiveModal(modalId);
-    navigate('/keyring/create-password');
-  }, [navigate, inactiveModal]);
+
+    if (location.pathname !== createPasswordUrl) {
+      navigate(createPasswordUrl);
+    }
+  }, [inactiveModal, location.pathname, navigate]);
 
   return (
-    <SwModal
+    <BaseModal
+      center={true}
       closable={false}
       id={modalId}
       maskClosable={false}
@@ -61,7 +68,7 @@ const Component: React.FC<Props> = (props: Props) => {
           {t('Create master password')}
         </Button>
       </div>
-    </SwModal>
+    </BaseModal>
   );
 };
 
