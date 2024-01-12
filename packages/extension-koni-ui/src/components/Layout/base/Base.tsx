@@ -66,15 +66,25 @@ const Component = ({ children, className, headerIcons, onBack, showFooter, ...pr
       key: 'crowdloans',
       url: '/home/crowdloans'
     },
+    // {
+    //   icon: {
+    //     type: 'phosphor',
+    //     phosphorIcon: Database,
+    //     weight: 'fill'
+    //   },
+    //   label: t('Staking'),
+    //   key: 'staking',
+    //   url: '/home/staking'
+    // },
     {
       icon: {
         type: 'phosphor',
         phosphorIcon: Database,
         weight: 'fill'
       },
-      label: t('Staking'),
+      label: t('Earning'),
       key: 'staking',
-      url: '/home/staking'
+      url: '/home/earning'
     },
     {
       icon: {

@@ -4,6 +4,7 @@
 import { PHISHING_PAGE_REDIRECT } from '@subwallet/extension-base/defaults';
 import { PageWrapper } from '@subwallet/extension-koni-ui/components';
 import ErrorFallback from '@subwallet/extension-koni-ui/Popup/ErrorFallback';
+import Earning from '@subwallet/extension-koni-ui/Popup/Home/Earning';
 import { Root } from '@subwallet/extension-koni-ui/Popup/Root';
 import { i18nPromise } from '@subwallet/extension-koni-ui/utils/common/i18n';
 import React, { ComponentType } from 'react';
@@ -113,6 +114,13 @@ const CancelUnstake = new LazyLoader('CancelUnstake', () => import('@subwallet/e
 const ClaimReward = new LazyLoader('ClaimReward', () => import('@subwallet/extension-koni-ui/Popup/Transaction/variants/ClaimReward'));
 const Withdraw = new LazyLoader('Withdraw', () => import('@subwallet/extension-koni-ui/Popup/Transaction/variants/Withdraw'));
 
+// Earning
+
+const EarningOptions = new LazyLoader('EarningOptions', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningOptions'));
+const EarningPools = new LazyLoader('EarningPools', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningPools'));
+const EarningPositionDetail = new LazyLoader('EarningPositionDetail', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningPositionDetail'));
+const EarningPositions = new LazyLoader('EarningPositions', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningPositions'));
+
 // Wallet Connect
 const ConnectWalletConnect = new LazyLoader('ConnectWalletConnect', () => import('@subwallet/extension-koni-ui/Popup/WalletConnect/ConnectWalletConnect'));
 const ConnectionList = new LazyLoader('ConnectionList', () => import('@subwallet/extension-koni-ui/Popup/WalletConnect/ConnectionList'));
@@ -156,6 +164,16 @@ export const router = createHashRouter([
           },
           Crowdloans.generateRouterObject('crowdloans'),
           Staking.generateRouterObject('staking'),
+          {
+            path: 'earning',
+            element: <Earning />,
+            children: [
+              EarningOptions.generateRouterObject('options'),
+              EarningPools.generateRouterObject('pools'),
+              EarningPositionDetail.generateRouterObject('position-detail'),
+              EarningPositions.generateRouterObject('positions')
+            ]
+          },
           History.generateRouterObject('history'),
           History.generateRouterObject('history/:address/:chain/:extrinsicHashOrId')
         ]
