@@ -5,14 +5,12 @@ import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AccountTokenBalanceItem, EmptyList, RadioGroup } from '@subwallet/extension-koni-ui/components';
-import { BaseModal } from '@subwallet/extension-koni-ui/components/Modal/BaseModal';
-import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenContext';
 import { useSelector } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
 import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
-import { Form, Icon, ModalContext, Number } from '@subwallet/react-ui';
+import { Form, Icon, ModalContext, Number, SwModal } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { ArrowCircleLeft, Coins } from 'phosphor-react';
@@ -56,7 +54,6 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
   const { checkActive } = useContext(ModalContext);
 
   const isActive = checkActive(id);
-  const { isWebUI } = useContext(ScreenContext);
 
   const { currentAccount, isAllAccount } = useSelector((state) => state.accountState);
   const { balanceMap } = useSelector((state) => state.balance);
@@ -153,8 +150,8 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
   }, [form, isActive]);
 
   return (
-    <BaseModal
-      className={CN(className, { 'fix-height': isAllAccount && !isWebUI })}
+    <SwModal
+      className={CN(className, { 'fix-height': isAllAccount })}
       id={id}
       onCancel={onCancel}
       title={t('Token details')}
@@ -239,7 +236,7 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
           )
         }
       </div>
-    </BaseModal>
+    </SwModal>
   );
 }
 
