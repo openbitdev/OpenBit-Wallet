@@ -23,13 +23,13 @@ let cacheData: Record<string, boolean> = {};
 
 function Component ({ className, earningPositions, setEntryView }: Props) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const isShowBalance = useSelector((state) => state.settings.isShowBalance);
   const priceMap = useSelector((state) => state.price.priceMap);
   const { assetRegistry: assetInfoMap } = useSelector((state) => state.assetRegistry);
   const chainInfoMap = useSelector((state) => state.chainStore.chainInfoMap);
   const { currentAccount } = useSelector((state) => state.accountState);
-  const navigate = useNavigate();
 
   const items: ExtraYieldPositionInfo[] = useMemo(() => {
     if (!earningPositions.length) {
