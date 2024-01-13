@@ -16,7 +16,7 @@ export enum EarningEntryView {
 export interface ExtraYieldPositionInfo extends AbstractYieldPositionInfo {
   asset: _ChainAsset;
   price: number;
-  exchangeRate: number;
+  // exchangeRate: number;
 }
 
 export interface YieldGroupInfo {
