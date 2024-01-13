@@ -4,7 +4,7 @@
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainStakingMetadata, NominationInfo, NominatorMetadata, StakingStatus, StakingType, UnstakingInfo, UnstakingStatus, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getStakingStatusByNominations, PalletDappsStakingAccountLedger, PalletDappsStakingDappInfo, PalletDappStakingAccountLedger } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
-import { _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
+import { _EXPECTED_BLOCK_TIME, _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { isUrl, parseRawNumber } from '@subwallet/extension-base/utils';
 import fetch from 'cross-fetch';
@@ -62,7 +62,7 @@ export function getAstarWithdrawable (nominatorMetadata: NominatorMetadata): Uns
   return unstakingInfo;
 }
 
-export function subscribeAstarStakingMetadata (chain: string, substrateApi: _SubstrateApi, callback: (chain: string, rs: ChainStakingMetadata) => void) {
+export function subscribeAstarStakingMetadata (chain: string, substrateApi: _SubstrateApi, callback: (chain: string, rs: ChainStakingMetadata) => void) { // TODO: NEED CHECK era time
   return substrateApi.api.query.dappStaking.currentEraInfo((_currentEra: CurrentEraInfo) => {
     const era = _currentEra.currentStakeAmount.era.toString();
     const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
@@ -83,7 +83,7 @@ export function subscribeAstarStakingMetadata (chain: string, substrateApi: _Sub
   });
 }
 
-export async function getAstarStakingMetadata (chain: string, substrateApi: _SubstrateApi): Promise<ChainStakingMetadata> { // TODO: NEED CHECK
+export async function getAstarStakingMetadata (chain: string, substrateApi: _SubstrateApi): Promise<ChainStakingMetadata> { // TODO: NEED CHECK era time, check APY
   const aprPromise = new Promise(function (resolve) {
     fetch(`https://api.astar.network/api/v1/${chain}/dapps-staking/apr`, {
       method: 'GET'
@@ -109,6 +109,7 @@ export async function getAstarStakingMetadata (chain: string, substrateApi: _Sub
     substrateApi.isReady
   ]);
 
+  console.log(aprInfo);
   const eraInfo = await chainApi.api.query.dappStaking.currentEra() as unknown as CurrentEraInfo;
   const era = eraInfo.currentStakeAmount.era.toString();
   const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
@@ -129,20 +130,21 @@ export async function getAstarStakingMetadata (chain: string, substrateApi: _Sub
   } as ChainStakingMetadata;
 }
 
-export async function subscribeAstarNominatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, ledger: PalletDappStakingAccountLedger) { // UPDATE
+export async function subscribeAstarNominatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, ledger: PalletDappStakingAccountLedger) {
   const nominationList: NominationInfo[] = [];
   const unstakingList: UnstakingInfo[] = [];
 
   const allDappsReq = fetchDApps(chainInfo.slug);
 
-  const [_allDapps, _currentEraInfo, _stakerInfo] = await Promise.all([
+  const [_allDapps, _currentBlockNumber, _stakerInfo] = await Promise.all([
     allDappsReq,
-    substrateApi.api.query.dappStaking.currentEraInfo() as unknown as Promise<CurrentEraInfo>,
+    substrateApi.api.query.system.number(),
     substrateApi.api.query.dappStaking.stakerInfo.entries(address)
   ]);
 
-  const currentEra = _currentEraInfo.currentStakeAmount.era.toString();
+  const blockNumber = parseInt(_currentBlockNumber.toString());
   const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
+
   const allDapps = _allDapps as PalletDappsStakingDappInfo[];
 
   let bnTotalActiveStake = BN_ZERO;
@@ -166,10 +168,8 @@ export async function subscribeAstarNominatorMetadata (chainInfo: _ChainInfo, ad
 
       const _dappAddress = stakedDapp.Evm ? stakedDapp.Evm.toLowerCase() : stakedDapp.Wasm;
       const dappAddress = convertAddress(_dappAddress);
-      // const currentStake = stakeList.slice(-1)[0].staked.toString() || '0';
-      // const bnCurrentStake = new BN(currentStake) || BN_ZERO;
 
-      if (bnCurrentStake.gt(BN_ZERO)) {
+      if (bnCurrentStake.gte(new BN(minDelegatorStake))) { // [info] current stake now only can be 0 or gte minDelegatorStake
         const dappStakingStatus = bnCurrentStake.gt(BN_ZERO) && bnCurrentStake.gte(new BN(minDelegatorStake)) ? StakingStatus.EARNING_REWARD : StakingStatus.NOT_EARNING;
 
         bnTotalActiveStake = bnTotalActiveStake.add(bnCurrentStake);
@@ -192,14 +192,9 @@ export async function subscribeAstarNominatorMetadata (chainInfo: _ChainInfo, ad
 
   if (unlockingChunks.length > 0) {
     for (const unlockingChunk of unlockingChunks) {
-      // TODO: Block -> Era
-      // Fake data. Need to update
-      const isClaimable = false;
-      const remainingEra = 1;
-      const waitingTime = remainingEra * _STAKING_ERA_LENGTH_MAP[chainInfo.slug];
-      // const isClaimable = unlockingChunk.unlockBlock - parseInt(currentEra) < 0;
-      // const remainingEra = unlockingChunk.unlockBlock - parseInt(currentEra);
-      // const waitingTime = remainingEra * _STAKING_ERA_LENGTH_MAP[chainInfo.slug];
+      const isClaimable = unlockingChunk.unlockBlock - blockNumber <= 0;
+      const remainingBlock = unlockingChunk.unlockBlock - blockNumber;
+      const waitingTime = remainingBlock * _EXPECTED_BLOCK_TIME[chainInfo.slug] / 60 / 60;
 
       unstakingList.push({
         chain: chainInfo.slug,
@@ -345,7 +340,7 @@ export async function getAstarNominatorMetadata (chainInfo: _ChainInfo, address:
   } as NominatorMetadata;
 }
 
-export async function getAstarDappsInfo (networkKey: string, substrateApi: _SubstrateApi) { // TODO: NEED CHECK
+export async function getAstarDappsInfo (networkKey: string, substrateApi: _SubstrateApi) { // TODO: NEED MODIFY: SOMES ARE DEPRECATED
   const chainApi = await substrateApi.isReady;
   // const rawMaxStakerPerContract = (chainApi.api.consts.dappsStaking.maxNumberOfStakersPerContract).toHuman() as string; // TODO: No limit for now. But need to check maxNumberOfStakersPerContract
 
@@ -402,7 +397,8 @@ export async function getAstarDappsInfo (networkKey: string, substrateApi: _Subs
 
 // Create extrinsics function
 
-export async function getAstarBondingExtrinsic (substrateApi: _SubstrateApi, amount: string, dappInfo: ValidatorInfo) {
+export async function getAstarBondingExtrinsic (substrateApi: _SubstrateApi, amount: string, dappInfo: ValidatorInfo) { // TODO: NEED OPTIMIZE
+  // TODO: CHECK  maxNumberOfStakedContract
   const chainApi = await substrateApi.isReady;
   const binaryAmount = new BN(amount);
 
@@ -414,7 +410,9 @@ export async function getAstarBondingExtrinsic (substrateApi: _SubstrateApi, amo
   ]);
 }
 
-export async function getAstarUnbondingExtrinsic (substrateApi: _SubstrateApi, amount: string, dappAddress: string) {
+export async function getAstarUnbondingExtrinsic (substrateApi: _SubstrateApi, amount: string, dappAddress: string) { // TODO: NEED OPTIMIZE
+  // TODO: Check max unlocking chunk
+  // TODO: Check remaining lock amount (>5) if unstake. If not, alert will unstake all
   const chainApi = await substrateApi.isReady;
   const binaryAmount = new BN(amount);
 
@@ -426,13 +424,13 @@ export async function getAstarUnbondingExtrinsic (substrateApi: _SubstrateApi, a
   ]);
 }
 
-export async function getAstarClaimUnlockedExtrinsic (substrateApi: _SubstrateApi) {
+export async function getAstarClaimUnlockedExtrinsic (substrateApi: _SubstrateApi) { // TODO: NEED TEST
   const chainApi = await substrateApi.isReady;
 
   return chainApi.api.tx.dappStaking.claimUnlocked();
 }
 
-export async function getAstarClaimRewardExtrinsic (substrateApi: _SubstrateApi, address: string) {
+export async function getAstarClaimRewardExtrinsic (substrateApi: _SubstrateApi, address: string) { // TODO: NEED OPTIMIZE
   //  Get Dapps that the stakers have staked -> Claim bonus reward for each dapp + Claim all staker rewards
 
   const chainApi = await substrateApi.isReady;
@@ -443,7 +441,7 @@ export async function getAstarClaimRewardExtrinsic (substrateApi: _SubstrateApi,
 
   if (_stakedInfo.length > 0) {
     for (const item of _stakedInfo) {
-      // TODO: optimize by check a stake amount in build and earn period
+      // TODO: optimize by check a stake amount in build and earn period/check bonus reward available
       // TODO: handle case no reward to claim
       const addressInfo = item[0].toHuman() as unknown as any[];
       const stakedDapp = addressInfo[1] as Record<string, string>;
@@ -460,6 +458,7 @@ export async function getAstarClaimRewardExtrinsic (substrateApi: _SubstrateApi,
   return chainApi.api.tx.utility.batch(allClaimRewardTxs);
 }
 
+// TODO: ADD UnstakeFromUnregistered or not
 // export async function getAstarRestakeUnlockingExtrinsic (substrateApi: _SubstrateApi, dappAddress: string, address: string) { // TODO: Decide to restake or relock.
 //   const chainApi = await substrateApi.isReady;
 //   const dappParam = isEthereumAddress(dappAddress) ? { Evm: dappAddress } : { Wasm: dappAddress };
@@ -469,5 +468,3 @@ export async function getAstarClaimRewardExtrinsic (substrateApi: _SubstrateApi,
 //     chainApi.api.tx.dappStaking.stake(dappParam, max)
 //   ]);
 // }
-
-// TODO: ADD UnstakeFromUnregistered or not
