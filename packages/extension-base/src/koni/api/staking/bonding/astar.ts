@@ -16,18 +16,15 @@ import { isEthereumAddress } from '@polkadot/util-crypto';
 interface CurrentEraInfo {
   totalLocked: string,
   unlocking: string,
-  currentStakeAmount: {
-    voting: string,
-    buildAndEarn: string,
-    era: number,
-    period: number
-  },
-  nextStakeAmount: {
-    voting: string,
-    buildAndEarn: string,
-    era: number,
-    period: number
-  }
+  currentStakeAmount: StakeInfo,
+  nextStakeAmount: StakeInfo
+}
+
+interface StakeInfo {
+  voting: string,
+  buildAndEarn: string,
+  era: number,
+  period: number
 }
 
 const convertAddress = (address: string) => {
@@ -160,11 +157,11 @@ export async function subscribeAstarNominatorMetadata (chainInfo: _ChainInfo, ad
     for (const item of _stakerInfo) {
       const data = item[0].toHuman() as unknown as any[];
       const stakedDapp = data[1] as Record<string, string>;
-      const stakeData = item[1].toPrimitive() as Record<string, Record<string, string>[]>;
+      const stakeData = item[1].toPrimitive() as unknown as Record<string, Record<string, StakeInfo>>;
       const stakeInfo = stakeData.staked;
 
-      const voting = new BN(stakeInfo.voting.toString() || '0');
-      const buildAndEarn = new BN(stakeInfo.buildAndEarn.toString() || '0');
+      const voting = new BN(stakeInfo?.voting?.toString() || '0');
+      const buildAndEarn = new BN(stakeInfo?.buildAndEarn?.toString() || '0');
       const bnCurrentStake = voting.add(buildAndEarn) || BN_ZERO;
 
       const _dappAddress = stakedDapp.Evm ? stakedDapp.Evm.toLowerCase() : stakedDapp.Wasm;
@@ -195,7 +192,6 @@ export async function subscribeAstarNominatorMetadata (chainInfo: _ChainInfo, ad
 
   if (unlockingChunks.length > 0) {
     for (const unlockingChunk of unlockingChunks) {
-
       // TODO: Block -> Era
       // Fake data. Need to update
       const isClaimable = false;
