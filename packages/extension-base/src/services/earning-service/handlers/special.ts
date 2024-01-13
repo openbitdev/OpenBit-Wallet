@@ -3,19 +3,19 @@
 
 import { COMMON_CHAIN_SLUGS } from '@subwallet/chain-list';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
-import { BasicTxErrorType, ExtrinsicType, RequestCrossChainTransfer, StakingTxErrorType } from '@subwallet/extension-base/background/KoniTypes';
+import { AmountData, BasicTxErrorType, ExtrinsicType, RequestCrossChainTransfer, StakingTxErrorType } from '@subwallet/extension-base/background/KoniTypes';
+import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { createXcmExtrinsic } from '@subwallet/extension-base/koni/api/xcm';
 import { YIELD_POOL_STAT_REFRESH_INTERVAL } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { _getChainNativeTokenSlug } from '@subwallet/extension-base/services/chain-service/utils';
 import { BaseYieldStepDetail, HandleYieldStepData, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, ResponseEarlyValidateYield, RuntimeDispatchInfo, SpecialYieldPoolInfo, SpecialYieldPoolMetadata, SubmitYieldJoinData, SubmitYieldStepData, TransactionData, UnstakingInfo, YieldPoolInfo, YieldPoolTarget, YieldPoolType, YieldProcessValidation, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
-import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/utils';
+import { createPromiseHandler, formatNumber, PromiseHandler } from '@subwallet/extension-base/utils';
 import { t } from 'i18next';
 
-import { BN, BN_ZERO, noop } from '@polkadot/util';
+import { BN, BN_TEN, BN_ZERO, noop } from '@polkadot/util';
 
 import BasePoolHandler from './base';
-import {ALL_ACCOUNT_KEY} from "@subwallet/extension-base/constants";
 
 export default abstract class BaseSpecialStakingPoolHandler extends BasePoolHandler {
   protected abstract altInputAsset: string;
@@ -89,8 +89,10 @@ export default abstract class BaseSpecialStakingPoolHandler extends BasePoolHand
 
     const [inputAssetBalance, altInputAssetBalance, feeAssetBalance] = await Promise.all([
       this.state.balanceService.getTokenFreeBalance(request.address, inputAssetInfo.originChain, inputAssetInfo.slug),
-      this.state.balanceService.getTokenFreeBalance(request.address, inputAssetInfo.originChain, altInputAssetInfo.slug),
-      this.state.balanceService.getTokenFreeBalance(request.address, inputAssetInfo.originChain, feeAssetInfo.slug)
+      altInputAssetInfo
+        ? this.state.balanceService.getTokenFreeBalance(request.address, altInputAssetInfo.originChain, altInputAssetInfo.slug)
+        : Promise.resolve<AmountData>({ symbol: '', decimals: 0, value: '0' }),
+      this.state.balanceService.getTokenFreeBalance(request.address, feeAssetInfo.originChain, feeAssetInfo.slug)
     ]);
 
     const bnInputAssetBalance = new BN(inputAssetBalance.value);
@@ -99,24 +101,31 @@ export default abstract class BaseSpecialStakingPoolHandler extends BasePoolHand
 
     const inputTokenInfo = this.state.chainService.getAssetBySlug(this.inputAsset);
     const altInputTokenInfo = this.state.chainService.getAssetBySlug(this.altInputAsset);
-    const parsedMinJoinPool = bnMinJoinPool.divn(10 ** (altInputTokenInfo.decimals || 0));
+    const minJoinDiv = BN_TEN.pow(new BN(inputAssetInfo.decimals || 0));
+    const parsedMinJoinPool = bnMinJoinPool.div(minJoinDiv);
 
     if (bnInputAssetBalance.add(bnAltInputAssetBalance).lt(bnMinJoinPool)) {
+      const originChain = this.state.getChainInfo(inputTokenInfo.originChain);
+      const altChain = this.state.getChainInfo(altInputTokenInfo.originChain);
+
       return {
         passed: false,
-        errorMessage: `You need at least ${parsedMinJoinPool.toString()} ${inputTokenInfo.symbol} (${inputTokenInfo.originChain}) or ${altInputTokenInfo.symbol} (${altInputTokenInfo.originChain}) to start earning`
+        errorMessage: `You need at least ${parsedMinJoinPool.toString()} ${inputTokenInfo.symbol} (${originChain.name}) or ${altInputTokenInfo.symbol} (${altChain.name}) to start earning`
       };
     }
 
     if (this.feeAssets.length === 1) {
       const bnFeeAssetBalance = new BN(feeAssetBalance.value);
-      const minFeeAssetBalance = new BN(feeAssetInfo.minAmount || '0');
-      const parsedMinFeeAssetBalance = minFeeAssetBalance.divn(10 ** (feeAssetInfo.decimals || 0)).muln(1.2);
+      const minFeeAssetBalance = new BN(this.maintainBalance || '0');
+      const feeAssetDiv = BN_TEN.pow(new BN(feeAssetInfo.decimals || 0));
+      const parsedMinFeeAssetBalance = minFeeAssetBalance.div(feeAssetDiv).mul(new BN(12)).div(BN_TEN);
 
       if (bnFeeAssetBalance.lte(BN_ZERO)) {
+        const feeChain = this.state.getChainInfo(feeAssetInfo.originChain);
+
         return {
           passed: false,
-          errorMessage: `You need at least ${parsedMinFeeAssetBalance.toString()} ${feeAssetInfo.symbol} (${feeAssetInfo.originChain}) to start earning`
+          errorMessage: `You need at least ${parsedMinFeeAssetBalance.toString()} ${feeAssetInfo.symbol} (${feeChain.name}) to start earning`
         };
       }
     }
@@ -549,9 +558,9 @@ export default abstract class BaseSpecialStakingPoolHandler extends BasePoolHand
     }
 
     if (bnAmount.lt(minUnstake)) {
-      const parsedMinUnstake = minUnstake.divn(10 ** (derivativeTokenInfo.decimals || 0));
+      const minUnstakeStr = formatNumber(minUnstake.toString(), derivativeTokenInfo.decimals || 0);
 
-      errors.push(new TransactionError(StakingTxErrorType.NOT_ENOUGH_MIN_UNSTAKE, t('You need to unstake at least {{amount}} {{token}}', { replace: { amount: parsedMinUnstake.toString(), token: derivativeTokenInfo.symbol } })));
+      errors.push(new TransactionError(StakingTxErrorType.NOT_ENOUGH_MIN_UNSTAKE, t('You need to unstake at least {{amount}} {{token}}', { replace: { amount: minUnstakeStr, token: derivativeTokenInfo.symbol } })));
     }
 
     if (!fastLeave) {
