@@ -3,6 +3,8 @@
 
 // token
 
+import { EarningEntryView } from '@subwallet/extension-koni-ui/types/earning';
+
 export type TokenDetailParam = {
   symbol: string,
   tokenGroup?: string,
@@ -27,4 +29,10 @@ export type SendFundParam = {
 
 export type BuyTokensParam = {
   symbol: string,
+};
+
+// earning
+
+export type EarningEntryParam = {
+  view: EarningEntryView
 };

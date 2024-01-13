@@ -8,6 +8,11 @@ import { BalanceValueInfo } from '@subwallet/extension-koni-ui/types/balance';
 import { PhosphorIcon } from '@subwallet/extension-koni-ui/types/index';
 import { SwIconProps } from '@subwallet/react-ui';
 
+export enum EarningEntryView {
+  OPTIONS= 'options',
+  POSITIONS= 'positions',
+}
+
 export interface ExtraYieldPositionInfo extends AbstractYieldPositionInfo {
   asset: _ChainAsset;
   price: number;

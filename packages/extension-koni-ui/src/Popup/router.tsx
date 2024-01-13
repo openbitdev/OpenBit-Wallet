@@ -4,7 +4,6 @@
 import { PHISHING_PAGE_REDIRECT } from '@subwallet/extension-base/defaults';
 import { PageWrapper } from '@subwallet/extension-koni-ui/components';
 import ErrorFallback from '@subwallet/extension-koni-ui/Popup/ErrorFallback';
-import Earning from '@subwallet/extension-koni-ui/Popup/Home/Earning';
 import { Root } from '@subwallet/extension-koni-ui/Popup/Root';
 import { i18nPromise } from '@subwallet/extension-koni-ui/utils/common/i18n';
 import React, { ComponentType } from 'react';
@@ -116,10 +115,9 @@ const Withdraw = new LazyLoader('Withdraw', () => import('@subwallet/extension-k
 
 // Earning
 
-const EarningOptions = new LazyLoader('EarningOptions', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningOptions'));
+const EarningEntry = new LazyLoader('EarningEntry', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningEntry'));
 const EarningPools = new LazyLoader('EarningPools', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningPools'));
 const EarningPositionDetail = new LazyLoader('EarningPositionDetail', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningPositionDetail'));
-const EarningPositions = new LazyLoader('EarningPositions', () => import('@subwallet/extension-koni-ui/Popup/Home/Earning/EarningPositions'));
 
 // Wallet Connect
 const ConnectWalletConnect = new LazyLoader('ConnectWalletConnect', () => import('@subwallet/extension-koni-ui/Popup/WalletConnect/ConnectWalletConnect'));
@@ -166,12 +164,11 @@ export const router = createHashRouter([
           Staking.generateRouterObject('staking'),
           {
             path: 'earning',
-            element: <Earning />,
+            element: <Outlet />,
             children: [
-              EarningOptions.generateRouterObject('options'),
+              EarningEntry.generateRouterObject(''),
               EarningPools.generateRouterObject('pools'),
-              EarningPositionDetail.generateRouterObject('position-detail'),
-              EarningPositions.generateRouterObject('positions')
+              EarningPositionDetail.generateRouterObject('position-detail')
             ]
           },
           History.generateRouterObject('history'),
