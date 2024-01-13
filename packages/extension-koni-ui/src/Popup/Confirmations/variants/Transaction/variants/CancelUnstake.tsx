@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { RequestStakeCancelWithdrawal } from '@subwallet/extension-base/background/KoniTypes';
 import CommonTransactionInfo from '@subwallet/extension-koni-ui/components/Confirmation/CommonTransactionInfo';
 import MetaInfo from '@subwallet/extension-koni-ui/components/MetaInfo/MetaInfo';
 import useGetNativeTokenBasicInfo from '@subwallet/extension-koni-ui/hooks/common/useGetNativeTokenBasicInfo';
@@ -16,9 +15,11 @@ type Props = BaseTransactionConfirmationProps;
 
 const Component: React.FC<Props> = (props: Props) => {
   const { className, transaction } = props;
-  const data = transaction.data as RequestStakeCancelWithdrawal;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const data = transaction.data;
 
   const { t } = useTranslation();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const { decimals, symbol } = useGetNativeTokenBasicInfo(data.chain);
 
   return (
