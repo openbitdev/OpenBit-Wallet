@@ -1,18 +1,39 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { Layout } from '@subwallet/extension-koni-ui/components';
+import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { EarningEntryParam, EarningEntryView, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import CN from 'classnames';
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 type Props = ThemeProps
 
 function Component ({ className }: Props) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const onBack = useCallback(() => {
+    navigate('/home/earning', { state: {
+      view: EarningEntryView.OPTIONS
+    } as EarningEntryParam });
+  }, [navigate]);
+
   return (
-    <div className={CN(className)}>
-      EarningPools screen
-    </div>
+    <Layout.Base
+      className={CN(className)}
+      onBack={onBack}
+      showBackButton={true}
+      showSubHeader={true}
+      subHeaderBackground={'transparent'}
+      subHeaderCenter={false}
+      subHeaderPaddingVertical={true}
+      title={t<string>('[TOKEN_NAME] earning options')}
+    >
+      Content here
+    </Layout.Base>
   );
 }
 
