@@ -16,11 +16,12 @@ type Props = ThemeProps;
 
 function Component ({ className }: Props) {
   const locationState = useLocation().state as EarningEntryParam;
-  // @ts-ignore
   const [entryView, setEntryView] = useState<EarningEntryView>(locationState?.view || EarningEntryView.POSITIONS);
 
   const earningPositions = useGroupYieldPosition();
   const dataContext = useContext(DataContext);
+
+  console.log('earningPositions', earningPositions);
 
   return (
     <PageWrapper
@@ -29,8 +30,18 @@ function Component ({ className }: Props) {
     >
       {
         earningPositions.length && entryView === EarningEntryView.POSITIONS
-          ? (<EarningPositions />)
-          : (<EarningOptions />)
+          ? (
+            <EarningPositions
+              earningPositions={earningPositions}
+              setEntryView={setEntryView}
+            />
+          )
+          : (
+            <EarningOptions
+              hasEarningPositions={!!earningPositions.length}
+              setEntryView={setEntryView}
+            />
+          )
       }
 
     </PageWrapper>

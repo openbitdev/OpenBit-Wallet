@@ -83,7 +83,7 @@ const Component = ({ children, className, headerIcons, onBack, showFooter, ...pr
         weight: 'fill'
       },
       label: t('Earning'),
-      key: 'staking',
+      key: 'earning',
       url: '/home/earning'
     },
     {
