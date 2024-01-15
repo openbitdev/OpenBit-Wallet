@@ -38,8 +38,8 @@ export interface UnStakeParams extends TransactionFormBaseProps {
 }
 
 export interface CancelUnStakeParams extends TransactionFormBaseProps {
-  unstake: string;
-  type: StakingType;
+  unstake: string,
+  slug: string;
 }
 
 export interface WithdrawParams extends TransactionFormBaseProps {

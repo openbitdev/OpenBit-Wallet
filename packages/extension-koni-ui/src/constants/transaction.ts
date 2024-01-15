@@ -102,7 +102,7 @@ export const DEFAULT_UN_STAKE_PARAMS: UnStakeParams = {
 
 export const DEFAULT_CANCEL_UN_STAKE_PARAMS: CancelUnStakeParams = {
   ...DEFAULT_TRANSACTION_PARAMS,
-  type: '' as StakingType,
+  slug: '',
   unstake: ''
 };
 
