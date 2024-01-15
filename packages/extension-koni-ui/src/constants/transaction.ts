@@ -108,7 +108,7 @@ export const DEFAULT_CANCEL_UN_STAKE_PARAMS: CancelUnStakeParams = {
 
 export const DEFAULT_WITHDRAW_PARAMS: WithdrawParams = {
   ...DEFAULT_TRANSACTION_PARAMS,
-  type: '' as StakingType
+  slug: ''
 };
 
 export const DEFAULT_CLAIM_REWARD_PARAMS: ClaimRewardParams = {

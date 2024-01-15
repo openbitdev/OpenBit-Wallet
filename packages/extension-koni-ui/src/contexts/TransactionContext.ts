@@ -6,7 +6,7 @@ import React, { Dispatch, SetStateAction } from 'react';
 
 export interface TransactionContextProps{
   defaultData: TransactionFormBaseProps;
-  persistData: (value: TransactionFormBaseProps) => void;
+  persistData: Dispatch<SetStateAction<TransactionFormBaseProps>>;
   needPersistData: boolean;
   onDone: (extrinsicHash: string) => void;
   onClickRightBtn: () => void;

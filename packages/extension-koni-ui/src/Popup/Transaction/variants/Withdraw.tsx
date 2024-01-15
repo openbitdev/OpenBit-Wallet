@@ -1,23 +1,23 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ExtrinsicType, StakingType, UnstakingInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
-import { getAstarWithdrawable } from '@subwallet/extension-base/koni/api/staking/bonding/astar';
-import { isActionFromValidator } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
 import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/earning-service/constants';
-import { UnstakingStatus } from '@subwallet/extension-base/types';
+import { getAstarWithdrawable } from '@subwallet/extension-base/services/earning-service/handlers/native-staking/astar';
+import { RequestYieldWithdrawal, UnstakingInfo, UnstakingStatus, YieldPoolType } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AccountSelector, HiddenInput, MetaInfo, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useGetNativeTokenBasicInfo, useGetNominatorInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
-import { submitStakeWithdrawal } from '@subwallet/extension-koni-ui/messaging';
+import { useGetChainAssetInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
+import { yieldSubmitStakingWithdrawal } from '@subwallet/extension-koni-ui/messaging';
 import { accountFilterFunc } from '@subwallet/extension-koni-ui/Popup/Transaction/helper';
 import { FormCallbacks, FormFieldData, ThemeProps, WithdrawParams } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, isAccountAll, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon } from '@subwallet/react-ui';
 import { ArrowCircleRight, XCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -26,7 +26,7 @@ import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
-const hideFields: Array<keyof WithdrawParams> = ['chain', 'asset', 'type'];
+const hideFields: Array<keyof WithdrawParams> = ['chain', 'asset', 'slug'];
 const validateFields: Array<keyof WithdrawParams> = ['from'];
 
 const Component: React.FC<Props> = (props: Props) => {
@@ -38,40 +38,48 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const dataContext = useContext(DataContext);
   const { defaultData, onDone, persistData } = useTransactionContext<WithdrawParams>();
-  const { chain, type } = defaultData;
+  const { slug } = defaultData;
 
   const [form] = Form.useForm<WithdrawParams>();
   const formDefault = useMemo((): WithdrawParams => ({ ...defaultData }), [defaultData]);
 
-  const { isAllAccount } = useSelector((state) => state.accountState);
+  const { accounts, isAllAccount } = useSelector((state) => state.accountState);
   const { chainInfoMap } = useSelector((state) => state.chainStore);
-  const [isBalanceReady, setIsBalanceReady] = useState(true);
-
-  const from = useWatchTransaction('from', form, defaultData);
-
-  const allNominatorInfo = useGetNominatorInfo(chain, type);
-  const nominatorInfo = useGetNominatorInfo(chain, type, from);
-  const nominatorMetadata = nominatorInfo[0];
-
-  const unstakingInfo = useMemo((): UnstakingInfo | undefined => {
-    if (from && !isAccountAll(from)) {
-      if (_STAKING_CHAIN_GROUP.astar.includes(nominatorMetadata.chain)) {
-        return getAstarWithdrawable(nominatorMetadata);
-      }
-
-      return nominatorMetadata.unstakings.filter((data) => data.status === UnstakingStatus.CLAIMABLE)[0];
-    }
-
-    return undefined;
-  }, [from, nominatorMetadata]);
+  const { poolInfoMap } = useSelector((state) => state.earning);
 
   const [isDisable, setIsDisable] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isBalanceReady, setIsBalanceReady] = useState(true);
 
-  const { decimals, symbol } = useGetNativeTokenBasicInfo(chain);
+  const chainValue = useWatchTransaction('chain', form, defaultData);
+  const fromValue = useWatchTransaction('from', form, defaultData);
+
+  const { list: allPositionInfos } = useYieldPositionDetail(slug);
+  const { list: yieldPositions } = useYieldPositionDetail(slug, fromValue);
+  const yieldPosition = yieldPositions[0];
+  const type = yieldPosition.type;
+
+  const poolInfo = useMemo(() => poolInfoMap[slug], [poolInfoMap, slug]);
+  const stakingChain = useMemo(() => poolInfo?.chain || '', [poolInfo?.chain]);
+
+  const inputAsset = useGetChainAssetInfo(poolInfo.metadata.inputAsset);
+  const decimals = inputAsset?.decimals || 0;
+  const symbol = inputAsset?.symbol || '';
+
+  const unstakingInfo = useMemo((): UnstakingInfo | undefined => {
+    if (fromValue && !isAccountAll(fromValue) && !!yieldPosition) {
+      if (_STAKING_CHAIN_GROUP.astar.includes(yieldPosition.chain)) {
+        return getAstarWithdrawable(yieldPosition);
+      }
+
+      return yieldPosition.unstakings.filter((data) => data.status === UnstakingStatus.CLAIMABLE)[0];
+    }
+
+    return undefined;
+  }, [fromValue, yieldPosition]);
 
   const goHome = useCallback(() => {
-    navigate('/home/staking');
+    navigate('/home/earning');
   }, [navigate]);
 
   const onFieldsChange: FormCallbacks<WithdrawParams>['onFieldsChange'] = useCallback((changedFields: FormFieldData[], allFields: FormFieldData[]) => {
@@ -95,37 +103,44 @@ const Component: React.FC<Props> = (props: Props) => {
       return;
     }
 
-    const params = {
-      unstakingInfo: unstakingInfo,
-      chain: nominatorMetadata.chain,
-      nominatorMetadata
+    const params: RequestYieldWithdrawal = {
+      address: values.from,
+      slug: values.slug,
+      unstakingInfo: unstakingInfo
     };
 
-    if (isActionFromValidator(type, chain)) {
-      // @ts-ignore
-      params.validatorAddress = unstakingInfo.validatorAddress;
-    }
-
     setTimeout(() => {
-      submitStakeWithdrawal(params)
+      yieldSubmitStakingWithdrawal(params)
         .then(onSuccess)
         .catch(onError)
         .finally(() => {
           setLoading(false);
         });
     }, 300);
-  }, [chain, nominatorMetadata, onError, onSuccess, type, unstakingInfo]);
+  }, [onError, onSuccess, unstakingInfo]);
 
-  const onPreCheck = usePreCheckAction(from);
+  const onPreCheck = usePreCheckAction(fromValue);
 
   const filterAccount = useCallback((account: AccountJson): boolean => {
-    const nomination = allNominatorInfo.find((data) => isSameAddress(data.address, account.address));
+    const nomination = allPositionInfos.find((data) => isSameAddress(data.address, account.address));
 
-    return (nomination ? nomination.unstakings.filter((data) => data.status === UnstakingStatus.CLAIMABLE).length > 0 : false) && accountFilterFunc(chainInfoMap, type, chain)(account);
-  }, [chainInfoMap, allNominatorInfo, chain, type]);
+    return (
+      (nomination
+        ? nomination.unstakings.filter((data) => data.status === UnstakingStatus.CLAIMABLE).length > 0
+        : false) && accountFilterFunc(chainInfoMap, poolInfo.type)(account)
+    );
+  }, [allPositionInfos, chainInfoMap, poolInfo.type]);
+
+  const accountList = useMemo(() => {
+    return accounts.filter(filterAccount);
+  }, [accounts, filterAccount]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
+
+  useEffect(() => {
+    form.setFieldValue('chain', stakingChain);
+  }, [form, stakingChain]);
 
   return (
     <>
@@ -138,16 +153,21 @@ const Component: React.FC<Props> = (props: Props) => {
             onFieldsChange={onFieldsChange}
             onFinish={onSubmit}
           >
+
             <HiddenInput fields={hideFields} />
             <Form.Item
-              hidden={!isAllAccount}
               name={'from'}
             >
-              <AccountSelector filter={filterAccount} />
+              <AccountSelector
+                disabled={loading || !isAllAccount}
+                doFilter={false}
+                externalAccounts={accountList}
+                filter={filterAccount}
+              />
             </Form.Item>
             <FreeBalance
-              address={from}
-              chain={chain}
+              address={fromValue}
+              chain={chainValue}
               className={'free-balance'}
               label={t('Available balance:')}
               onBalanceReady={setIsBalanceReady}
@@ -158,7 +178,7 @@ const Component: React.FC<Props> = (props: Props) => {
                 hasBackgroundWrapper={true}
               >
                 <MetaInfo.Chain
-                  chain={chain}
+                  chain={chainValue}
                   label={t('Network')}
                 />
                 {
@@ -203,7 +223,7 @@ const Component: React.FC<Props> = (props: Props) => {
             />
           )}
           loading={loading}
-          onClick={onPreCheck(form.submit, type === StakingType.POOLED ? ExtrinsicType.STAKING_POOL_WITHDRAW : ExtrinsicType.STAKING_WITHDRAW)}
+          onClick={onPreCheck(form.submit, type === YieldPoolType.NOMINATION_POOL ? ExtrinsicType.STAKING_POOL_WITHDRAW : ExtrinsicType.STAKING_WITHDRAW)}
         >
           {t('Continue')}
         </Button>

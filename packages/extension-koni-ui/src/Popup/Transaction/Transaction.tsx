@@ -110,10 +110,6 @@ function Component ({ className }: Props) {
     navigate(homePath);
   }, [homePath, navigate]);
 
-  const persistData = useCallback((value: TransactionFormBaseProps) => {
-    setStorage(value);
-  }, [setStorage]);
-
   // Navigate to finish page
   const onDone = useCallback(
     (extrinsicHash: string) => {
@@ -149,7 +145,7 @@ function Component ({ className }: Props) {
       showFilterIcon
       showTabBar={false}
     >
-      <TransactionContext.Provider value={{ defaultData, needPersistData, persistData, onDone, onClickRightBtn, setShowRightBtn, setDisabledRightBtn }}>
+      <TransactionContext.Provider value={{ defaultData, needPersistData, persistData: setStorage, onDone, onClickRightBtn, setShowRightBtn, setDisabledRightBtn }}>
         <PageWrapper resolve={dataContext.awaitStores(['chainStore', 'assetRegistry', 'balance'])}>
           <div className={CN(className, 'transaction-wrapper')}>
             <SwSubHeader

@@ -43,7 +43,7 @@ export interface CancelUnStakeParams extends TransactionFormBaseProps {
 }
 
 export interface WithdrawParams extends TransactionFormBaseProps {
-  type: StakingType;
+  slug: string;
 }
 
 export interface ClaimRewardParams extends TransactionFormBaseProps {
