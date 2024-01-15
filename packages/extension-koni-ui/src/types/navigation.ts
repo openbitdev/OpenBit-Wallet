@@ -36,3 +36,8 @@ export type BuyTokensParam = {
 export type EarningEntryParam = {
   view: EarningEntryView
 };
+
+export type EarningPoolsParam = {
+  poolGroup: string,
+  symbol: string,
+};

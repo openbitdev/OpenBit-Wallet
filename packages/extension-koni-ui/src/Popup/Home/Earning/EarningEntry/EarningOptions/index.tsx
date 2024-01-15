@@ -4,7 +4,7 @@
 import { Layout } from '@subwallet/extension-koni-ui/components';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldGroupInfo } from '@subwallet/extension-koni-ui/hooks/earning';
-import { EarningEntryView, ThemeProps, YieldGroupInfo } from '@subwallet/extension-koni-ui/types';
+import { EarningEntryView, EarningPoolsParam, ThemeProps, YieldGroupInfo } from '@subwallet/extension-koni-ui/types';
 import { SwList } from '@subwallet/react-ui';
 import CN from 'classnames';
 import React, { useCallback, useMemo } from 'react';
@@ -62,7 +62,14 @@ function Component ({ className, hasEarningPositions, setEntryView }: Props) {
 
   const onClickItem = useCallback((chainSlug: string, item: YieldGroupInfo) => {
     return () => {
-      navigate('/home/earning/pools');
+      if (item.poolListLength > 1) {
+        navigate('/home/earning/pools', { state: {
+          poolGroup: item.group,
+          symbol: item.symbol
+        } as EarningPoolsParam });
+      } else if (item.poolListLength === 1) {
+        // todo: navigate to earning transaction
+      }
     };
   }, [navigate]);
 
