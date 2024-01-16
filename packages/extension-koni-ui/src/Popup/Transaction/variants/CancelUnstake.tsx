@@ -1,8 +1,10 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
+import { YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AccountSelector, CancelUnstakeSelector, HiddenInput, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
@@ -26,6 +28,22 @@ type Props = ThemeProps;
 const hideFields: Array<keyof CancelUnStakeParams> = ['slug', 'chain', 'asset'];
 const validateFields: Array<keyof CancelUnStakeParams> = ['from'];
 
+const filterAccount = (
+  chainInfoMap: Record<string, _ChainInfo>,
+  allNominatorInfo: YieldPositionInfo[],
+  stakingType: YieldPoolType,
+  stakingChain?: string
+): ((account: AccountJson) => boolean) => {
+  return (account: AccountJson): boolean => {
+    const nomination = allNominatorInfo.find((data) => isSameAddress(data.address, account.address));
+
+    return (
+      (nomination ? nomination.unstakings.length > 0 : false) &&
+      accountFilterFunc(chainInfoMap, stakingType, stakingChain)(account)
+    );
+  };
+};
+
 const Component: React.FC<Props> = (props: Props) => {
   useSetCurrentPage('/transaction/cancel-unstake');
   const { className = '' } = props;
@@ -40,7 +58,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const [form] = Form.useForm<CancelUnStakeParams>();
   const formDefault = useMemo((): CancelUnStakeParams => ({ ...defaultData }), [defaultData]);
 
-  const { accounts, isAllAccount } = useSelector((state) => state.accountState);
+  const { isAllAccount } = useSelector((state) => state.accountState);
   const { chainInfoMap } = useSelector((state) => state.chainStore);
   const { poolInfoMap } = useSelector((state) => state.earning);
 
@@ -113,18 +131,9 @@ const Component: React.FC<Props> = (props: Props) => {
     }, 300);
   }, [onError, onSuccess, positionInfo]);
 
-  const filterAccount = useCallback((account: AccountJson): boolean => {
-    const nomination = allPositionInfos.find((data) => isSameAddress(data.address, account.address));
-
-    return (
-      (nomination ? nomination.unstakings.length > 0 : false) &&
-      accountFilterFunc(chainInfoMap, poolType, poolChain)(account)
-    );
+  const accountSelectorFilter = useCallback((account: AccountJson): boolean => {
+    return filterAccount(chainInfoMap, allPositionInfos, poolType, poolChain)(account);
   }, [allPositionInfos, chainInfoMap, poolChain, poolType]);
-
-  const accountList = useMemo(() => {
-    return accounts.filter(filterAccount);
-  }, [accounts, filterAccount]);
 
   const onPreCheck = usePreCheckAction(fromValue);
 
@@ -152,8 +161,7 @@ const Component: React.FC<Props> = (props: Props) => {
             >
               <AccountSelector
                 disabled={!isAllAccount}
-                doFilter={false}
-                externalAccounts={accountList}
+                filter={accountSelectorFilter}
               />
             </Form.Item>
             <FreeBalance

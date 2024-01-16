@@ -1,11 +1,12 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/earning-service/constants';
 import { getAstarWithdrawable } from '@subwallet/extension-base/services/earning-service/handlers/native-staking/astar';
-import { RequestYieldWithdrawal, UnstakingInfo, UnstakingStatus, YieldPoolType } from '@subwallet/extension-base/types';
+import { RequestYieldWithdrawal, UnstakingInfo, UnstakingStatus, YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AccountSelector, HiddenInput, MetaInfo, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
@@ -29,6 +30,23 @@ type Props = ThemeProps;
 const hideFields: Array<keyof WithdrawParams> = ['chain', 'asset', 'slug'];
 const validateFields: Array<keyof WithdrawParams> = ['from'];
 
+const filterAccount = (
+  chainInfoMap: Record<string, _ChainInfo>,
+  allPositionInfos: YieldPositionInfo[],
+  poolType: YieldPoolType,
+  poolChain?: string
+): ((account: AccountJson) => boolean) => {
+  return (account: AccountJson): boolean => {
+    const nomination = allPositionInfos.find((data) => isSameAddress(data.address, account.address));
+
+    return (
+      (nomination
+        ? nomination.unstakings.filter((data) => data.status === UnstakingStatus.CLAIMABLE).length > 0
+        : false) && accountFilterFunc(chainInfoMap, poolType, poolChain)(account)
+    );
+  };
+};
+
 const Component: React.FC<Props> = (props: Props) => {
   useSetCurrentPage('/transaction/withdraw');
   const { className = '' } = props;
@@ -43,7 +61,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const [form] = Form.useForm<WithdrawParams>();
   const formDefault = useMemo((): WithdrawParams => ({ ...defaultData }), [defaultData]);
 
-  const { accounts, isAllAccount } = useSelector((state) => state.accountState);
+  const { isAllAccount } = useSelector((state) => state.accountState);
   const { chainInfoMap } = useSelector((state) => state.chainStore);
   const { poolInfoMap } = useSelector((state) => state.earning);
 
@@ -121,19 +139,9 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const onPreCheck = usePreCheckAction(fromValue);
 
-  const filterAccount = useCallback((account: AccountJson): boolean => {
-    const nomination = allPositionInfos.find((data) => isSameAddress(data.address, account.address));
-
-    return (
-      (nomination
-        ? nomination.unstakings.filter((data) => data.status === UnstakingStatus.CLAIMABLE).length > 0
-        : false) && accountFilterFunc(chainInfoMap, poolInfo.type)(account)
-    );
+  const accountSelectorFilter = useCallback((account: AccountJson): boolean => {
+    return filterAccount(chainInfoMap, allPositionInfos, poolInfo.type)(account);
   }, [allPositionInfos, chainInfoMap, poolInfo.type]);
-
-  const accountList = useMemo(() => {
-    return accounts.filter(filterAccount);
-  }, [accounts, filterAccount]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
@@ -159,10 +167,8 @@ const Component: React.FC<Props> = (props: Props) => {
               name={'from'}
             >
               <AccountSelector
-                disabled={loading || !isAllAccount}
-                doFilter={false}
-                externalAccounts={accountList}
-                filter={filterAccount}
+                disabled={!isAllAccount}
+                filter={accountSelectorFilter}
               />
             </Form.Item>
             <FreeBalance

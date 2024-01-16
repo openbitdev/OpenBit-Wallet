@@ -47,6 +47,6 @@ export interface WithdrawParams extends TransactionFormBaseProps {
 }
 
 export interface ClaimRewardParams extends TransactionFormBaseProps {
-  type: StakingType;
+  slug: string;
   bondReward: boolean;
 }

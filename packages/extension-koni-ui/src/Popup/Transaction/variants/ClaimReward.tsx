@@ -1,34 +1,90 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ExtrinsicType, StakingRewardItem, StakingType } from '@subwallet/extension-base/background/KoniTypes';
+import { _ChainInfo } from '@subwallet/chain-list/types';
+import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { _getSubstrateGenesisHash, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/earning-service/constants';
+import { EarningRewardItem, YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AccountSelector, HiddenInput, MetaInfo, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { BN_ZERO } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useGetNativeTokenBasicInfo, useGetNominatorInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
-import { submitStakeClaimReward } from '@subwallet/extension-koni-ui/messaging';
+import { useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
+import { yieldSubmitStakingClaimReward } from '@subwallet/extension-koni-ui/messaging';
 import { ClaimRewardParams, FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, isAccountAll, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Checkbox, Form, Icon } from '@subwallet/react-ui';
+import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { ArrowCircleRight, XCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-import { BN, BN_ZERO } from '@polkadot/util';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
-const hideFields: Array<keyof ClaimRewardParams> = ['chain', 'type', 'asset'];
+const hideFields: Array<keyof ClaimRewardParams> = ['chain', 'slug', 'asset'];
 const validateFields: Array<keyof ClaimRewardParams> = ['from'];
+
+const filterAccount = (
+  chainInfoMap: Record<string, _ChainInfo>,
+  yieldPositions: YieldPositionInfo[],
+  rewardList: EarningRewardItem[],
+  poolType: YieldPoolType,
+  poolChain?: string
+): ((account: AccountJson) => boolean) => {
+  const _poolChain = poolChain || '';
+  const chain = chainInfoMap[_poolChain];
+
+  return (account: AccountJson): boolean => {
+    if (!chain) {
+      return false;
+    }
+
+    if (account.originGenesisHash && _getSubstrateGenesisHash(chain) !== account.originGenesisHash) {
+      return false;
+    }
+
+    if (isAccountAll(account.address)) {
+      return false;
+    }
+
+    if (account.isReadOnly) {
+      return false;
+    }
+
+    const isEvmChain = _isChainEvmCompatible(chain);
+
+    if (isEvmChain !== isEthereumAddress(account.address)) {
+      return false;
+    }
+
+    const nominatorMetadata = yieldPositions.find((value) => isSameAddress(value.address, account.address));
+
+    if (!nominatorMetadata) {
+      return false;
+    }
+
+    const reward = rewardList.find((value) => isSameAddress(value.address, account.address));
+
+    const isAstarNetwork = _STAKING_CHAIN_GROUP.astar.includes(_poolChain);
+    const isAmplitudeNetwork = _STAKING_CHAIN_GROUP.amplitude.includes(_poolChain);
+    const bnUnclaimedReward = new BigN(reward?.unclaimedReward || '0');
+
+    return (
+      ((poolType === YieldPoolType.NOMINATION_POOL || isAmplitudeNetwork) && bnUnclaimedReward.gt(BN_ZERO)) ||
+      isAstarNetwork
+    );
+  };
+};
 
 const Component: React.FC<Props> = (props: Props) => {
   useSetCurrentPage('/transaction/claim-reward');
@@ -38,33 +94,38 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const dataContext = useContext(DataContext);
   const { defaultData, onDone, persistData } = useTransactionContext<ClaimRewardParams>();
-  const { chain, type } = defaultData;
+  const { slug } = defaultData;
 
   const [form] = Form.useForm<ClaimRewardParams>();
   const formDefault = useMemo((): ClaimRewardParams => ({ ...defaultData }), [defaultData]);
 
   const { isAllAccount } = useSelector((state) => state.accountState);
-  const { stakingRewardMap } = useSelector((state) => state.staking);
   const { chainInfoMap } = useSelector((state) => state.chainStore);
+  const { earningRewards, poolInfoMap } = useSelector((state) => state.earning);
 
-  const allNominatorInfo = useGetNominatorInfo(chain, type);
-  const { decimals, symbol } = useGetNativeTokenBasicInfo(chain);
+  const fromValue = useWatchTransaction('from', form, defaultData);
+  const chainValue = useWatchTransaction('chain', form, defaultData);
 
-  const from = useWatchTransaction('from', form, defaultData);
+  const poolInfo = useMemo(() => poolInfoMap[slug], [poolInfoMap, slug]);
+  const poolType = poolInfo.type;
+  const poolChain = poolInfo.chain;
 
-  const reward = useMemo((): StakingRewardItem | undefined => {
-    return stakingRewardMap.find((item) => item.chain === chain && item.address === from && item.type === type);
-  }, [chain, from, stakingRewardMap, type]);
-
-  const rewardList = useMemo((): StakingRewardItem[] => {
-    return stakingRewardMap.filter((item) => item.chain === chain && item.type === type);
-  }, [chain, stakingRewardMap, type]);
+  const { list: allPositions } = useYieldPositionDetail(slug);
+  const { decimals, symbol } = useGetNativeTokenBasicInfo(chainValue);
 
   const [isDisable, setIsDisable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isBalanceReady, setIsBalanceReady] = useState(true);
 
   const { onError, onSuccess } = useHandleSubmitTransaction(onDone);
+
+  const reward = useMemo((): EarningRewardItem | undefined => {
+    return earningRewards.find((item) => item.slug === slug && item.address === fromValue);
+  }, [earningRewards, fromValue, slug]);
+
+  const rewardList = useMemo((): EarningRewardItem[] => {
+    return earningRewards.filter((item) => item.slug === slug);
+  }, [earningRewards, slug]);
 
   const goHome = useCallback(() => {
     navigate('/home/staking');
@@ -85,14 +146,13 @@ const Component: React.FC<Props> = (props: Props) => {
   const onSubmit: FormCallbacks<ClaimRewardParams>['onFinish'] = useCallback((values: ClaimRewardParams) => {
     setLoading(true);
 
-    const { bondReward } = values;
+    const { bondReward, from, slug } = values;
 
     setTimeout(() => {
-      submitStakeClaimReward({
+      yieldSubmitStakingClaimReward({
         address: from,
-        chain: chain,
         bondReward: bondReward,
-        stakingType: type,
+        slug,
         unclaimedReward: reward?.unclaimedReward
       })
         .then(onSuccess)
@@ -101,52 +161,20 @@ const Component: React.FC<Props> = (props: Props) => {
           setLoading(false);
         });
     }, 300);
-  }, [chain, from, onError, onSuccess, reward?.unclaimedReward, type]);
+  }, [onError, onSuccess, reward?.unclaimedReward]);
 
-  const checkAction = usePreCheckAction(from);
+  const checkAction = usePreCheckAction(fromValue);
 
-  const filterAccount = useCallback((account: AccountJson): boolean => {
-    const chainInfo = chainInfoMap[chain];
-
-    if (!chainInfo) {
-      return false;
-    }
-
-    if (account.originGenesisHash && _getSubstrateGenesisHash(chainInfo) !== account.originGenesisHash) {
-      return false;
-    }
-
-    if (isAccountAll(account.address)) {
-      return false;
-    }
-
-    if (account.isReadOnly) {
-      return false;
-    }
-
-    const isEvmChain = _isChainEvmCompatible(chainInfo);
-
-    if (isEvmChain !== isEthereumAddress(account.address)) {
-      return false;
-    }
-
-    const nominatorMetadata = allNominatorInfo.find((value) => isSameAddress(value.address, account.address));
-
-    if (!nominatorMetadata) {
-      return false;
-    }
-
-    const reward = rewardList.find((value) => isSameAddress(value.address, account.address));
-
-    const isAstarNetwork = _STAKING_CHAIN_GROUP.astar.includes(chain);
-    const isAmplitudeNetwork = _STAKING_CHAIN_GROUP.amplitude.includes(chain);
-    const bnUnclaimedReward = new BN(reward?.unclaimedReward || '0');
-
-    return ((type === StakingType.POOLED || isAmplitudeNetwork) && bnUnclaimedReward.gt(BN_ZERO)) || (isAstarNetwork && !!nominatorMetadata.nominations.length);
-  }, [allNominatorInfo, chainInfoMap, rewardList, chain, type]);
+  const accountSelectorFilter = useCallback((account: AccountJson): boolean => {
+    return filterAccount(chainInfoMap, allPositions, rewardList, poolType, poolChain)(account);
+  }, [chainInfoMap, allPositions, rewardList, poolType, poolChain]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
+
+  useEffect(() => {
+    form.setFieldValue('chain', poolChain);
+  }, [form, poolChain]);
 
   return (
     <>
@@ -161,14 +189,16 @@ const Component: React.FC<Props> = (props: Props) => {
           >
             <HiddenInput fields={hideFields} />
             <Form.Item
-              hidden={!isAllAccount}
               name={'from'}
             >
-              <AccountSelector filter={filterAccount} />
+              <AccountSelector
+                disabled={!isAllAccount}
+                filter={accountSelectorFilter}
+              />
             </Form.Item>
             <FreeBalance
-              address={from}
-              chain={chain}
+              address={fromValue}
+              chain={chainValue}
               className={'free-balance'}
               label={t('Available balance:')}
               onBalanceReady={setIsBalanceReady}
@@ -179,7 +209,7 @@ const Component: React.FC<Props> = (props: Props) => {
                 hasBackgroundWrapper={true}
               >
                 <MetaInfo.Chain
-                  chain={chain}
+                  chain={chainValue}
                   label={t('Network')}
                 />
                 {
@@ -195,7 +225,6 @@ const Component: React.FC<Props> = (props: Props) => {
               </MetaInfo>
             </Form.Item>
             <Form.Item
-              hidden={type !== StakingType.POOLED}
               name={'bondReward'}
               valuePropName='checked'
             >
