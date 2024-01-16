@@ -3,7 +3,7 @@
 
 import { ExtrinsicType, StakingType } from '@subwallet/extension-base/background/KoniTypes';
 import { detectTranslate } from '@subwallet/extension-base/utils';
-import { CancelUnStakeParams, CancelUnYieldParams, ClaimRewardParams, ClaimYieldParams, SendNftParams, StakeParams, TransactionFormBaseProps, TransferParams, UnStakeParams, UnYieldParams, WithdrawParams, YieldFastWithdrawParams, YieldParams, YieldStakingWithdrawParams } from '@subwallet/extension-koni-ui/types';
+import { CancelUnStakeParams, ClaimRewardParams, SendNftParams, StakeParams, TransactionFormBaseProps, TransferParams, UnStakeParams, WithdrawParams } from '@subwallet/extension-koni-ui/types';
 
 import { ALL_KEY } from './common';
 
@@ -95,7 +95,8 @@ export const DEFAULT_STAKE_PARAMS: StakeParams = {
 
 export const DEFAULT_UN_STAKE_PARAMS: UnStakeParams = {
   ...DEFAULT_TRANSACTION_PARAMS,
-  type: '' as StakingType,
+  slug: '',
+  fastLeave: false,
   validator: '',
   value: ''
 };
@@ -113,43 +114,6 @@ export const DEFAULT_WITHDRAW_PARAMS: WithdrawParams = {
 
 export const DEFAULT_CLAIM_REWARD_PARAMS: ClaimRewardParams = {
   ...DEFAULT_TRANSACTION_PARAMS,
-  type: '' as StakingType,
+  slug: '',
   bondReward: false
-};
-
-export const DEFAULT_YIELD_PARAMS: YieldParams = {
-  ...DEFAULT_TRANSACTION_PARAMS,
-  method: '',
-  nominate: '',
-  pool: ''
-};
-
-export const DEFAULT_UN_YIELD_PARAMS: UnYieldParams = {
-  ...DEFAULT_TRANSACTION_PARAMS,
-  method: '',
-  validator: '',
-  value: ''
-};
-
-export const DEFAULT_CLAIM_YIELD_PARAMS: ClaimYieldParams = {
-  ...DEFAULT_TRANSACTION_PARAMS,
-  method: '',
-  bondReward: true
-};
-
-export const DEFAULT_CANCEL_UN_YIELD_PARAMS: CancelUnYieldParams = {
-  ...DEFAULT_TRANSACTION_PARAMS,
-  method: '',
-  unstake: ''
-};
-
-export const DEFAULT_WITHDRAW_YIELD_PARAMS: YieldStakingWithdrawParams = {
-  ...DEFAULT_TRANSACTION_PARAMS,
-  method: ''
-};
-
-export const DEFAULT_FAST_WITHDRAW_YIELD_PARAMS: YieldFastWithdrawParams = {
-  ...DEFAULT_TRANSACTION_PARAMS,
-  amount: '',
-  method: ''
 };

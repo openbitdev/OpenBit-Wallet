@@ -34,7 +34,8 @@ export interface StakeParams extends TransactionFormBaseProps {
 export interface UnStakeParams extends TransactionFormBaseProps {
   value: string;
   validator: string;
-  type: StakingType;
+  slug: string;
+  fastLeave: boolean;
 }
 
 export interface CancelUnStakeParams extends TransactionFormBaseProps {
