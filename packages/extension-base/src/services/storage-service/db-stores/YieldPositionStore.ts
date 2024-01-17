@@ -28,18 +28,15 @@ export default class YieldPositionStore extends BaseStore<YieldPositionInfo> {
     }
 
     return this.table.where('address').anyOfIgnoreCase(addresses).filter((item) => {
-      let isValidLiquidStaking = false;
+      const nominatorMetadata = item.metadata as NominatorMetadata;
 
-      if (item.type === YieldPoolType.LIQUID_STAKING) {
-        const nominatorMetadata = item.metadata as NominatorMetadata;
+      if ([YieldPoolType.LIQUID_STAKING, YieldPoolType.NATIVE_STAKING, YieldPoolType.NOMINATION_POOL].includes(item.type)) {
 
-        if (nominatorMetadata && nominatorMetadata?.unstakings?.length > 0) {
-          isValidLiquidStaking = true;
+        if (nominatorMetadata) {
+          return parseInt(nominatorMetadata.activeStake) > 0 || nominatorMetadata.unstakings.length > 0;
+        } else {
+          return false;
         }
-
-        return isValidLiquidStaking;
-      } else if (item.type === YieldPoolType.NATIVE_STAKING || item.type === YieldPoolType.NOMINATION_POOL) {
-        return true;
       }
 
       return parseInt(item.balance[0].activeBalance) > 0;
