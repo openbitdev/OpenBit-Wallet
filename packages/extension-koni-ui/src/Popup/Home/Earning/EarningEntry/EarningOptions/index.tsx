@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Layout } from '@subwallet/extension-koni-ui/components';
+import { EarningOptionItem } from '@subwallet/extension-koni-ui/components/Earning';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldGroupInfo } from '@subwallet/extension-koni-ui/hooks/earning';
 import { EarningEntryView, EarningPoolsParam, ThemeProps, YieldGroupInfo } from '@subwallet/extension-koni-ui/types';
@@ -76,19 +77,14 @@ function Component ({ className, hasEarningPositions, setEntryView }: Props) {
   const renderItem = useCallback(
     (item: YieldGroupInfo) => {
       return (
-        <div
+        <EarningOptionItem
+          chain={chainInfoMap[item.chain]}
           className={'earning-option-item'}
+          isShowBalance={isShowBalance}
           key={item.group}
           onClick={onClickItem(chainInfoMap[item.chain].slug, item)}
-        >
-          <span>
-            {item.group}
-          </span>
-
-          <span>
-            ({isShowBalance ? item.balance.value.toString() : '***'})
-          </span>
-        </div>
+          poolGroup={item}
+        />
       );
     },
     [chainInfoMap, isShowBalance, onClickItem]
@@ -137,15 +133,6 @@ const EarningOptions = styled(Component)<Props>(({ theme: { token } }: Props) =>
   },
 
   '.earning-option-item': {
-    minHeight: 68,
-    cursor: 'pointer',
-    backgroundColor: token.colorBgSecondary,
-    display: 'flex',
-    alignItems: 'center',
-    paddingRight: token.paddingSM,
-    paddingLeft: token.paddingSM,
-    gap: token.sizeXXS,
-
     '+ .earning-option-item': {
       marginTop: token.marginXS
     }

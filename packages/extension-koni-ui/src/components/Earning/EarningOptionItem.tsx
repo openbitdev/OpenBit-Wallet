@@ -1,6 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ChainInfo } from '@subwallet/chain-list/types';
+import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Icon, Logo, Number } from '@subwallet/react-ui';
 import CN from 'classnames';
@@ -8,47 +10,91 @@ import { CaretRight } from 'phosphor-react';
 import React from 'react';
 import styled from 'styled-components';
 
-type Props = ThemeProps
+import { YieldGroupInfo } from '../../../build/types';
+
+type Props = ThemeProps & {
+  poolGroup: YieldGroupInfo;
+  onClick?: () => void;
+  isShowBalance?: boolean;
+  chain: _ChainInfo;
+}
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className } = props;
+  const { chain, className, isShowBalance, onClick, poolGroup } = props;
+  const { t } = useTranslation();
+
+  const { balance, maxApy, symbol, token } = poolGroup;
 
   return (
-    <div className={CN(className, '__item-upper-part')}>
-      <Logo
-        className={'__item-logo'}
-        network={'polkadot'}
-        size={38}
-      />
+    <div
+      className={CN(className)}
+      onClick={onClick}
+    >
+      <div className={'__item-left-part'}>
+        <Logo
+          className={'__item-logo'}
+          size={40}
+          token={token.toLowerCase()}
+        />
 
-      <div className='__item-lines-container'>
-        <div className='__item-line-1'>
-          <div className='__item-name'>DOT</div>
-          <div className='__item-upto'>
-            <div className='__item-upto-label'>
-              {('Up to')}:
+        <div className='__item-lines-container'>
+          <div className='__item-line-1'>
+            <div className='__item-name'>
+              <span className={'__symbol'}>
+                {symbol}
+              </span>
+
+              {chain.slug === 'bifrost' && (
+                <span className={'__chain-wrapper'}>
+                  (<span className={'__chain'}>
+                    {chain.name}
+                  </span>)
+                </span>
+              )}
             </div>
-            <div className='__item-upto-value'>
-              <Number
-                decimal={0}
-                suffix={'%'}
-                value={18.17}
-              />
-            </div>
+
+            {
+              !!maxApy && (
+                <div className='__item-upto'>
+                  <div className='__item-upto-label'>
+                    {t('Up to')}:
+                  </div>
+                  <div className='__item-upto-value'>
+                    <Number
+                      decimal={0}
+                      suffix={'%'}
+                      value={maxApy}
+                    />
+                  </div>
+                </div>
+              )
+            }
           </div>
-        </div>
-        <div className='__item-line-2'>
-          <div className='__item-available-label'>
-            {('Available')}:
-            <div className={'__item-available-value'}>
-              1.05 DOT
+          <div className='__item-line-2'>
+            <div className='__item-available-balance'>
+              <div className='__item-available-balance-label'>
+                {t('Available')}:
+              </div>
+              <div className={'__item-available-balance-value'}>
+                <Number
+                  decimal={0}
+                  hide={!isShowBalance}
+                  suffix={symbol}
+                  value={balance.value}
+                />
+              </div>
             </div>
-          </div>
-          <div className='__item-duration'>
-            <div className={'earning-option-item-not-available-info'}>per year</div>
+            {
+              !!maxApy && (
+                <div className='__item-time'>
+                  {t('per year')}
+                </div>
+              )
+            }
           </div>
         </div>
       </div>
+
       <div className={'__item-right-part'}>
         <Icon
           phosphorIcon={CaretRight}
@@ -59,26 +105,34 @@ const Component: React.FC<Props> = (props: Props) => {
   );
 };
 
-const EarningItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const EarningOptionItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
     cursor: 'pointer',
     backgroundColor: token.colorBgSecondary,
     borderRadius: token.borderRadiusLG,
-    padding: `${token.paddingXL}px ${token.paddingLG}px ${token.padding}px`,
-    paddingTop: token.sizeSM,
-    paddingLeft: token.sizeSM,
-    paddingRight: token.sizeSM,
-    paddingBottom: 0,
     display: 'flex',
+    transition: `background-color ${token.motionDurationMid} ${token.motionEaseInOut}`,
+    padding: token.paddingSM,
 
-    '.earning-option-item-not-available-info': {
-      color: token.colorSuccess,
-      fontSize: token.fontSizeSM,
-      lineHeight: token.lineHeightSM
+    '&:hover': {
+      backgroundColor: token.colorBgInput
+    },
+
+    '.__item-left-part': {
+      display: 'flex',
+      alignItems: 'center',
+      overflow: 'hidden',
+      flex: 1
+    },
+
+    '.__item-right-part': {
+      display: 'flex',
+      alignItems: 'center',
+      paddingLeft: 10
     },
 
     '.__item-logo': {
-      marginRight: token.marginSM
+      marginRight: token.marginXS
     },
 
     '.__item-lines-container': {
@@ -97,7 +151,31 @@ const EarningItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
       marginBottom: token.marginXXS
     },
 
-    '.__item-upto-label, .__item-available-label': {
+    '.__item-name': {
+      fontSize: token.fontSizeLG,
+      lineHeight: token.lineHeightLG,
+      fontWeight: token.headingFontWeight,
+      display: 'flex',
+      gap: token.sizeXXS,
+      overflow: 'hidden',
+
+      '.__symbol': {
+        color: token.colorTextLight1,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      },
+
+      '.__chain-wrapper': {
+        color: token.colorTextLight4
+      },
+
+      '.__chain': {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    },
+
+    '.__item-upto-label, .__item-available-balance-label': {
       fontSize: token.fontSizeSM,
       lineHeight: token.lineHeightSM,
       color: token.colorTextLight4,
@@ -106,13 +184,9 @@ const EarningItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
       display: 'flex'
     },
 
-    '.__item-name': {
-      fontSize: token.fontSizeLG,
-      lineHeight: token.lineHeightLG,
-      color: token.colorTextLight1,
-      fontWeight: token.headingFontWeight,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis'
+    '.__item-available-balance': {
+      display: 'flex',
+      gap: token.sizeXXS
     },
 
     '.__item-upto': {
@@ -129,13 +203,13 @@ const EarningItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
       fontWeight: token.headingFontWeight
     },
 
-    '.__item-duration': {
+    '.__item-time': {
       color: token.colorSuccess,
       fontSize: token.fontSizeSM,
       lineHeight: token.lineHeightSM
     },
 
-    '.__item-upto-value, .__item-duration': {
+    '.__item-upto-value, .__item-available-balance-value': {
       '.ant-number, .ant-typography': {
         color: 'inherit !important',
         fontSize: 'inherit !important',
@@ -144,42 +218,12 @@ const EarningItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
       }
     },
 
-    '.__item-tags-container': {
-      flex: 1,
-      display: 'flex',
-      overflow: 'hidden',
-      gap: token.sizeXS
-    },
-
-    '.__item-tag': {
-      marginRight: 0,
-      'white-space': 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      minWidth: 70
-    },
-
-    '.__item-upper-part': {
-      display: 'flex',
-      paddingBottom: token.sizeXS
-    },
-
-    '.__item-lower-part': {
-      borderTop: '2px solid rgba(33, 33, 33, 0.80)',
-      display: 'flex',
-      alignItems: 'center'
-    },
-
-    '.__item-available-value': {
-      fontSize: 12
-    },
-
-    '.__item-right-part': {
-      display: 'flex',
-      alignItems: 'center',
-      paddingLeft: 4
+    '.__item-available-balance-value': {
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      color: token.colorTextLight4
     }
   });
 });
 
-export default EarningItem;
+export default EarningOptionItem;

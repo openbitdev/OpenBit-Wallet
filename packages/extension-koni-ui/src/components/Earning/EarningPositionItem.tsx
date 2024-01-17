@@ -10,12 +10,12 @@ import { Icon, Logo, Number } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { CaretRight } from 'phosphor-react';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import styled from 'styled-components';
 
 type Props = ThemeProps & {
   positionInfo: ExtraYieldPositionInfo;
-  onClick?: (data: ExtraYieldPositionInfo) => void;
+  onClick?: () => void;
   isShowBalance?: boolean;
 }
 
@@ -45,14 +45,10 @@ const Component: React.FC<Props> = (props: Props) => {
     return new BigN(balanceValue).div(BN_TEN.pow(asset.decimals || 0)).multipliedBy(price);
   }, [asset.decimals, balanceValue, price]);
 
-  const _onClick = useCallback(() => {
-    onClick?.(positionInfo);
-  }, [onClick, positionInfo]);
-
   return (
     <div
       className={CN(className)}
-      onClick={_onClick}
+      onClick={onClick}
     >
       <div className={'__item-left-part'}>
         <Logo
@@ -69,7 +65,7 @@ const Component: React.FC<Props> = (props: Props) => {
             <div className='__item-balance-value'>
               <Number
                 decimal={asset.decimals || 0}
-                hide={isShowBalance}
+                hide={!isShowBalance}
                 suffix={asset.symbol}
                 value={balanceValue}
               />
@@ -86,6 +82,7 @@ const Component: React.FC<Props> = (props: Props) => {
             <div className='__item-converted-balance-value'>
               <Number
                 decimal={0}
+                hide={!isShowBalance}
                 prefix={'$'}
                 value={convertedBalanceValue}
               />

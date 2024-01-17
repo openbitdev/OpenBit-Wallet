@@ -61,7 +61,9 @@ function Component ({ className, earningPositions, setEntryView }: Props) {
   }, [assetInfoMap, earningPositions, priceMap]);
 
   const onClickItem = useCallback((item: ExtraYieldPositionInfo) => {
-    navigate('/home/earning/position-detail');
+    return () => {
+      navigate('/home/earning/position-detail');
+    };
   }, [navigate]);
 
   const renderItem = useCallback(
@@ -71,7 +73,7 @@ function Component ({ className, earningPositions, setEntryView }: Props) {
           className={'earning-position-item'}
           isShowBalance={isShowBalance}
           key={item.slug}
-          onClick={onClickItem}
+          onClick={onClickItem(item)}
           positionInfo={item}
         />
       );
