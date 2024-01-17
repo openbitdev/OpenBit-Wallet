@@ -3,6 +3,7 @@
 
 import { YieldPoolInfo, YieldPoolType } from '@subwallet/extension-base/types';
 import { Layout } from '@subwallet/extension-koni-ui/components';
+import { EarningPoolItem } from '@subwallet/extension-koni-ui/components/Earning';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldPoolInfoByGroup } from '@subwallet/extension-koni-ui/hooks/earning';
 import { EarningEntryParam, EarningEntryView, EarningPoolsParam, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -64,15 +65,13 @@ function Component ({ className, poolGroup, symbol }: Props) {
   const renderItem = useCallback(
     (item: YieldPoolInfo) => {
       return (
-        <div
+        <EarningPoolItem
+          chain={chainInfoMap[item.chain]}
           className={'earning-pool-item'}
           key={item.slug}
           onClick={onClickItem(chainInfoMap[item.chain].slug, item)}
-        >
-          <span>
-            {item.slug}
-          </span>
-        </div>
+          poolInfo={item}
+        />
       );
     },
     [chainInfoMap, onClickItem]
@@ -155,15 +154,6 @@ const EarningPools = styled(WrapperComponent)<Props>(({ theme: { token } }: Them
   },
 
   '.earning-pool-item': {
-    minHeight: 68,
-    cursor: 'pointer',
-    backgroundColor: token.colorBgSecondary,
-    display: 'flex',
-    alignItems: 'center',
-    paddingRight: token.paddingSM,
-    paddingLeft: token.paddingSM,
-    gap: token.sizeXXS,
-
     '+ .earning-pool-item': {
       marginTop: token.marginXS
     }

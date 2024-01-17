@@ -1,58 +1,131 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ChainInfo } from '@subwallet/chain-list/types';
+import { calculateReward } from '@subwallet/extension-base/services/earning-service/utils';
+import { YieldPoolInfo } from '@subwallet/extension-base/types';
 import EarningTypeTag from '@subwallet/extension-koni-ui/components/Earning/EarningTypeTag';
+import { BN_TEN } from '@subwallet/extension-koni-ui/constants';
+import { useGetChainAssetInfo, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Logo, Number } from '@subwallet/react-ui';
+import BigN from 'bignumber.js';
 import CN from 'classnames';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
-type Props = ThemeProps
+type Props = ThemeProps & {
+  poolInfo: YieldPoolInfo;
+  onClick?: () => void;
+  chain: _ChainInfo;
+}
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className } = props;
+  const { t } = useTranslation();
+  const { className, onClick, poolInfo } = props;
+  const { chain, metadata, type } = poolInfo;
+  const { inputAsset, logo, shortName } = metadata;
+  const totalApy = poolInfo.statistic?.totalApy;
+  const totalApr = poolInfo.statistic?.totalApr;
+  const tvl = poolInfo.statistic?.tvl;
+
+  const asset = useGetChainAssetInfo(inputAsset);
+
+  const { priceMap } = useSelector((state) => state.price);
+
+  const apy = useMemo((): number | undefined => {
+    if (totalApy) {
+      return totalApy;
+    }
+
+    if (totalApr) {
+      const rs = calculateReward(totalApr);
+
+      return rs.apy;
+    }
+
+    return undefined;
+  }, [totalApr, totalApy]);
+
+  const total = useMemo((): string => {
+    if (tvl && asset) {
+      const priceId = asset.priceId;
+
+      if (!priceId) {
+        return '0';
+      }
+
+      const price = priceMap[priceId] || 0;
+
+      return new BigN(tvl)
+        .div(BN_TEN.pow(asset.decimals || 0))
+        .multipliedBy(price)
+        .toString();
+    } else {
+      return '';
+    }
+  }, [asset, priceMap, tvl]);
+
+  console.log('poolInfo', poolInfo);
 
   return (
     <div
-      className={CN(className, 'earning-pool')}
+      className={CN(className)}
+      onClick={onClick}
     >
       <div className={'__item-upper-part'}>
         <Logo
           className={'__item-logo'}
-          network={'polkadot'}
-          size={38}
+          network={logo || chain}
+          size={40}
         />
 
         <div className='__item-lines-container'>
           <div className='__item-line-1'>
             <div className={'__item-name'}>
-              <div className='__item-name-token'>DOT</div>
-              <div className='__item-name-chain'>(Polkadot)</div>
+              <span className='__symbol'>{asset?.symbol || ''}</span>
+              <span className={'__chain-wrapper'}>
+                  (<span className={'__chain'}>
+                  {shortName}
+                </span>)
+              </span>
             </div>
-            <div className='__item-rewards'>
-              <div className='__item-rewards-label'>
-                {('Rewards')}:
+
+            {!!apy && (
+              <div className='__item-rewards'>
+                <div className='__item-rewards-label'>
+                  {t('Rewards')}:
+                </div>
+                <div className='__item-rewards-value'>
+                  <Number
+                    decimal={0}
+                    suffix={'%'}
+                    value={apy}
+                  />
+                </div>
               </div>
-              <div className='__item-rewards-value'>
-                <Number
-                  decimal={0}
-                  suffix={'%'}
-                  value={14.82}
-                />
-              </div>
-            </div>
+            )}
           </div>
+
           <div className='__item-line-2'>
             <div className='__item-total-staked-label'>
-              {('Total value staked')}:
+              {t('Total value staked')}:
             </div>
             <div className='__item-total-staked-value'>
-              <Number
-                decimal={2}
-                prefix={'$'}
-                value={583909}
-              />
+              {total
+                ? (
+                  <Number
+                    decimal={0}
+                    prefix={'$'}
+                    value={total}
+                  />
+                )
+                : (
+                  <span>
+                    {t('TBD')}
+                  </span>
+                )}
             </div>
           </div>
         </div>
@@ -60,8 +133,9 @@ const Component: React.FC<Props> = (props: Props) => {
       <div className={'__item-lower-part'}>
         <div className='__item-tags-container'>
           <EarningTypeTag
+            chain={chain}
             className={'__item-tag'}
-            comingSoon={true}
+            type={type}
           />
         </div>
       </div>
@@ -78,22 +152,14 @@ const EarningPoolItem = styled(Component)<Props>(({ theme: { token } }: Props) =
     paddingLeft: token.sizeSM,
     paddingRight: token.sizeSM,
     paddingBottom: 0,
+    transition: `background-color ${token.motionDurationMid} ${token.motionEaseInOut}`,
 
-    '.earning-item-not-available-title': {
-      fontSize: token.fontSizeLG,
-      lineHeight: token.lineHeightLG,
-      paddingBottom: 0,
-      fontWeight: token.headingFontWeight
-    },
-
-    '.earning-item-not-available-info': {
-      color: token.colorSuccess,
-      fontSize: token.fontSizeSM,
-      lineHeight: token.lineHeightSM
+    '&:hover': {
+      backgroundColor: token.colorBgInput
     },
 
     '.__item-logo': {
-      marginRight: token.marginSM
+      marginRight: token.marginXS
     },
 
     '.__item-lines-container': {
@@ -121,13 +187,27 @@ const EarningPoolItem = styled(Component)<Props>(({ theme: { token } }: Props) =
     },
 
     '.__item-name': {
-      display: 'flex',
       fontSize: token.fontSizeLG,
       lineHeight: token.lineHeightLG,
-      color: token.colorTextLight1,
       fontWeight: token.headingFontWeight,
+      display: 'flex',
+      gap: token.sizeXXS,
       overflow: 'hidden',
-      textOverflow: 'ellipsis'
+
+      '.__symbol': {
+        color: token.colorTextLight1
+      },
+
+      '.__chain-wrapper': {
+        overflow: 'hidden',
+        display: 'flex',
+        color: token.colorTextLight4
+      },
+
+      '.__chain': {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
     },
     '.__item-name-chain': {
       color: token.colorTextLight4,

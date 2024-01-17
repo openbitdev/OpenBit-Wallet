@@ -160,12 +160,12 @@ const EarningOptionItem = styled(Component)<Props>(({ theme: { token } }: Props)
       overflow: 'hidden',
 
       '.__symbol': {
-        color: token.colorTextLight1,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
+        color: token.colorTextLight1
       },
 
       '.__chain-wrapper': {
+        overflow: 'hidden',
+        display: 'flex',
         color: token.colorTextLight4
       },
 

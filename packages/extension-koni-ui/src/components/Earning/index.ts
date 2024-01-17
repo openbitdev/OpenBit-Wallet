@@ -3,3 +3,5 @@
 
 export { default as EarningOptionItem } from './EarningOptionItem';
 export { default as EarningPositionItem } from './EarningPositionItem';
+export { default as EarningTypeTag } from './EarningTypeTag';
+export { default as EarningPoolItem } from './EarningPoolItem';
