@@ -17,7 +17,7 @@ const defaultAccountFilter = (stakingType: StakingType, chain?: _ChainInfo): ((a
 
     if (account.isHardware) {
       if (isEvmAddress) {
-        return false;
+        return stakingType === StakingType.LIQUID_STAKING;
       } else {
         if (chain && !availableGen.includes(_getSubstrateGenesisHash(chain))) {
           return false;
