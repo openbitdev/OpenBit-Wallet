@@ -31,6 +31,12 @@ export interface StakeParams extends TransactionFormBaseProps {
   defaultType: StakingType | 'all'
 }
 
+export interface EarnParams extends TransactionFormBaseProps {
+  slug: string;
+  target: string;
+  value: string;
+}
+
 export interface UnStakeParams extends TransactionFormBaseProps {
   value: string;
   validator: string;

@@ -405,7 +405,7 @@ const Wrapper: React.FC<Props> = (props: Props) => {
   return (
     <PageWrapper
       className={CN(className, 'page-wrapper')}
-      resolve={dataContext.awaitStores(['staking'])}
+      resolve={dataContext.awaitStores(['earning'])}
     >
       <Component />
     </PageWrapper>

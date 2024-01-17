@@ -179,7 +179,7 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <>
       <TransactionContent>
-        <PageWrapper resolve={dataContext.awaitStores(['staking'])}>
+        <PageWrapper resolve={dataContext.awaitStores(['earning'])}>
           <Form
             className={CN(className, 'form-container form-space-sm')}
             form={form}
