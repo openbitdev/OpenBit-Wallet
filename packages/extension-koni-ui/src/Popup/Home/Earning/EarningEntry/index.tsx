@@ -21,8 +21,6 @@ function Component ({ className }: Props) {
   const earningPositions = useGroupYieldPosition();
   const dataContext = useContext(DataContext);
 
-  console.log('earningPositions', earningPositions);
-
   return (
     <PageWrapper
       className={CN(className)}

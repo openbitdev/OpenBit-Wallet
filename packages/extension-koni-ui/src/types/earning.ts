@@ -34,7 +34,6 @@ export interface YieldGroupInfo {
 export interface EarningTagType {
   label: string;
   icon: PhosphorIcon;
-  bgColor: string;
   color: string;
   weight: SwIconProps['weight'];
 }

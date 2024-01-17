@@ -1,54 +1,99 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { YieldPoolType } from '@subwallet/extension-base/types';
+import { BN_TEN } from '@subwallet/extension-base/utils';
 import EarningTypeTag from '@subwallet/extension-koni-ui/components/Earning/EarningTypeTag';
-import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { ExtraYieldPositionInfo, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Icon, Logo, Number } from '@subwallet/react-ui';
+import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { CaretRight } from 'phosphor-react';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 
-type Props = ThemeProps
+type Props = ThemeProps & {
+  positionInfo: ExtraYieldPositionInfo;
+  onClick?: (data: ExtraYieldPositionInfo) => void;
+  isShowBalance?: boolean;
+}
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className } = props;
+  const { className, isShowBalance,
+    onClick,
+    positionInfo } = props;
+  const { asset, balanceToken, chain, group, price, slug, totalStake, type } = positionInfo;
+
+  const { poolInfoMap } = useSelector((state) => state.earning);
+  const { assetRegistry, multiChainAssetMap } = useSelector((state) => state.assetRegistry);
+  const poolInfo = poolInfoMap[slug];
+
+  const showSubLogo = useMemo(() => {
+    return ![YieldPoolType.NOMINATION_POOL, YieldPoolType.NATIVE_STAKING].includes(type);
+  }, [type]);
+
+  const poolName = useMemo(() => {
+    return (multiChainAssetMap[group] || assetRegistry[group]).symbol;
+  }, [assetRegistry, group, multiChainAssetMap]);
+
+  const balanceValue = useMemo(() => {
+    return new BigN(totalStake);
+  }, [totalStake]);
+
+  const convertedBalanceValue = useMemo(() => {
+    return new BigN(balanceValue).div(BN_TEN.pow(asset.decimals || 0)).multipliedBy(price);
+  }, [asset.decimals, balanceValue, price]);
+
+  const _onClick = useCallback(() => {
+    onClick?.(positionInfo);
+  }, [onClick, positionInfo]);
 
   return (
-    <div className={CN(className, '__item-upper-part')}>
-      <Logo
-        className={'__item-logo'}
-        network={'polkadot'}
-        size={38}
-      />
+    <div
+      className={CN(className)}
+      onClick={_onClick}
+    >
+      <div className={'__item-left-part'}>
+        <Logo
+          className={'__item-logo'}
+          isShowSubLogo={showSubLogo}
+          size={40}
+          subNetwork={poolInfo.metadata.logo || poolInfo.chain}
+          token={balanceToken.toLowerCase()}
+        />
 
-      <div className='__item-lines-container'>
-        <div className='__item-line-1'>
-          <div className='__item-name'>DOT</div>
-          <div className='__item-upto-value'>
-            <Number
-              decimal={0}
-              value={1.39}
-            />
-            <div className={'__item-token'}>DOT</div>
+        <div className='__item-lines-container'>
+          <div className='__item-line-1'>
+            <div className='__item-name'>{poolName}</div>
+            <div className='__item-balance-value'>
+              <Number
+                decimal={asset.decimals || 0}
+                hide={isShowBalance}
+                suffix={asset.symbol}
+                value={balanceValue}
+              />
+            </div>
           </div>
-        </div>
-        <div className='__item-line-2'>
-          <div className='__item-tags-container'>
-            <EarningTypeTag
-              className={'__item-tag'}
-              comingSoon={true}
-            />
-          </div>
-          <div className='__item-duration'>
-            <Number
-              decimal={0}
-              prefix={'$'}
-              value={11.12}
-            />
+          <div className='__item-line-2'>
+            <div className='__item-tags-container'>
+              <EarningTypeTag
+                chain={chain}
+                className={'__item-tag'}
+                type={type}
+              />
+            </div>
+            <div className='__item-converted-balance-value'>
+              <Number
+                decimal={0}
+                prefix={'$'}
+                value={convertedBalanceValue}
+              />
+            </div>
           </div>
         </div>
       </div>
+
       <div className={'__item-right-part'}>
         <Icon
           phosphorIcon={CaretRight}
@@ -64,21 +109,29 @@ const EarningPositionItem = styled(Component)<Props>(({ theme: { token } }: Prop
     cursor: 'pointer',
     backgroundColor: token.colorBgSecondary,
     borderRadius: token.borderRadiusLG,
-    padding: `${token.paddingXL}px ${token.paddingLG}px ${token.padding}px`,
-    paddingTop: token.sizeSM,
-    paddingLeft: token.sizeSM,
-    paddingRight: token.sizeSM,
-    paddingBottom: 0,
     display: 'flex',
+    transition: `background-color ${token.motionDurationMid} ${token.motionEaseInOut}`,
+    padding: token.paddingSM,
 
-    '.earning-option-item-not-available-info': {
-      color: token.colorSuccess,
-      fontSize: token.fontSizeSM,
-      lineHeight: token.lineHeightSM
+    '&:hover': {
+      backgroundColor: token.colorBgInput
+    },
+
+    '.__item-left-part': {
+      display: 'flex',
+      alignItems: 'center',
+      overflow: 'hidden',
+      flex: 1
+    },
+
+    '.__item-right-part': {
+      display: 'flex',
+      alignItems: 'center',
+      paddingLeft: 10
     },
 
     '.__item-logo': {
-      marginRight: token.marginSM
+      marginRight: token.marginXS
     },
 
     '.__item-lines-container': {
@@ -94,16 +147,11 @@ const EarningPositionItem = styled(Component)<Props>(({ theme: { token } }: Prop
     },
 
     '.__item-line-1': {
-      marginBottom: token.marginXXS
+      marginBottom: 2
     },
 
-    '.__item-upto-label, .__item-available-label': {
-      fontSize: token.fontSizeSM,
-      lineHeight: token.lineHeightSM,
-      color: token.colorTextLight4,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      display: 'flex'
+    '.__item-line-2': {
+      alignItems: 'flex-end'
     },
 
     '.__item-name': {
@@ -114,17 +162,8 @@ const EarningPositionItem = styled(Component)<Props>(({ theme: { token } }: Prop
       overflow: 'hidden',
       textOverflow: 'ellipsis'
     },
-    '.__item-token': {
-      paddingLeft: 2
-    },
-    '.__item-upto': {
-      display: 'flex',
-      alignItems: 'baseline',
-      'white-space': 'nowrap',
-      gap: token.sizeXXS
-    },
 
-    '.__item-upto-value': {
+    '.__item-balance-value': {
       fontSize: token.fontSizeLG,
       lineHeight: token.lineHeightLG,
       color: token.colorTextLight1,
@@ -132,13 +171,13 @@ const EarningPositionItem = styled(Component)<Props>(({ theme: { token } }: Prop
       display: 'flex'
     },
 
-    '.__item-duration': {
-      color: token.colorSuccess,
+    '.__item-converted-balance-value': {
+      color: token.colorTextLight4,
       fontSize: token.fontSizeSM,
       lineHeight: token.lineHeightSM
     },
 
-    '.__item-upto-value, .__item-duration': {
+    '.__item-balance-value, .__item-converted-balance-value': {
       '.ant-number, .ant-typography': {
         color: 'inherit !important',
         fontSize: 'inherit !important',
@@ -160,27 +199,6 @@ const EarningPositionItem = styled(Component)<Props>(({ theme: { token } }: Prop
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       minWidth: 70
-    },
-
-    '.__item-upper-part': {
-      display: 'flex',
-      paddingBottom: token.sizeXS
-    },
-
-    '.__item-lower-part': {
-      borderTop: '2px solid rgba(33, 33, 33, 0.80)',
-      display: 'flex',
-      alignItems: 'center'
-    },
-
-    '.__item-available-value': {
-      fontSize: 12
-    },
-
-    '.__item-right-part': {
-      display: 'flex',
-      alignItems: 'center',
-      paddingLeft: 6
     }
   });
 });

@@ -3,6 +3,7 @@
 
 import { YieldPositionInfo } from '@subwallet/extension-base/types';
 import { Layout } from '@subwallet/extension-koni-ui/components';
+import { EarningPositionItem } from '@subwallet/extension-koni-ui/components/Earning';
 import { BN_TEN } from '@subwallet/extension-koni-ui/constants';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { EarningEntryView, ExtraYieldPositionInfo, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -60,27 +61,19 @@ function Component ({ className, earningPositions, setEntryView }: Props) {
   }, [assetInfoMap, earningPositions, priceMap]);
 
   const onClickItem = useCallback((item: ExtraYieldPositionInfo) => {
-    return () => {
-      navigate('/home/earning/position-detail');
-    };
+    navigate('/home/earning/position-detail');
   }, [navigate]);
 
   const renderItem = useCallback(
     (item: ExtraYieldPositionInfo) => {
       return (
-        <div
+        <EarningPositionItem
           className={'earning-position-item'}
+          isShowBalance={isShowBalance}
           key={item.slug}
-          onClick={onClickItem(item)}
-        >
-          <span>
-            {item.slug}
-          </span>
-
-          <span>
-            ({isShowBalance ? item.totalStake.toString() : '***'})
-          </span>
-        </div>
+          onClick={onClickItem}
+          positionInfo={item}
+        />
       );
     },
     [isShowBalance, onClickItem]
@@ -152,15 +145,6 @@ const EarningPositions = styled(Component)<Props>(({ theme: { token } }: Props) 
   },
 
   '.earning-position-item': {
-    minHeight: 68,
-    cursor: 'pointer',
-    backgroundColor: token.colorBgSecondary,
-    display: 'flex',
-    alignItems: 'center',
-    paddingRight: token.paddingSM,
-    paddingLeft: token.paddingSM,
-    gap: token.sizeXXS,
-
     '+ .earning-position-item': {
       marginTop: token.marginXS
     }
