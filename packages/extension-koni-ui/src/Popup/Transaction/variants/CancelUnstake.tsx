@@ -6,22 +6,22 @@ import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
-import { AccountSelector, CancelUnstakeSelector, HiddenInput, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { AccountSelector, CancelUnstakeSelector, HiddenInput } from '@subwallet/extension-koni-ui/components';
+import { useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
 import { yieldSubmitStakingCancelWithdrawal } from '@subwallet/extension-koni-ui/messaging';
 import { CancelUnStakeParams, FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon } from '@subwallet/react-ui';
+import CN from 'classnames';
 import { ArrowCircleRight, XCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { accountFilterFunc } from '../helper';
-import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
+import { EarnOutlet, FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
@@ -44,14 +44,10 @@ const filterAccount = (
   };
 };
 
-const Component: React.FC<Props> = (props: Props) => {
-  useSetCurrentPage('/transaction/cancel-unstake');
-  const { className = '' } = props;
-
+const Component = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const dataContext = useContext(DataContext);
   const { defaultData, onDone, persistData } = useTransactionContext<CancelUnStakeParams>();
   const { slug } = defaultData;
 
@@ -78,7 +74,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const [isChangeData, setIsChangeData] = useState(false);
 
   const goHome = useCallback(() => {
-    navigate('/home/staking');
+    navigate('/home/earning');
   }, [navigate]);
 
   const persistUnstake = useMemo(() => {
@@ -147,41 +143,39 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <>
       <TransactionContent>
-        <PageWrapper resolve={dataContext.awaitStores(['earning'])}>
-          <Form
-            className={`${className} form-container form-space-sm`}
-            form={form}
-            initialValues={formDefault}
-            onFieldsChange={onFieldsChange}
-            onFinish={onSubmit}
+        <Form
+          className={'form-container form-space-sm'}
+          form={form}
+          initialValues={formDefault}
+          onFieldsChange={onFieldsChange}
+          onFinish={onSubmit}
+        >
+          <HiddenInput fields={hideFields} />
+          <Form.Item
+            name={'from'}
           >
-            <HiddenInput fields={hideFields} />
-            <Form.Item
-              name={'from'}
-            >
-              <AccountSelector
-                disabled={!isAllAccount}
-                filter={accountSelectorFilter}
-              />
-            </Form.Item>
-            <FreeBalance
-              address={fromValue}
-              chain={chainValue}
-              className={'free-balance'}
-              label={t('Available balance:')}
-              onBalanceReady={setIsBalanceReady}
+            <AccountSelector
+              disabled={!isAllAccount}
+              filter={accountSelectorFilter}
             />
-            <Form.Item name={'unstake'}>
-              <CancelUnstakeSelector
-                chain={chainValue}
-                defaultValue={persistUnstake}
-                disabled={!fromValue}
-                label={t('Select an unstake request')}
-                nominators={fromValue ? positionInfo?.unstakings || [] : []}
-              />
-            </Form.Item>
-          </Form>
-        </PageWrapper>
+          </Form.Item>
+          <FreeBalance
+            address={fromValue}
+            chain={chainValue}
+            className={'free-balance'}
+            label={t('Available balance:')}
+            onBalanceReady={setIsBalanceReady}
+          />
+          <Form.Item name={'unstake'}>
+            <CancelUnstakeSelector
+              chain={chainValue}
+              defaultValue={persistUnstake}
+              disabled={!fromValue}
+              label={t('Select an unstake request')}
+              nominators={fromValue ? positionInfo?.unstakings || [] : []}
+            />
+          </Form.Item>
+        </Form>
       </TransactionContent>
       <TransactionFooter
         errors={[]}
@@ -219,7 +213,21 @@ const Component: React.FC<Props> = (props: Props) => {
   );
 };
 
-const CancelUnstake = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const Wrapper: React.FC<Props> = (props: Props) => {
+  const { className } = props;
+
+  return (
+    <EarnOutlet
+      className={CN(className)}
+      path={'/transaction/cancel-unstake'}
+      stores={['earning']}
+    >
+      <Component />
+    </EarnOutlet>
+  );
+};
+
+const CancelUnstake = styled(Wrapper)<Props>(({ theme: { token } }: Props) => {
   return {
     '.unstaked-field, .free-balance': {
       marginBottom: token.marginXS

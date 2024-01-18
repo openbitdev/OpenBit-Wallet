@@ -8,10 +8,9 @@ import { _getSubstrateGenesisHash, _isChainEvmCompatible } from '@subwallet/exte
 import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/earning-service/constants';
 import { EarningRewardItem, YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
-import { AccountSelector, HiddenInput, MetaInfo, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountSelector, HiddenInput, MetaInfo } from '@subwallet/extension-koni-ui/components';
 import { BN_ZERO } from '@subwallet/extension-koni-ui/constants';
-import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
 import { yieldSubmitStakingClaimReward } from '@subwallet/extension-koni-ui/messaging';
 import { ClaimRewardParams, FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -20,14 +19,14 @@ import { Button, Checkbox, Form, Icon } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { ArrowCircleRight, XCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
-import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
+import { EarnOutlet, FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
@@ -86,13 +85,9 @@ const filterAccount = (
   };
 };
 
-const Component: React.FC<Props> = (props: Props) => {
-  useSetCurrentPage('/transaction/claim-reward');
-  const { className } = props;
-
+const Component = () => {
   const navigate = useNavigate();
 
-  const dataContext = useContext(DataContext);
   const { defaultData, onDone, persistData } = useTransactionContext<ClaimRewardParams>();
   const { slug } = defaultData;
 
@@ -179,61 +174,59 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <>
       <TransactionContent>
-        <PageWrapper resolve={dataContext.awaitStores(['earning'])}>
-          <Form
-            className={CN(className, 'form-container form-space-sm')}
-            form={form}
-            initialValues={formDefault}
-            onFieldsChange={onFieldsChange}
-            onFinish={onSubmit}
+        <Form
+          className={CN('form-container form-space-sm')}
+          form={form}
+          initialValues={formDefault}
+          onFieldsChange={onFieldsChange}
+          onFinish={onSubmit}
+        >
+          <HiddenInput fields={hideFields} />
+          <Form.Item
+            name={'from'}
           >
-            <HiddenInput fields={hideFields} />
-            <Form.Item
-              name={'from'}
-            >
-              <AccountSelector
-                disabled={!isAllAccount}
-                filter={accountSelectorFilter}
-              />
-            </Form.Item>
-            <FreeBalance
-              address={fromValue}
-              chain={chainValue}
-              className={'free-balance'}
-              label={t('Available balance:')}
-              onBalanceReady={setIsBalanceReady}
+            <AccountSelector
+              disabled={!isAllAccount}
+              filter={accountSelectorFilter}
             />
-            <Form.Item>
-              <MetaInfo
-                className='claim-reward-meta-info'
-                hasBackgroundWrapper={true}
-              >
-                <MetaInfo.Chain
-                  chain={chainValue}
-                  label={t('Network')}
-                />
-                {
-                  reward?.unclaimedReward && (
-                    <MetaInfo.Number
-                      decimals={decimals}
-                      label={t('Reward claiming')}
-                      suffix={symbol}
-                      value={reward.unclaimedReward}
-                    />
-                  )
-                }
-              </MetaInfo>
-            </Form.Item>
-            <Form.Item
-              name={'bondReward'}
-              valuePropName='checked'
+          </Form.Item>
+          <FreeBalance
+            address={fromValue}
+            chain={chainValue}
+            className={'free-balance'}
+            label={t('Available balance:')}
+            onBalanceReady={setIsBalanceReady}
+          />
+          <Form.Item>
+            <MetaInfo
+              className='claim-reward-meta-info'
+              hasBackgroundWrapper={true}
             >
-              <Checkbox>
-                <span className={'__option-label'}>{t('Bond reward after claim')}</span>
-              </Checkbox>
-            </Form.Item>
-          </Form>
-        </PageWrapper>
+              <MetaInfo.Chain
+                chain={chainValue}
+                label={t('Network')}
+              />
+              {
+                reward?.unclaimedReward && (
+                  <MetaInfo.Number
+                    decimals={decimals}
+                    label={t('Reward claiming')}
+                    suffix={symbol}
+                    value={reward.unclaimedReward}
+                  />
+                )
+              }
+            </MetaInfo>
+          </Form.Item>
+          <Form.Item
+            name={'bondReward'}
+            valuePropName='checked'
+          >
+            <Checkbox>
+              <span className={'__option-label'}>{t('Bond reward after claim')}</span>
+            </Checkbox>
+          </Form.Item>
+        </Form>
       </TransactionContent>
       <TransactionFooter
         errors={[]}
@@ -271,7 +264,21 @@ const Component: React.FC<Props> = (props: Props) => {
   );
 };
 
-const ClaimReward = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const Wrapper: React.FC<Props> = (props: Props) => {
+  const { className } = props;
+
+  return (
+    <EarnOutlet
+      className={CN(className)}
+      path={'/transaction/claim-reward'}
+      stores={['earning']}
+    >
+      <Component />
+    </EarnOutlet>
+  );
+};
+
+const ClaimReward = styled(Wrapper)<Props>(({ theme: { token } }: Props) => {
   return {
     '.unstaked-field, .free-balance': {
       marginBottom: token.marginXS

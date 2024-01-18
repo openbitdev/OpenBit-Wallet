@@ -8,7 +8,7 @@ import { addLazy, isSameAddress } from '@subwallet/extension-base/utils';
 import { HiddenInput, MetaInfo, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { getInputValuesFromString } from '@subwallet/extension-koni-ui/components/Field/AmountInput';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useFetchChainState, useGetBalance, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { useFetchChainState, useGetBalance, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
 import { insufficientMessages } from '@subwallet/extension-koni-ui/hooks/transaction/useHandleSubmitTransaction';
 import { fetchPoolTarget, getOptimalYieldPath, submitJoinYieldPool, validateYieldProcess } from '@subwallet/extension-koni-ui/messaging';
@@ -19,13 +19,14 @@ import { EarnParams, FormCallbacks, FormFieldData, ThemeProps } from '@subwallet
 import { convertFieldToObject, parseNominations, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Form } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
+import CN from 'classnames';
 import React, { useCallback, useContext, useEffect, useMemo, useReducer, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 import { accountFilterFunc, getJoinYieldParams } from '../helper';
-import { TransactionContent, TransactionFooter } from '../parts';
+import { EarnOutlet, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
@@ -33,10 +34,7 @@ const hideFields: Array<keyof EarnParams> = ['slug', 'chain', 'asset'];
 const validateFields: Array<keyof EarnParams> = ['from'];
 const loadingStepPromiseKey = 'earning.step.loading';
 
-const Component: React.FC<Props> = (props: Props) => {
-  useSetCurrentPage('/transaction/cancel-unstake');
-  const { className = '' } = props;
-
+const Component = () => {
   const { t } = useTranslation();
   // @ts-ignore
   const navigate = useNavigate();
@@ -618,7 +616,7 @@ const Component: React.FC<Props> = (props: Props) => {
       <TransactionContent>
         <PageWrapper resolve={dataContext.awaitStores(['earning'])}>
           <Form
-            className={`${className} form-container form-space-sm`}
+            className={'form-container form-space-sm'}
             form={form}
             initialValues={formDefault}
             onFieldsChange={onFieldsChange}
@@ -638,7 +636,21 @@ const Component: React.FC<Props> = (props: Props) => {
   );
 };
 
-const Earn = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const Wrapper: React.FC<Props> = (props: Props) => {
+  const { className } = props;
+
+  return (
+    <EarnOutlet
+      className={CN(className)}
+      path={'/transaction/earn'}
+      stores={['price', 'chainStore', 'assetRegistry']}
+    >
+      <Component />
+    </EarnOutlet>
+  );
+};
+
+const Earn = styled(Wrapper)<Props>(({ theme: { token } }: Props) => {
   return {
 
   };

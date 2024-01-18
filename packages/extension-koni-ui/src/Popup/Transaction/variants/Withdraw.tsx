@@ -8,22 +8,22 @@ import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/earning
 import { getAstarWithdrawable } from '@subwallet/extension-base/services/earning-service/handlers/native-staking/astar';
 import { RequestYieldWithdrawal, UnstakingInfo, UnstakingStatus, YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
-import { AccountSelector, HiddenInput, MetaInfo, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useGetChainAssetInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { AccountSelector, HiddenInput, MetaInfo } from '@subwallet/extension-koni-ui/components';
+import { useGetChainAssetInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
 import { yieldSubmitStakingWithdrawal } from '@subwallet/extension-koni-ui/messaging';
 import { accountFilterFunc } from '@subwallet/extension-koni-ui/Popup/Transaction/helper';
 import { FormCallbacks, FormFieldData, ThemeProps, WithdrawParams } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, isAccountAll, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon } from '@subwallet/react-ui';
+import CN from 'classnames';
 import { ArrowCircleRight, XCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-import { FreeBalance, TransactionContent, TransactionFooter } from '../parts';
+import { EarnOutlet, FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
@@ -47,14 +47,10 @@ const filterAccount = (
   };
 };
 
-const Component: React.FC<Props> = (props: Props) => {
-  useSetCurrentPage('/transaction/withdraw');
-  const { className = '' } = props;
-
+const Component = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const dataContext = useContext(DataContext);
   const { defaultData, onDone, persistData } = useTransactionContext<WithdrawParams>();
   const { slug } = defaultData;
 
@@ -153,54 +149,52 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <>
       <TransactionContent>
-        <PageWrapper resolve={dataContext.awaitStores(['earning'])}>
-          <Form
-            className={`${className} form-container form-space-sm`}
-            form={form}
-            initialValues={formDefault}
-            onFieldsChange={onFieldsChange}
-            onFinish={onSubmit}
-          >
+        <Form
+          className={'form-container form-space-sm'}
+          form={form}
+          initialValues={formDefault}
+          onFieldsChange={onFieldsChange}
+          onFinish={onSubmit}
+        >
 
-            <HiddenInput fields={hideFields} />
-            <Form.Item
-              name={'from'}
-            >
-              <AccountSelector
-                disabled={!isAllAccount}
-                filter={accountSelectorFilter}
-              />
-            </Form.Item>
-            <FreeBalance
-              address={fromValue}
-              chain={chainValue}
-              className={'free-balance'}
-              label={t('Available balance:')}
-              onBalanceReady={setIsBalanceReady}
+          <HiddenInput fields={hideFields} />
+          <Form.Item
+            name={'from'}
+          >
+            <AccountSelector
+              disabled={!isAllAccount}
+              filter={accountSelectorFilter}
             />
-            <Form.Item>
-              <MetaInfo
-                className='withdraw-meta-info'
-                hasBackgroundWrapper={true}
-              >
-                <MetaInfo.Chain
-                  chain={chainValue}
-                  label={t('Network')}
-                />
-                {
-                  unstakingInfo && (
-                    <MetaInfo.Number
-                      decimals={decimals}
-                      label={t('Amount')}
-                      suffix={symbol}
-                      value={unstakingInfo.claimable}
-                    />
-                  )
-                }
-              </MetaInfo>
-            </Form.Item>
-          </Form>
-        </PageWrapper>
+          </Form.Item>
+          <FreeBalance
+            address={fromValue}
+            chain={chainValue}
+            className={'free-balance'}
+            label={t('Available balance:')}
+            onBalanceReady={setIsBalanceReady}
+          />
+          <Form.Item>
+            <MetaInfo
+              className='withdraw-meta-info'
+              hasBackgroundWrapper={true}
+            >
+              <MetaInfo.Chain
+                chain={chainValue}
+                label={t('Network')}
+              />
+              {
+                unstakingInfo && (
+                  <MetaInfo.Number
+                    decimals={decimals}
+                    label={t('Amount')}
+                    suffix={symbol}
+                    value={unstakingInfo.claimable}
+                  />
+                )
+              }
+            </MetaInfo>
+          </Form.Item>
+        </Form>
       </TransactionContent>
       <TransactionFooter
         errors={[]}
@@ -238,7 +232,21 @@ const Component: React.FC<Props> = (props: Props) => {
   );
 };
 
-const Withdraw = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const Wrapper: React.FC<Props> = (props: Props) => {
+  const { className } = props;
+
+  return (
+    <EarnOutlet
+      className={CN(className)}
+      path={'/transaction/withdraw'}
+      stores={['earning']}
+    >
+      <Component />
+    </EarnOutlet>
+  );
+};
+
+const Withdraw = styled(Wrapper)<Props>(({ theme: { token } }: Props) => {
   return {
     '.free-balance': {
       marginBottom: token.marginXS

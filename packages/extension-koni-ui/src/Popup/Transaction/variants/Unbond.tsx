@@ -7,10 +7,9 @@ import { AccountJson } from '@subwallet/extension-base/background/types';
 import { getValidatorLabel } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
 import { isActionFromValidator } from '@subwallet/extension-base/services/earning-service/utils';
 import { RequestYieldLeave, YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
-import { AccountSelector, AmountInput, HiddenInput, NominationSelector, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountSelector, AmountInput, HiddenInput, NominationSelector } from '@subwallet/extension-koni-ui/components';
 import { BN_ZERO } from '@subwallet/extension-koni-ui/constants';
-import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { useYieldPositionDetail } from '@subwallet/extension-koni-ui/hooks/earning';
 import { yieldSubmitLeavePool } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, ThemeProps, UnStakeParams } from '@subwallet/extension-koni-ui/types';
@@ -19,13 +18,13 @@ import { Button, Form, Icon } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { MinusCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
 import useGetChainAssetInfo from '../../../hooks/screen/common/useGetChainAssetInfo';
 import { accountFilterFunc } from '../helper';
-import { BondedBalance, FreeBalance, TransactionContent, TransactionFooter } from '../parts';
+import { BondedBalance, EarnOutlet, FreeBalance, TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
@@ -398,17 +397,14 @@ const Component: React.FC = () => {
 const Wrapper: React.FC<Props> = (props: Props) => {
   const { className } = props;
 
-  useSetCurrentPage('/transaction/unstake');
-
-  const dataContext = useContext(DataContext);
-
   return (
-    <PageWrapper
-      className={CN(className, 'page-wrapper')}
-      resolve={dataContext.awaitStores(['earning'])}
+    <EarnOutlet
+      className={CN(className)}
+      path={'/transaction/unstake'}
+      stores={['earning']}
     >
       <Component />
-    </PageWrapper>
+    </EarnOutlet>
   );
 };
 
