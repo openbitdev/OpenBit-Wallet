@@ -13,7 +13,7 @@ import { ScreenContext } from '@subwallet/extension-koni-ui/contexts/ScreenConte
 import { useGetYieldMetadata, useGetYieldPositionInfo, useHandleSubmitTransaction, useInitValidateTransaction, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { yieldSubmitNominationPoolUnstaking, yieldSubmitUnstaking } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, ThemeProps, UnStakeParams, UnYieldParams } from '@subwallet/extension-koni-ui/types';
-import { convertFieldToObject, isAccountAll, noop, simpleCheckForm, validateUnStakeValue } from '@subwallet/extension-koni-ui/utils';
+import { convertFieldToObject, getUnstakeExtrinsicType, isAccountAll, noop, simpleCheckForm, validateUnStakeValue } from '@subwallet/extension-koni-ui/utils';
 import { Button, Checkbox, Form, Icon } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
@@ -72,6 +72,10 @@ const Component: React.FC = () => {
   const nominatorInfo = useGetYieldPositionInfo(method, from);
   const nominatorMetadata = nominatorInfo[0].metadata as NominatorMetadata;
   const type = nominatorMetadata.type;
+
+  const actionType = useMemo((): ExtrinsicType => {
+    return getUnstakeExtrinsicType(yieldPoolInfo?.slug);
+  }, [yieldPoolInfo?.slug]);
 
   const { decimals, symbol } = useMemo(() => {
     if (!yieldPoolInfo) {
@@ -391,7 +395,7 @@ const Component: React.FC = () => {
             />
           )}
           loading={loading}
-          onClick={onPreCheck(form.submit, type === StakingType.POOLED ? ExtrinsicType.STAKING_LEAVE_POOL : ExtrinsicType.STAKING_UNBOND)}
+          onClick={onPreCheck(form.submit, actionType)}
         >
           {t('Unstake')}
         </Button>
