@@ -265,4 +265,4 @@ export const _MULTI_CHAIN_ASSET_SRC = `https://raw.githubusercontent.com/Koniver
 export const _CHAIN_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/SubWallet-Chain/${TARGET_BRANCH}/packages/chain-list/src/data/ChainLogoMap.json`;
 export const _ASSET_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/SubWallet-Chain/${TARGET_BRANCH}/packages/chain-list/src/data/AssetLogoMap.json`;
 
-export const _SUBSTRATE_API_RETRY = 3;
+export const _SUBSTRATE_API_RETRY = 1;

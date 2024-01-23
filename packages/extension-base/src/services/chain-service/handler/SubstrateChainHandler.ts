@@ -49,6 +49,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
 
       // Not found substrateInterface mean it active with evm interface
       if (api) {
+        api.setSleeping(false);
         api.connect();
 
         if (!api.useLightClient) {
@@ -68,6 +69,8 @@ export class SubstrateChainHandler extends AbstractChainHandler {
     this.cancelAllRecover();
 
     await Promise.all(Object.values(this.getSubstrateApiMap()).map((substrateApi) => {
+      substrateApi.setSleeping(true);
+
       return substrateApi.disconnect().catch(console.error);
     }));
   }
@@ -220,7 +223,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
 
     const apiObject = new SubstrateApi(chainSlug, apiUrl, { providerName, metadata, externalApiPromise, providers });
 
-    // apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
+    apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
     onUpdateStatus && apiObject.connectionStatusSubject.subscribe(onUpdateStatus);
 
     // Update metadata to database with async methods

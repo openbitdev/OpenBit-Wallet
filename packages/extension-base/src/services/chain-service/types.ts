@@ -23,8 +23,9 @@ export interface _DataMap {
 export enum _ChainConnectionStatus {
   CONNECTED = 'CONNECTED',
   DISCONNECTED = 'DISCONNECTED',
-  UNSTABLE = 'UNSTABLE',
+  DEAD = 'DEAD',
   CONNECTING = 'CONNECTING',
+  SLEEPING = 'SLEEPING'
 }
 
 export interface _ChainState {
@@ -43,6 +44,7 @@ export interface _ChainBaseApi {
   chainSlug: string;
   apiUrl: string;
   providerName?: string;
+  sleeping: boolean;
 
   apiError?: string;
   apiRetry?: number;
@@ -56,6 +58,7 @@ export interface _ChainBaseApi {
   disconnect: () => Promise<void>;
   recoverConnect: () => Promise<void>;
   destroy: () => Promise<void>;
+  setSleeping: (sleeping: boolean) => void;
 
   isReady: Promise<_ChainBaseApi>; // to be overwritten by child interface
 }

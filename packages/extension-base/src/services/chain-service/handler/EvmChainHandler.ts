@@ -81,6 +81,8 @@ export class EvmChainHandler extends AbstractChainHandler {
     this.cancelAllRecover();
 
     await Promise.all(Object.values(this.getEvmApiMap()).map((evmApi) => {
+      evmApi.setSleeping(true);
+
       return evmApi.disconnect().catch(console.error);
     }));
 
@@ -94,6 +96,7 @@ export class EvmChainHandler extends AbstractChainHandler {
     for (const chain of activeChains) {
       const evmApi = this.getEvmApiByChain(chain);
 
+      evmApi?.setSleeping(false);
       // Not found evmApi mean it active with substrate interface
       evmApi?.connect();
     }

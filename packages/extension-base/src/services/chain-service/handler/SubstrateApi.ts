@@ -34,6 +34,7 @@ export class SubstrateApi implements _SubstrateApi {
   provider: ProviderInterface;
   apiUrl: string;
   metadata?: MetadataItem;
+  sleeping = false;
 
   providers?: Record<string, string>;
 
@@ -44,6 +45,7 @@ export class SubstrateApi implements _SubstrateApi {
   private handleApiReady: PromiseHandler<_SubstrateApi>;
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
   public readonly connectionStatusSubject = new BehaviorSubject(_ChainConnectionStatus.DISCONNECTED);
+
   get isApiConnected (): boolean {
     return this.isApiConnectedSubject.getValue();
   }
@@ -52,6 +54,10 @@ export class SubstrateApi implements _SubstrateApi {
 
   get connectionStatus (): _ChainConnectionStatus {
     return this.connectionStatusSubject.getValue();
+  }
+
+  setSleeping (sleeping: boolean): void {
+    this.sleeping = sleeping;
   }
 
   private updateConnectionStatus (status: _ChainConnectionStatus): void {
@@ -242,32 +248,42 @@ export class SubstrateApi implements _SubstrateApi {
   }
 
   onApiDisconnect (): void {
-    this.isApiReady = false;
-    console.log(`Disconnected from ${this.chainSlug} at ${this.apiUrl}`);
-    this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
-    this.handleApiReady = createPromiseHandler<_SubstrateApi>();
-    this.substrateRetry += 1;
+    if (this.connectionStatus !== _ChainConnectionStatus.DEAD) {
+      this.isApiReady = false;
+      this.handleApiReady = createPromiseHandler<_SubstrateApi>();
+      console.log(`Disconnected from ${this.chainSlug} at ${this.apiUrl}`);
 
-    console.log('disconnect retry', this.substrateRetry);
+      if (this.sleeping) {
+        this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);
+      } else {
+        this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
 
-    if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
-      this.disconnect().then(() => {
-        // TODO: create a new api instance with a different provider
-        console.log('on Disconnect', this.providers);
-        this.updateConnectionStatus(_ChainConnectionStatus.UNSTABLE);
-      }).catch(console.error);
+        this.substrateRetry += 1;
+
+        if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
+          this.disconnect().then(() => {
+            this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
+          }).catch(console.error);
+        }
+      }
     }
   }
 
   onApiError (e: Error): void {
-    this.substrateRetry += 1;
-    console.log('error retry', this.substrateRetry);
-    // TODO: create a new api instance with a different provider
-    if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
-      console.log('on Error', this.providers);
-    }
+    this.isApiReady = false;
+    this.handleApiReady = createPromiseHandler<_SubstrateApi>();
+    console.warn(`${this.chainSlug} connection got error`, e.name);
 
-    console.warn(`${this.chainSlug} connection got error`, e.message);
+    if (this.sleeping) {
+      this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);
+    } else {
+      this.substrateRetry += 1;
+
+      // TODO: should we consider it dead right on the first time?
+      if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
+        this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
+      }
+    }
   }
 
   async fillApiInfo (): Promise<void> {

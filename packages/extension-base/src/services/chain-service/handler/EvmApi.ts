@@ -18,6 +18,8 @@ export class EvmApi implements _EvmApi {
   provider: HttpProvider | WebsocketProvider;
   apiError?: string;
   apiRetry = 0;
+  sleeping = false;
+
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
   public readonly connectionStatusSubject = new BehaviorSubject(_ChainConnectionStatus.DISCONNECTED);
   isApiReady = false;
@@ -26,6 +28,10 @@ export class EvmApi implements _EvmApi {
   intervalCheckApi: NodeJS.Timer;
 
   providerName: string;
+
+  setSleeping (sleeping: boolean): void {
+    this.sleeping = sleeping;
+  }
 
   get isApiConnected (): boolean {
     return this.isApiConnectedSubject.getValue();
