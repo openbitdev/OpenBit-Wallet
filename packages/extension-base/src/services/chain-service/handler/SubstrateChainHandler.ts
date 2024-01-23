@@ -54,7 +54,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
         if (!api.useLightClient) {
           // Manual fire handle connect to avoid some chain can not reconnect
           setTimeout(() => {
-            this.handleConnection(chain, api.connectionStatus);
+            // this.handleConnection(chain, api.connectionStatus);
           }, 10000);
         }
       }
@@ -216,9 +216,11 @@ export class SubstrateChainHandler extends AbstractChainHandler {
     }
 
     const metadata = await this.parent?.getMetadata(chainSlug);
-    const apiObject = new SubstrateApi(chainSlug, apiUrl, { providerName, metadata, externalApiPromise });
+    const providers = this.parent?.getChainInfoByKey(chainSlug)?.providers;
 
-    apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
+    const apiObject = new SubstrateApi(chainSlug, apiUrl, { providerName, metadata, externalApiPromise, providers });
+
+    // apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
     onUpdateStatus && apiObject.connectionStatusSubject.subscribe(onUpdateStatus);
 
     // Update metadata to database with async methods

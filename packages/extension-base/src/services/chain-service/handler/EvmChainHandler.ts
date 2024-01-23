@@ -54,7 +54,7 @@ export class EvmChainHandler extends AbstractChainHandler {
 
     const apiObject = new EvmApi(chainSlug, apiUrl, { providerName });
 
-    apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
+    // apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
     apiObject.connectionStatusSubject.subscribe(onUpdateStatus);
 
     return Promise.resolve(apiObject);

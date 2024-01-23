@@ -35,6 +35,8 @@ export class SubstrateApi implements _SubstrateApi {
   apiUrl: string;
   metadata?: MetadataItem;
 
+  providers?: Record<string, string>;
+
   useLightClient = false;
   isApiReady = false;
   isApiReadyOnce = false;
@@ -91,7 +93,8 @@ export class SubstrateApi implements _SubstrateApi {
     const apiOption: ApiOptions = {
       provider,
       typesBundle,
-      registry: this.registry
+      registry: this.registry,
+      noInitWarn: true
     };
 
     if (this.metadata) {
@@ -109,26 +112,29 @@ export class SubstrateApi implements _SubstrateApi {
     if (externalApiPromise) {
       api = externalApiPromise;
     } else if (_API_OPTIONS_CHAIN_GROUP.acala.includes(this.chainSlug)) {
-      api = new ApiPromise(acalaOptions({ provider }));
+      api = new ApiPromise(acalaOptions({ provider, noInitWarn: true }));
     } else if (_API_OPTIONS_CHAIN_GROUP.turing.includes(this.chainSlug)) {
       api = new ApiPromise({
         provider,
         rpc: oakRpc,
-        types: oakTypes
+        types: oakTypes,
+        noInitWarn: true
       });
     } else if (_API_OPTIONS_CHAIN_GROUP.avail.includes(this.chainSlug)) {
       api = new ApiPromise({
         provider,
         rpc: availSpec.rpc,
         types: availSpec.types,
-        signedExtensions: availSpec.signedExtensions
+        signedExtensions: availSpec.signedExtensions,
+        noInitWarn: true
       });
     } else if (_API_OPTIONS_CHAIN_GROUP.goldberg.includes(this.chainSlug)) {
       api = new ApiPromise({
         provider,
         rpc: goldbergSpec.rpc,
         types: goldbergSpec.types,
-        signedExtensions: goldbergSpec.signedExtensions
+        signedExtensions: goldbergSpec.signedExtensions,
+        noInitWarn: true
       });
     } else {
       api = new ApiPromise(apiOption);
@@ -137,12 +143,12 @@ export class SubstrateApi implements _SubstrateApi {
     api.on('ready', this.onReady.bind(this));
     api.on('connected', this.onApiConnect.bind(this));
     api.on('disconnected', this.onApiDisconnect.bind(this));
-    api.on('error', this.onError.bind(this));
+    api.on('error', this.onApiError.bind(this));
 
     return api;
   }
 
-  constructor (chainSlug: string, apiUrl: string, { externalApiPromise, metadata, providerName }: _ApiOptions = {}) {
+  constructor (chainSlug: string, apiUrl: string, { externalApiPromise, metadata, providerName, providers }: _ApiOptions = {}) {
     this.chainSlug = chainSlug;
     this.apiUrl = apiUrl;
     this.providerName = providerName;
@@ -150,6 +156,7 @@ export class SubstrateApi implements _SubstrateApi {
     this.metadata = metadata;
     this.provider = this.createProvider(apiUrl);
     this.api = this.createApi(this.provider, externalApiPromise);
+    this.providers = providers;
 
     this.handleApiReady = createPromiseHandler<_SubstrateApi>();
   }
@@ -169,7 +176,7 @@ export class SubstrateApi implements _SubstrateApi {
     this.api.off('ready', this.onReady.bind(this));
     this.api.off('connected', this.onApiConnect.bind(this));
     this.api.off('disconnected', this.onApiDisconnect.bind(this));
-    this.api.off('error', this.onError.bind(this));
+    this.api.off('error', this.onApiError.bind(this));
 
     // Create new provider and api
     this.apiUrl = apiUrl;
@@ -241,16 +248,26 @@ export class SubstrateApi implements _SubstrateApi {
     this.handleApiReady = createPromiseHandler<_SubstrateApi>();
     this.substrateRetry += 1;
 
-    if (this.substrateRetry > _SUBSTRATE_API_RETRY) {
+    console.log('disconnect retry', this.substrateRetry);
+
+    if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
       this.disconnect().then(() => {
         // TODO: create a new api instance with a different provider
+        console.log('on Disconnect', this.providers);
         this.updateConnectionStatus(_ChainConnectionStatus.UNSTABLE);
       }).catch(console.error);
     }
   }
 
-  onError (e: Error): void {
-    console.warn(`${this.chainSlug} connection got error`, e);
+  onApiError (e: Error): void {
+    this.substrateRetry += 1;
+    console.log('error retry', this.substrateRetry);
+    // TODO: create a new api instance with a different provider
+    if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
+      console.log('on Error', this.providers);
+    }
+
+    console.warn(`${this.chainSlug} connection got error`, e.message);
   }
 
   async fillApiInfo (): Promise<void> {
