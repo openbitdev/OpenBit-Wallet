@@ -6,7 +6,7 @@ import '@polkadot/types-augment';
 import { options as acalaOptions } from '@acala-network/api';
 import { rpc as oakRpc, types as oakTypes } from '@oak-foundation/types';
 import { MetadataItem } from '@subwallet/extension-base/background/KoniTypes';
-import { _API_OPTIONS_CHAIN_GROUP, API_AUTO_CONNECT_MS, API_CONNECT_TIMEOUT } from '@subwallet/extension-base/services/chain-service/constants';
+import { _API_OPTIONS_CHAIN_GROUP, _SUBSTRATE_API_RETRY, API_AUTO_CONNECT_MS, API_CONNECT_TIMEOUT } from '@subwallet/extension-base/services/chain-service/constants';
 import { getSubstrateConnectProvider } from '@subwallet/extension-base/services/chain-service/handler/light-client';
 import { DEFAULT_AUX } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
@@ -135,8 +135,8 @@ export class SubstrateApi implements _SubstrateApi {
     }
 
     api.on('ready', this.onReady.bind(this));
-    api.on('connected', this.onConnect.bind(this));
-    api.on('disconnected', this.onDisconnect.bind(this));
+    api.on('connected', this.onApiConnect.bind(this));
+    api.on('disconnected', this.onApiDisconnect.bind(this));
     api.on('error', this.onError.bind(this));
 
     return api;
@@ -167,8 +167,8 @@ export class SubstrateApi implements _SubstrateApi {
     await this.disconnect();
     this.isApiReadyOnce = false;
     this.api.off('ready', this.onReady.bind(this));
-    this.api.off('connected', this.onConnect.bind(this));
-    this.api.off('disconnected', this.onDisconnect.bind(this));
+    this.api.off('connected', this.onApiConnect.bind(this));
+    this.api.off('disconnected', this.onApiDisconnect.bind(this));
     this.api.off('error', this.onError.bind(this));
 
     // Create new provider and api
@@ -177,7 +177,7 @@ export class SubstrateApi implements _SubstrateApi {
     this.api = this.createApi(this.provider);
   }
 
-  connect (): void {
+  connect (): void { // manually reconnect
     if (this.api.isConnected) {
       this.updateConnectionStatus(_ChainConnectionStatus.CONNECTED);
     } else {
@@ -192,7 +192,7 @@ export class SubstrateApi implements _SubstrateApi {
     }
   }
 
-  async disconnect () {
+  async disconnect () { // manually disconnect
     try {
       await this.api.disconnect();
     } catch (e) {
@@ -224,7 +224,7 @@ export class SubstrateApi implements _SubstrateApi {
     });
   }
 
-  onConnect (): void {
+  onApiConnect (): void {
     this.updateConnectionStatus(_ChainConnectionStatus.CONNECTED);
     this.substrateRetry = 0;
     console.log(`Connected to ${this.chainSlug || ''} at ${this.apiUrl}`);
@@ -234,15 +234,16 @@ export class SubstrateApi implements _SubstrateApi {
     }
   }
 
-  onDisconnect (): void {
+  onApiDisconnect (): void {
     this.isApiReady = false;
     console.log(`Disconnected from ${this.chainSlug} at ${this.apiUrl}`);
     this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
     this.handleApiReady = createPromiseHandler<_SubstrateApi>();
     this.substrateRetry += 1;
 
-    if (this.substrateRetry > 9) {
+    if (this.substrateRetry > _SUBSTRATE_API_RETRY) {
       this.disconnect().then(() => {
+        // TODO: create a new api instance with a different provider
         this.updateConnectionStatus(_ChainConnectionStatus.UNSTABLE);
       }).catch(console.error);
     }

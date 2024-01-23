@@ -76,7 +76,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
     const existed = this.getSubstrateApiByChain(chainSlug);
 
     if (existed && !existed.isApiReadyOnce) {
-      console.log(`Reconnect ${existed.providerName || existed.chainSlug} at ${existed.apiUrl}`);
+      console.log(`Manually reconnecting ${existed.providerName || existed.chainSlug} at ${existed.apiUrl}`);
 
       return existed.recoverConnect();
     }
