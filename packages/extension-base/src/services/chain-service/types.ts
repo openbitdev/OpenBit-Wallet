@@ -45,6 +45,7 @@ export interface _ChainBaseApi {
   apiUrl: string;
   providerName?: string;
   sleeping: boolean;
+  isForcedStop: boolean;
 
   apiError?: string;
   apiRetry?: number;

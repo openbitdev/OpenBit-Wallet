@@ -6,7 +6,7 @@ import '@polkadot/types-augment';
 import { options as acalaOptions } from '@acala-network/api';
 import { rpc as oakRpc, types as oakTypes } from '@oak-foundation/types';
 import { MetadataItem } from '@subwallet/extension-base/background/KoniTypes';
-import { _API_OPTIONS_CHAIN_GROUP, _SUBSTRATE_API_RETRY, API_AUTO_CONNECT_MS, API_CONNECT_TIMEOUT } from '@subwallet/extension-base/services/chain-service/constants';
+import { _API_OPTIONS_CHAIN_GROUP, _SUBSTRATE_API_MAX_RETRY, API_AUTO_CONNECT_MS, API_CONNECT_TIMEOUT } from '@subwallet/extension-base/services/chain-service/constants';
 import { getSubstrateConnectProvider } from '@subwallet/extension-base/services/chain-service/handler/light-client';
 import { DEFAULT_AUX } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
@@ -34,7 +34,9 @@ export class SubstrateApi implements _SubstrateApi {
   provider: ProviderInterface;
   apiUrl: string;
   metadata?: MetadataItem;
+
   sleeping = false;
+  isForcedStop = false; // true when app manually disconnect
 
   providers?: Record<string, string>;
 
@@ -58,6 +60,10 @@ export class SubstrateApi implements _SubstrateApi {
 
   setSleeping (sleeping: boolean): void {
     this.sleeping = sleeping;
+
+    if (sleeping) { // reset retry on sleeping
+      this.substrateRetry = 0;
+    }
   }
 
   private updateConnectionStatus (status: _ChainConnectionStatus): void {
@@ -260,7 +266,7 @@ export class SubstrateApi implements _SubstrateApi {
 
         this.substrateRetry += 1;
 
-        if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
+        if (this.substrateRetry >= _SUBSTRATE_API_MAX_RETRY) {
           this.disconnect().then(() => {
             this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
           }).catch(console.error);
@@ -280,7 +286,7 @@ export class SubstrateApi implements _SubstrateApi {
       this.substrateRetry += 1;
 
       // TODO: should we consider it dead right on the first time?
-      if (this.substrateRetry >= _SUBSTRATE_API_RETRY) {
+      if (this.substrateRetry >= _SUBSTRATE_API_MAX_RETRY) {
         this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
       }
     }

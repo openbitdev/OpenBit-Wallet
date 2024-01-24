@@ -18,7 +18,9 @@ export class EvmApi implements _EvmApi {
   provider: HttpProvider | WebsocketProvider;
   apiError?: string;
   apiRetry = 0;
+
   sleeping = false;
+  isForcedStop = false; // true when app manually disconnect
 
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
   public readonly connectionStatusSubject = new BehaviorSubject(_ChainConnectionStatus.DISCONNECTED);
