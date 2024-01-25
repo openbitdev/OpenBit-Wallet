@@ -496,7 +496,8 @@ export enum ExtrinsicStatus {
   PROCESSING = 'processing', // Transaction is sending
   SUCCESS = 'success', // Send successfully
   FAIL = 'fail', // Send failed
-  CANCELLED = 'cancelled', // Is remove before sending
+  CANCELLED = 'cancelled', // Is remove before sending,
+  TIMEOUT = 'timeout',
   UNKNOWN = 'unknown'
 }
 
@@ -2050,6 +2051,7 @@ export interface BaseCampaignData {
   slug: string;
   campaignId: number;
   isDone: boolean;
+  isArchive: boolean;
   type: CampaignDataType;
   data: Record<string, any>;
   buttons: CampaignButton[];
