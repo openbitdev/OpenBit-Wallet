@@ -36,9 +36,6 @@ export abstract class AbstractChainHandler {
   handleConnection (chain: string, newStatus: _ChainConnectionStatus, forceRecover = false): void {
     const currentMap = this.apiStateMapSubject.getValue();
 
-    // console.log('currentMap', currentMap);
-    // this.handleRecover(chain);
-
     const oldStatus = currentMap[chain];
 
     // Update api state
@@ -55,7 +52,7 @@ export abstract class AbstractChainHandler {
     }
 
     // Handle connection change
-    if ((!this.isRecovering(chain) || forceRecover) && newStatus === _ChainConnectionStatus.DISCONNECTED) {
+    if (!this.isSleeping && (!this.isRecovering(chain) || forceRecover) && newStatus === _ChainConnectionStatus.DISCONNECTED) {
       this.handleRecover(chain);
     }
 
@@ -64,15 +61,17 @@ export abstract class AbstractChainHandler {
 
   // Recover api if it is disconnected
   protected handleRecover (chain: string): void {
-    console.log('handle retry', chain);
-    // // Not recover inactive chain
-    // if (!this.parent?.getChainStateByKey(chain)?.active) {
-    //   this.cancelRecover(chain);
-    //
-    //   return;
-    // }
-    //
-    // // Get retry record
+    // Don't recover inactive chain
+    if (!this.parent?.getChainStateByKey(chain)?.active) {
+      this.cancelRecover(chain);
+
+      return;
+    }
+
+    console.log('recovering this chain: ', chain);
+    this.recoverApi(chain);
+
+    // Get retry record
     // const retryRecord: RetryObject = this.recoverMap[chain] || { retryTimes: 0 };
     //
     // clearTimeout(retryRecord.timeout);

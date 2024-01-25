@@ -216,9 +216,8 @@ export class SubstrateChainHandler extends AbstractChainHandler {
     }
 
     const metadata = await this.parent?.getMetadata(chainSlug);
-    const providers = this.parent?.getChainInfoByKey(chainSlug)?.providers;
 
-    const apiObject = new SubstrateApi(chainSlug, apiUrl, { providerName, metadata, externalApiPromise, providers });
+    const apiObject = new SubstrateApi(chainSlug, apiUrl, { providerName, metadata, externalApiPromise });
 
     apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
     onUpdateStatus && apiObject.connectionStatusSubject.subscribe(onUpdateStatus);

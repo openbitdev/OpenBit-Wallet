@@ -45,9 +45,9 @@ export interface _ChainBaseApi {
   apiUrl: string;
   providerName?: string;
   sleeping: boolean;
+  apiRetry: number;
 
   apiError?: string;
-  apiRetry?: number;
   isApiReady: boolean;
   isApiConnectedSubject: BehaviorSubject<boolean>;
   isApiReadyOnce: boolean;

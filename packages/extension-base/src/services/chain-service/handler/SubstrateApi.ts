@@ -36,6 +36,7 @@ export class SubstrateApi implements _SubstrateApi {
   metadata?: MetadataItem;
 
   sleeping = false;
+  apiRetry = 0;
 
   useLightClient = false;
   isApiReady = false;
@@ -49,7 +50,7 @@ export class SubstrateApi implements _SubstrateApi {
     return this.isApiConnectedSubject.getValue();
   }
 
-  substrateRetry = 0;
+
 
   get connectionStatus (): _ChainConnectionStatus {
     return this.connectionStatusSubject.getValue();
@@ -59,7 +60,7 @@ export class SubstrateApi implements _SubstrateApi {
     this.sleeping = sleeping;
 
     if (sleeping) { // reset retry on sleeping
-      this.substrateRetry = 0;
+      this.apiRetry = 0;
     }
   }
 
@@ -245,7 +246,7 @@ export class SubstrateApi implements _SubstrateApi {
 
   onApiConnect (): void {
     this.updateConnectionStatus(_ChainConnectionStatus.CONNECTED);
-    this.substrateRetry = 0;
+    this.apiRetry = 0;
     console.log(`Connected to ${this.chainSlug || ''} at ${this.apiUrl}`);
 
     if (this.isApiReadyOnce) {
@@ -267,9 +268,9 @@ export class SubstrateApi implements _SubstrateApi {
     if (this.sleeping) {
       this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);
     } else {
-      this.substrateRetry += 1;
+      this.apiRetry += 1;
 
-      if (this.substrateRetry >= _SUBSTRATE_API_MAX_RETRY) {
+      if (this.apiRetry >= _SUBSTRATE_API_MAX_RETRY) {
         this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
       } else {
         this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
@@ -291,10 +292,10 @@ export class SubstrateApi implements _SubstrateApi {
     if (this.sleeping) {
       this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);
     } else {
-      this.substrateRetry += 1;
+      this.apiRetry += 1;
 
       // TODO: should we consider it dead right on the first time?
-      if (this.substrateRetry >= _SUBSTRATE_API_MAX_RETRY) {
+      if (this.apiRetry >= _SUBSTRATE_API_MAX_RETRY) {
         this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
       }
     }
