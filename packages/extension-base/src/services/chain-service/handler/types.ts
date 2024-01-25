@@ -28,8 +28,7 @@ export interface _ApiOptions {
   providerName?: string,
   metadata?: MetadataItem,
   onUpdateStatus?: (status: _ChainConnectionStatus) => void,
-  externalApiPromise?: ApiPromise,
-  providers?: Record<string, string>
+  externalApiPromise?: ApiPromise
 }
 
 export enum _CHAIN_VALIDATION_ERROR {

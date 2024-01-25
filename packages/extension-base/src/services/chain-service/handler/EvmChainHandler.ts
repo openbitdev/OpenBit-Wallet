@@ -43,7 +43,7 @@ export class EvmChainHandler extends AbstractChainHandler {
     const existed = this.getEvmApiByChain(chainSlug);
 
     if (existed) {
-      existed.connect();
+      existed.forceConnect();
 
       if (apiUrl !== existed.apiUrl) {
         existed.updateApiUrl(apiUrl).catch(console.error);
@@ -83,7 +83,7 @@ export class EvmChainHandler extends AbstractChainHandler {
     await Promise.all(Object.values(this.getEvmApiMap()).map((evmApi) => {
       evmApi.setSleeping(true);
 
-      return evmApi.disconnect().catch(console.error);
+      return evmApi.forceDisconnect().catch(console.error);
     }));
 
     return Promise.resolve();
@@ -98,7 +98,7 @@ export class EvmChainHandler extends AbstractChainHandler {
 
       evmApi?.setSleeping(false);
       // Not found evmApi mean it active with substrate interface
-      evmApi?.connect();
+      evmApi?.forceConnect();
     }
 
     return Promise.resolve();

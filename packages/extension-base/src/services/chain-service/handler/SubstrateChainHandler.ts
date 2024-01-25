@@ -49,8 +49,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
 
       // Not found substrateInterface mean it active with evm interface
       if (api) {
-        api.setSleeping(false);
-        api.connect();
+        api.forceConnect();
 
         if (!api.useLightClient) {
           // Manual fire handle connect to avoid some chain can not reconnect
@@ -69,9 +68,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
     this.cancelAllRecover();
 
     await Promise.all(Object.values(this.getSubstrateApiMap()).map((substrateApi) => {
-      substrateApi.setSleeping(true);
-
-      return substrateApi.disconnect().catch(console.error);
+      return substrateApi.forceDisconnect().catch(console.error);
     }));
   }
 
@@ -209,7 +206,7 @@ export class SubstrateChainHandler extends AbstractChainHandler {
 
     // Return existed to avoid re-init metadata
     if (existed) {
-      existed.connect();
+      existed.forceConnect();
 
       if (apiUrl !== existed.apiUrl) {
         await existed.updateApiUrl(apiUrl);

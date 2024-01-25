@@ -36,9 +36,6 @@ export class SubstrateApi implements _SubstrateApi {
   metadata?: MetadataItem;
 
   sleeping = false;
-  isForcedStop = false; // true when app manually disconnect
-
-  providers?: Record<string, string>;
 
   useLightClient = false;
   isApiReady = false;
@@ -160,7 +157,7 @@ export class SubstrateApi implements _SubstrateApi {
     return api;
   }
 
-  constructor (chainSlug: string, apiUrl: string, { externalApiPromise, metadata, providerName, providers }: _ApiOptions = {}) {
+  constructor (chainSlug: string, apiUrl: string, { externalApiPromise, metadata, providerName }: _ApiOptions = {}) {
     this.chainSlug = chainSlug;
     this.apiUrl = apiUrl;
     this.providerName = providerName;
@@ -168,7 +165,6 @@ export class SubstrateApi implements _SubstrateApi {
     this.metadata = metadata;
     this.provider = this.createProvider(apiUrl);
     this.api = this.createApi(this.provider, externalApiPromise);
-    this.providers = providers;
 
     this.handleApiReady = createPromiseHandler<_SubstrateApi>();
   }
@@ -183,7 +179,7 @@ export class SubstrateApi implements _SubstrateApi {
     }
 
     // Disconnect with old provider
-    await this.disconnect();
+    await this.forceDisconnect();
     this.isApiReadyOnce = false;
     this.api.off('ready', this.onReady.bind(this));
     this.api.off('connected', this.onApiConnect.bind(this));
@@ -196,7 +192,9 @@ export class SubstrateApi implements _SubstrateApi {
     this.api = this.createApi(this.provider);
   }
 
-  connect (): void { // manually reconnect
+  forceConnect (): void { // manually reconnect
+    this.setSleeping(false);
+
     if (this.api.isConnected) {
       this.updateConnectionStatus(_ChainConnectionStatus.CONNECTED);
     } else {
@@ -211,10 +209,12 @@ export class SubstrateApi implements _SubstrateApi {
     }
   }
 
-  async disconnect () { // manually disconnect
+  async forceDisconnect () { // manually disconnect
     try {
+      this.setSleeping(true); // TODO
       await this.api.disconnect();
     } catch (e) {
+      this.setSleeping(false); // TODO
       console.error(e);
     }
 
@@ -222,14 +222,14 @@ export class SubstrateApi implements _SubstrateApi {
   }
 
   async recoverConnect () {
-    await this.disconnect();
-    this.connect();
+    await this.forceDisconnect();
+    this.forceConnect();
     await this.handleApiReady.promise;
   }
 
   destroy () {
     // Todo: implement this in the future
-    return this.disconnect();
+    return this.forceDisconnect();
   }
 
   onReady (): void {
@@ -254,31 +254,39 @@ export class SubstrateApi implements _SubstrateApi {
   }
 
   onApiDisconnect (): void {
-    if (this.connectionStatus !== _ChainConnectionStatus.DEAD) {
-      this.isApiReady = false;
-      this.handleApiReady = createPromiseHandler<_SubstrateApi>();
-      console.log(`Disconnected from ${this.chainSlug} at ${this.apiUrl}`);
+    if (this.connectionStatus === _ChainConnectionStatus.DEAD) {
+      console.log(`Dead API from ${this.chainSlug} connecting to ${this.apiUrl}`);
 
-      if (this.sleeping) {
-        this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);
+      return;
+    }
+
+    this.isApiReady = false;
+    this.handleApiReady = createPromiseHandler<_SubstrateApi>();
+    console.log(`Disconnected from ${this.chainSlug} at ${this.apiUrl}`);
+
+    if (this.sleeping) {
+      this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);
+    } else {
+      this.substrateRetry += 1;
+
+      if (this.substrateRetry >= _SUBSTRATE_API_MAX_RETRY) {
+        this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
       } else {
         this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);
-
-        this.substrateRetry += 1;
-
-        if (this.substrateRetry >= _SUBSTRATE_API_MAX_RETRY) {
-          this.disconnect().then(() => {
-            this.updateConnectionStatus(_ChainConnectionStatus.DEAD);
-          }).catch(console.error);
-        }
       }
     }
   }
 
   onApiError (e: Error): void {
+    if (this.connectionStatus === _ChainConnectionStatus.DEAD) {
+      console.log(`Dead API from ${this.chainSlug} connecting to ${this.apiUrl}`);
+
+      return;
+    }
+
     this.isApiReady = false;
     this.handleApiReady = createPromiseHandler<_SubstrateApi>();
-    console.warn(`${this.chainSlug} connection got error`, e.name);
+    console.warn(`Error connecting to ${this.chainSlug} at ${this.apiUrl}`, e.name);
 
     if (this.sleeping) {
       this.updateConnectionStatus(_ChainConnectionStatus.SLEEPING);

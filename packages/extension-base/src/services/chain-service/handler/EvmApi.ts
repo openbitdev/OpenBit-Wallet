@@ -20,7 +20,6 @@ export class EvmApi implements _EvmApi {
   apiRetry = 0;
 
   sleeping = false;
-  isForcedStop = false; // true when app manually disconnect
 
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
   public readonly connectionStatusSubject = new BehaviorSubject(_ChainConnectionStatus.DISCONNECTED);
@@ -62,9 +61,9 @@ export class EvmApi implements _EvmApi {
   async updateApiUrl (apiUrl: string) {
     this.apiUrl = apiUrl;
 
-    await this.disconnect();
+    await this.forceDisconnect();
     this.api.setProvider(this.createProvider(apiUrl));
-    this.connect();
+    this.forceConnect();
   }
 
   async recoverConnect () {
@@ -95,7 +94,7 @@ export class EvmApi implements _EvmApi {
 
     // Create it only to avoid undefined error, it will be overwrite in connect()
     this.intervalCheckApi = this.createIntervalCheckApi();
-    this.connect();
+    this.forceConnect();
   }
 
   get ignoreNetListen (): boolean {
@@ -127,7 +126,7 @@ export class EvmApi implements _EvmApi {
     clearInterval(this.intervalCheckApi);
   }
 
-  connect (): void {
+  forceConnect (): void {
     // For websocket provider, connect it
     const wsProvider = this.provider as WebsocketProvider;
 
@@ -156,7 +155,7 @@ export class EvmApi implements _EvmApi {
     this.intervalCheckApi = this.createIntervalCheckApi();
   }
 
-  async disconnect () {
+  async forceDisconnect () {
     this.clearIntervalCheckApi();
     this.onDisconnect();
 
@@ -172,7 +171,7 @@ export class EvmApi implements _EvmApi {
 
   destroy () {
     // Todo: implement this in the future
-    return this.disconnect();
+    return this.forceDisconnect();
   }
 
   onConnect (): void {

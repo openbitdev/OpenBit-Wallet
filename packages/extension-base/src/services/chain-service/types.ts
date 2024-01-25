@@ -45,7 +45,6 @@ export interface _ChainBaseApi {
   apiUrl: string;
   providerName?: string;
   sleeping: boolean;
-  isForcedStop: boolean;
 
   apiError?: string;
   apiRetry?: number;
@@ -55,8 +54,8 @@ export interface _ChainBaseApi {
   isApiConnected: boolean; // might be redundant
   connectionStatus: _ChainConnectionStatus; // might be redundant
   updateApiUrl: (apiUrl: string) => Promise<void>;
-  connect: () => void;
-  disconnect: () => Promise<void>;
+  forceConnect: () => void;
+  forceDisconnect: () => Promise<void>;
   recoverConnect: () => Promise<void>;
   destroy: () => Promise<void>;
   setSleeping: (sleeping: boolean) => void;
