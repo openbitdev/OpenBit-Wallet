@@ -32,6 +32,7 @@ interface Props extends ThemeProps, BasicInputWrapper {
   prefixShape?: 'circle' | 'none' | 'squircle' | 'square';
   filterFunction?: (chainAsset: _ChainAsset) => boolean;
   isShowBalance?: boolean;
+  selectedAccount?: string
 }
 
 const renderEmpty = () => <GeneralEmptyList />;
@@ -39,7 +40,7 @@ const renderEmpty = () => <GeneralEmptyList />;
 const convertChainActivePriority = (active?: boolean) => active ? 1 : 0;
 
 function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> {
-  const { className = '', disabled, filterFunction = _isAssetFungibleToken, id = 'token-select', items, label, placeholder, showChainInSelected = false, statusHelp, tooltip, value, isShowBalance } = props;
+  const { className = '', selectedAccount, disabled, filterFunction = _isAssetFungibleToken, id = 'token-select', items, label, placeholder, showChainInSelected = false, statusHelp, tooltip, value, isShowBalance } = props;
   const { t } = useTranslation();
   const { token } = useTheme() as Theme;
   const assetRegistry = useChainAssets({}).chainAssetRegistry;
@@ -60,7 +61,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     }, {});
   }, [assetRegistry]);
 
-  const { tokenBalanceMap } = useAccountBalance(tokenGroupMap, true);
+  const { tokenBalanceMap } = useAccountBalance(tokenGroupMap, true, selectedAccount);
 
   const { onSelect } = useSelectModalInputHelper(props, ref);
 
@@ -307,6 +308,7 @@ export const TokenSelector = styled(forwardRef(Component))<Props>(({ theme: { to
       flexDirection: 'row',
       overflow: 'hidden',
       fontSize: token.fontSizeHeading5,
+      whiteSpace: 'nowrap',
       lineHeight: token.lineHeightHeading5,
       fontWeight: token.fontWeightStrong,
       color: token.colorWhite

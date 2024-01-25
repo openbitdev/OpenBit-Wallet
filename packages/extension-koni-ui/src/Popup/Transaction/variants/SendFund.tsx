@@ -648,6 +648,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 isShowBalance={true}
                 items={tokenItems}
                 placeholder={t('Select token')}
+                selectedAccount={from}
                 showChainInSelected
                 tooltip={t('Select token')}
               />
