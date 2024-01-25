@@ -10,7 +10,6 @@ import keyring from '@subwallet/ui-keyring';
 
 import { cryptoWaitReady } from '@polkadot/util-crypto';
 
-import { checkRestore } from './checkRestore';
 import { PageStatus, responseMessage, setupHandlers } from './messageHandle';
 
 responseMessage({ id: '0', response: { status: 'load' } } as PageStatus);
@@ -18,7 +17,7 @@ responseMessage({ id: '0', response: { status: 'load' } } as PageStatus);
 setupHandlers();
 
 // Initial setup
-Promise.all([cryptoWaitReady(), checkRestore()])
+Promise.all([cryptoWaitReady()])
   .then((): void => {
     console.log('[Mobile] crypto initialized');
 
@@ -41,3 +40,6 @@ Promise.all([cryptoWaitReady(), checkRestore()])
   .catch((error): void => {
     console.error('[Mobile] initialization failed', error);
   });
+
+// @ts-ignore
+window.SubWalletState = koniState;
