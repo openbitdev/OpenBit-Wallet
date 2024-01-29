@@ -262,7 +262,7 @@ export async function generatePathForLiquidStaking (params: OptimalYieldPathPara
         type: YieldStepType.MINT_VDOT
       });
 
-      const _mintFeeInfo = await poolOriginSubstrateApi.api.tx.vtokenMinting.mint(_getTokenOnChainInfo(inputTokenInfo), params.amount, null).paymentInfo(fakeAddress);
+      const _mintFeeInfo = await poolOriginSubstrateApi.api.tx.vtokenMinting.mint(_getTokenOnChainInfo(inputTokenInfo), params.amount, undefined, undefined).paymentInfo(fakeAddress);
       const mintFeeInfo = _mintFeeInfo.toPrimitive() as unknown as RuntimeDispatchInfo;
 
       mintFee = mintFeeInfo.partialFee.toString();

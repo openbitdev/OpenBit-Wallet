@@ -161,17 +161,18 @@ export function getBifrostLiquidStakingPosition (substrateApi: _SubstrateApi, us
       const _unlockLedger = _unlockLedgerList[i];
       const unlockLedger = _unlockLedger.toPrimitive();
 
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const unstakingLedgerIds = unlockLedger[1] as number[];
+      if (unlockLedger) {
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const unstakingLedgerIds = unlockLedger[1] as number[];
 
-      unstakingLedgerIds.forEach((ledgerId) => {
-        unlockLedgerList.push({
-          address: formattedAddress,
-          ledgerId
+        unstakingLedgerIds.forEach((ledgerId) => {
+          unlockLedgerList.push({
+            address: formattedAddress,
+            ledgerId
+          });
         });
-      });
-
+      }
       // const bnTotalBalance = bnActiveBalance.add(bnUnstakingBalance);
     }
 
@@ -304,7 +305,7 @@ export async function getBifrostLiquidStakingExtrinsic (address: string, params:
   const substrateApi = await params.substrateApiMap[params.poolInfo.chain].isReady;
   const inputTokenSlug = params.poolInfo.inputAssets[0];
   const inputTokenInfo = params.assetInfoMap[inputTokenSlug];
-  const extrinsic = substrateApi.api.tx.vtokenMinting.mint(_getTokenOnChainInfo(inputTokenInfo), inputData.amount, undefined);
+  const extrinsic = substrateApi.api.tx.vtokenMinting.mint(_getTokenOnChainInfo(inputTokenInfo), inputData.amount, undefined, undefined);
 
   return {
     txChain: params.poolInfo.chain,
