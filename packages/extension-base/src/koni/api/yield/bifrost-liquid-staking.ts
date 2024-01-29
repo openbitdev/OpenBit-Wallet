@@ -161,17 +161,18 @@ export function getBifrostLiquidStakingPosition (substrateApi: _SubstrateApi, us
       const _unlockLedger = _unlockLedgerList[i];
       const unlockLedger = _unlockLedger.toPrimitive();
 
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const unstakingLedgerIds = unlockLedger[1] as number[];
+      if (unlockLedger) {
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        const unstakingLedgerIds = unlockLedger[1] as number[];
 
-      unstakingLedgerIds.forEach((ledgerId) => {
-        unlockLedgerList.push({
-          address: formattedAddress,
-          ledgerId
+        unstakingLedgerIds.forEach((ledgerId) => {
+          unlockLedgerList.push({
+            address: formattedAddress,
+            ledgerId
+          });
         });
-      });
-
+      }
       // const bnTotalBalance = bnActiveBalance.add(bnUnstakingBalance);
     }
 
