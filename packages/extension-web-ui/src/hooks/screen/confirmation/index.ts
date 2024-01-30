@@ -1,4 +1,4 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-export { default as useConfirmationsInfo } from './useConfirmationsInfo';
+export * from "@subwallet/extension-koni-ui/hooks/screen/confirmation/index";
