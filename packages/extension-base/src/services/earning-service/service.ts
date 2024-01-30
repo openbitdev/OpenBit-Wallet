@@ -3,7 +3,7 @@
 
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { BasicTxErrorType, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
-import { CRON_REFRESH_EARNING_REWARD_HISTORY_INTERVAL, CRON_REFRESH_STAKING_REWARD_FAST_INTERVAL } from '@subwallet/extension-base/constants';
+import { CRON_REFRESH_CHAIN_STAKING_METADATA, CRON_REFRESH_EARNING_REWARD_HISTORY_INTERVAL, CRON_REFRESH_STAKING_REWARD_FAST_INTERVAL } from '@subwallet/extension-base/constants';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { PersistDataServiceInterface, ServiceStatus, StoppableServiceInterface } from '@subwallet/extension-base/services/base/types';
 import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
@@ -13,9 +13,24 @@ import { EventService } from '@subwallet/extension-base/services/event-service';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import { EarningRewardHistoryItem, EarningRewardItem, EarningRewardJson, HandleYieldStepData, HandleYieldStepParams, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestYieldLeave, RequestYieldWithdrawal, ResponseEarlyValidateYield, TransactionData, ValidateYieldProcessParams, YieldPoolInfo, YieldPoolTarget, YieldPoolType, YieldPositionInfo } from '@subwallet/extension-base/types';
 import { addLazy, categoryAddresses, createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/utils';
+import fetch from 'cross-fetch';
 import { BehaviorSubject } from 'rxjs';
 
 import { AcalaLiquidStakingPoolHandler, AmplitudeNativeStakingPoolHandler, AstarNativeStakingPoolHandler, BasePoolHandler, BifrostLiquidStakingPoolHandler, InterlayLendingPoolHandler, NominationPoolHandler, ParallelLiquidStakingPoolHandler, ParaNativeStakingPoolHandler, RelayNativeStakingPoolHandler, StellaSwapLiquidStakingPoolHandler } from './handlers';
+
+const POOLS_DATA_URLS = 'https://sw-static-cache.pages.dev/earning/yield-pools.json';
+
+const fetchPoolsData = async () => {
+  const res = await fetch(POOLS_DATA_URLS);
+
+  if (res.status !== 200) {
+    return {};
+  }
+
+  const fetchData = (await res.json()) as {data: Record<string, YieldPoolInfo>};
+
+  return fetchData.data;
+};
 
 export default class EarningService implements StoppableServiceInterface, PersistDataServiceInterface {
   protected readonly state: KoniState;
@@ -292,10 +307,10 @@ export default class EarningService implements StoppableServiceInterface, Persis
     for (const handler of Object.values(this.handlers)) {
       handler.subscribePoolInfo(callback)
         .then((unsub) => {
-          if (cancel) {
-            unsub();
-          } else {
+          if (!cancel) {
             unsubList.push(unsub);
+          } else {
+            unsub();
           }
         })
         .catch(console.error);
@@ -310,9 +325,10 @@ export default class EarningService implements StoppableServiceInterface, Persis
   }
 
   private async getYieldPoolInfoFromDB () {
-    const existedYieldPoolInfo = await this.dbService.getYieldPools();
+    // Get online pool data
+    const yieldPoolInfo = {} as Record<string, YieldPoolInfo>;
 
-    const yieldPoolInfo = this.yieldPoolInfoSubject.getValue();
+    const existedYieldPoolInfo = await this.dbService.getYieldPools();
 
     existedYieldPoolInfo.forEach((info) => {
       yieldPoolInfo[info.slug] = info;
@@ -345,7 +361,11 @@ export default class EarningService implements StoppableServiceInterface, Persis
 
       // Update yield pool info
       queue.forEach((item) => {
-        yieldPoolInfo[item.slug] = item;
+        const existed = yieldPoolInfo[item.slug];
+
+        if (item.statistic && (!existed?.lastUpdated || existed.lastUpdated < (item?.lastUpdated || 0))) { // Only update item has statistic information
+          yieldPoolInfo[item.slug] = item;
+        }
       });
       this.yieldPoolInfoSubject.next(yieldPoolInfo);
 
@@ -354,16 +374,40 @@ export default class EarningService implements StoppableServiceInterface, Persis
     }, 300, 900);
   }
 
+  private async fetchingPoolsInfoOnline () {
+    const onlineData = await Promise.race([fetchPoolsData(), new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({});
+      }, 1800);
+    })]) as Record<string, YieldPoolInfo>;
+
+    Object.values(onlineData).forEach((item) => {
+      this.updateYieldPoolInfo(item);
+    });
+  }
+
   private yieldPoolsInfoUnsub: VoidFunction | undefined;
 
   async runSubscribePoolsInfo () {
     await this.eventService.waitChainReady;
     this.runUnsubscribePoolsInfo();
 
+    // Fetching online data
+    await this.fetchingPoolsInfoOnline();
+
+    const interval = setInterval(() => {
+      this.fetchingPoolsInfoOnline().catch(console.error);
+    }, CRON_REFRESH_CHAIN_STAKING_METADATA);
+
+    // Fetching from chains
     this.subscribePoolsInfo((data) => {
+      data.lastUpdated = Date.now();
       this.updateYieldPoolInfo(data);
     }).then((rs) => {
-      this.yieldPoolsInfoUnsub = rs;
+      this.yieldPoolsInfoUnsub = () => {
+        rs();
+        clearInterval(interval);
+      };
     }).catch(console.error);
   }
 
@@ -468,7 +512,7 @@ export default class EarningService implements StoppableServiceInterface, Persis
   public async getYieldPositionInfo () {
     await this.eventService.waitEarningReady;
 
-    return Promise.resolve(Object.values(this.yieldPositionSubject.getValue()));
+    return Promise.resolve(this.yieldPositionListSubject.getValue());
   }
 
   yieldPositionPersistQueue: YieldPositionInfo[] = [];
