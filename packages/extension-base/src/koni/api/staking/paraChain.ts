@@ -3,18 +3,65 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { APIItemState, NominatorMetadata, StakingItem, StakingRewardItem, StakingStatus, StakingType } from '@subwallet/extension-base/background/KoniTypes';
+import { BITTENSOR_REFRESH_STAKE_INFO } from '@subwallet/extension-base/constants';
 import { subscribeAmplitudeNominatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/amplitude';
 import { subscribeAstarNominatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/astar';
 import { subscribeParaChainNominatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/paraChain';
+import { subscribeTaoDelegatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/tao';
 import { PalletDappsStakingAccountLedger, PalletParachainStakingDelegator, ParachainStakingStakeOption } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
 import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenBasicInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { reformatAddress } from '@subwallet/extension-base/utils';
+import fetch from 'cross-fetch';
 
 import { Codec } from '@polkadot/types/types';
 import { BN, BN_ZERO } from '@polkadot/util';
 import { isEthereumAddress } from '@polkadot/util-crypto';
+
+interface RawDelegateState {
+  data: {
+    delegateBalances: {
+      nodes:
+      Array<Record<string, string>>
+    }
+  }
+}
+
+const query = (address: string) => {
+  return {
+    query: 'query ($first: Int!, $after: Cursor, $filter: DelegateBalanceFilter, $order: [DelegateBalancesOrderBy!]!) {  delegateBalances(first: $first, after: $after, filter: $filter, orderBy: $order) { nodes { id account delegate amount updatedAt delegateFrom } pageInfo { endCursor hasNextPage hasPreviousPage } totalCount } }',
+    variables: {
+      first: 10,
+      filter: {
+        account: {
+          equalTo: address
+        },
+        amount: {
+          greaterThan: 1000000
+        },
+        updatedAt: {
+          greaterThan: 0
+        }
+      },
+      order: 'AMOUNT_DESC'
+    }
+  };
+};
+
+const fetchDelegateState = async (address: string): Promise<RawDelegateState> => {
+  return new Promise(function (resolve) {
+    fetch('https://api.subquery.network/sq/TaoStats/bittensor-indexer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(query(address))
+    }).then((resp) => {
+      resolve(resp.json());
+    }).catch(console.error);
+  });
+};
 
 function getSingleStakingAmplitude (substrateApi: _SubstrateApi, address: string, chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
   return substrateApi.api.queryMulti([
@@ -333,4 +380,280 @@ export function getAstarStakingOnChain (substrateApi: _SubstrateApi, useAddresse
       }));
     }
   });
+}
+
+function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
+  const { symbol } = _getChainNativeTokenBasicInfo(chainInfoMap[chain]);
+  const owner = reformatAddress(useAddress, 42);
+
+  async function _getStakingTaoInterval () {
+    const rawDelegateStateInfo = await fetchDelegateState(useAddress);
+
+    if (!rawDelegateStateInfo) {
+      stakingCallback(chain, {
+        name: chainInfoMap[chain].name,
+        chain: chain,
+        balance: '0',
+        activeBalance: '0',
+        unlockingBalance: '0',
+        nativeToken: symbol,
+        unit: symbol,
+        state: APIItemState.READY,
+        type: StakingType.NOMINATED,
+        address: owner
+      } as StakingItem);
+
+      nominatorStateCallback({
+        chain: chain,
+        type: StakingType.NOMINATED,
+        address: owner,
+        status: StakingStatus.NOT_STAKING,
+        activeStake: '0',
+        nominations: [],
+        unstakings: []
+      } as NominatorMetadata);
+    } else {
+      const delegatorState: ParachainStakingStakeOption[] = [];
+      let bnTotalBalance = BN_ZERO;
+      const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
+
+      for (const delegate of delegateStateInfo) {
+        bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
+        delegatorState.push({
+          owner: delegate.delegate,
+          amount: Number(delegate.amount)
+        });
+      }
+
+      stakingCallback(chain, {
+        name: chainInfoMap[chain].name,
+        chain: chain,
+        balance: bnTotalBalance.toString(),
+        activeBalance: bnTotalBalance.toString(),
+        unlockingBalance: '0',
+        nativeToken: symbol,
+        unit: symbol,
+        state: APIItemState.READY,
+        type: StakingType.NOMINATED,
+        address: owner
+      } as StakingItem);
+      // console.log(owner, useAddress);
+      const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+
+      nominatorStateCallback(nominatorMetadata);
+    }
+  }
+
+  function getStakingTaoInterval () {
+    _getStakingTaoInterval().catch(console.error);
+  }
+
+  getStakingTaoInterval();
+  const interval = setInterval(getStakingTaoInterval, BITTENSOR_REFRESH_STAKE_INFO);
+
+  return () => {
+    clearInterval(interval);
+  };
+}
+
+// _TODO tam disable
+// function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[], chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
+//
+//   const { symbol } = _getChainNativeTokenBasicInfo(chainInfoMap[chain]);
+//
+//   return useAddresses.map((address) => {
+//     const owner = reformatAddress(address, 42);
+//     await Promise.all(fetchDelegateState(owner).then(async (rawDelegateStateInfo) => {
+//       if (!rawDelegateStateInfo) {
+//         stakingCallback(chain, {
+//           name: chainInfoMap[chain].name,
+//           chain: chain,
+//           balance: '0',
+//           activeBalance: '0',
+//           unlockingBalance: '0',
+//           nativeToken: symbol,
+//           unit: symbol,
+//           state: APIItemState.READY,
+//           type: StakingType.NOMINATED,
+//           address: owner
+//         } as StakingItem);
+//
+//         nominatorStateCallback({
+//           chain: chain,
+//           type: StakingType.NOMINATED,
+//           address: owner,
+//           status: StakingStatus.NOT_STAKING,
+//           activeStake: '0',
+//           nominations: [],
+//           unstakings: []
+//         } as NominatorMetadata);
+//       } else {
+//         const delegatorState: ParachainStakingStakeOption[] = [];
+//         let bnTotalBalance = BN_ZERO;
+//         const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
+//
+//         for (const delegate of delegateStateInfo) {
+//           bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
+//           delegatorState.push({
+//             owner: delegate.delegate,
+//             amount: Number(delegate.amount)
+//           });
+//         }
+//
+//         stakingCallback(chain, {
+//           name: chainInfoMap[chain].name,
+//           chain: chain,
+//           balance: bnTotalBalance.toString(),
+//           activeBalance: bnTotalBalance.toString(),
+//           unlockingBalance: '0',
+//           nativeToken: symbol,
+//           unit: symbol,
+//           state: APIItemState.READY,
+//           type: StakingType.NOMINATED,
+//           address: owner
+//         } as StakingItem);
+//
+//         const nominatorMetadata = await subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+//
+//         nominatorStateCallback(nominatorMetadata);
+//     }))
+//     }
+//   });
+// }
+
+// _TODO: subscribe each address
+// Loop all validator to get stake info -> return stake info
+//   await Promise.all(useAddresses.map(async (address) => {
+//     const owner = reformatAddress(address, 42);
+//
+//     const rawDelegateStateInfo = await fetchDelegateState(owner);
+//
+//     if (!rawDelegateStateInfo) {
+//       stakingCallback(chain, {
+//         name: chainInfoMap[chain].name,
+//         chain: chain,
+//         balance: '0',
+//         activeBalance: '0',
+//         unlockingBalance: '0',
+//         nativeToken: symbol,
+//         unit: symbol,
+//         state: APIItemState.READY,
+//         type: StakingType.NOMINATED,
+//         address: owner
+//       } as StakingItem);
+//
+//       nominatorStateCallback({
+//         chain: chain,
+//         type: StakingType.NOMINATED,
+//         address: owner,
+//         status: StakingStatus.NOT_STAKING,
+//         activeStake: '0',
+//         nominations: [],
+//         unstakings: []
+//       } as NominatorMetadata);
+//     } else {
+//       const delegatorState: ParachainStakingStakeOption[] = [];
+//       let bnTotalBalance = BN_ZERO;
+//       const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
+//
+//       for (const delegate of delegateStateInfo) {
+//         bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
+//         delegatorState.push({
+//           owner: delegate.delegate,
+//           amount: Number(delegate.amount)
+//         });
+//       }
+//
+//       stakingCallback(chain, {
+//         name: chainInfoMap[chain].name,
+//         chain: chain,
+//         balance: bnTotalBalance.toString(),
+//         activeBalance: bnTotalBalance.toString(),
+//         unlockingBalance: '0',
+//         nativeToken: symbol,
+//         unit: symbol,
+//         state: APIItemState.READY,
+//         type: StakingType.NOMINATED,
+//         address: owner
+//       } as StakingItem);
+//
+//       const nominatorMetadata = await subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+//
+//       nominatorStateCallback(nominatorMetadata);
+//     }
+//   }));
+//
+//   return substrateApi.api.query.subtensorModule.stake.multi([validator, useAddresses], async (ledgers: Codec[]) => {
+//     if (ledgers) {
+//       await Promise.all(ledgers.map(async (_ledger, i) => {
+//         const totalBalance = BN_ZERO;
+//         const owner = reformatAddress(useAddresses[i], 42);
+//
+//         const ledger = _ledger.toPrimitive() as unknown as PalletDappsStakingAccountLedger;
+//
+//         if (ledger && ledger.locked > 0) {
+//           const unlockingChunks = ledger.unbondingInfo.unlockingChunks;
+//           const _totalStake = ledger.locked;
+//           const bnTotalStake = new BN(_totalStake.toString());
+//
+//           for (const chunk of unlockingChunks) {
+//             const bnChunk = new BN(chunk.amount.toString());
+//
+//             bnUnlockingBalance = bnUnlockingBalance.add(bnChunk);
+//           }
+//
+//           const bnActiveStake = bnTotalStake.sub(bnUnlockingBalance);
+//
+//           stakingCallback(chain, {
+//             name: chainInfoMap[chain].name,
+//             chain: chain,
+//             balance: bnTotalStake.toString(),
+//             activeBalance: bnActiveStake.toString(),
+//             unlockingBalance: '0',
+//             nativeToken: symbol,
+//             unit: symbol,
+//             state: APIItemState.READY,
+//             type: StakingType.NOMINATED,
+//             address: owner
+//           } as StakingItem);
+//
+//           const nominatorMetadata = await subscribeAstarNominatorMetadata(chainInfoMap[chain], owner, substrateApi, ledger);
+//
+//           nominatorStateCallback(nominatorMetadata);
+//         } else {
+//           stakingCallback(chain, {
+//             name: chainInfoMap[chain].name,
+//             chain,
+//             balance: '0',
+//             activeBalance: '0',
+//             unlockingBalance: '0',
+//             nativeToken: symbol,
+//             unit: symbol,
+//             state: APIItemState.READY,
+//             type: StakingType.NOMINATED,
+//             address: owner
+//           } as StakingItem);
+//
+//           nominatorStateCallback({
+//             chain,
+//             type: StakingType.NOMINATED,
+//             address: owner,
+//             status: StakingStatus.NOT_STAKING,
+//             activeStake: '0',
+//             nominations: [],
+//             unstakings: []
+//           } as NominatorMetadata);
+//         }
+//       }));
+//     }
+//   });
+// }
+
+// @ts-ignore
+export function getTaoStakingOnChain (parentApi: _SubstrateApi, useAddresses: string[], networks: Record<string, _ChainInfo>, chain: string, callback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
+  if (useAddresses.length === 1) {
+    return getSingleStakingTao(parentApi, useAddresses[0], networks, chain, callback, nominatorStateCallback);
+  }
+
+  // return getMultiStakingTao(parentApi, useAddresses, networks, chain, callback, nominatorStateCallback);
 }

@@ -6167,14 +6167,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subwallet/chain-list@npm:0.2.38":
-  version: 0.2.38
-  resolution: "@subwallet/chain-list@npm:0.2.38"
+"@subwallet/chain-list@file:/Users/bluedot/chainlist/SubWallet-ChainList/packages/chain-list/build::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 0.2.39-beta.5
+  resolution: "@subwallet/chain-list@file:/Users/bluedot/chainlist/SubWallet-ChainList/packages/chain-list/build#/Users/bluedot/chainlist/SubWallet-ChainList/packages/chain-list/build::hash=bcb49d&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: 7189c080670fffbe0ac04938f74e982ebf520cb20d32f194e0c4a91dc8003adbe050076efc4173d82dbed0b1009626335291857ab8c960addd23a6aa3c1e21bd
+  checksum: 7e4c9c9c749a5c2ee0fe51a540db3c8b91b0cb2bd4baf1671b1ba1e18b629b2dc66665b52f38c3076651bdd12f7d38bfa985cb5773bbd0cbd97d60be4899fd35
   languageName: node
   linkType: hard
 
