@@ -1,12 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { RequestCampaignBannerComplete } from '@subwallet/extension-base/background/KoniTypes';
+import {RequestUnlockDotCheckCanMint} from "@subwallet/extension-base/types";
+import {sendMessage} from "@subwallet/extension-koni-ui/messaging";
 
-import { sendMessage } from '../base';
-
-export async function completeBannerCampaign (request: RequestCampaignBannerComplete): Promise<boolean> {
-  return sendMessage('pri(campaign.banner.complete)', request);
+export * from "@subwallet/extension-koni-ui/messaging/campaigns/index";
+export async function unlockDotCheckCanMint (request: RequestUnlockDotCheckCanMint): Promise<boolean> {
+  return sendMessage('pri(campaign.unlockDot.canMint)', request);
 }
 
-export * from './unlock-dot';
