@@ -268,7 +268,7 @@ export async function getAmplitudeNominatorMetadata (chainInfo: _ChainInfo, addr
   } as NominatorMetadata;
 }
 
-export async function getAmplitudeCollatorsInfo (chain: string, substrateApi: _SubstrateApi): Promise<ValidatorInfo[]>  {
+export async function getAmplitudeCollatorsInfo (chain: string, substrateApi: _SubstrateApi): Promise<ValidatorInfo[]> {
   const chainApi = await substrateApi.isReady;
 
   // Noted: Krest do not have reward

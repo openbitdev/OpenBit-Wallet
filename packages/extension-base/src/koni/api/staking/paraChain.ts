@@ -495,203 +495,65 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
 }
 
 // _TODO temporary disable
-// function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[], chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
-//
-//   const { symbol } = _getChainNativeTokenBasicInfo(chainInfoMap[chain]);
-//
-//   return useAddresses.map((address) => {
-//     const owner = reformatAddress(address, 42);
-//     await Promise.all(fetchDelegateState(owner).then(async (rawDelegateStateInfo) => {
-//       if (!rawDelegateStateInfo) {
-//         stakingCallback(chain, {
-//           name: chainInfoMap[chain].name,
-//           chain: chain,
-//           balance: '0',
-//           activeBalance: '0',
-//           unlockingBalance: '0',
-//           nativeToken: symbol,
-//           unit: symbol,
-//           state: APIItemState.READY,
-//           type: StakingType.NOMINATED,
-//           address: owner
-//         } as StakingItem);
-//
-//         nominatorStateCallback({
-//           chain: chain,
-//           type: StakingType.NOMINATED,
-//           address: owner,
-//           status: StakingStatus.NOT_STAKING,
-//           activeStake: '0',
-//           nominations: [],
-//           unstakings: []
-//         } as NominatorMetadata);
-//       } else {
-//         const delegatorState: ParachainStakingStakeOption[] = [];
-//         let bnTotalBalance = BN_ZERO;
-//         const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
-//
-//         for (const delegate of delegateStateInfo) {
-//           bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
-//           delegatorState.push({
-//             owner: delegate.delegate,
-//             amount: Number(delegate.amount)
-//           });
-//         }
-//
-//         stakingCallback(chain, {
-//           name: chainInfoMap[chain].name,
-//           chain: chain,
-//           balance: bnTotalBalance.toString(),
-//           activeBalance: bnTotalBalance.toString(),
-//           unlockingBalance: '0',
-//           nativeToken: symbol,
-//           unit: symbol,
-//           state: APIItemState.READY,
-//           type: StakingType.NOMINATED,
-//           address: owner
-//         } as StakingItem);
-//
-//         const nominatorMetadata = await subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
-//
-//         nominatorStateCallback(nominatorMetadata);
-//     }))
-//     }
-//   });
-// }
+function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[], chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
+  async function _getStakingTaoInterval () {
+    const rawDelegateStateInfos = await Promise.all(useAddresses.map((address) => {
+      return fetchDelegateState(address);
+    }));
 
-// _TODO: subscribe each address
-// Loop all validator to get stake info -> return stake info
-//   await Promise.all(useAddresses.map(async (address) => {
-//     const owner = reformatAddress(address, 42);
-//
-//     const rawDelegateStateInfo = await fetchDelegateState(owner);
-//
-//     if (!rawDelegateStateInfo) {
-//       stakingCallback(chain, {
-//         name: chainInfoMap[chain].name,
-//         chain: chain,
-//         balance: '0',
-//         activeBalance: '0',
-//         unlockingBalance: '0',
-//         nativeToken: symbol,
-//         unit: symbol,
-//         state: APIItemState.READY,
-//         type: StakingType.NOMINATED,
-//         address: owner
-//       } as StakingItem);
-//
-//       nominatorStateCallback({
-//         chain: chain,
-//         type: StakingType.NOMINATED,
-//         address: owner,
-//         status: StakingStatus.NOT_STAKING,
-//         activeStake: '0',
-//         nominations: [],
-//         unstakings: []
-//       } as NominatorMetadata);
-//     } else {
-//       const delegatorState: ParachainStakingStakeOption[] = [];
-//       let bnTotalBalance = BN_ZERO;
-//       const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
-//
-//       for (const delegate of delegateStateInfo) {
-//         bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
-//         delegatorState.push({
-//           owner: delegate.delegate,
-//           amount: Number(delegate.amount)
-//         });
-//       }
-//
-//       stakingCallback(chain, {
-//         name: chainInfoMap[chain].name,
-//         chain: chain,
-//         balance: bnTotalBalance.toString(),
-//         activeBalance: bnTotalBalance.toString(),
-//         unlockingBalance: '0',
-//         nativeToken: symbol,
-//         unit: symbol,
-//         state: APIItemState.READY,
-//         type: StakingType.NOMINATED,
-//         address: owner
-//       } as StakingItem);
-//
-//       const nominatorMetadata = await subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
-//
-//       nominatorStateCallback(nominatorMetadata);
-//     }
-//   }));
-//
-//   return substrateApi.api.query.subtensorModule.stake.multi([validator, useAddresses], async (ledgers: Codec[]) => {
-//     if (ledgers) {
-//       await Promise.all(ledgers.map(async (_ledger, i) => {
-//         const totalBalance = BN_ZERO;
-//         const owner = reformatAddress(useAddresses[i], 42);
-//
-//         const ledger = _ledger.toPrimitive() as unknown as PalletDappsStakingAccountLedger;
-//
-//         if (ledger && ledger.locked > 0) {
-//           const unlockingChunks = ledger.unbondingInfo.unlockingChunks;
-//           const _totalStake = ledger.locked;
-//           const bnTotalStake = new BN(_totalStake.toString());
-//
-//           for (const chunk of unlockingChunks) {
-//             const bnChunk = new BN(chunk.amount.toString());
-//
-//             bnUnlockingBalance = bnUnlockingBalance.add(bnChunk);
-//           }
-//
-//           const bnActiveStake = bnTotalStake.sub(bnUnlockingBalance);
-//
-//           stakingCallback(chain, {
-//             name: chainInfoMap[chain].name,
-//             chain: chain,
-//             balance: bnTotalStake.toString(),
-//             activeBalance: bnActiveStake.toString(),
-//             unlockingBalance: '0',
-//             nativeToken: symbol,
-//             unit: symbol,
-//             state: APIItemState.READY,
-//             type: StakingType.NOMINATED,
-//             address: owner
-//           } as StakingItem);
-//
-//           const nominatorMetadata = await subscribeAstarNominatorMetadata(chainInfoMap[chain], owner, substrateApi, ledger);
-//
-//           nominatorStateCallback(nominatorMetadata);
-//         } else {
-//           stakingCallback(chain, {
-//             name: chainInfoMap[chain].name,
-//             chain,
-//             balance: '0',
-//             activeBalance: '0',
-//             unlockingBalance: '0',
-//             nativeToken: symbol,
-//             unit: symbol,
-//             state: APIItemState.READY,
-//             type: StakingType.NOMINATED,
-//             address: owner
-//           } as StakingItem);
-//
-//           nominatorStateCallback({
-//             chain,
-//             type: StakingType.NOMINATED,
-//             address: owner,
-//             status: StakingStatus.NOT_STAKING,
-//             activeStake: '0',
-//             nominations: [],
-//             unstakings: []
-//           } as NominatorMetadata);
-//         }
-//       }));
-//     }
-//   });
-// }
+    if (rawDelegateStateInfos) {
+      const { symbol } = _getChainNativeTokenBasicInfo(chainInfoMap[chain]);
 
-// @ts-ignore
+      rawDelegateStateInfos.map((rawDelegateStateInfo, i) => {
+        const owner = reformatAddress(useAddresses[i], 42);
+        const delegatorState: ParachainStakingStakeOption[] = [];
+        let bnTotalBalance = BN_ZERO;
+        const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
+
+        for (const delegate of delegateStateInfo) {
+          bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
+          delegatorState.push({
+            owner: delegate.delegate,
+            amount: Number(delegate.amount)
+          });
+        }
+
+        stakingCallback(chain, {
+          name: chainInfoMap[chain].name,
+          chain: chain,
+          balance: bnTotalBalance.toString(),
+          activeBalance: bnTotalBalance.toString(),
+          unlockingBalance: '0',
+          nativeToken: symbol,
+          unit: symbol,
+          state: APIItemState.READY,
+          type: StakingType.NOMINATED,
+          address: owner
+        } as StakingItem);
+        // console.log(owner, useAddress);
+        const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+
+        nominatorStateCallback(nominatorMetadata);
+      });
+    }
+  }
+
+  function getStakingTaoInterval () {
+    _getStakingTaoInterval().catch(console.error);
+  }
+
+  getStakingTaoInterval();
+  const interval = setInterval(getStakingTaoInterval, BITTENSOR_REFRESH_STAKE_INFO);
+
+  return () => {
+    clearInterval(interval);
+  };
+}
+
 export function getTaoStakingOnChain (parentApi: _SubstrateApi, useAddresses: string[], networks: Record<string, _ChainInfo>, chain: string, callback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
   if (useAddresses.length === 1) {
     return getSingleStakingTao(parentApi, useAddresses[0], networks, chain, callback, nominatorStateCallback);
   }
 
-  // return getMultiStakingTao(parentApi, useAddresses, networks, chain, callback, nominatorStateCallback);
+  return getMultiStakingTao(parentApi, useAddresses, networks, chain, callback, nominatorStateCallback);
 }
