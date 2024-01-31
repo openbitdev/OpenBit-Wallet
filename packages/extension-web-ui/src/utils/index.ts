@@ -9,8 +9,7 @@ import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { _getChainSubstrateAddressPrefix, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { Recoded } from '@subwallet/extension-web-ui/types';
 import { isAccountAll } from '@subwallet/extension-web-ui/utils/account/accountAll';
-import reformatAddress from '@subwallet/extension-web-ui/utils/account/reformatAddress';
-
+import { reformatAddress } from '@subwallet/extension-web-ui/utils/account/reformatAddress';
 import { decodeAddress, isEthereumAddress } from '@polkadot/util-crypto';
 import { KeypairType } from '@polkadot/util-crypto/types';
 
