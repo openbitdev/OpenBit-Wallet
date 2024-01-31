@@ -143,13 +143,12 @@ export async function getTaoDelegateInfo (chain: string, substrateApi: _Substrat
   return allDelegatesInfo;
 }
 
-export async function getTaoBondingExtrinsic (substrateApi: _SubstrateApi, amount: string, selectedValidatorInfo: ValidatorInfo[]) {
+export async function getTaoBondingExtrinsic (substrateApi: _SubstrateApi, amount: string, selectedValidatorInfo: ValidatorInfo) {
   const chainApi = await substrateApi.isReady;
   const bnAmount = new BN(amount);
-  const hotkeyList = selectedValidatorInfo.map((validator) => validator.address);
-  const txs = hotkeyList.map((hotkey) => chainApi.api.tx.subtensorModule.addStake(hotkey, bnAmount.div(new BN(hotkeyList.length))));
+  const hotkey = selectedValidatorInfo.address;
 
-  return chainApi.api.tx.utility.batchAll(txs);
+  return chainApi.api.tx.subtensorModule.addStake(hotkey, bnAmount);
 }
 
 export async function getTaoUnbondingExtrinsic (substrateApi: _SubstrateApi, amount: string, hotkey: string) {

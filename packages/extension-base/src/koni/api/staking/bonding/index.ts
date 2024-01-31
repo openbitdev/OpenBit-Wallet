@@ -84,7 +84,7 @@ export async function getBondingExtrinsic (chainInfo: _ChainInfo, amount: string
   } else if (_STAKING_CHAIN_GROUP.amplitude.includes(chainInfo.slug)) {
     return getAmplitudeBondingExtrinsic(substrateApi, amount, selectedValidators[0], nominatorMetadata);
   } else if (_STAKING_CHAIN_GROUP.bittensor.includes(chainInfo.slug)) {
-    return getTaoBondingExtrinsic(substrateApi, amount, selectedValidators);
+    return getTaoBondingExtrinsic(substrateApi, amount, selectedValidators[0]);
   }
 
   return getRelayBondingExtrinsic(substrateApi, amount, selectedValidators, chainInfo, address, nominatorMetadata);
