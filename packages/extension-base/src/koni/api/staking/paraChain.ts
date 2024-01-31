@@ -456,7 +456,7 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
   };
 }
 
-// _TODO tam disable
+// _TODO temporary disable
 // function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[], chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
 //
 //   const { symbol } = _getChainNativeTokenBasicInfo(chainInfoMap[chain]);

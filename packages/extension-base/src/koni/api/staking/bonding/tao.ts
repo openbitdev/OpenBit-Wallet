@@ -40,7 +40,7 @@ const fetchStakingInfo = async (): Promise<Array<Record<string, string>>> => {
 };
 
 export async function subscribeTaoStakingMetadata (chain: string, substrateApi: _SubstrateApi, callback: (chain: string, rs: ChainStakingMetadata) => void) {
-  // _TODO: optimize case subscribe an API in a subscription
+  // _TODO: optimize case subscribe an API in a subscription -> Rxjs or fetch interval
   return substrateApi.api.query.subtensorModule.networkImmunityPeriod(async (_iPeriod: Codec) => {
     const iPeriod = parseInt(_iPeriod.toString());
 
@@ -64,17 +64,10 @@ export async function subscribeTaoStakingMetadata (chain: string, substrateApi: 
 
 export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, delegatorState: ParachainStakingStakeOption[]) {
   // _TODO: do not have unstaking list
-  // _TODO: fetch all hotkey cua validator, PromiseAll list validator xem co stake amount khong
   // _TODO: check identities
 
   const nominationList: NominationInfo[] = [];
   let activeStake = '0';
-
-  // const allDelegatesPromise = fetchDelegates();
-  // const [_allDelegates, _stakeInfo] = await Promise.all([
-  //   allDelegatesPromise,
-  //   substrateApi.api.query.subtensorModule.stake.entries() // _TODO: Hotkey
-  // ]);
 
   for (let i = 0; i < delegatorState.length; i++) {
     const delegate = delegatorState[i];
@@ -101,9 +94,9 @@ export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: s
   return {
     chain: chainInfo.slug,
     type: StakingType.NOMINATED,
-    status: stakingStatus, // _TODO: check
+    status: stakingStatus,
     address: address,
-    activeStake: activeStake, // _TODO: check
+    activeStake: activeStake,
     nominations: nominationList,
     unstakings: []
   } as NominatorMetadata;
@@ -116,10 +109,6 @@ export async function getTaoDelegateInfo (chain: string, substrateApi: _Substrat
   const allDelegatesPromise = fetchDelegates();
 
   const _allDelegates = await allDelegatesPromise;
-
-  // const [_allDelegates] = await Promise.all([
-  //   allDelegatesPromise
-  // ]);
 
   const allDelegates = _allDelegates as Record<string, Record<string, string>>;
   const allDelegateAddresses: string[] = Object.keys(allDelegates);
@@ -141,7 +130,6 @@ export async function getTaoDelegateInfo (chain: string, substrateApi: _Substrat
       minBond: '0',
       nominatorCount: 0,
       commission: 0,
-      expectedReturn: 0,
 
       blocked: false,
       isVerified: false,
@@ -154,12 +142,13 @@ export async function getTaoDelegateInfo (chain: string, substrateApi: _Substrat
   return allDelegatesInfo;
 }
 
-export async function getTaoBondingExtrinsic (substrateApi: _SubstrateApi, amount: string, selectedValidatorInfo: ValidatorInfo) {
+export async function getTaoBondingExtrinsic (substrateApi: _SubstrateApi, amount: string, selectedValidatorInfo: ValidatorInfo[]) {
   const chainApi = await substrateApi.isReady;
   const bnAmount = new BN(amount);
-  const hotkey = selectedValidatorInfo.address;
+  const hotkeyList = selectedValidatorInfo.map((validator) => validator.address);
+  const txs = hotkeyList.map((hotkey) => chainApi.api.tx.subtensorModule.addStake(hotkey, bnAmount.div(new BN(hotkeyList.length))));
 
-  return chainApi.api.tx.subtensorModule.addStake(hotkey, bnAmount);
+  return chainApi.api.tx.utility.batchAll(txs);
 }
 
 export async function getTaoUnbondingExtrinsic (substrateApi: _SubstrateApi, amount: string, hotkey: string) {
