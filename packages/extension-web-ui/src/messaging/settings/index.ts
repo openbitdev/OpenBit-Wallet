@@ -1,4 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-export * from "@subwallet/extension-koni-ui/messaging/settings/index";
+export * from './asset';
+export * from './auth';
+export * from './base';
+export * from './chain';
