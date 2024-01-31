@@ -67,17 +67,18 @@ export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: s
   // _TODO: check identities
 
   const nominationList: NominationInfo[] = [];
-  let activeStake = '0';
+  let allActiveStake = BN_ZERO;
 
   for (let i = 0; i < delegatorState.length; i++) {
     const delegate = delegatorState[i];
 
-    activeStake = delegate.amount.toString();
+    const activeStake = delegate.amount.toString();
     const bnActiveStake = new BN(activeStake);
     let delegationStatus = StakingStatus.NOT_EARNING;
 
     if (bnActiveStake.gt(BN_ZERO)) {
       delegationStatus = StakingStatus.EARNING_REWARD;
+      allActiveStake = allActiveStake.add(bnActiveStake);
     }
 
     nominationList.push({
@@ -89,14 +90,14 @@ export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: s
     });
   }
 
-  const stakingStatus = getStakingStatusByNominations(new BN(activeStake), nominationList);
+  const stakingStatus = getStakingStatusByNominations(allActiveStake, nominationList);
 
   return {
     chain: chainInfo.slug,
     type: StakingType.NOMINATED,
     status: stakingStatus,
     address: address,
-    activeStake: activeStake,
+    activeStake: allActiveStake.toString(),
     nominations: nominationList,
     unstakings: []
   } as NominatorMetadata;
