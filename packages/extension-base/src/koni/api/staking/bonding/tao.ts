@@ -19,6 +19,34 @@ import { BN, BN_ZERO } from '@polkadot/util';
 //     }
 //   }
 
+// for test
+const testnetDelegate = {
+  // '5GHczYXpzd5xmNwjxWs63hw9DannNBGDp6tG6aPmsqP5WiwM': {
+  //   name: 'Vune',
+  //   url: 'https://fairchild.dev',
+  //   description: 'Vune is a dev at Opentensor and a BSc CS student at UofT.',
+  //   signature: '2a639f931c61abfc3172db594c986c35f1cc8441970582b9c3b1f0506d518a182a2fe570832f02f86014320f1526189917bfbccf7081622652d12e16e9b1768b'
+  // },
+  '5Fjp4r8cvWexkWUVb756LkopTVjmzXHBT4unpDN6SzwmQq8E': {
+    name: 'TaoPolishNode',
+    url: 'https://taonode.io',
+    description: 'This node is a collective effort of the polish community. We are engaged in evangelizing the project, educating and sharing the knowledge.',
+    signature: '1ca20d4e99a48f400dd9cd4aeca8447da6ab1979e480a1dafddfc52e45e215177c7cdde85f5d042d59a5b1169981afa8d1ae28328e2fc5ce57c3d748c8d09d81'
+  },
+  // '5D1rWnzozRX68ZqKTPXZAFWTJ8hHpox283yWFmsdNjxhRCdB': {
+  //   name: 'RoundTable21',
+  //   url: 'https://roundtable21.com',
+  //   description: 'RoundTable21 is an International, multi-disciplinary team of consultants and advisors partnering alongside leading blockchain startups to offer guidance, expertise, investment and hands-on assistance in every aspect of development.',
+  //   signature: '107638b8edde8f918f7faa2cd1f91b454c13094ed5955d6a409f6e0662f8427075516273728a53923839a5428079151ea0844b5f755362364f04735463dff583'
+  // },
+  '5DG4VHT3gKZDEQ3Tx4oVPpejaz64FeDtNPhbAYTLFBmygHUW': {
+    name: 'WaveTensor',
+    url: 'https://twitter.com/wavetensor',
+    description: 'A new Wave is coming, join the AI revolution on top of Bittensor by staking with us.',
+    signature: '5e072b4752ccbdd4ca3298f336284dfdab347dd133850f4d2f9873e7ea59bd2a8f201732842ec79d2bab3abaf133a06b6bd992940389e42d57802c9b8f855889'
+  }
+};
+
 const fetchDelegates = async () => {
   return new Promise(function (resolve) {
     fetch('https://raw.githubusercontent.com/opentensor/bittensor-delegates/main/public/delegates.json', { // Todo: check if this is exactly active validator list info or not
@@ -53,7 +81,7 @@ export async function subscribeTaoStakingMetadata (chain: string, substrateApi: 
       type: StakingType.NOMINATED,
       era: iPeriod,
       minStake: '0',
-      maxValidatorPerNominator: Infinity,
+      maxValidatorPerNominator: 999,
       maxWithdrawalRequestPerValidator: 1,
       allowCancelUnstaking: false,
       expectedReturn,
@@ -63,8 +91,6 @@ export async function subscribeTaoStakingMetadata (chain: string, substrateApi: 
 }
 
 export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, delegatorState: ParachainStakingStakeOption[]) {
-  // _TODO: do not have unstaking list
-  // _TODO: check identities
 
   const nominationList: NominationInfo[] = [];
   let allActiveStake = BN_ZERO;
@@ -107,15 +133,23 @@ export async function getTaoDelegateInfo (chain: string, substrateApi: _Substrat
   // const chainApi = await substrateApi.isReady;
 
   const allDelegatesInfo: ValidatorInfo[] = [];
-  const allDelegatesPromise = fetchDelegates();
+  // for test
+  let _allDelegates;
 
-  const _allDelegates = await allDelegatesPromise;
+  if (chain === 'bittensor_testnet') {
+    _allDelegates = testnetDelegate;
+  } else {
+    const allDelegatesPromise = fetchDelegates();
+
+    _allDelegates = await allDelegatesPromise;
+  }
 
   const allDelegates = _allDelegates as Record<string, Record<string, string>>;
   const allDelegateAddresses: string[] = Object.keys(allDelegates);
 
   for (const address of allDelegateAddresses) {
     const name = allDelegates[address].name;
+    // todo: remove these info because not use
     // const url = allDelegates[address].url;
     // const description = allDelegates[address].description;
     // const signature = allDelegates[address].signature;
@@ -148,6 +182,9 @@ export async function getTaoBondingExtrinsic (substrateApi: _SubstrateApi, amoun
   const bnAmount = new BN(amount);
   const hotkey = selectedValidatorInfo.address;
 
+  // for test
+  // 5Fjp4r8cvWexkWUVb756LkopTVjmzXHBT4unpDN6SzwmQq8E
+  // 5DG4VHT3gKZDEQ3Tx4oVPpejaz64FeDtNPhbAYTLFBmygHUW
   return chainApi.api.tx.subtensorModule.addStake(hotkey, bnAmount);
 }
 

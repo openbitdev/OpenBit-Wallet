@@ -42,7 +42,7 @@ export function stakingOnChainApi (addresses: string[], substrateApiMap: Record<
 
       unsubList.push(unsub);
     } else if (_STAKING_CHAIN_GROUP.bittensor.includes(chain)) {
-      const unsub = await getTaoStakingOnChain(parentApi, useAddresses, chainInfoMap, chain, stakingCallback, nominatorStateCallback);
+      const unsub = getTaoStakingOnChain(parentApi, useAddresses, chainInfoMap, chain, stakingCallback, nominatorStateCallback);
 
       unsubList.push(unsub);
     } else if (_STAKING_CHAIN_GROUP.para.includes(chain)) {
