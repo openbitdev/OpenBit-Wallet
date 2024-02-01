@@ -91,7 +91,7 @@ export async function subscribeTaoStakingMetadata (chain: string, substrateApi: 
 }
 
 export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, delegatorState: ParachainStakingStakeOption[]) {
-
+  console.log('a');
   const nominationList: NominationInfo[] = [];
   let allActiveStake = BN_ZERO;
 
@@ -100,20 +100,20 @@ export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: s
 
     const activeStake = delegate.amount.toString();
     const bnActiveStake = new BN(activeStake);
-    let delegationStatus = StakingStatus.NOT_EARNING;
 
     if (bnActiveStake.gt(BN_ZERO)) {
-      delegationStatus = StakingStatus.EARNING_REWARD;
-      allActiveStake = allActiveStake.add(bnActiveStake);
-    }
+      const delegationStatus = StakingStatus.EARNING_REWARD;
 
-    nominationList.push({
-      status: delegationStatus,
-      chain: chainInfo.slug,
-      validatorAddress: delegate.owner,
-      activeStake: activeStake,
-      validatorMinStake: '0'
-    });
+      allActiveStake = allActiveStake.add(bnActiveStake);
+
+      nominationList.push({
+        status: delegationStatus,
+        chain: chainInfo.slug,
+        validatorAddress: delegate.owner,
+        activeStake: activeStake,
+        validatorMinStake: '0'
+      });
+    }
   }
 
   const stakingStatus = getStakingStatusByNominations(allActiveStake, nominationList);
