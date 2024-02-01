@@ -419,6 +419,8 @@ export function getStakingAvailableActionsByChain (chain: string, type: StakingT
     return [StakingAction.STAKE, StakingAction.UNSTAKE, StakingAction.WITHDRAW, StakingAction.CLAIM_REWARD];
   } else if (_STAKING_CHAIN_GROUP.amplitude.includes(chain)) {
     return [StakingAction.STAKE, StakingAction.UNSTAKE, StakingAction.WITHDRAW];
+  } else if (_STAKING_CHAIN_GROUP.bittensor.includes(chain)) {
+    return [StakingAction.STAKE, StakingAction.UNSTAKE];
   }
 
   return [StakingAction.STAKE, StakingAction.UNSTAKE, StakingAction.WITHDRAW, StakingAction.CANCEL_UNSTAKE];
