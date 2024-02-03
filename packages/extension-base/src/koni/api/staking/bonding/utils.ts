@@ -54,6 +54,11 @@ export interface ParachainStakingStakeOption {
   amount: number
 }
 
+export interface TaoStakingStakeOption {
+  owner: string,
+  amount: string,
+}
+
 export interface KrestDelegateState {
   delegations: ParachainStakingStakeOption[],
   total: string

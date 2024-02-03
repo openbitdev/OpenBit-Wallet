@@ -66,7 +66,7 @@ export async function getValidatorsInfo (networkKey: string, substrateApi: _Subs
   } else if (_STAKING_CHAIN_GROUP.amplitude.includes(networkKey)) {
     return getAmplitudeCollatorsInfo(networkKey, substrateApi);
   } else if (_STAKING_CHAIN_GROUP.bittensor.includes(networkKey)) {
-    return getTaoDelegateInfo(networkKey, substrateApi);
+    return getTaoDelegateInfo(networkKey);
   }
 
   return getRelayValidatorsInfo(networkKey, substrateApi, decimals, chainStakingMetadata);
@@ -171,7 +171,7 @@ export function subscribeEssentialChainStakingMetadata (substrateApiMap: Record<
       // @ts-ignore
       unsubList.push(unsub);
     } else if (_STAKING_CHAIN_GROUP.bittensor.includes(chainInfo.slug)) {
-      const unsub = await subscribeTaoStakingMetadata(chainInfo.slug, substrateApi, callback);
+      const unsub = subscribeTaoStakingMetadata(chainInfo.slug, substrateApi, callback);
 
       // @ts-ignore
       unsubList.push(unsub);

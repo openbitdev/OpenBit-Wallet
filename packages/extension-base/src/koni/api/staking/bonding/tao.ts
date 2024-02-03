@@ -3,11 +3,11 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainStakingMetadata, NominationInfo, NominatorMetadata, StakingStatus, StakingType, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { getStakingStatusByNominations, ParachainStakingStakeOption } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
+import { BITTENSOR_REFRESH_STAKE_APY } from '@subwallet/extension-base/constants';
+import { getStakingStatusByNominations, TaoStakingStakeOption } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import fetch from 'cross-fetch';
 
-import { Codec } from '@polkadot/types/types';
 import { BN, BN_ZERO } from '@polkadot/util';
 
 // interface DelegateInfo {
@@ -67,19 +67,16 @@ const fetchStakingInfo = async (): Promise<Array<Record<string, string>>> => {
   });
 };
 
-export async function subscribeTaoStakingMetadata (chain: string, substrateApi: _SubstrateApi, callback: (chain: string, rs: ChainStakingMetadata) => void) {
+export function subscribeTaoStakingMetadata (chain: string, substrateApi: _SubstrateApi, callback: (chain: string, rs: ChainStakingMetadata) => void) {
   // _TODO: optimize case subscribe an API in a subscription -> Rxjs or fetch interval
-  return substrateApi.api.query.subtensorModule.networkImmunityPeriod(async (_iPeriod: Codec) => {
-    const iPeriod = parseInt(_iPeriod.toString());
-
+  async function _subscribeStakingMetadataInterval () {
     const _expectedReturn = (await fetchStakingInfo())[0];
     const expectedReturn = _expectedReturn.staking_apy as unknown as number;
 
-    // Note for reviewer: This staking different on Staking metadata structure, should we create another interface like TaoStakingMetadata (do not have era, unlocking infor, etc.)?
     callback(chain, {
       chain,
       type: StakingType.NOMINATED,
-      era: iPeriod,
+      era: 0,
       minStake: '0',
       maxValidatorPerNominator: 999,
       maxWithdrawalRequestPerValidator: 1,
@@ -87,18 +84,28 @@ export async function subscribeTaoStakingMetadata (chain: string, substrateApi: 
       expectedReturn,
       unstakingPeriod: 0
     });
-  });
+  }
+
+  function subscribeStakingMetadataInterval () {
+    _subscribeStakingMetadataInterval().catch(console.error);
+  }
+
+  subscribeStakingMetadataInterval();
+  const interval = setInterval(subscribeStakingMetadataInterval, BITTENSOR_REFRESH_STAKE_APY);
+
+  return () => {
+    clearInterval(interval);
+  };
 }
 
-export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, delegatorState: ParachainStakingStakeOption[]) {
-  console.log('a');
+export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: string, delegatorState: TaoStakingStakeOption[]) {
   const nominationList: NominationInfo[] = [];
   let allActiveStake = BN_ZERO;
 
   for (let i = 0; i < delegatorState.length; i++) {
     const delegate = delegatorState[i];
 
-    const activeStake = delegate.amount.toString();
+    const activeStake = delegate.amount;
     const bnActiveStake = new BN(activeStake);
 
     if (bnActiveStake.gt(BN_ZERO)) {
@@ -129,9 +136,7 @@ export function subscribeTaoDelegatorMetadata (chainInfo: _ChainInfo, address: s
   } as NominatorMetadata;
 }
 
-export async function getTaoDelegateInfo (chain: string, substrateApi: _SubstrateApi): Promise<ValidatorInfo[]> {
-  // const chainApi = await substrateApi.isReady;
-
+export async function getTaoDelegateInfo (chain: string): Promise<ValidatorInfo[]> {
   const allDelegatesInfo: ValidatorInfo[] = [];
   // for test
   let _allDelegates;
@@ -149,10 +154,6 @@ export async function getTaoDelegateInfo (chain: string, substrateApi: _Substrat
 
   for (const address of allDelegateAddresses) {
     const name = allDelegates[address].name;
-    // todo: remove these info because not use
-    // const url = allDelegates[address].url;
-    // const description = allDelegates[address].description;
-    // const signature = allDelegates[address].signature;
 
     allDelegatesInfo.push({
       address: address,

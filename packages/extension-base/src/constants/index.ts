@@ -19,6 +19,8 @@ export const CRON_SYNC_MANTA_PAY = 300000;
 export const MANTA_PAY_BALANCE_INTERVAL = 30000;
 export const BITTENSOR_REFRESH_STAKE_INFO = 30000;
 
+export const BITTENSOR_REFRESH_STAKE_APY = 300000;
+
 export const ALL_ACCOUNT_KEY = 'ALL';
 export const ALL_NETWORK_KEY = 'all';
 export const ALL_GENESIS_HASH = null;

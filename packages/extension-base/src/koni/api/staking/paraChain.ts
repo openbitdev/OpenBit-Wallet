@@ -8,7 +8,7 @@ import { subscribeAmplitudeNominatorMetadata } from '@subwallet/extension-base/k
 import { subscribeAstarNominatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/astar';
 import { subscribeParaChainNominatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/paraChain';
 import { subscribeTaoDelegatorMetadata } from '@subwallet/extension-base/koni/api/staking/bonding/tao';
-import { KrestDelegateState, PalletDappsStakingAccountLedger, PalletParachainStakingDelegator, ParachainStakingStakeOption } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
+import { KrestDelegateState, PalletDappsStakingAccountLedger, PalletParachainStakingDelegator, ParachainStakingStakeOption, TaoStakingStakeOption } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
 import { _STAKING_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenBasicInfo } from '@subwallet/extension-base/services/chain-service/utils';
@@ -428,7 +428,7 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
     // for test
     if (chain === 'bittensor_testnet') {
       const testnetAddresses = ['5Fjp4r8cvWexkWUVb756LkopTVjmzXHBT4unpDN6SzwmQq8E', '5DG4VHT3gKZDEQ3Tx4oVPpejaz64FeDtNPhbAYTLFBmygHUW'];
-      const delegatorState: ParachainStakingStakeOption[] = [];
+      const delegatorState: TaoStakingStakeOption[] = [];
       let bnTotalBalance = BN_ZERO;
 
       for (const hotkey of testnetAddresses) {
@@ -439,14 +439,9 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
         bnTotalBalance = bnTotalBalance.add(bnStakeAmount);
         delegatorState.push({
           owner: hotkey,
-          amount: Number(bnStakeAmount)
+          amount: bnStakeAmount.toString()
         });
       }
-
-      // console.log('chain', chain);
-      // console.log(delegatorState);
-      // console.log(bnTotalBalance.toString());
-      // console.log(owner);
 
       stakingCallback(chain, {
         name: chainInfoMap[chain].name,
@@ -461,7 +456,7 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
         address: owner
       } as StakingItem);
 
-      const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+      const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, delegatorState);
 
       nominatorStateCallback(nominatorMetadata);
     } else {
@@ -491,7 +486,7 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
           unstakings: []
         } as NominatorMetadata);
       } else {
-        const delegatorState: ParachainStakingStakeOption[] = [];
+        const delegatorState: TaoStakingStakeOption[] = [];
         let bnTotalBalance = BN_ZERO;
         const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
 
@@ -499,7 +494,7 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
           bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
           delegatorState.push({
             owner: delegate.delegate,
-            amount: Number(delegate.amount)
+            amount: delegate.amount.toString()
           });
         }
 
@@ -516,7 +511,7 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
           address: owner
         } as StakingItem);
 
-        const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+        const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, delegatorState);
 
         nominatorStateCallback(nominatorMetadata);
       }
@@ -535,20 +530,19 @@ function getSingleStakingTao (substrateApi: _SubstrateApi, useAddress: string, c
   };
 }
 
-// _TODO temporary disable
-function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[], chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
+function getMultiStakingTao (useAddresses: string[], chainInfoMap: Record<string, _ChainInfo>, chain: string, stakingCallback: (networkKey: string, rs: StakingItem) => void, nominatorStateCallback: (nominatorMetadata: NominatorMetadata) => void) {
   async function _getStakingTaoInterval () {
     const rawDelegateStateInfos = await Promise.all(useAddresses.map((address) => {
       return fetchDelegateState(address);
     }));
 
-    if (rawDelegateStateInfos) {
+    if (rawDelegateStateInfos.length > 0) {
       const { symbol } = _getChainNativeTokenBasicInfo(chainInfoMap[chain]);
 
       // eslint-disable-next-line array-callback-return
       rawDelegateStateInfos.map((rawDelegateStateInfo, i) => {
         const owner = reformatAddress(useAddresses[i], 42);
-        const delegatorState: ParachainStakingStakeOption[] = [];
+        const delegatorState: TaoStakingStakeOption[] = [];
         let bnTotalBalance = BN_ZERO;
         const delegateStateInfo = rawDelegateStateInfo?.data?.delegateBalances?.nodes;
 
@@ -556,7 +550,7 @@ function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[]
           bnTotalBalance = bnTotalBalance.add(new BN(delegate.amount));
           delegatorState.push({
             owner: delegate.delegate,
-            amount: Number(delegate.amount)
+            amount: delegate.amount.toString()
           });
         }
 
@@ -572,8 +566,7 @@ function getMultiStakingTao (substrateApi: _SubstrateApi, useAddresses: string[]
           type: StakingType.NOMINATED,
           address: owner
         } as StakingItem);
-        // console.log(owner, useAddress);
-        const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, substrateApi, delegatorState);
+        const nominatorMetadata = subscribeTaoDelegatorMetadata(chainInfoMap[chain], owner, delegatorState);
 
         nominatorStateCallback(nominatorMetadata);
       });
@@ -597,5 +590,5 @@ export function getTaoStakingOnChain (parentApi: _SubstrateApi, useAddresses: st
     return getSingleStakingTao(parentApi, useAddresses[0], networks, chain, callback, nominatorStateCallback);
   }
 
-  return getMultiStakingTao(parentApi, useAddresses, networks, chain, callback, nominatorStateCallback);
+  return getMultiStakingTao(useAddresses, networks, chain, callback, nominatorStateCallback);
 }
