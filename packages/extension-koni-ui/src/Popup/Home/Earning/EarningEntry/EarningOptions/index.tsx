@@ -1,6 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { isLendingPool, isLiquidPool } from '@subwallet/extension-base/services/earning-service/utils';
+import { YieldPoolInfo } from '@subwallet/extension-base/types';
 import { EmptyList, FilterModal, Layout } from '@subwallet/extension-koni-ui/components';
 import { EarningOptionItem } from '@subwallet/extension-koni-ui/components/Earning';
 import { DEFAULT_EARN_PARAMS, EARN_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
@@ -60,6 +62,7 @@ function Component ({ className, hasEarningPositions, setEntryView }: Props) {
 
   const data = useYieldGroupInfo();
   const { poolInfoMap } = useSelector((state) => state.earning);
+  const assetRegistry = useSelector((state) => state.assetRegistry.assetRegistry);
   const chainInfoMap = useSelector((state) => state.chainStore.chainInfoMap);
   const { currentAccount } = useSelector((state) => state.accountState);
 
@@ -145,6 +148,16 @@ function Component ({ className, hasEarningPositions, setEntryView }: Props) {
     connectChainModalId
   }, onConnectChainSuccess);
 
+  const getAltChain = useCallback((poolInfo: YieldPoolInfo) => {
+    if (isLiquidPool(poolInfo) || isLendingPool(poolInfo)) {
+      const asset = assetRegistry[poolInfo.metadata.altInputAssets || ''];
+
+      return asset ? asset.originChain : '';
+    }
+
+    return '';
+  }, [assetRegistry]);
+
   const onClickItem = useCallback((item: YieldGroupInfo) => {
     return () => {
       setSelectedPoolGroup(item);
@@ -155,14 +168,32 @@ function Component ({ className, hasEarningPositions, setEntryView }: Props) {
           symbol: item.symbol
         } as EarningPoolsParam });
       } else if (item.poolListLength === 1) {
-        if (!checkChainConnected(item.chain)) {
-          openConnectChainModal(item.chain);
-        } else {
-          navigateToEarnTransaction(item);
+        const poolInfo = poolInfoMap[item.poolSlugs[0]];
+
+        if (!poolInfo) {
+          // will not happen
+
+          return;
         }
+
+        const altChain = getAltChain(poolInfo);
+
+        if (altChain) {
+          if (!checkChainConnected(altChain)) {
+            openConnectChainModal(altChain);
+
+            return;
+          }
+        } else if (!checkChainConnected(item.chain)) {
+          openConnectChainModal(item.chain);
+
+          return;
+        }
+
+        navigateToEarnTransaction(item);
       }
     };
-  }, [checkChainConnected, navigate, navigateToEarnTransaction, openConnectChainModal]);
+  }, [checkChainConnected, getAltChain, navigate, navigateToEarnTransaction, openConnectChainModal, poolInfoMap]);
 
   const renderItem = useCallback(
     (item: YieldGroupInfo) => {
