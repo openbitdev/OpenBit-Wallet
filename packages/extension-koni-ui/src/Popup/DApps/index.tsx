@@ -18,12 +18,36 @@ import { ArrowCircleLeft, ArrowCircleRight, FadersHorizontal } from 'phosphor-re
 import React, { SyntheticEvent, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
-import Slider, { Settings } from 'react-slick';
+import Slider, { CustomArrowProps, Settings } from 'react-slick';
 import styled from 'styled-components';
 
 type Props = ThemeProps;
 
 const FILTER_MODAL_ID = 'dapp-filter-modal';
+
+const NextArrow = ({ currentSlide, slideCount, ...props }: CustomArrowProps) => (
+  <div {...props}>
+    <div className={'__right-arrow'}>
+      <Icon
+        customSize={'28px'}
+        phosphorIcon={ArrowCircleRight}
+        weight={'fill'}
+      />
+    </div>
+  </div>
+);
+
+const PrevArrow = ({ currentSlide, slideCount, ...props }: CustomArrowProps) => (
+  <div {...props}>
+    <div className={'__left-arrow'}>
+      <Icon
+        customSize={'28px'}
+        phosphorIcon={ArrowCircleLeft}
+        weight={'fill'}
+      />
+    </div>
+  </div>
+);
 
 const Component: React.FC<Props> = ({ className }: Props) => {
   const { t } = useTranslation();
@@ -48,28 +72,8 @@ const Component: React.FC<Props> = ({ className }: Props) => {
       swipeToSlide: true,
       waitForAnimate: true,
       autoplay: true,
-      nextArrow: (
-        <div>
-          <div className={'__right-arrow'}>
-            <Icon
-              customSize={'28px'}
-              phosphorIcon={ArrowCircleRight}
-              weight={'fill'}
-            />
-          </div>
-        </div>
-      ),
-      prevArrow: (
-        <div>
-          <div className={'__left-arrow'}>
-            <Icon
-              customSize={'28px'}
-              phosphorIcon={ArrowCircleLeft}
-              weight={'fill'}
-            />
-          </div>
-        </div>
-      )
+      nextArrow: <NextArrow />,
+      prevArrow: <PrevArrow />
     };
   }, [featureDApps.length, sliderDisplayCount]);
 
