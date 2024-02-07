@@ -8,7 +8,7 @@ import KoniState from '@subwallet/extension-base/koni/background/handlers/State'
 import { _EXPECTED_BLOCK_TIME, _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainSubstrateAddressPrefix } from '@subwallet/extension-base/services/chain-service/utils';
-import { BaseYieldPositionInfo, EarningRewardHistoryItem, EarningRewardItem, EarningStatus, HandleYieldStepData, NominationPoolInfo, NominationYieldPoolInfo, OptimalYieldPath, OptimalYieldPathParams, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletStakingExposure, PalletStakingNominations, RequestStakePoolingBonding, StakeCancelWithdrawalParams, SubmitJoinNominationPool, SubmitYieldJoinData, TransactionData, UnstakingStatus, YieldPoolInfo, YieldPoolMethodInfo, YieldPoolType, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
+import { BaseYieldPositionInfo, EarningRewardHistoryItem, EarningRewardItem, EarningStatus, HandleYieldStepData, NominationPoolInfo, NominationYieldPoolInfo, OptimalYieldPath, OptimalYieldPathParams, PalletNominationPoolsBondedPoolInner, PalletNominationPoolsPoolMember, PalletStakingExposure, PalletStakingExposurePage, PalletStakingNominations, RequestStakePoolingBonding, StakeCancelWithdrawalParams, SubmitJoinNominationPool, SubmitYieldJoinData, TransactionData, UnstakingStatus, YieldPoolInfo, YieldPoolMethodInfo, YieldPoolType, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
 import { balanceFormatter, formatNumber, reformatAddress } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 import { t } from 'i18next';
@@ -206,8 +206,28 @@ export default class NominationPoolHandler extends BasePoolHandler {
       const validatorList = nominations.targets;
 
       await Promise.all(validatorList.map(async (validatorAddress) => {
-        const _eraStaker = await substrateApi.api.query.staking.erasStakers(currentEra, validatorAddress);
-        const eraStaker = _eraStaker.toPrimitive() as unknown as PalletStakingExposure;
+        let eraStaker: PalletStakingExposure;
+
+        if (substrateApi.api.query.staking.erasStakersPaged) {
+          const _eraStakers = await substrateApi.api.query.staking.erasStakersPaged.entries(currentEra, validatorAddress);
+
+          eraStaker = {
+            others: [],
+            total: 0,
+            own: 0
+          };
+
+          for (const [, _eraStaker] of _eraStakers) {
+            const tmp = _eraStaker.toPrimitive() as unknown as PalletStakingExposurePage;
+
+            eraStaker.total = eraStaker.total + tmp.pageTotal;
+            eraStaker.others.push(...tmp.others);
+          }
+        } else {
+          const _eraStaker = await substrateApi.api.query.staking.erasStakers(currentEra, validatorAddress);
+
+          eraStaker = _eraStaker.toPrimitive() as unknown as PalletStakingExposure;
+        }
 
         const sortedNominators = eraStaker.others
           .sort((a, b) => {
