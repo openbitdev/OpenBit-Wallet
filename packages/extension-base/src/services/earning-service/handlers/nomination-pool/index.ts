@@ -12,6 +12,7 @@ import { BaseYieldPositionInfo, EarningRewardHistoryItem, EarningRewardItem, Ear
 import { balanceFormatter, formatNumber, reformatAddress } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 import { t } from 'i18next';
+import { combineLatest } from 'rxjs';
 
 import { SubmittableExtrinsic } from '@polkadot/api/types';
 import { UnsubscribePromise } from '@polkadot/api-base/types/base';
@@ -280,62 +281,56 @@ export default class NominationPoolHandler extends BasePoolHandler {
   }
 
   async subscribePoolPosition (useAddresses: string[], resultCallback: (rs: YieldPositionInfo) => void): Promise<VoidFunction> {
-    let cancel = false;
     const substrateApi = this.substrateApi;
     const defaultInfo = this.baseInfo;
 
     await substrateApi.isReady;
 
-    const unsub = await substrateApi.api.query?.nominationPools?.poolMembers.multi(useAddresses, async (ledgers: Codec[]) => {
-      if (cancel) {
-        unsub();
+    const ledgerObservable = substrateApi.api.rx.query.nominationPools.poolMembers.multi(useAddresses);
+    const currentEraObservable = substrateApi.api.rx.query.staking.currentEra();
+    const subscribe = combineLatest({ ledgers: ledgerObservable, _currentEra: currentEraObservable })
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      .subscribe(async ({ _currentEra,
+        ledgers }) => {
+        if (ledgers) {
+          const _deriveSessionProgress = await substrateApi.api.derive?.session?.progress();
 
-        return;
-      }
+          const currentEra = _currentEra.toString();
 
-      if (ledgers) {
-        const [_currentEra, _deriveSessionProgress] = await Promise.all([
-          substrateApi.api.query.staking.currentEra(),
-          substrateApi.api.derive?.session?.progress()
-        ]);
+          await Promise.all(ledgers.map(async (_poolMemberInfo, i) => {
+            const poolMemberInfo = _poolMemberInfo.toPrimitive() as unknown as PalletNominationPoolsPoolMember;
+            const owner = reformatAddress(useAddresses[i], 42);
 
-        const currentEra = _currentEra.toString();
+            if (poolMemberInfo) {
+              const nominatorMetadata = await this.parsePoolMemberMetadata(substrateApi, poolMemberInfo, currentEra, _deriveSessionProgress);
 
-        await Promise.all(ledgers.map(async (_poolMemberInfo, i) => {
-          const poolMemberInfo = _poolMemberInfo.toPrimitive() as unknown as PalletNominationPoolsPoolMember;
-          const owner = reformatAddress(useAddresses[i], 42);
-
-          if (poolMemberInfo) {
-            const nominatorMetadata = await this.parsePoolMemberMetadata(substrateApi, poolMemberInfo, currentEra, _deriveSessionProgress);
-
-            resultCallback({
-              ...defaultInfo,
-              ...nominatorMetadata,
-              address: owner,
-              type: this.type
-            });
-          } else {
-            resultCallback({
-              ...defaultInfo,
-              type: this.type,
-              address: owner,
-              balanceToken: this.nativeToken.slug,
-              totalStake: '0',
-              activeStake: '0',
-              unstakeBalance: '0',
-              isBondedBefore: false,
-              status: EarningStatus.NOT_STAKING,
-              nominations: [], // can only join 1 pool at a time
-              unstakings: []
-            });
-          }
-        }));
-      }
-    });
+              resultCallback({
+                ...defaultInfo,
+                ...nominatorMetadata,
+                address: owner,
+                type: this.type
+              });
+            } else {
+              resultCallback({
+                ...defaultInfo,
+                type: this.type,
+                address: owner,
+                balanceToken: this.nativeToken.slug,
+                totalStake: '0',
+                activeStake: '0',
+                unstakeBalance: '0',
+                isBondedBefore: false,
+                status: EarningStatus.NOT_STAKING,
+                nominations: [], // can only join 1 pool at a time
+                unstakings: []
+              });
+            }
+          }));
+        }
+      });
 
     return () => {
-      cancel = true;
-      unsub();
+      subscribe.unsubscribe();
     };
   }
 
