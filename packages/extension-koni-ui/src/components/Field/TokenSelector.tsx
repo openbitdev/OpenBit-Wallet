@@ -72,12 +72,12 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
       return chainAsset ? filterFunction(chainAsset) : false;
     });
 
-    raw.sort((a, b) => {
-      return convertChainActivePriority(chainStateMap[b.originChain]?.active) - convertChainActivePriority(chainStateMap[a.originChain]?.active);
-    });
-
     isShowBalance && raw.sort((a, b) => {
       return sortTokenByValue(tokenBalanceMap[a.slug], tokenBalanceMap[b.slug]);
+    });
+
+    raw.sort((a, b) => {
+      return convertChainActivePriority(chainStateMap[b.originChain]?.active) - convertChainActivePriority(chainStateMap[a.originChain]?.active);
     });
 
     return raw;
@@ -139,31 +139,33 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
                   )
                 }
               </div>
-              { !!isShowBalance && <Number
-                className={CN('__value', {
-                  '-is-not-selected': !selected
-                })}
-                decimal={0}
-                decimalOpacity={0.45}
-                value={tokenBalanceMap[item.slug].total.value}
-              /> }
+              { !!isShowBalance && tokenBalanceMap[item.slug].isReady &&
+                <Number
+                  className={CN('__value', {
+                    '-is-not-selected': !selected
+                  })}
+                  decimal={0}
+                  decimalOpacity={0.45}
+                  value={tokenBalanceMap[item.slug].total.value}
+                /> }
             </div>
             <div className='__token-info-row'>
               <div className='__token-original-chain'>
                 {chainInfoMap[item.originChain]?.name || item.originChain}
               </div>
-              { !!isShowBalance && <Number
-                className={CN('__converted-value', {
-                  '-is-not-selected': !selected
-                })}
-                decimal={0}
-                decimalOpacity={0.45}
-                intOpacity={0.45}
-                prefix='$'
-                size={12}
-                unitOpacity={0.45}
-                value={tokenBalanceMap[item.slug].total.convertedValue}
-              />}
+              { !!isShowBalance && tokenBalanceMap[item.slug].isReady &&
+                <Number
+                  className={CN('__converted-value', {
+                    '-is-not-selected': !selected
+                  })}
+                  decimal={0}
+                  decimalOpacity={0.45}
+                  intOpacity={0.45}
+                  prefix='$'
+                  size={12}
+                  unitOpacity={0.45}
+                  value={tokenBalanceMap[item.slug].total.convertedValue}
+                />}
             </div>
           </div>
         )}
