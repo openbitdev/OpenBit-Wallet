@@ -3,21 +3,40 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
-import { BasicTxErrorType, ExtrinsicType, NominationInfo, UnstakingInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { APIItemState, BasicTxErrorType, ExtrinsicType, NominationInfo, UnstakingInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getEarningStatusByNominations } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
-import { _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
+import { _EXPECTED_BLOCK_TIME, _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { BaseYieldPositionInfo, EarningStatus, NativeYieldPoolInfo, PalletDappsStakingAccountLedger, PalletDappsStakingDappInfo, StakeCancelWithdrawalParams, SubmitJoinNativeStaking, TransactionData, UnstakingStatus, ValidatorInfo, YieldPoolInfo, YieldPoolMethodInfo, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
+import { BaseYieldPositionInfo, EarningRewardItem, EarningStatus, NativeYieldPoolInfo, PalletDappsStakingAccountLedger, PalletDappsStakingDappInfo, PalletDappStakingAccountLedger, StakeCancelWithdrawalParams, SubmitJoinNativeStaking, TransactionData, UnstakingStatus, ValidatorInfo, YieldPoolInfo, YieldPoolMethodInfo, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
 import { balanceFormatter, formatNumber, isUrl, parseRawNumber, reformatAddress } from '@subwallet/extension-base/utils';
 import fetch from 'cross-fetch';
 
-import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { UnsubscribePromise } from '@polkadot/api-base/types/base';
 import { Codec } from '@polkadot/types/types';
 import { BN, BN_ZERO } from '@polkadot/util';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import BaseParaNativeStakingPoolHandler from './base-para';
+
+interface CurrentEraInfo {
+  totalLocked: string,
+  unlocking: string,
+  currentStakeAmount: StakeInfo,
+  nextStakeAmount: StakeInfo
+}
+
+interface StakeInfo {
+  voting: string,
+  buildAndEarn: string,
+  era: number,
+  period: number
+}
+
+interface DAppInfo {
+  owner: string;
+  id: number;
+  rewardBeneficiary: any;
+}
 
 const convertAddress = (address: string) => {
   return isEthereumAddress(address) ? address.toLowerCase() : address;
@@ -122,16 +141,17 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
       apyInfo = null;
     }
 
-    const unsub = await (substrateApi.api.query.dappsStaking.currentEra((_currentEra: Codec) => {
+    const unsub = await (substrateApi.api.query.dappStaking.currentEraInfo((_currentEra: CurrentEraInfo) => {
       if (cancel) {
         unsub();
 
         return;
       }
 
-      const era = _currentEra.toString();
-      const minDelegatorStake = substrateApi.api.consts.dappsStaking.minimumStakingAmount.toString();
-      const unstakingDelay = substrateApi.api.consts.dappsStaking.unbondingPeriod.toString();
+      const era = _currentEra.currentStakeAmount.era.toString();
+      const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
+      const unstakingDelay = substrateApi.api.consts.dappStaking.unlockingPeriod.toString();
+      const maxUnlockingChunks = substrateApi.api.consts.dappStaking.maxUnlockingChunks.toPrimitive() as number;
 
       const eraTime = _STAKING_ERA_LENGTH_MAP[this.chain] || _STAKING_ERA_LENGTH_MAP.default; // in hours
       const unstakingPeriod = parseInt(unstakingDelay) * eraTime;
@@ -152,7 +172,7 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
             }
           ],
           maxCandidatePerFarmer: 100, // temporary fix for Astar, there's no limit for now
-          maxWithdrawalRequestPerFarmer: 1, // by default
+          maxWithdrawalRequestPerFarmer: maxUnlockingChunks, // by default
           earningThreshold: {
             join: minDelegatorStake,
             defaultUnstake: '0',
@@ -180,7 +200,7 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
 
   /* Subscribe pool position */
 
-  async parseNominatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, ledger: PalletDappsStakingAccountLedger): Promise<Omit<YieldPositionInfo, keyof BaseYieldPositionInfo>> {
+  async parseNominatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, ledger: PalletDappStakingAccountLedger): Promise<Omit<YieldPositionInfo, keyof BaseYieldPositionInfo>> {
     const nominationList: NominationInfo[] = [];
     const unstakingList: UnstakingInfo[] = [];
 
@@ -192,14 +212,14 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
       }).catch(console.error);
     });
 
-    const [_allDapps, _era, _stakerInfo] = await Promise.all([
+    const [_allDapps, _currentBlockNumber, _stakerInfo] = await Promise.all([
       allDappsReq,
-      substrateApi.api.query.dappsStaking.currentEra(),
-      substrateApi.api.query.dappsStaking.generalStakerInfo.entries(address)
+      substrateApi.api.query.system.number(),
+      substrateApi.api.query.dappStaking.stakerInfo.entries(address)
     ]);
 
-    const currentEra = _era.toString();
-    const minDelegatorStake = substrateApi.api.consts.dappsStaking.minimumStakingAmount.toString();
+    const blockNumber = parseInt(_currentBlockNumber.toString());
+    const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
     const allDapps = _allDapps as PalletDappsStakingDappInfo[];
 
     let bnTotalActiveStake = BN_ZERO;
@@ -214,26 +234,27 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
       for (const item of _stakerInfo) {
         const data = item[0].toHuman() as unknown as any[];
         const stakedDapp = data[1] as Record<string, string>;
-        const stakeData = item[1].toPrimitive() as Record<string, Record<string, string>[]>;
-        const stakeList = stakeData.stakes;
+        const stakeData = item[1].toPrimitive() as unknown as Record<string, Record<string, StakeInfo>>;
+        const stakeInfo = stakeData.staked;
+
+        const voting = new BN(stakeInfo?.voting?.toString() || '0');
+        const buildAndEarn = new BN(stakeInfo?.buildAndEarn?.toString() || '0');
+        const bnCurrentStake = voting.add(buildAndEarn) || BN_ZERO;
 
         const _dappAddress = stakedDapp.Evm ? stakedDapp.Evm.toLowerCase() : stakedDapp.Wasm;
         const dappAddress = convertAddress(_dappAddress);
-        const currentStake = stakeList.slice(-1)[0].staked.toString() || '0';
 
-        const bnCurrentStake = new BN(currentStake);
-
-        if (bnCurrentStake.gt(BN_ZERO)) {
-          const dappEarningStatus = bnCurrentStake.gt(BN_ZERO) && bnCurrentStake.gte(new BN(minDelegatorStake)) ? EarningStatus.EARNING_REWARD : EarningStatus.NOT_EARNING;
+        if (bnCurrentStake.gt(BN_ZERO)) { // [info] current stake now only can be 0 or gte minDelegatorStake
+          const dappStakingStatus = bnCurrentStake.gt(BN_ZERO) && bnCurrentStake.gte(new BN(minDelegatorStake)) ? EarningStatus.EARNING_REWARD : EarningStatus.NOT_EARNING;
 
           bnTotalActiveStake = bnTotalActiveStake.add(bnCurrentStake);
           const dappInfo = dAppInfoMap[dappAddress];
 
           nominationList.push({
-            status: dappEarningStatus,
+            status: dappStakingStatus,
             chain: chainInfo.slug,
             validatorAddress: dappAddress,
-            activeStake: currentStake,
+            activeStake: bnCurrentStake.toString(),
             validatorMinStake: '0',
             validatorIdentity: dappInfo?.name,
             hasUnstaking: false // cannot get unstaking info by dapp
@@ -242,13 +263,13 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
       }
     }
 
-    const unlockingChunks = ledger.unbondingInfo.unlockingChunks;
+    const unlockingChunks = ledger.unlocking;
 
     if (unlockingChunks.length > 0) {
       for (const unlockingChunk of unlockingChunks) {
-        const isClaimable = unlockingChunk.unlockEra - parseInt(currentEra) < 0;
-        const remainingEra = unlockingChunk.unlockEra - parseInt(currentEra);
-        const waitingTime = remainingEra * _STAKING_ERA_LENGTH_MAP[chainInfo.slug];
+        const isClaimable = unlockingChunk.unlockBlock - blockNumber <= 0;
+        const remainingBlock = unlockingChunk.unlockBlock - blockNumber;
+        const waitingTime = remainingBlock * _EXPECTED_BLOCK_TIME[chainInfo.slug] / 60 / 60; // TODO: must re-check
 
         unstakingList.push({
           chain: chainInfo.slug,
@@ -298,7 +319,7 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
     const defaultInfo = this.baseInfo;
     const chainInfo = this.chainInfo;
 
-    const unsub = await substrateApi.api.query.dappsStaking.ledger.multi(useAddresses, async (ledgers: Codec[]) => {
+    const unsub = await substrateApi.api.query.dappStaking.ledger.multi(useAddresses, async (ledgers: Codec[]) => {
       if (cancel) {
         unsub();
 
@@ -309,9 +330,9 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
         await Promise.all(ledgers.map(async (_ledger, i) => {
           const owner = reformatAddress(useAddresses[i], 42);
 
-          const ledger = _ledger.toPrimitive() as unknown as PalletDappsStakingAccountLedger;
+          const ledger = _ledger.toPrimitive() as unknown as PalletDappStakingAccountLedger;
 
-          if (ledger && ledger.locked > 0) {
+          if (ledger) {
             const nominatorMetadata = await this.parseNominatorMetadata(chainInfo, owner, substrateApi, ledger);
 
             resultCallback({
@@ -347,14 +368,47 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
 
   /* Subscribe pool position */
 
+  /* Get pool reward */
+
+  override async getPoolReward (useAddresses: string[], callBack: (rs: EarningRewardItem) => void): Promise<VoidFunction> {
+    let cancel = false;
+    const substrateApi = this.substrateApi;
+
+    await substrateApi.isReady;
+
+    for (const address of useAddresses) {
+      if (!cancel) {
+        const _unclaimedReward = await substrateApi.api.tx.dappStaking.claimUnlocked();
+
+        console.log(_unclaimedReward.toPrimitive());
+
+        if (_unclaimedReward) {
+          callBack({
+            ...this.baseInfo,
+            address: address,
+            type: this.type,
+            unclaimedReward: _unclaimedReward.toString(),
+            state: APIItemState.READY
+          });
+        }
+      }
+    }
+
+    return () => {
+      cancel = false;
+    };
+  }
+
+  /* Get pool reward */
+
   /* Get pool targets */
 
   async getPoolTargets (): Promise<ValidatorInfo[]> {
     const chainApi = await this.substrateApi.isReady;
-    const rawMaxStakerPerContract = (chainApi.api.consts.dappsStaking.maxNumberOfStakersPerContract).toHuman() as string;
+    // const rawMaxStakerPerContract = (chainApi.api.consts.dappsStaking.maxNumberOfStakersPerContract).toHuman() as string;
 
     const allDappsInfo: ValidatorInfo[] = [];
-    const maxStakerPerContract = parseRawNumber(rawMaxStakerPerContract);
+    // const maxStakerPerContract = parseRawNumber(rawMaxStakerPerContract);
 
     const allDappsReq = new Promise((resolve) => {
       fetch(`https://api.astar.network/api/v1/${this.chain}/dapps-staking/dapps`, {
@@ -365,11 +419,11 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
     });
 
     const [_era, _allDapps] = await Promise.all([
-      chainApi.api.query.dappsStaking.currentEra(),
+      chainApi.api.query.dappStaking.currentEraInfo() as unknown as Promise<CurrentEraInfo>,
       allDappsReq
     ]);
 
-    const era = parseRawNumber(_era.toHuman() as string);
+    const era = parseRawNumber(_era.currentStakeAmount.era.toString());
     const allDapps = _allDapps as Record<string, any>[];
 
     await Promise.all(allDapps.map(async (dapp) => {
@@ -377,15 +431,22 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
       const dappAddress = dapp.address as string;
       const dappIcon = isUrl(dapp.iconUrl as string) ? dapp.iconUrl as string : undefined;
       const contractParam = isEthereumAddress(dappAddress) ? { Evm: dappAddress } : { Wasm: dappAddress };
-      const _contractInfo = await chainApi.api.query.dappsStaking.contractEraStake(contractParam, era);
-      const contractInfo = _contractInfo.toPrimitive() as Record<string, any>;
-      let totalStake = '0';
-      let stakerCount = 0;
 
-      if (contractInfo !== null) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-        totalStake = contractInfo?.total?.toString();
-        stakerCount = contractInfo.numberOfStakers as number;
+      const _integratedInfo = await chainApi.api.query.dappStaking.integratedDApps(contractParam);
+      const integratedInfo = _integratedInfo.toPrimitive() as unknown as DAppInfo;
+
+      let totalStake = '0';
+      const stakerCount = 0;
+
+      if (integratedInfo) {
+        const _contractInfo = await chainApi.api.query.dappStaking.contractStake(integratedInfo.id);
+        const contractInfo = _contractInfo.toPrimitive() as unknown as Record<string, StakeInfo>;
+
+        if (contractInfo !== null) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+          totalStake = contractInfo.staked.voting.toString();
+          // stakerCount = contractInfo.numberOfStakers as number;
+        }
       }
 
       allDappsInfo.push({
@@ -402,7 +463,7 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
         icon: dappIcon,
         identity: dappName,
         chain: this.chain,
-        isCrowded: stakerCount >= maxStakerPerContract
+        isCrowded: false // temporary set to false because unlimited
       });
     }));
 
@@ -478,51 +539,7 @@ export default class AstarNativeStakingPoolHandler extends BaseParaNativeStaking
   override async handleYieldClaimReward (address: string, bondReward?: boolean) {
     const apiPromise = await this.substrateApi.isReady;
 
-    const [_stakedDapps, _currentEra] = await Promise.all([
-      apiPromise.api.query.dappsStaking.generalStakerInfo.entries(address),
-      apiPromise.api.query.dappsStaking.currentEra()
-    ]);
-
-    const currentEra = parseRawNumber(_currentEra.toHuman() as string);
-    const transactions: SubmittableExtrinsic[] = [];
-
-    for (const item of _stakedDapps) {
-      const data = item[0].toHuman() as any[];
-      const stakedDapp = data[1] as Record<string, string>;
-      const stakeData = item[1].toHuman() as Record<string, Record<string, string>[]>;
-      const stakes = stakeData.stakes;
-      const dappAddress = isEthereumAddress(stakedDapp.Evm) ? stakedDapp.Evm.toLowerCase() : stakedDapp.Evm;
-
-      let numberOfUnclaimedEra = 0;
-      const maxTx = 50;
-
-      for (let i = 0; i < stakes.length; i++) {
-        const { era, staked } = stakes[i];
-        const bnStaked = new BN(staked.replaceAll(',', ''));
-        const parsedEra = parseRawNumber(era);
-
-        if (bnStaked.eq(new BN(0))) {
-          continue;
-        }
-
-        const nextEraData = stakes[i + 1] ?? null;
-        const nextEra = nextEraData && parseRawNumber(nextEraData.era);
-        const isLastEra = i === stakes.length - 1;
-        const eraToClaim = isLastEra ? currentEra - parsedEra : nextEra - parsedEra;
-
-        numberOfUnclaimedEra += eraToClaim;
-      }
-
-      const dappParam = isEthereumAddress(dappAddress) ? { Evm: dappAddress } : { Wasm: dappAddress };
-
-      for (let i = 0; i < Math.min(numberOfUnclaimedEra, maxTx); i++) {
-        const tx = apiPromise.api.tx.dappsStaking.claimStaker(dappParam);
-
-        transactions.push(tx);
-      }
-    }
-
-    return apiPromise.api.tx.utility.batch(transactions);
+    return apiPromise.api.tx.dappStaking.claimUnlocked();
   }
 
   /* Other actions */

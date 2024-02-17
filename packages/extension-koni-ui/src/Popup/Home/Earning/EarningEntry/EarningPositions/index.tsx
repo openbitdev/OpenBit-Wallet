@@ -112,28 +112,9 @@ function Component ({ className, earningPositions, setEntryView, setLoading }: P
 
   const onClickItem = useCallback((item: ExtraYieldPositionInfo) => {
     return () => {
-      if (isRelatedToAstar(item.slug)) {
-        openAlert({
-          title: t('Enter Astar portal'),
-          content: t('You are navigating to Astar portal to view and manage your stake in Astar dApp staking v3. SubWallet will offer support for Astar dApp staking v3 soon.'),
-          cancelButton: {
-            text: t('Cancel'),
-            schema: 'secondary',
-            onClick: closeAlert
-          },
-          okButton: {
-            text: t('Enter Astar portal'),
-            onClick: () => {
-              openInNewTab(ASTAR_PORTAL_URL)();
-              closeAlert();
-            }
-          }
-        });
-      } else {
-        navigate('/home/earning/position-detail', { state: {
-          earningSlug: item.slug
-        } as EarningPositionDetailParam });
-      }
+      navigate('/home/earning/position-detail', { state: {
+        earningSlug: item.slug
+      } as EarningPositionDetailParam });
     };
   }, [closeAlert, navigate, openAlert, t]);
 
