@@ -49,7 +49,7 @@ export const _NFT_CHAIN_GROUP = {
   rmrk: ['kusama'],
   statemine: ['statemine'],
   statemint: ['statemint'],
-  unique_network: ['unique_network'],
+  unique_network: ['unique_network', 'quartz', 'opal'],
   bitcountry: ['bitcountry', 'pioneer'],
   vara: ['vara_network']
 };
@@ -243,6 +243,8 @@ export const EVM_PASS_CONNECT_STATUS: Record<string, string[]> = {
 export const EVM_REFORMAT_DECIMALS = {
   acala: ['acala_evm', 'karura_evm']
 };
+
+export const LATEST_CHAIN_DATA_FETCHING_INTERVAL = 120000;
 
 // TODO: review
 const TARGET_BRANCH = process.env.NODE_ENV !== 'production' ? 'koni-dev' : 'master';
