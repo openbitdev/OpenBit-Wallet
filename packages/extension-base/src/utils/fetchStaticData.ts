@@ -11,6 +11,10 @@ const fetchTarget = PRODUCTION_BRANCHES.indexOf(branchName) > -1 ? 'list.json' :
 export async function fetchStaticData<T> (slug: string, targetFile?: string) {
   const fetchFile = targetFile || fetchTarget;
 
+  if (staticData[slug as StaticKey]) {
+    return staticData[slug as StaticKey] as T;
+  }
+
   try {
     const rs = await axios.get(`https://static-data.subwallet.app/${slug}/${fetchFile}`);
 
