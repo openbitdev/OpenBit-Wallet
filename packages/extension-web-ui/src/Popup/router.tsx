@@ -128,6 +128,9 @@ const DApps = new LazyLoader('DApps', () => import('@subwallet/extension-web-ui/
 const EarningEntry = new LazyLoader('EarningEntry', () => import('@subwallet/extension-web-ui/Popup/Home/Earning/EarningEntry'));
 const EarningPools = new LazyLoader('EarningPools', () => import('@subwallet/extension-web-ui/Popup/Home/Earning/EarningPools'));
 const EarningPositionDetail = new LazyLoader('EarningPositionDetail', () => import('@subwallet/extension-web-ui/Popup/Home/Earning/EarningPositionDetail'));
+const EarningPreviewOptions = new LazyLoader('EarningPreviewOptions', () => import('@subwallet/extension-web-ui/Popup/Home/Earning/EarningPreview/EarningPreviewOptions'));
+const EarningPreviewPools = new LazyLoader('EarningPreviewPools', () => import('@subwallet/extension-web-ui/Popup/Home/Earning/EarningPreview/EarningPreviewPools'));
+const EarningPreviewOutlet = new LazyLoader('EarningPreviewOutlet', () => import('@subwallet/extension-web-ui/Popup/Home/Earning/EarningPreview/EarningPreviewOutlet'));
 
 // const EarningDoneOutlet = new LazyLoader('EarningDoneOutlet', () => import('@subwallet/extension-web-ui/Popup/EarningDone/Outlet'));
 // const EarningDoneContent = new LazyLoader('EarningDoneContent', () => import('@subwallet/extension-web-ui/Popup/EarningDone/Content'));
@@ -230,12 +233,13 @@ export const router = createBrowserRouter([
       {
         ...TransactionDone.generateRouterObject('transaction-done/:address/:chain/:transactionId')
       },
-      // {
-      //   ...EarningDoneOutlet.generateRouterObject('earning-done'),
-      //   children: [
-      //     EarningDoneContent.generateRouterObject(':address/:chain/:transactionId')
-      //   ]
-      // },
+      {
+        ...EarningPreviewOutlet.generateRouterObject('/earning-preview'),
+        children: [
+          EarningPreviewOptions.generateRouterObject(''),
+          EarningPreviewPools.generateRouterObject('pools')
+        ]
+      },
       {
         path: '/keyring',
         element: <Outlet />,
@@ -304,12 +308,6 @@ export const router = createBrowserRouter([
           ConnectionDetail.generateRouterObject('detail/:topic')
         ]
       },
-      // {
-      //   ...EarningOutlet.generateRouterObject('earning-demo'),
-      //   children: [
-      //     EarningDemo.generateRouterObject('')
-      //   ]
-      // },
       {
         ...CrowdloanUnlockCampaign.generateRouterObject('/crowdloan-unlock-campaign'),
         children: [

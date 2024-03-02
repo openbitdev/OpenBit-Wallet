@@ -3,24 +3,20 @@
 
 import { isLendingPool, isLiquidPool } from '@subwallet/extension-base/services/earning-service/utils';
 import { YieldPoolInfo, YieldPoolType } from '@subwallet/extension-base/types';
-import { isSameAddress } from '@subwallet/extension-base/utils';
-import { EarningInstructionModal, EmptyList, FilterModal, Layout, PageWrapper } from '@subwallet/extension-web-ui/components';
-import { EarningPoolItem } from '@subwallet/extension-web-ui/components/Earning';
-import { DEFAULT_EARN_PARAMS, EARN_TRANSACTION, EARNING_INSTRUCTION_MODAL } from '@subwallet/extension-web-ui/constants';
-import { DataContext } from '@subwallet/extension-web-ui/contexts/DataContext';
+import { EarningInstructionModal, EarningPoolItem, EmptyList, FilterModal, Layout } from '@subwallet/extension-web-ui/components';
+import { CREATE_RETURN, DEFAULT_EARN_PARAMS, DEFAULT_ROUTER_PATH, EARN_TRANSACTION, EARNING_INSTRUCTION_MODAL } from '@subwallet/extension-web-ui/constants';
 import { ScreenContext } from '@subwallet/extension-web-ui/contexts/ScreenContext';
-import { useFilterModal, useHandleChainConnection, useSelector, useTranslation, useYieldPoolInfoByGroup } from '@subwallet/extension-web-ui/hooks';
+import { useFilterModal, useHandleChainConnection, usePreviewYieldPoolInfoByGroup, useSelector, useTranslation } from '@subwallet/extension-web-ui/hooks';
 import { ChainConnectionWrapper } from '@subwallet/extension-web-ui/Popup/Home/Earning/shared/ChainConnectionWrapper';
 import { EarningPoolsTable } from '@subwallet/extension-web-ui/Popup/Home/Earning/shared/desktop/EarningPoolsTable';
 import { Toolbar } from '@subwallet/extension-web-ui/Popup/Home/Earning/shared/desktop/Toolbar';
-import { EarningEntryParam, EarningEntryView, EarningPoolsParam, ThemeProps } from '@subwallet/extension-web-ui/types';
+import { EarningPoolsParam, EarnParams, ThemeProps } from '@subwallet/extension-web-ui/types';
 import { isAccountAll } from '@subwallet/extension-web-ui/utils';
 import { Icon, ModalContext, SwList } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
-import CN from 'classnames';
 import { FadersHorizontal, Vault } from 'phosphor-react';
 import React, { SyntheticEvent, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
 
@@ -42,14 +38,19 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
   const navigate = useNavigate();
   const { isWebUI } = useContext(ScreenContext);
 
-  const pools = useYieldPoolInfoByGroup(poolGroup);
-  const yieldPositions = useSelector((state) => state.earning.yieldPositions);
+  const { poolInfoMap = {} }: {
+    poolInfoMap: Record<string, YieldPoolInfo>,
+  } = useOutletContext();
+
+  const pools = usePreviewYieldPoolInfoByGroup(poolGroup, poolInfoMap);
 
   const chainInfoMap = useSelector((state) => state.chainStore.chainInfoMap);
   const assetRegistry = useSelector((state) => state.assetRegistry.assetRegistry);
   const currentAccount = useSelector((state) => state.accountState.currentAccount);
+  const isNoAccount = useSelector((state) => state.accountState.isNoAccount);
 
   const [, setEarnStorage] = useLocalStorage(EARN_TRANSACTION, DEFAULT_EARN_PARAMS);
+  const [, setReturnStorage] = useLocalStorage(CREATE_RETURN, DEFAULT_ROUTER_PATH);
 
   const [selectedPool, setSelectedPool] = React.useState<YieldPoolInfo | undefined>(undefined);
   const [searchInput, setSearchInput] = useState<string>('');
@@ -126,45 +127,32 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
     };
   }, [selectedFilters]);
 
-  const isNeedToShowInstruction = useCallback((item: YieldPoolInfo) => {
-    const address = currentAccount?.address || '';
-
-    for (const info of yieldPositions) {
-      if (item.slug === info.slug) {
-        const isValid = isAccountAll(address) ? true : isSameAddress(address, info.address);
-        const haveStake = new BigN(info.totalStake).gt(0);
-
-        if (isValid && haveStake) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }, [currentAccount?.address, yieldPositions]);
-
   const navigateToEarnTransaction = useCallback(
     (slug: string, chain: string) => {
-      setEarnStorage({
+      const earnParams: EarnParams = {
         ...DEFAULT_EARN_PARAMS,
         slug,
         chain,
-        from: currentAccount?.address ? isAccountAll(currentAccount.address) ? '' : currentAccount.address : ''
-      });
-      navigate('/transaction/earn');
+        from: ''
+      };
+
+      if (isNoAccount) {
+        setEarnStorage(earnParams);
+        setReturnStorage('/transaction/earn');
+        navigate(DEFAULT_ROUTER_PATH);
+      } else {
+        earnParams.from = currentAccount?.address ? isAccountAll(currentAccount.address) ? '' : currentAccount.address : '';
+
+        setEarnStorage(earnParams);
+        navigate('/transaction/earn');
+      }
     },
-    [currentAccount?.address, navigate, setEarnStorage]
+    [currentAccount?.address, isNoAccount, navigate, setEarnStorage, setReturnStorage]
   );
 
   const onConnectChainSuccess = useCallback(() => {
-    if (selectedPool) {
-      if (isNeedToShowInstruction(selectedPool)) {
-        activeModal(instructionModalId);
-      } else {
-        navigateToEarnTransaction(selectedPool.slug, selectedPool.chain);
-      }
-    }
-  }, [activeModal, isNeedToShowInstruction, navigateToEarnTransaction, selectedPool]);
+    activeModal(instructionModalId);
+  }, [activeModal]);
 
   const { alertProps,
     checkChainConnected,
@@ -173,7 +161,7 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
     connectingChain,
     onConnectChain,
     openAlert,
-    openConnectChainModal, setExtraSuccessFlag, turnOnChain } = useHandleChainConnection({
+    setExtraSuccessFlag, turnOnChain } = useHandleChainConnection({
     alertModalId,
     chainConnectionLoadingModalId,
     connectChainModalId
@@ -203,7 +191,7 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
           setCurrentAltChain(altChain);
         }
 
-        openConnectChainModal(item.chain);
+        onConnectChain(item.chain);
 
         return;
       }
@@ -214,15 +202,9 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
         return;
       }
 
-      if (isNeedToShowInstruction(item)) {
-        activeModal(instructionModalId);
-
-        return;
-      }
-
-      navigateToEarnTransaction(item.slug, item.chain);
+      activeModal(instructionModalId);
     };
-  }, [activeModal, checkChainConnected, getAltChain, isNeedToShowInstruction, navigateToEarnTransaction, onConnectChain, openConnectChainModal]);
+  }, [activeModal, checkChainConnected, getAltChain, onConnectChain]);
 
   const _onConnectChain = useCallback((chain: string) => {
     if (currentAltChain) {
@@ -290,9 +272,7 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
   );
 
   const onBack = useCallback(() => {
-    navigate('/home/earning', { state: {
-      view: EarningEntryView.OPTIONS
-    } as EarningEntryParam });
+    navigate('/earning-preview');
   }, [navigate]);
 
   return (
@@ -315,46 +295,47 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
         subHeaderPaddingVertical={true}
         title={t<string>('{{symbol}} earning options', { replace: { symbol: symbol } })}
       >
+        <div className={'__body-area'}>
+          {
+            isWebUI
+              ? (
+                <>
+                  <Toolbar
+                    className={'__desktop-toolbar'}
+                    inputPlaceholder={t<string>('Search token')}
+                    onClickFilter={onClickFilterButton}
+                    onSearch={setSearchInput}
+                    searchValue={searchInput}
+                  />
 
-        {
-          isWebUI
-            ? (
-              <>
-                <Toolbar
-                  className={'__desktop-toolbar'}
-                  inputPlaceholder={t<string>('Search token')}
-                  onClickFilter={onClickFilterButton}
-                  onSearch={setSearchInput}
-                  searchValue={searchInput}
-                />
-
-                <EarningPoolsTable
-                  emptyListFunction={emptyList}
-                  filterFunction={filterFunction}
-                  items={items}
-                  onClickRow={onClickRow}
+                  <EarningPoolsTable
+                    emptyListFunction={emptyList}
+                    filterFunction={filterFunction}
+                    items={items}
+                    onClickRow={onClickRow}
+                    searchFunction={searchFunction}
+                    searchTerm={searchInput}
+                  />
+                </>
+              )
+              : (
+                <SwList.Section
+                  actionBtnIcon={<Icon phosphorIcon={FadersHorizontal} />}
+                  className={'__section-list-container'}
+                  enableSearchInput
+                  filterBy={filterFunction}
+                  list={items}
+                  onClickActionBtn={onClickFilterButton}
+                  renderItem={renderItem}
+                  renderWhenEmpty={emptyList}
                   searchFunction={searchFunction}
-                  searchTerm={searchInput}
+                  searchMinCharactersCount={1}
+                  searchPlaceholder={t<string>('Search token')}
+                  showActionBtn
                 />
-              </>
-            )
-            : (
-              <SwList.Section
-                actionBtnIcon={<Icon phosphorIcon={FadersHorizontal} />}
-                className={'__section-list-container'}
-                enableSearchInput
-                filterBy={filterFunction}
-                list={items}
-                onClickActionBtn={onClickFilterButton}
-                renderItem={renderItem}
-                renderWhenEmpty={emptyList}
-                searchFunction={searchFunction}
-                searchMinCharactersCount={1}
-                searchPlaceholder={t<string>('Search token')}
-                showActionBtn
-              />
-            )
-        }
+              )
+          }
+        </div>
 
         <FilterModal
           applyFilterButtonTitle={t('Apply filter')}
@@ -373,6 +354,7 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
           <EarningInstructionModal
             address={currentAccount?.address}
             assetRegistry={assetRegistry}
+            bypassEarlyValidate={true}
             closeAlert={closeAlert}
             isShowStakeMoreButton={true}
             onStakeMore={navigateToEarnTransaction}
@@ -385,46 +367,63 @@ function Component ({ poolGroup, symbol }: ComponentProps) {
   );
 }
 
-const ComponentGate = () => {
+const ComponentGate = ({ className }: Props) => {
+  const navigate = useNavigate();
   const locationState = useLocation().state as EarningPoolsParam;
 
+  useEffect(() => {
+    if (!locationState?.poolGroup || !locationState?.symbol) {
+      navigate('/earning-preview');
+    }
+  }, [locationState?.poolGroup, locationState?.symbol, navigate]);
+
   if (!locationState?.poolGroup || !locationState?.symbol) {
-    // todo: will handle this with useEffect
-    return (
-      <div style={{
-        display: 'flex',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
-      >
-        Missing param
-      </div>
-    );
+    return <></>;
   }
 
   return (
-    <Component
-      poolGroup={locationState.poolGroup}
-      symbol={locationState.symbol}
-    />
+    <div className={className}>
+      <Component
+        poolGroup={locationState.poolGroup}
+        symbol={locationState.symbol}
+      />
+    </div>
   );
 };
 
-const Wrapper = ({ className }: Props) => {
-  const dataContext = useContext(DataContext);
+const EarningPreviewPools = styled(ComponentGate)<Props>(({ theme: { token } }: Props) => ({
+  height: '100%',
 
-  return (
-    <PageWrapper
-      className={CN(className)}
-      resolve={dataContext.awaitStores(['earning', 'price'])}
-    >
-      <ComponentGate />
-    </PageWrapper>
-  );
-};
+  '.__body-area': {
+    overflow: 'auto',
+    flex: 1,
+    width: '100%',
+    alignSelf: 'center',
+    paddingLeft: 166,
+    paddingRight: 166,
+    display: 'flex',
+    flexDirection: 'column'
+  },
 
-const EarningPools = styled(Wrapper)<Props>(({ theme: { token } }: Props) => ({
+  '@media (max-width: 1200px)': {
+    '.__body-area': {
+      paddingLeft: 44,
+      paddingRight: 44
+    }
+  },
+
+  '@media (max-width: 991px)': {
+    '.__body-area': {
+      paddingLeft: 0,
+      paddingRight: 0,
+      height: '100%'
+    }
+  },
+
+  '.ant-sw-list': {
+    paddingBottom: token.padding
+  },
+
   '.ant-sw-sub-header-container': {
     marginBottom: token.marginXS
   },
@@ -434,20 +433,17 @@ const EarningPools = styled(Wrapper)<Props>(({ theme: { token } }: Props) => ({
     overflow: 'auto'
   },
 
-  '.earning-pools-table-container .__row-stake-button-wrapper': {
-    paddingRight: token.paddingXXS
-  },
-
-  '.earning-pools-table-container .__row-token-info-wrapper': {
-    paddingLeft: token.paddingXXS
-  },
-
   '.earning-pools-table': {
-    height: '100%'
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'auto'
   },
 
   '.__tbody': {
-    height: '100%'
+    flex: 1,
+    overflow: 'auto',
+    paddingBottom: token.size
   },
 
   '.__empty-list-earning-pool': {
@@ -477,4 +473,4 @@ const EarningPools = styled(Wrapper)<Props>(({ theme: { token } }: Props) => ({
   }
 }));
 
-export default EarningPools;
+export default EarningPreviewPools;

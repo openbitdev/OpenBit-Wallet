@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { YieldPoolInfo } from '@subwallet/extension-base/types';
-import { useGetChainSlugsByAccountType, useSelector } from '@subwallet/extension-web-ui/hooks';
+import { useGetChainSlugsByAccountType } from '@subwallet/extension-web-ui/hooks';
 import { useMemo } from 'react';
 
-const useYieldPoolInfoByGroup = (group: string): YieldPoolInfo[] => {
-  const poolInfoMap = useSelector((state) => state.earning.poolInfoMap);
+const usePreviewYieldPoolInfoByGroup = (group: string, poolInfoMap: Record<string, YieldPoolInfo>): YieldPoolInfo[] => {
   const chainsByAccountType = useGetChainSlugsByAccountType();
 
   return useMemo(() => {
@@ -24,4 +23,4 @@ const useYieldPoolInfoByGroup = (group: string): YieldPoolInfo[] => {
   }, [chainsByAccountType, group, poolInfoMap]);
 };
 
-export default useYieldPoolInfoByGroup;
+export default usePreviewYieldPoolInfoByGroup;
