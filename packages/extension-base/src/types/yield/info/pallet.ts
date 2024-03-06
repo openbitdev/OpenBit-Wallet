@@ -21,16 +21,12 @@ export interface PalletStakingExposure {
   others: PalletStakingExposureItem[]
 }
 
-/* Deprecated
 export interface PalletDappsStakingDappInfo {
   address: string,
   name: string,
-  gitHubUrl: string,
-  tags: string[],
-  url: string,
+  iconUrl: string,
   imagesUrl: string[]
 }
- */
 
 /* Deprecated
 export interface PalletDappsStakingUnlockingChunk {
@@ -85,7 +81,7 @@ export declare enum DappStakingV3Subperiod {
 
 export interface PalletDappStakingV3DappInfo {
   contractAddress: string,
-  dappId: number,
+  dappId: string,
   owner: string,
   stakersCount: number,
 }
@@ -93,6 +89,11 @@ export interface PalletDappStakingV3DappInfo {
 export interface PalletDappStakingV3SingularStakingInfo {
   staked: PalletDappStakingV3StakeInfo,
   loyalStaker: boolean
+}
+
+export interface PalletDappStakingV3ContractStakeAmount {
+  staked: PalletDappStakingV3StakeInfo,
+  stakedFuture: PalletDappStakingV3StakeInfo
 }
 
 export interface BlockHeader {
