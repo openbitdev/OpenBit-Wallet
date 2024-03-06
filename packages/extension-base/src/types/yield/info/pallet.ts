@@ -21,6 +21,7 @@ export interface PalletStakingExposure {
   others: PalletStakingExposureItem[]
 }
 
+/* Deprecated
 export interface PalletDappsStakingDappInfo {
   address: string,
   name: string,
@@ -29,17 +30,69 @@ export interface PalletDappsStakingDappInfo {
   url: string,
   imagesUrl: string[]
 }
+ */
 
+/* Deprecated
 export interface PalletDappsStakingUnlockingChunk {
   amount: number,
   unlockEra: number
 }
+ */
 
+/* Deprecated
 export interface PalletDappsStakingAccountLedger {
   locked: number,
   unbondingInfo: {
     unlockingChunks: PalletDappsStakingUnlockingChunk[]
   }
+}
+ */
+
+export interface PalletDappStakingV3AccountLedger {
+  locked: string,
+  unlocking: PalletDappStakingV3UnlockingChunk[],
+  staked: PalletDappStakingV3StakeInfo,
+  stakedFuture: PalletDappStakingV3StakeInfo,
+  contractStakeCount: number,
+}
+export interface PalletDappStakingV3UnlockingChunk {
+  amount: string,
+  unlockBlock: string
+}
+
+interface PalletDappStakingV3StakeInfo {
+  voting: string,
+  buildAndEarn: string,
+  era: number,
+  period: number
+}
+
+export interface PalletDappStakingV3ProtocolState {
+  era: string,
+  nextEraStart: string,
+  periodInfo: {
+    number: number,
+    subperiod: DappStakingV3Subperiod,
+    nextSubperiodStartEra: string,
+  }
+}
+
+// todo: move this declare to suitable location
+export declare enum DappStakingV3Subperiod {
+  BUILD_AND_EARN = 'BuildAndEarn',
+  VOTING = 'Voting'
+}
+
+export interface PalletDappStakingV3DappInfo {
+  contractAddress: string,
+  dappId: number,
+  owner: string,
+  stakersCount: number,
+}
+
+export interface PalletDappStakingV3SingularStakingInfo {
+  staked: PalletDappStakingV3StakeInfo,
+  loyalStaker: boolean
 }
 
 export interface BlockHeader {

@@ -17,7 +17,7 @@ import { addLazy, categoryAddresses, createPromiseHandler, PromiseHandler, remov
 import { fetchStaticCache } from '@subwallet/extension-base/utils/fetchStaticCache';
 import { BehaviorSubject } from 'rxjs';
 
-import { AcalaLiquidStakingPoolHandler, AmplitudeNativeStakingPoolHandler, AstarNativeStakingPoolHandler, BasePoolHandler, BifrostLiquidStakingPoolHandler, BifrostMantaLiquidStakingPoolHandler, InterlayLendingPoolHandler, NominationPoolHandler, ParallelLiquidStakingPoolHandler, ParaNativeStakingPoolHandler, RelayNativeStakingPoolHandler, StellaSwapLiquidStakingPoolHandler } from './handlers';
+import { AcalaLiquidStakingPoolHandler, AmplitudeNativeStakingPoolHandler, AstarV3NativeStakingPoolHandler, BasePoolHandler, BifrostLiquidStakingPoolHandler, BifrostMantaLiquidStakingPoolHandler, InterlayLendingPoolHandler, NominationPoolHandler, ParallelLiquidStakingPoolHandler, ParaNativeStakingPoolHandler, RelayNativeStakingPoolHandler, StellaSwapLiquidStakingPoolHandler } from './handlers';
 
 const fetchPoolsData = async () => {
   const fetchData = await fetchStaticCache<{data: Record<string, YieldPoolInfo>}>('earning/yield-pools.json', { data: {} });
@@ -75,7 +75,7 @@ export default class EarningService implements StoppableServiceInterface, Persis
       }
 
       if (_STAKING_CHAIN_GROUP.astar.includes(chain)) {
-        handlers.push(new AstarNativeStakingPoolHandler(this.state, chain));
+        handlers.push(new AstarV3NativeStakingPoolHandler(this.state, chain));
       }
 
       if (_STAKING_CHAIN_GROUP.amplitude.includes(chain)) {
@@ -310,7 +310,7 @@ export default class EarningService implements StoppableServiceInterface, Persis
 
   public isPoolSupportAlternativeFee (slug: string): boolean {
     const handler = this.getPoolHandler(slug);
-
+    console.log('handler', handler);
     if (handler) {
       return handler.isPoolSupportAlternativeFee;
     } else {
@@ -340,12 +340,17 @@ export default class EarningService implements StoppableServiceInterface, Persis
 
     const unsubList: Array<VoidFunction> = [];
 
+    const _cb = (rs: YieldPoolInfo) => {
+      callback(rs);
+      console.log('rs', rs);
+    }
+
     for (const handler of Object.values(this.handlers)) {
       // Force subscribe onchain data
       const forceSubscribe = handler.type === YieldPoolType.LIQUID_STAKING || handler.type === YieldPoolType.LENDING;
 
-      if (!this.useOnlineCacheOnly || forceSubscribe) {
-        handler.subscribePoolInfo(callback)
+      // if (!this.useOnlineCacheOnly || forceSubscribe) {
+        handler.subscribePoolInfo(_cb)
           .then((unsub) => {
             if (!cancel) {
               unsubList.push(unsub);
@@ -355,7 +360,7 @@ export default class EarningService implements StoppableServiceInterface, Persis
           })
           .catch(console.error);
       }
-    }
+    // }
 
     return () => {
       cancel = true;
