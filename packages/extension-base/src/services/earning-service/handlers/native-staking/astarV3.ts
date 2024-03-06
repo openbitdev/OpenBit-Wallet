@@ -8,7 +8,7 @@ import { getEarningStatusByNominations } from '@subwallet/extension-base/koni/ap
 import { _EXPECTED_BLOCK_TIME, _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import BaseParaNativeStakingPoolHandler from '@subwallet/extension-base/services/earning-service/handlers/native-staking/base-para';
-import { BaseYieldPositionInfo, EarningStatus, NativeYieldPoolInfo, PalletDappsStakingDappInfo, PalletDappStakingV3AccountLedger, PalletDappStakingV3ContractStakeAmount, PalletDappStakingV3DappInfo, PalletDappStakingV3ProtocolState, PalletDappStakingV3SingularStakingInfo, StakeCancelWithdrawalParams, SubmitJoinNativeStaking, TransactionData, UnstakingStatus, ValidatorInfo, YieldPoolInfo, YieldPoolMethodInfo, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
+import { AstarDappV3PositionInfo, BaseYieldPositionInfo, EarningStatus, NativeYieldPoolInfo, PalletDappsStakingDappInfo, PalletDappStakingV3AccountLedger, PalletDappStakingV3ContractStakeAmount, PalletDappStakingV3DappInfo, PalletDappStakingV3ProtocolState, PalletDappStakingV3SingularStakingInfo, StakeCancelWithdrawalParams, SubmitJoinNativeStaking, TransactionData, UnstakingStatus, ValidatorInfo, YieldPoolInfo, YieldPoolMethodInfo, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
 import { balanceFormatter, formatNumber, isUrl, parseRawNumber, reformatAddress } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 import fetch from 'cross-fetch';
@@ -64,53 +64,52 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
 
     await defaultCallback();
 
-    const apyPromise = new Promise((resolve) => {
-      // todo: update the api
-      fetch(`https://api.astar.network/api/v1/${this.chain}/dapps-staking/apy`, {
-        method: 'GET'
-      }).then((resp) => {
-        resolve(resp.json());
-      }).catch((e) => {
-        console.error(e);
-        resolve(null);
-      });
-    });
+    // todo: The API is deprecated, need update
+    // const apyPromise = new Promise((resolve) => {
+    //   fetch(`https://api.astar.network/api/v1/${this.chain}/dapps-staking/apy`, {
+    //     method: 'GET'
+    //   }).then((resp) => {
+    //     resolve(resp.json());
+    //   }).catch((e) => {
+    //     console.error(e);
+    //     resolve(null);
+    //   });
+    // });
 
-    const timeout = new Promise((resolve) => {
-      const id = setTimeout(() => {
-        clearTimeout(id);
-        resolve(null);
-      }, 8000);
-    });
+    // const timeout = new Promise((resolve) => {
+    //   const id = setTimeout(() => {
+    //     clearTimeout(id);
+    //     resolve(null);
+    //   }, 8000);
+    // });
+    //
+    // const apyRacePromise = Promise.race([
+    //   timeout,
+    //   apyPromise
+    // ]); // need race because API often timeout
 
-    const apyRacePromise = Promise.race([
-      timeout,
-      apyPromise
-    ]); // need race because API often timeout
+    // let apyInfo: null | number;
+    //
+    // try {
+    //   apyInfo = (await apyRacePromise) as number | null;
+    // } catch (e) {
+    //   apyInfo = null;
+    // }
 
     const substrateApi = await this.substrateApi.isReady;
 
-    let apyInfo: null | number;
-
-    try {
-      apyInfo = (await apyRacePromise) as number | null;
-    } catch (e) {
-      apyInfo = null;
-    }
-
-    const unsub = await (substrateApi.api.query.dappStaking.activeProtocolState((_activeProtocolState) => {
+    const unsub = await (substrateApi.api.query.dappStaking.activeProtocolState((_activeProtocolState: Codec) => {
       if (cancel) {
         unsub();
 
         return;
       }
 
-      const activeProtocolState = _activeProtocolState.toPrimitive() as PalletDappStakingV3ProtocolState;
+      const activeProtocolState = _activeProtocolState.toPrimitive() as unknown as PalletDappStakingV3ProtocolState;
       const era = activeProtocolState.era;
 
-      console.log('activeProtocolState', activeProtocolState);
       const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
-      const unstakingDelay = substrateApi.api.consts.dappStaking.unlockingPeriod.toPrimitive() as string;
+      const unstakingDelay = substrateApi.api.consts.dappStaking.unlockingPeriod.toString(); // in eras
 
       const eraTime = _STAKING_ERA_LENGTH_MAP[this.chain] || _STAKING_ERA_LENGTH_MAP.default; // in hours
       const unstakingPeriod = parseInt(unstakingDelay) * eraTime;
@@ -126,8 +125,8 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
         statistic: {
           assetEarning: [
             {
-              slug: this.nativeToken.slug,
-              apy: apyInfo !== null ? apyInfo : undefined
+              slug: this.nativeToken.slug
+              // apy: apyInfo !== null ? apyInfo : undefined
             }
           ],
           maxCandidatePerFarmer: 100, // temporary fix for Astar, there's no limit for now
@@ -137,11 +136,11 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
             defaultUnstake: '0',
             fastUnstake: '0'
           },
-          farmerCount: 0, // TODO recheck
+          farmerCount: 0, // TODO recheck=
           era: parseInt(era),
           eraTime,
           tvl: undefined, // TODO recheck
-          totalApy: apyInfo !== null ? apyInfo : undefined, // TODO recheck
+          // totalApy: apyInfo !== null ? apyInfo : undefined, // TODO recheck
           unstakingPeriod
         }
       };
@@ -159,7 +158,7 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
 
   /* Subscribe pool position */
 
-  async parseNominatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, ledger: PalletDappStakingV3AccountLedger): Promise<Omit<YieldPositionInfo, keyof BaseYieldPositionInfo>> {
+  async parseNominatorMetadata (chainInfo: _ChainInfo, address: string, substrateApi: _SubstrateApi, ledger: PalletDappStakingV3AccountLedger, bnLocked: BigN): Promise<Omit<AstarDappV3PositionInfo, keyof BaseYieldPositionInfo>> {
     const nominationList: NominationInfo[] = [];
     const unstakingList: UnstakingInfo[] = [];
 
@@ -177,8 +176,6 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
       substrateApi.api.query.dappStaking.stakerInfo.entries(address),
       substrateApi.api.query.system.number()
     ]);
-
-    console.log('_stakerInfo', _stakerInfo);
 
     const activeProtocolState = _activeProtocolState.toPrimitive() as unknown as PalletDappStakingV3ProtocolState;
     const currentBlock = _currentBlock.toPrimitive() as string;
@@ -226,8 +223,6 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
       }
     }
 
-    console.log('nominationList', nominationList);
-
     const unlockingChunks = ledger.unlocking;
 
     if (unlockingChunks.length > 0) {
@@ -250,9 +245,11 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
       }
     }
 
-    if (nominationList.length === 0 && unstakingList.length === 0) {
+    // todo: add locked amount and process this case!
+    if (nominationList.length === 0 && unstakingList.length === 0 && !bnLocked.gt(new BigN(0))) {
       return {
         balanceToken: this.nativeToken.slug,
+        totalLock: '0',
         totalStake: '0',
         unstakeBalance: '0',
         status: EarningStatus.NOT_STAKING,
@@ -271,9 +268,11 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
 
     const totalStake = unstakeBalance.add(bnTotalActiveStake);
 
+    // todo: UI need to handle position by lock, not activeStake
     return {
       status: stakingStatus,
       balanceToken: this.nativeToken.slug,
+      totalLock: bnLocked.toString(),
       totalStake: totalStake.toString(),
       activeStake: activeStake,
       unstakeBalance: unstakeBalance.toString(),
@@ -301,18 +300,14 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
           const owner = reformatAddress(useAddresses[i], 42);
 
           const ledger = _ledger.toPrimitive() as unknown as PalletDappStakingV3AccountLedger;
-          const staked = ledger.staked;
-          const stakedFuture = ledger.stakedFuture;
-
-          // todo: test log
-          console.log('staked', staked);
-          console.log('stakedFuture', stakedFuture);
 
           const bnLocked = new BigN(ledger.locked);
 
           if (ledger && bnLocked.gt(BigN(0))) {
-            const nominatorMetadata = await this.parseNominatorMetadata(chainInfo, owner, substrateApi, ledger);
-            console.log('nominatorMetadata', nominatorMetadata);
+            // console.log('zo');
+            const nominatorMetadata = await this.parseNominatorMetadata(chainInfo, owner, substrateApi, ledger, bnLocked);
+
+            // console.log('nominatorMetadata', nominatorMetadata)
             resultCallback({
               ...defaultInfo,
               ...nominatorMetadata,
@@ -411,8 +406,8 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
       let dappIcon;
 
       if (Object.keys(allDappsExtMap).includes(dappAddress)) {
-        dappName = allDappsExtMap[dappAddress].name as string;
-        dappIcon = isUrl(allDappsExtMap[dappAddress].iconUrl as string) ? allDappsExtMap[dappAddress].iconUrl as string : undefined;
+        dappName = allDappsExtMap[dappAddress].name;
+        dappIcon = isUrl(allDappsExtMap[dappAddress].iconUrl) ? allDappsExtMap[dappAddress].iconUrl : undefined;
       }
 
       const contractInfo = contractInfoMap[dappId];

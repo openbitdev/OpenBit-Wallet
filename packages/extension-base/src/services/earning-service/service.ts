@@ -310,7 +310,9 @@ export default class EarningService implements StoppableServiceInterface, Persis
 
   public isPoolSupportAlternativeFee (slug: string): boolean {
     const handler = this.getPoolHandler(slug);
+
     console.log('handler', handler);
+
     if (handler) {
       return handler.isPoolSupportAlternativeFee;
     } else {
@@ -343,23 +345,23 @@ export default class EarningService implements StoppableServiceInterface, Persis
     const _cb = (rs: YieldPoolInfo) => {
       callback(rs);
       console.log('rs', rs);
-    }
+    };
 
     for (const handler of Object.values(this.handlers)) {
       // Force subscribe onchain data
       const forceSubscribe = handler.type === YieldPoolType.LIQUID_STAKING || handler.type === YieldPoolType.LENDING;
 
       // if (!this.useOnlineCacheOnly || forceSubscribe) {
-        handler.subscribePoolInfo(_cb)
-          .then((unsub) => {
-            if (!cancel) {
-              unsubList.push(unsub);
-            } else {
-              unsub();
-            }
-          })
-          .catch(console.error);
-      }
+      handler.subscribePoolInfo(_cb)
+        .then((unsub) => {
+          if (!cancel) {
+            unsubList.push(unsub);
+          } else {
+            unsub();
+          }
+        })
+        .catch(console.error);
+    }
     // }
 
     return () => {
