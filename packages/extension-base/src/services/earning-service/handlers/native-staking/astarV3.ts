@@ -5,13 +5,10 @@ import { _ChainInfo } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { BasicTxErrorType, ExtrinsicType, NominationInfo, UnstakingInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { getEarningStatusByNominations } from '@subwallet/extension-base/koni/api/staking/bonding/utils';
-import {
-  _EXPECTED_BLOCK_TIME,
-  _STAKING_ERA_LENGTH_MAP
-} from '@subwallet/extension-base/services/chain-service/constants';
+import { _EXPECTED_BLOCK_TIME, _STAKING_ERA_LENGTH_MAP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import BaseParaNativeStakingPoolHandler from '@subwallet/extension-base/services/earning-service/handlers/native-staking/base-para';
-import { BaseYieldPositionInfo, EarningStatus, NativeYieldPoolInfo, PalletDappStakingV3AccountLedger, PalletDappStakingV3DappInfo, PalletDappStakingV3ProtocolState, PalletDappStakingV3SingularStakingInfo, StakeCancelWithdrawalParams, SubmitJoinNativeStaking, TransactionData, UnstakingStatus, ValidatorInfo, YieldPoolInfo, YieldPoolMethodInfo, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
+import { BaseYieldPositionInfo, EarningStatus, NativeYieldPoolInfo, PalletDappsStakingDappInfo, PalletDappStakingV3AccountLedger, PalletDappStakingV3ContractStakeAmount, PalletDappStakingV3DappInfo, PalletDappStakingV3ProtocolState, PalletDappStakingV3SingularStakingInfo, StakeCancelWithdrawalParams, SubmitJoinNativeStaking, TransactionData, UnstakingStatus, ValidatorInfo, YieldPoolInfo, YieldPoolMethodInfo, YieldPositionInfo, YieldStepBaseInfo, YieldStepType, YieldTokenBaseInfo } from '@subwallet/extension-base/types';
 import { balanceFormatter, formatNumber, isUrl, parseRawNumber, reformatAddress } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 import fetch from 'cross-fetch';
@@ -167,7 +164,7 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
     const unstakingList: UnstakingInfo[] = [];
 
     const allDappsReq = new Promise((resolve) => {
-      fetch(`https://api.astar.network/api/v3/${chainInfo.slug}/dapps-staking/chaindapps`, {
+      fetch(`https://api.astar.network/api/v3/${this.chain}/dapps-staking/chaindapps`, {
         method: 'GET'
       }).then((resp) => {
         resolve(resp.json());
@@ -242,15 +239,13 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
         const isClaimable = remainingBlocks <= 0;
         const currentTimestampMs = Date.now();
         const waitingTimeMs = remainingBlocks * _EXPECTED_BLOCK_TIME[chainInfo.slug] * 1000;
-        console.log('waitingTimeMs', waitingTimeMs);
-        console.log('remainingBlocks', remainingBlocks);
-        console.log('currentTimestampMs', currentTimestampMs)
+
         unstakingList.push({
           chain: chainInfo.slug,
           status: isClaimable ? UnstakingStatus.CLAIMABLE : UnstakingStatus.UNLOCKING,
           claimable: amount,
           // waitingTime
-          targetTimestampMs: isClaimable? undefined: currentTimestampMs + waitingTimeMs
+          targetTimestampMs: isClaimable ? undefined : currentTimestampMs + waitingTimeMs
         });
       }
     }
@@ -354,42 +349,91 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
   /* Get pool targets */
 
   async getPoolTargets (): Promise<ValidatorInfo[]> {
-    const chainApi = await this.substrateApi.isReady;
-    const rawMaxStakerPerContract = (chainApi.api.consts.dappsStaking.maxNumberOfStakersPerContract).toHuman() as string;
+    const substrateApi = await this.substrateApi.isReady;
+    // todo: check if there any limit on this
+    // const rawMaxStakerPerContract = (chainApi.api.consts.dappsStaking.maxNumberOfStakersPerContract).toHuman() as string;
+    // const maxStakerPerContract = parseRawNumber(rawMaxStakerPerContract);
 
     const allDappsInfo: ValidatorInfo[] = [];
-    const maxStakerPerContract = parseRawNumber(rawMaxStakerPerContract);
 
+    // Get Dapp V3 info
     const allDappsReq = new Promise((resolve) => {
-      fetch(`https://api.astar.network/api/v1/${this.chain}/dapps-staking/dapps`, {
+      fetch(`https://api.astar.network/api/v3/${this.chain}/dapps-staking/chaindapps`, {
         method: 'GET'
       }).then((resp) => {
         resolve(resp.json());
       }).catch(console.error);
     });
 
-    const [_era, _allDapps] = await Promise.all([
-      chainApi.api.query.dappsStaking.currentEra(),
-      allDappsReq
+    // Get Dapp Name and Icon
+    const allDappsExtra = new Promise((resolve) => {
+      fetch(`https://api.astar.network/api/v1/${this.chain}/dapps-staking/dappssimple`, {
+        method: 'GET'
+      }).then((resp) => {
+        resolve(resp.json());
+      }).catch(console.error);
+    });
+
+    const [_activeProtocolState, _allDapps, _allDappsExtra, _contractInfo] = await Promise.all([
+      substrateApi.api.query.dappStaking.activeProtocolState(),
+      allDappsReq,
+      allDappsExtra,
+      substrateApi.api.query.dappStaking.contractStake.entries()
     ]);
 
-    const era = parseRawNumber(_era.toHuman() as string);
-    const allDapps = _allDapps as Record<string, any>[];
+    const activeProtocolState = _activeProtocolState.toPrimitive() as unknown as PalletDappStakingV3ProtocolState;
+    const era = activeProtocolState.era;
 
-    await Promise.all(allDapps.map(async (dapp) => {
-      const dappName = dapp.name as string;
-      const dappAddress = dapp.address as string;
-      const dappIcon = isUrl(dapp.iconUrl as string) ? dapp.iconUrl as string : undefined;
-      const contractParam = isEthereumAddress(dappAddress) ? { Evm: dappAddress } : { Wasm: dappAddress };
-      const _contractInfo = await chainApi.api.query.dappsStaking.contractEraStake(contractParam, era);
-      const contractInfo = _contractInfo.toPrimitive() as Record<string, any>;
+    const allDapps = _allDapps as PalletDappStakingV3DappInfo[];
+    const allDappsExt = _allDappsExtra as PalletDappsStakingDappInfo[];
+
+    const allDappsExtMap: Record<string, PalletDappsStakingDappInfo> = {};
+
+    allDappsExt.map((dappInfo) => {
+      allDappsExtMap[dappInfo.address] = dappInfo;
+    });
+
+    const contractInfoMap: Record<string, PalletDappStakingV3ContractStakeAmount> = {};
+
+    for (const contract of _contractInfo) {
+      // @ts-ignore
+      const dappId = parseInt(contract[0].toHuman());
+
+      contractInfoMap[dappId] = contract[1].toHuman() as unknown as PalletDappStakingV3ContractStakeAmount;
+    }
+
+    await Promise.all(allDapps.map(async (dappInfo) => {
+      const dappAddress = dappInfo.contractAddress;
+      const dappId = dappInfo.dappId;
+      const stakersCount = dappInfo.stakersCount;
+
+      let dappName;
+      let dappIcon;
+
+      if (Object.keys(allDappsExtMap).includes(dappAddress)) {
+        dappName = allDappsExtMap[dappAddress].name as string;
+        dappIcon = isUrl(allDappsExtMap[dappAddress].iconUrl as string) ? allDappsExtMap[dappAddress].iconUrl as string : undefined;
+      }
+
+      const contractInfo = contractInfoMap[dappId];
+
       let totalStake = '0';
-      let stakerCount = 0;
 
-      if (contractInfo !== null) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-        totalStake = contractInfo?.total?.toString();
-        stakerCount = contractInfo.numberOfStakers as number;
+      if (contractInfo) {
+        const eraStaked = contractInfo.staked?.era.toString();
+        const eraStakedFuture = contractInfo.stakedFuture?.era.toString();
+
+        if (eraStaked === era) {
+          const bnVoting = new BigN(contractInfo.staked?.voting);
+          const bnBuildAndEarn = new BigN(contractInfo.staked?.buildAndEarn);
+
+          totalStake = bnVoting.plus(bnBuildAndEarn).toString();
+        } else if (eraStakedFuture === era) {
+          const bnVoting = new BigN(contractInfo.stakedFuture?.voting);
+          const bnBuildAndEarn = new BigN(contractInfo.stakedFuture?.buildAndEarn);
+
+          totalStake = bnVoting.plus(bnBuildAndEarn).toString();
+        }
       }
 
       allDappsInfo.push({
@@ -399,14 +443,14 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
         totalStake: totalStake,
         ownStake: '0',
         otherStake: totalStake.toString(),
-        nominatorCount: stakerCount,
+        nominatorCount: stakersCount,
         blocked: false,
         isVerified: false,
         minBond: '0',
-        icon: dappIcon,
-        identity: dappName,
+        icon: dappIcon || undefined,
+        identity: dappName || undefined,
         chain: this.chain,
-        isCrowded: stakerCount >= maxStakerPerContract
+        isCrowded: false // stakerCount >= maxStakerPerContract
       });
     }));
 
