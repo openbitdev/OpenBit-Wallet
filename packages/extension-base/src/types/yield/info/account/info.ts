@@ -106,8 +106,11 @@ export interface NominationYieldPositionInfo extends AbstractYieldPositionInfo {
 export interface NativeYieldPositionInfo extends AbstractYieldPositionInfo {
   type: YieldPoolType.NATIVE_STAKING;
 }
+export interface AstarDappV3PositionInfo extends NativeYieldPositionInfo {
+  totalLock: string;
+}
 
 /**
  * Info of yield pool
  * */
-export type YieldPositionInfo = NativeYieldPositionInfo | NominationYieldPositionInfo | LiquidYieldPositionInfo | LendingYieldPositionInfo;
+export type YieldPositionInfo = NativeYieldPositionInfo | NominationYieldPositionInfo | LiquidYieldPositionInfo | LendingYieldPositionInfo | AstarDappV3PositionInfo;

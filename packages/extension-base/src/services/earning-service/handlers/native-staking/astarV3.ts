@@ -170,14 +170,12 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
       }).catch(console.error);
     });
 
-    const [_allDapps, _activeProtocolState, _stakerInfo, _currentBlock] = await Promise.all([
+    const [_allDapps, _stakerInfo, _currentBlock] = await Promise.all([
       allDappsReq,
-      substrateApi.api.query.dappStaking.activeProtocolState(),
       substrateApi.api.query.dappStaking.stakerInfo.entries(address),
       substrateApi.api.query.system.number()
     ]);
 
-    const activeProtocolState = _activeProtocolState.toPrimitive() as unknown as PalletDappStakingV3ProtocolState;
     const currentBlock = _currentBlock.toPrimitive() as string;
     const minDelegatorStake = substrateApi.api.consts.dappStaking.minimumStakeAmount.toString();
     const allDapps = _allDapps as PalletDappStakingV3DappInfo[];
@@ -245,7 +243,7 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
       }
     }
 
-    // todo: add locked amount and process this case!
+    // Handle locked amount for pool position
     if (nominationList.length === 0 && unstakingList.length === 0 && !bnLocked.gt(new BigN(0))) {
       return {
         balanceToken: this.nativeToken.slug,
@@ -320,6 +318,7 @@ export default class AstarV3NativeStakingPoolHandler extends BaseParaNativeStaki
               type: this.type,
               address: owner,
               balanceToken: this.nativeToken.slug,
+              totalLock: '0',
               totalStake: '0',
               activeStake: '0',
               unstakeBalance: '0',
