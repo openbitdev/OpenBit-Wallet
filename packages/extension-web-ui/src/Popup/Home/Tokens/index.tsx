@@ -32,6 +32,8 @@ import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
 
 import DetailTable from './DetailTable';
+import { isEthereumAddress } from '@polkadot/util-crypto';
+import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 
 type Props = ThemeProps;
 const BN_0 = new BigN(0);
@@ -54,7 +56,8 @@ const Component = (): React.ReactElement => {
   const topBlockRef = useRef<HTMLDivElement>(null);
   const { accountBalance: { tokenGroupBalanceMap,
     totalBalanceInfo }, tokenGroupStructure: { sortedTokenGroups } } = useContext(HomeContext);
-  const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
+  const assetRegistryMap = useSelector((state: RootState) => state.assetRegistry.assetRegistry);
+  const { accounts, currentAccount, isAllAccount } = useSelector((state: RootState) => state.accountState);
 
   const [, setStorage] = useLocalStorage<TransferParams>(TRANSFER_TRANSACTION, DEFAULT_TRANSFER_PARAMS);
 
@@ -193,12 +196,59 @@ const Component = (): React.ReactElement => {
   [navigate]
   );
 
+  const isOnlySubstrateAccount = useMemo(() => {
+
+    return accounts.every(account => !isEthereumAddress(account.address));
+  }, [accounts]);
+
+  const isOnlyEvmAccount = useMemo(() => {
+
+    return accounts.every(account => isEthereumAddress(account.address));
+  }, [accounts]);
+
+  const copiedEvmSortedTokenGroups = [...sortedTokenGroups];
+
+  const filterEvmType = useMemo(() => {
+    return copiedEvmSortedTokenGroups.filter(tokenGroupSlug => {
+      const chainAsset = assetRegistryMap[tokenGroupSlug];
+      if (chainAsset?.originChain && chainInfoMap[chainAsset.originChain]) {
+        const chain = chainInfoMap[chainAsset.originChain];
+        const isEvmChain = _isChainEvmCompatible(chain);
+        return isEvmChain;
+      }
+      return false;
+    });
+  }, [copiedEvmSortedTokenGroups, assetRegistryMap, isAllAccount, tokenGroupBalanceMap, chainInfoMap]);
+
+  const copiedSubstrateSortedTokenGroups = [...sortedTokenGroups];
+
+  const filterSubstrateType = useMemo(() => {
+    return copiedSubstrateSortedTokenGroups.filter(tokenGroupSlug => {
+      const chainAsset = assetRegistryMap[tokenGroupSlug];
+      if (chainAsset?.originChain && chainInfoMap[chainAsset.originChain]) {
+        const chain = chainInfoMap[chainAsset.originChain];
+        const isEvmChain = _isChainEvmCompatible(chain);
+        return !isEvmChain;
+      }
+      return false;
+    });
+  }, [copiedSubstrateSortedTokenGroups, assetRegistryMap, isAllAccount, tokenGroupBalanceMap, chainInfoMap]);
+
+  console.log('filterEvmType', filterEvmType);
+  console.log('filterSubstrateType', filterSubstrateType);
   const tokenGroupBalanceItems = useMemo<TokenBalanceItemType[]>(() => {
     const result: TokenBalanceItemType[] = [];
 
-    sortedTokenGroups.forEach((tokenGroupSlug) => {
-      const item = tokenGroupBalanceMap[tokenGroupSlug];
+    const sortedTemp: string[] = isAllAccount
+      ? isOnlyEvmAccount
+        ? filterEvmType
+        : isOnlySubstrateAccount
+          ? filterSubstrateType
+          : []
+      : sortedTokenGroups;
 
+    sortedTemp.forEach((tokenGroupSlug) => {
+      const item = tokenGroupBalanceMap[tokenGroupSlug];
       if (!item) {
         return;
       }
