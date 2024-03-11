@@ -42,7 +42,7 @@ import { convertSubjectInfoToAddresses, createTransactionFromRLP, isSameAddress,
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
-import { createPair, decodeAddress } from '@subwallet/keyring';
+import { createPair, decodeAddress, getDerivePath } from '@subwallet/keyring';
 import { KeypairType, KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
 import { SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -60,12 +60,10 @@ import { assert, BN, BN_ZERO, hexStripPrefix, hexToU8a, isAscii, isHex, u8aToHex
 import { addressToEvm, base64Decode, isAddress, isEthereumAddress, jsonDecrypt, keyExtractSuri, mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto';
 import { EncryptedJson, Prefix } from '@polkadot/util-crypto/types';
 
-const ETH_DERIVE_DEFAULT = '/m/44\'/60\'/0\'/0/0';
-
 function getSuri (seed: string, type?: KeypairType): string {
-  return type === 'ethereum'
-    ? `${seed}${ETH_DERIVE_DEFAULT}`
-    : seed;
+  const extraPath = type ? getDerivePath(type)(0) : '';
+
+  return seed + (extraPath ? '/' + extraPath : '');
 }
 
 function transformAccounts (accounts: SubjectInfo): AccountJson[] {
