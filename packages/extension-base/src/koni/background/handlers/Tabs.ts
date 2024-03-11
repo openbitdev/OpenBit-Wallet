@@ -984,7 +984,8 @@ export default class KoniTabs {
     return type === 'evm(request)' &&
       [
         'eth_chainId',
-        'net_version'
+        'net_version',
+        'eth_accounts'
       ].includes(request?.method);
   }
 
