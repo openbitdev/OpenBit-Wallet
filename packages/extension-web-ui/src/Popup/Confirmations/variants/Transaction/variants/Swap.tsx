@@ -22,6 +22,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const { className, transaction } = props;
   const assetRegistryMap = useSelector((state) => state.assetRegistry.assetRegistry);
   const priceMap = useSelector((state) => state.price.priceMap);
+  // @ts-ignore
   const [isShowAlert, setIsShowAlert] = useState<boolean>(false);
   const { t } = useTranslation();
   // @ts-ignore
@@ -75,7 +76,8 @@ const Component: React.FC<Props> = (props: Props) => {
     if (data.quote.aliveUntil) {
       timer = setInterval(() => {
         if (Date.now() > data.quote.aliveUntil) {
-          setIsShowAlert(true);
+          // disable for demo
+          // setIsShowAlert(true);
           clearInterval(timer);
         }
       }, 1000);
