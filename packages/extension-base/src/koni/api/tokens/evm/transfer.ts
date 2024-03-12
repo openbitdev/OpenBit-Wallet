@@ -7,7 +7,7 @@ import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/
 import { _BALANCE_PARSING_CHAIN_GROUP, EVM_REFORMAT_DECIMALS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ERC721_ABI } from '@subwallet/extension-base/services/chain-service/helper';
 import { _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
-import { calculateGasFeeParams } from '@subwallet/extension-base/utils/eth';
+import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
 import BigN from 'bignumber.js';
 import { TransactionConfig, TransactionReceipt } from 'web3-core';
 
@@ -76,8 +76,7 @@ export async function getEVMTransactionObject (
   let estimateFee: BigN;
 
   if (priority.baseGasFee) {
-    const priorityFee = priority.baseGasFee.plus(priority.maxPriorityFeePerGas);
-    const maxFee = priority.maxFeePerGas.gte(priorityFee) ? priority.maxFeePerGas : priorityFee;
+    const maxFee = priority.maxFeePerGas;
 
     estimateFee = maxFee.multipliedBy(gasLimit);
   } else {
