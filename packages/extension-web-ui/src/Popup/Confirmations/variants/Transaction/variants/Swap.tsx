@@ -3,14 +3,14 @@
 
 import { _getAssetSymbol } from '@subwallet/extension-base/services/chain-service/utils';
 import { SwapTxData } from '@subwallet/extension-base/types/swap';
-import { MetaInfo } from '@subwallet/extension-web-ui/components';
+import { AlertBox, MetaInfo } from '@subwallet/extension-web-ui/components';
 import { SwapRoute, SwapTransactionBlock } from '@subwallet/extension-web-ui/components/Swap';
 import { BN_TEN, BN_ZERO } from '@subwallet/extension-web-ui/constants';
 import { useGetAccountByAddress, useGetChainPrefixBySlug, useSelector } from '@subwallet/extension-web-ui/hooks';
 import { Number } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
@@ -22,7 +22,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const { className, transaction } = props;
   const assetRegistryMap = useSelector((state) => state.assetRegistry.assetRegistry);
   const priceMap = useSelector((state) => state.price.priceMap);
-  // const [isShowAlert, setIsShowAlert] = useState<boolean>(false);
+  const [isShowAlert, setIsShowAlert] = useState<boolean>(false);
   const { t } = useTranslation();
   // @ts-ignore
   const data = transaction.data as SwapTxData;
@@ -69,6 +69,23 @@ const Component: React.FC<Props> = (props: Props) => {
     );
   };
 
+  useEffect(() => {
+    let timer: NodeJS.Timer;
+
+    if (data.quote.aliveUntil) {
+      timer = setInterval(() => {
+        if (Date.now() > data.quote.aliveUntil) {
+          setIsShowAlert(true);
+          clearInterval(timer);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [data.quote.aliveUntil]);
+
   return (
     <div className={CN(className, 'swap-confirmation-container')}>
       <SwapTransactionBlock
@@ -105,6 +122,16 @@ const Component: React.FC<Props> = (props: Props) => {
         >
         </MetaInfo.Default>
         <SwapRoute swapRoute={data.quote.route} />
+        {isShowAlert &&
+          (
+            <AlertBox
+              className={'__swap-quote-expired'}
+              description={t('The swap quote has expired.')}
+              title={t('Swap Quote Expired')}
+              type='warning'
+            />)
+        }
+
       </MetaInfo>
     </div>
   );
