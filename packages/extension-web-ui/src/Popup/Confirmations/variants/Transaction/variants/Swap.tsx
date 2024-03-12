@@ -5,8 +5,10 @@ import { _getAssetSymbol } from '@subwallet/extension-base/services/chain-servic
 import { SwapTxData } from '@subwallet/extension-base/types/swap';
 import { MetaInfo } from '@subwallet/extension-web-ui/components';
 import { SwapRoute, SwapTransactionBlock } from '@subwallet/extension-web-ui/components/Swap';
+import { BN_TEN, BN_ZERO } from '@subwallet/extension-web-ui/constants';
 import { useGetAccountByAddress, useGetChainPrefixBySlug, useSelector } from '@subwallet/extension-web-ui/hooks';
 import { Number } from '@subwallet/react-ui';
+import BigN from 'bignumber.js';
 import CN from 'classnames';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +21,8 @@ type Props = BaseTransactionConfirmationProps;
 const Component: React.FC<Props> = (props: Props) => {
   const { className, transaction } = props;
   const assetRegistryMap = useSelector((state) => state.assetRegistry.assetRegistry);
+  const priceMap = useSelector((state) => state.price.priceMap);
+  // const [isShowAlert, setIsShowAlert] = useState<boolean>(false);
   const { t } = useTranslation();
   // @ts-ignore
   const data = transaction.data as SwapTxData;
@@ -29,6 +33,23 @@ const Component: React.FC<Props> = (props: Props) => {
   const toAssetInfo = useMemo(() => {
     return assetRegistryMap[data.quote.pair.to] || undefined;
   }, [assetRegistryMap, data.quote.pair.to]);
+
+  const estimatedFeeValue = useMemo(() => {
+    let totalBalance = BN_ZERO;
+
+    data.quote.feeInfo.feeComponent.forEach((feeItem) => {
+      const asset = assetRegistryMap[feeItem.tokenSlug];
+
+      if (asset) {
+        const { decimals, priceId } = asset;
+        const price = priceMap[priceId || ''] || 0;
+
+        totalBalance = totalBalance.plus(new BigN(feeItem.amount).div(BN_TEN.pow(decimals || 0)).multipliedBy(price));
+      }
+    });
+
+    return totalBalance;
+  }, [assetRegistryMap, data.quote.feeInfo.feeComponent, priceMap]);
 
   const renderRateConfirmInfo = () => {
     return (
@@ -73,10 +94,10 @@ const Component: React.FC<Props> = (props: Props) => {
         </MetaInfo.Default>
         <MetaInfo.Number
           className={'__estimate-transaction-fee'}
-          decimals={transaction.estimateFee?.decimals}
+          decimals={0}
           label={'Estimated transaction fee'}
           prefix={'$'}
-          value={transaction.estimateFee?.value || 0}
+          value={estimatedFeeValue}
         />
         <MetaInfo.Default
           className={'-d-column'}
