@@ -687,9 +687,9 @@ export class ChainService {
       this.handleLatestBlockedAssetRef(latestAssetRef);
     }).catch(console.error);
 
-    this.fetchLatestPriceIdsData().then((latestPriceIds) => {
-      this.handleLatestPriceId(latestPriceIds);
-    }).catch(console.error);
+    // this.fetchLatestPriceIdsData().then((latestPriceIds) => {
+    //   this.handleLatestPriceId(latestPriceIds);
+    // }).catch(console.error);
   }
 
   private async initApis () {
