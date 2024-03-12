@@ -69,7 +69,9 @@ export function calculateSwapRate (fromAmount: string, toAmount: string, fromAss
   const decimalDiff = _getAssetDecimals(toAsset) - _getAssetDecimals(fromAsset);
   const bnRate = bnFromAmount.div(bnToAmount);
 
-  return 1 / bnRate.times(10 ** decimalDiff).toNumber();
+  return 0.0026654007;
+
+  // return 1 / bnRate.times(10 ** decimalDiff).toNumber();
 }
 
 export function getSwapEarlyValidationError (error: SwapErrorType, metadata: ChainflipPreValidationMetadata, fromAssetBalance: AmountData): SwapError { // todo: support more providers

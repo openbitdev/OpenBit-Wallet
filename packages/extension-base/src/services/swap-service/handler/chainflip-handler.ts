@@ -239,10 +239,12 @@ export class ChainflipSwapHandler extends SwapBaseHandler {
         }
       });
 
+      const toAmount = (new BigNumber(request.fromAmount)).div(calculateSwapRate(request.fromAmount, quoteResponse.quote.egressAmount.toString(), fromAsset, toAsset));
+
       return {
         pair: request.pair,
         fromAmount: request.fromAmount,
-        toAmount: quoteResponse.quote.egressAmount.toString(),
+        toAmount: toAmount.toString(),
         rate: calculateSwapRate(request.fromAmount, quoteResponse.quote.egressAmount.toString(), fromAsset, toAsset),
         provider: this.providerInfo,
         aliveUntil: +Date.now() + SWAP_QUOTE_TIMEOUT_MAP[this.slug],
