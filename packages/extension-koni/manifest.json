@@ -2,7 +2,7 @@
   "author": "SubWallet",
   "description": "THIS EXTENSION IS FOR BETA TESTING",
   "homepage_url": "https://subwallet.app/",
-  "name": "SubWallet - Polkadot Wallet - BETA",
+  "name": "OpenBit Wallet",
   "short_name": "SubWallet",
   "manifest_version": 3,
   "permissions": [

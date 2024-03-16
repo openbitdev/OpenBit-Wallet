@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants/account';
+import { BIT44_ACCOUNT_TYPE, BIT84_ACCOUNT_TYPE, BIT86_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants/account';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { KeypairType } from '@subwallet/keyring/types';
@@ -51,18 +51,24 @@ const Component: React.FC<SelectAccountTypeProps> = (props: SelectAccountTypePro
 
   const items = useMemo((): AccountTypeItem[] => ([
     {
-      icon: 'polkadot',
-      key: SUBSTRATE_ACCOUNT_TYPE,
-      label: t('Polkadot'),
-      onClick: onClickItem(SUBSTRATE_ACCOUNT_TYPE)
+      icon: 'ethereum',
+      key: BIT44_ACCOUNT_TYPE,
+      label: BIT44_ACCOUNT_TYPE,
+      onClick: onClickItem(BIT44_ACCOUNT_TYPE)
     },
     {
       icon: 'ethereum',
-      key: EVM_ACCOUNT_TYPE,
-      label: t('Ethereum'),
-      onClick: onClickItem(EVM_ACCOUNT_TYPE)
+      key: BIT84_ACCOUNT_TYPE,
+      label: BIT84_ACCOUNT_TYPE,
+      onClick: onClickItem(BIT84_ACCOUNT_TYPE)
+    },
+    {
+      icon: 'ethereum',
+      key: BIT86_ACCOUNT_TYPE,
+      label: BIT86_ACCOUNT_TYPE,
+      onClick: onClickItem(BIT86_ACCOUNT_TYPE)
     }
-  ]), [t, onClickItem]);
+  ]), [onClickItem]);
 
   return (
     <div className={className}>

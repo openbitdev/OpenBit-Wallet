@@ -3,12 +3,12 @@
 
 import { Layout } from '@subwallet/extension-koni-ui/components';
 import { GeneralTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/GeneralTermModal';
-import { ATTACH_ACCOUNT_MODAL, CONFIRM_GENERAL_TERM, CREATE_ACCOUNT_MODAL, DEFAULT_ACCOUNT_TYPES, GENERAL_TERM_AND_CONDITION_MODAL, IMPORT_ACCOUNT_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { CONFIRM_GENERAL_TERM, CREATE_ACCOUNT_MODAL, DEFAULT_ACCOUNT_TYPES, GENERAL_TERM_AND_CONDITION_MODAL, IMPORT_SEED_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useSetSelectedAccountTypes, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, ButtonProps, Icon, Image, ModalContext } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { FileArrowDown, PlusCircle, Swatches } from 'phosphor-react';
+import { FileArrowDown, PlusCircle } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -42,16 +42,9 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     {
       description: t('Import an existing account'),
       icon: FileArrowDown,
-      id: IMPORT_ACCOUNT_MODAL,
+      id: IMPORT_SEED_MODAL,
       schema: 'secondary',
       title: t('Import an account')
-    },
-    {
-      description: t('Attach an account without private key'),
-      icon: Swatches,
-      id: ATTACH_ACCOUNT_MODAL,
-      schema: 'secondary',
-      title: t('Attach an account')
     }
   ], [t]);
 
@@ -60,6 +53,8 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       if (id === CREATE_ACCOUNT_MODAL) {
         setSelectedAccountTypes(DEFAULT_ACCOUNT_TYPES);
         navigate('/accounts/new-seed-phrase');
+      } else if (id === IMPORT_SEED_MODAL) {
+        activeModal(IMPORT_SEED_MODAL);
       } else {
         inactiveModal(SELECT_ACCOUNT_MODAL);
         activeModal(id);

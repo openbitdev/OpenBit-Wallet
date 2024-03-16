@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { DEFAULT_ACCOUNT_TYPES } from '@subwallet/extension-koni-ui/constants';
-import { useClickOutSide, useSetSelectedAccountTypes, useSwitchModal, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useClickOutSide, useSetSelectedAccountTypes, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { renderModalSelector } from '@subwallet/extension-koni-ui/utils/common/dom';
 import { KeypairType } from '@subwallet/keyring/types';
@@ -18,7 +18,7 @@ import { BackIcon, CloseIcon } from '../../Icon';
 
 interface Props extends ThemeProps {
   id: string;
-  previousId: string;
+  previousId?: string;
   url: string;
   label: string;
   icon?: PhosphorIcon;
@@ -27,7 +27,7 @@ interface Props extends ThemeProps {
 const Component: React.FC<Props> = (props: Props) => {
   const { className, icon = CheckCircle, id, label, previousId, url } = props;
   const { t } = useTranslation();
-  const { checkActive, inactiveModal } = useContext(ModalContext);
+  const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
   const navigate = useNavigate();
   const isActive = checkActive(id);
 
@@ -45,7 +45,10 @@ const Component: React.FC<Props> = (props: Props) => {
     inactiveModal(id);
   }, [setSelectedAccountTypes, selectedItems, navigate, url, inactiveModal, id]);
 
-  const onBack = useSwitchModal(id, previousId);
+  const onBack = useCallback(() => {
+    inactiveModal(id);
+    previousId && activeModal(previousId);
+  }, [activeModal, id, inactiveModal, previousId]);
 
   useClickOutSide(isActive, renderModalSelector(className), onCancel);
 

@@ -109,7 +109,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   }, [_isConfirmedTermSeedPhrase, activeModal]);
 
   useEffect(() => {
-    createSeedV2(undefined, undefined, DEFAULT_ACCOUNT_TYPES)
+    createSeedV2(24, undefined, DEFAULT_ACCOUNT_TYPES)
       .then((response): void => {
         const phrase = response.seed;
 
