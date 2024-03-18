@@ -1,8 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { IMPORT_ACCOUNT_MODAL, IMPORT_SEED_MODAL } from '@subwallet/extension-koni-ui/constants';
-import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { IMPORT_SEED_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { useGoBackSelectAccount, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { FileArrowDown } from 'phosphor-react';
 import React from 'react';
@@ -12,16 +12,20 @@ import AccountTypeModal from './AccountTypeModal';
 
 type Props = ThemeProps;
 
+const modalId = IMPORT_SEED_MODAL;
+
 const Component: React.FC<Props> = ({ className }: Props) => {
   const { t } = useTranslation();
+
+  const onBack = useGoBackSelectAccount(modalId);
 
   return (
     <AccountTypeModal
       className={className}
       icon={FileArrowDown}
-      id={IMPORT_SEED_MODAL}
+      id={modalId}
       label={t('Import account')}
-      previousId={IMPORT_ACCOUNT_MODAL}
+      onBack={onBack}
       url={'/accounts/import-seed-phrase'}
     />
   );

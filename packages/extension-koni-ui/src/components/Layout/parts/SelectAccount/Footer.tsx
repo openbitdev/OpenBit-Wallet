@@ -1,11 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ATTACH_ACCOUNT_MODAL, CREATE_ACCOUNT_MODAL, IMPORT_ACCOUNT_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { CREATE_ACCOUNT_MODAL, IMPORT_SEED_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
-import { FileArrowDown, PlusCircle, Swatches } from 'phosphor-react';
+import { FileArrowDown, PlusCircle } from 'phosphor-react';
 import React, { useCallback, useContext } from 'react';
 import styled from 'styled-components';
 
@@ -25,11 +25,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   }, [openModal]);
 
   const openImportAccount = useCallback(() => {
-    openModal(IMPORT_ACCOUNT_MODAL);
-  }, [openModal]);
-
-  const openAttachAccount = useCallback(() => {
-    openModal(ATTACH_ACCOUNT_MODAL);
+    openModal(IMPORT_SEED_MODAL);
   }, [openModal]);
 
   return (
@@ -58,18 +54,6 @@ const Component: React.FC<Props> = ({ className }: Props) => {
         onClick={openImportAccount}
         schema='secondary'
         tooltip={t('Import account')}
-      />
-      <Button
-        className='btn-min-width'
-        icon={(
-          <Icon
-            phosphorIcon={Swatches}
-            weight={'fill'}
-          />
-        )}
-        onClick={openAttachAccount}
-        schema='secondary'
-        tooltip={t('Attach account')}
       />
     </div>
   );

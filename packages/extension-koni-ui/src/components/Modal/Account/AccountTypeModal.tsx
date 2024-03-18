@@ -19,15 +19,16 @@ import { BackIcon, CloseIcon } from '../../Icon';
 interface Props extends ThemeProps {
   id: string;
   previousId?: string;
+  onBack?: VoidFunction;
   url: string;
   label: string;
   icon?: PhosphorIcon;
 }
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className, icon = CheckCircle, id, label, previousId, url } = props;
+  const { className, icon = CheckCircle, id, label, url, onBack } = props;
   const { t } = useTranslation();
-  const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
+  const { checkActive, inactiveModal } = useContext(ModalContext);
   const navigate = useNavigate();
   const isActive = checkActive(id);
 
@@ -45,10 +46,9 @@ const Component: React.FC<Props> = (props: Props) => {
     inactiveModal(id);
   }, [setSelectedAccountTypes, selectedItems, navigate, url, inactiveModal, id]);
 
-  const onBack = useCallback(() => {
+  const _defaultOnBack = useCallback(() => {
     inactiveModal(id);
-    previousId && activeModal(previousId);
-  }, [activeModal, id, inactiveModal, previousId]);
+  }, [id, inactiveModal]);
 
   useClickOutSide(isActive, renderModalSelector(className), onCancel);
 
@@ -64,7 +64,7 @@ const Component: React.FC<Props> = (props: Props) => {
       closeIcon={(<BackIcon />)}
       id={id}
       maskClosable={false}
-      onCancel={onBack}
+      onCancel={onBack || _defaultOnBack}
       rightIconProps={{
         icon: <CloseIcon />,
         onClick: onCancel

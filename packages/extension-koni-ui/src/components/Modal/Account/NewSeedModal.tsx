@@ -4,22 +4,32 @@
 import { CREATE_ACCOUNT_MODAL, NEW_SEED_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import React from 'react';
+import { ModalContext } from '@subwallet/react-ui';
+import React, { useCallback, useContext } from 'react';
 import styled from 'styled-components';
 
 import AccountTypeModal from './AccountTypeModal';
 
 type Props = ThemeProps;
 
+const modalId = NEW_SEED_MODAL;
+
 const Component: React.FC<Props> = ({ className }: Props) => {
   const { t } = useTranslation();
+
+  const { activeModal, inactiveModal } = useContext(ModalContext);
+
+  const onBack = useCallback(() => {
+    inactiveModal(modalId);
+    activeModal(CREATE_ACCOUNT_MODAL);
+  }, [activeModal, inactiveModal]);
 
   return (
     <AccountTypeModal
       className={className}
-      id={NEW_SEED_MODAL}
+      id={modalId}
       label={t('Confirm')}
-      previousId={CREATE_ACCOUNT_MODAL}
+      onBack={onBack}
       url={'/accounts/new-seed-phrase'}
     />
   );

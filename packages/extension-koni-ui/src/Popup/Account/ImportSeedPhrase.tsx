@@ -65,7 +65,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   })), [t]);
 
   const formDefault: FormState = useMemo(() => ({
-    phraseNumber: '12',
+    phraseNumber: '24',
     trigger: 'trigger'
   }), []);
 
