@@ -9,4 +9,11 @@ export const BIT44_ACCOUNT_TYPE: KeypairType = 'bitcoin-44';
 export const BIT84_ACCOUNT_TYPE: KeypairType = 'bitcoin-84';
 export const BIT86_ACCOUNT_TYPE: KeypairType = 'bitcoin-86';
 
+export const NEED_MASTER_ACCOUNT_TO_DERIVE_TYPES: KeypairType[] = [
+  EVM_ACCOUNT_TYPE,
+  BIT44_ACCOUNT_TYPE,
+  BIT84_ACCOUNT_TYPE,
+  BIT86_ACCOUNT_TYPE
+];
+
 export const DEFAULT_ACCOUNT_TYPES: KeypairType[] = [BIT44_ACCOUNT_TYPE, BIT84_ACCOUNT_TYPE, BIT86_ACCOUNT_TYPE];

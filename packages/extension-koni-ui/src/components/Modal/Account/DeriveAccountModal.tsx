@@ -5,7 +5,7 @@ import { AccountJson } from '@subwallet/extension-base/background/types';
 import { canDerive } from '@subwallet/extension-base/utils';
 import AccountItemWithName from '@subwallet/extension-koni-ui/components/Account/Item/AccountItemWithName';
 import BackIcon from '@subwallet/extension-koni-ui/components/Icon/BackIcon';
-import { EVM_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants/account';
+import { NEED_MASTER_ACCOUNT_TO_DERIVE_TYPES } from '@subwallet/extension-koni-ui/constants/account';
 import { CREATE_ACCOUNT_MODAL, DERIVE_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
@@ -61,7 +61,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const filtered = useMemo(
     () => accounts
       .filter(({ isExternal, isInjected }) => !isExternal && !isInjected)
-      .filter(({ isMasterAccount, type }) => canDerive(type) && (type !== EVM_ACCOUNT_TYPE || (isMasterAccount && type === EVM_ACCOUNT_TYPE))),
+      .filter(({ isMasterAccount, type }) => canDerive(type) && !!type && (!NEED_MASTER_ACCOUNT_TO_DERIVE_TYPES.includes(type) || isMasterAccount)),
     [accounts]
   );
 

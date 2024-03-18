@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { MantaPayEnableMessage } from '@subwallet/extension-base/background/KoniTypes';
-import { detectTranslate } from '@subwallet/extension-base/utils';
+import { canDerive, detectTranslate } from '@subwallet/extension-base/utils';
 import { AccountAvatar, CloseIcon, Layout, PageWrapper, ZkModeFooter } from '@subwallet/extension-koni-ui/components';
+import { NEED_MASTER_ACCOUNT_TO_DERIVE_TYPES } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useDefaultNavigate, useDeleteAccount, useGetAccountByAddress, useGetAccountSignModeByAddress, useGetMantaPayConfig, useIsMantaPayAvailable, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
+import { useDefaultNavigate, useDeleteAccount, useGetAccountByAddress, useGetAccountSignModeByAddress, useGetMantaPayConfig, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
 import { deriveAccountV3, disableMantaPay, editAccount, enableMantaPay, forgetAccount, windowOpen } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { AccountSignMode, FormCallbacks, FormFieldData, PhosphorIcon, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -165,12 +166,12 @@ const Component: React.FC<Props> = (props: Props) => {
     }
   }, [enableMantaPayConfirm, handleEnableMantaPay, isZkModeEnabled, zkModeSyncState.isSyncing]);
 
-  const canDerive = useMemo((): boolean => {
+  const _canDerive = useMemo((): boolean => {
     if (account) {
-      if (account.isExternal) {
+      if (account.isExternal || !canDerive(account.type)) {
         return false;
       } else {
-        if (account.type === 'ethereum') {
+        if (account.type && NEED_MASTER_ACCOUNT_TO_DERIVE_TYPES.includes(account.type)) {
           return !!account.isMasterAccount;
         } else {
           return true;
@@ -549,7 +550,7 @@ const Component: React.FC<Props> = (props: Props) => {
           />
           <Button
             className={CN('account-button')}
-            disabled={!canDerive || zkModeSyncState.isSyncing || account.isInjected}
+            disabled={!_canDerive || zkModeSyncState.isSyncing || account.isInjected}
             icon={(
               <Icon
                 phosphorIcon={GitMerge}
