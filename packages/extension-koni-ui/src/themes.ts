@@ -9,7 +9,9 @@ import SwLogosMap from '@subwallet/extension-koni-ui/assets/subwallet';
 import { theme as SwReactUI } from '@subwallet/react-ui';
 import { ThemeConfig as _ThemeConfig, Web3LogoMap } from '@subwallet/react-ui/es/config-provider/context';
 import { AliasToken as _AliasToken, GlobalToken as _GlobalToken } from '@subwallet/react-ui/es/theme/interface';
+import derivative from '@subwallet/react-ui/es/theme/themes/dark';
 import logoMap from '@subwallet/react-ui/es/theme/themes/logoMap';
+import seedToken from '@subwallet/react-ui/es/theme/themes/seed';
 
 export type ThemeConfig = _ThemeConfig;
 export type AliasToken = _AliasToken;
@@ -34,14 +36,10 @@ export type Theme = {
   logoMap: Web3LogoMap,
 };
 
-export interface SwThemeConfig extends ThemeConfig {
-  id: ThemeNames,
-  name: string;
-
+export type SwThemeConfig = Omit<Theme, 'extendToken'> & {
+  algorithm?: ThemeConfig['algorithm'],
   generateExtraTokens: (token: AliasToken) => ExtraToken;
-
   customTokens: (token: AliasToken) => AliasToken;
-  logoMap: Web3LogoMap
 }
 
 function genDefaultExtraTokens (token: AliasToken): ExtraToken {
@@ -76,7 +74,14 @@ export const SW_THEME_CONFIGS: Record<ThemeNames, SwThemeConfig> = {
     id: ThemeNames.DARK,
     name: 'Dark',
     algorithm: SwReactUI.darkAlgorithm,
-    customTokens: (token) => (token),
+    token: derivative({
+      ...seedToken,
+      colorPrimary: '#D9C500'
+    }) as GlobalToken,
+    customTokens: (token) => ({
+      ...token,
+      colorLink: token.colorPrimary
+    }),
     generateExtraTokens: (token) => {
       return { ...genDefaultExtraTokens(token) };
     },
@@ -86,7 +91,14 @@ export const SW_THEME_CONFIGS: Record<ThemeNames, SwThemeConfig> = {
     id: ThemeNames.LIGHT,
     name: 'Light',
     algorithm: SwReactUI.darkAlgorithm,
-    customTokens: (token) => (token),
+    token: derivative({
+      ...seedToken,
+      colorPrimary: '#D9C500'
+    }) as GlobalToken,
+    customTokens: (token) => ({
+      ...token,
+      colorLink: token.colorPrimary
+    }),
     generateExtraTokens: (token) => {
       return { ...genDefaultExtraTokens(token) };
     },

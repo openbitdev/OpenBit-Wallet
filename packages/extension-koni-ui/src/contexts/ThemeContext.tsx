@@ -225,6 +225,49 @@ const GlobalStyle = createGlobalStyle<ThemeProps>(({ theme }) => {
         display: 'block',
         'white-space': 'nowrap'
       }
+    },
+
+    // override components
+
+    // input
+    '.ant-input-container:not(.-disabled):not(.-status-warning):not(.-status-error):not(.-status-success.-display-success-status)': {
+      '&:hover': {
+        '--webkit-autofill-border-color': token['colorPrimary-4'],
+
+        '&:before': {
+          borderColor: token['colorPrimary-4']
+        }
+      },
+
+      '&:focus-within': {
+        '--webkit-autofill-border-color': token['colorPrimary-6'],
+
+        '&:before': {
+          borderColor: token['colorPrimary-6']
+        }
+      }
+    },
+
+    // selectModal
+
+    '.ant-select-modal-input-container:not(.-disabled):not(.-status-warning):not(.-status-error):not(.-status-success.-display-success-status)': {
+      '&:hover, &.ant-select-modal-input-focus': {
+        '&::before': {
+          borderColor: token['colorPrimary-4']
+        }
+      }
+    },
+
+    // button
+
+    '.ant-btn-default.ant-btn-default.-schema-primary': {
+      '&, &:hover, &:active': {
+        color: token.colorTextDark2
+      },
+
+      '&.-disabled, &:disabled': {
+        color: token.colorTextDark5
+      }
     }
   });
 });
