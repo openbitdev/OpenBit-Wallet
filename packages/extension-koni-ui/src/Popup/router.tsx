@@ -66,7 +66,6 @@ const NftCollectionDetail = new LazyLoader('NftCollectionDetail', () => import('
 const NftImport = new LazyLoader('NftImport', () => import('@subwallet/extension-koni-ui/Popup/Home/Nfts/NftImport'));
 
 const History = new LazyLoader('History', () => import('@subwallet/extension-koni-ui/Popup/Home/History'));
-const Crowdloans = new LazyLoader('Crowdloans', () => import('@subwallet/extension-koni-ui/Popup/Home/Crowdloans'));
 const Home = new LazyLoader('Home', () => import('@subwallet/extension-koni-ui/Popup/Home'));
 
 const Settings = new LazyLoader('Settings', () => import('@subwallet/extension-koni-ui/Popup/Settings'));
@@ -162,8 +161,6 @@ export const router = createHashRouter([
               NftItemDetail.generateRouterObject('item-detail')
             ]
           },
-          Crowdloans.generateRouterObject('crowdloans'),
-          // Staking.generateRouterObject('staking'),
           {
             path: 'earning',
             element: <Outlet />,
