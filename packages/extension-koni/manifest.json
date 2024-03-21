@@ -1,9 +1,9 @@
 {
-  "author": "SubWallet",
+  "author": "OpenBit",
   "description": "THIS EXTENSION IS FOR BETA TESTING",
   "homepage_url": "https://subwallet.app/",
   "name": "OpenBit Wallet",
-  "short_name": "SubWallet",
+  "short_name": "OpenBit Wallet",
   "manifest_version": 3,
   "permissions": [
     "notifications",
@@ -14,7 +14,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "SubWallet",
+    "default_title": "OpenBit Wallet",
     "default_popup": "index.html"
   },
   "content_scripts": [
