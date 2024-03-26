@@ -455,7 +455,8 @@ export enum TransactionDirection {
 
 export enum ChainType {
   EVM = 'evm',
-  SUBSTRATE = 'substrate'
+  SUBSTRATE = 'substrate',
+  BITCOIN = 'bitcoin'
 }
 
 export enum ExtrinsicType {
@@ -648,7 +649,7 @@ export type TransactionAdditionalInfo = {
 //       ? Pick<SubmitBifrostLiquidStaking, 'rewardTokenSlug' | 'estimatedAmountReceived'>
 //       : undefined;
 export interface TransactionHistoryItem<ET extends ExtrinsicType = ExtrinsicType.TRANSFER_BALANCE> {
-  origin?: 'app' | 'migration' | 'subsquid' | 'subscan', // 'app' or history source
+  origin?: 'app' | 'migration' | 'subsquid' | 'subscan' | 'blockstream', // 'app' or history source
   callhash?: string,
   signature?: string,
   chain: string,
