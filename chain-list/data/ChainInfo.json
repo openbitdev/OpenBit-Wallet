@@ -119,7 +119,8 @@
       "blockExplorer": "https://mempool.space",
       "existentialDeposit": "0",
       "decimals": 8,
-      "symbol": "BTC"
+      "symbol": "BTC",
+      "bitcoinNetwork": "mainnet"
     },
     "substrateInfo": null,
     "extraInfo": {
@@ -140,7 +141,8 @@
       "blockExplorer": "https://mempool.space/testnet",
       "existentialDeposit": "0",
       "decimals": 8,
-      "symbol": "BTC"
+      "symbol": "BTC",
+      "bitcoinNetwork": "testnet"
     },
     "substrateInfo": null,
     "extraInfo": {

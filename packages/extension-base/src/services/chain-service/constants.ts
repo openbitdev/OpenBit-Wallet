@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _DEFAULT_CHAINS } from '@subwallet/chain-list';
-import { _SubstrateChainType } from '@subwallet/chain-list/types';
+import { _SubstrateChainType, BitcoinNetworkMode } from '@subwallet/chain-list/types';
 import { SingleModeJson, ThemeNames } from '@subwallet/extension-base/background/KoniTypes';
+import * as bitcoinJs from 'bitcoinjs-lib';
 
 export const API_AUTO_CONNECT_MS = 3000;
 export const API_CONNECT_TIMEOUT = 30000;
@@ -25,6 +26,17 @@ export const _PREDEFINED_SINGLE_MODES: Record<string, SingleModeJson> = {
 };
 
 export const _PURE_EVM_CHAINS = ['binance', 'binance_test', 'ethereum', 'ethereum_goerli', 'astarEvm', 'shidenEvm', 'shibuyaEvm', 'crabEvm', 'pangolinEvm', 'cloverEvm', 'boba_rinkeby', 'boba', 'bobabase', 'bobabeam', 'watr_network_evm'];
+
+// bitcoin
+
+// refer leather-wallet
+
+export const bitcoinJsLibNetworkMap: Record<BitcoinNetworkMode, bitcoinJs.Network> = {
+  mainnet: bitcoinJs.networks.bitcoin,
+  testnet: bitcoinJs.networks.testnet,
+  regtest: bitcoinJs.networks.regtest,
+  signet: bitcoinJs.networks.testnet
+};
 
 // Get balance----------------------------------------------------------------------------------------------------------
 
