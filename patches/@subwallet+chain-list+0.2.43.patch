@@ -1,0 +1,25 @@
+diff --git a/node_modules/@subwallet/chain-list/types.d.ts b/node_modules/@subwallet/chain-list/types.d.ts
+index f03fffc..708013f 100644
+--- a/node_modules/@subwallet/chain-list/types.d.ts
++++ b/node_modules/@subwallet/chain-list/types.d.ts
+@@ -37,6 +37,7 @@ export interface _ChainInfo {
+     providers: Record<string, string>;
+     substrateInfo: _SubstrateInfo | null;
+     evmInfo: _EvmInfo | null;
++    bitcoinInfo?: _BitcoinInfo | null;
+     extraInfo: _ExtraInfo | null;
+     icon: string;
+ }
+@@ -63,6 +64,12 @@ export interface _EvmInfo {
+     supportSmartContract: _AssetType[] | null;
+     abiExplorer: string | null;
+ }
++export interface _BitcoinInfo {
++  blockExplorer: string | null;
++  existentialDeposit: string;
++  decimals: number;
++  symbol: string;
++}
+ export interface _ExtraInfo {
+     subscanSlug: string | null;
+ }
