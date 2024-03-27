@@ -5,6 +5,7 @@ import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, M
 import { _AssetRef, _AssetRefPath, _AssetType, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
+import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/BitcoinChainHandler';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
@@ -37,6 +38,7 @@ export class ChainService {
 
   private substrateChainHandler: SubstrateChainHandler;
   private evmChainHandler: EvmChainHandler;
+  private bitcoinChainHandler: BitcoinChainHandler;
   private mantaChainHandler: MantaPrivateHandler | undefined;
 
   refreshLatestChainDataTimeOut: NodeJS.Timer | undefined;
@@ -75,6 +77,7 @@ export class ChainService {
 
     this.substrateChainHandler = new SubstrateChainHandler(this);
     this.evmChainHandler = new EvmChainHandler(this);
+    this.bitcoinChainHandler = new BitcoinChainHandler(this);
 
     this.logger = createLogger('chain-service');
   }
@@ -106,6 +109,14 @@ export class ChainService {
 
   public getSubstrateApi (slug: string) {
     return this.substrateChainHandler.getSubstrateApiByChain(slug);
+  }
+
+  public getBitcoinApi (slug: string) {
+    return this.bitcoinChainHandler.getApiByChain(slug);
+  }
+
+  public getBitcoinApiMap () {
+    return this.bitcoinChainHandler.getApiMap();
   }
 
   public getChainCurrentProviderByKey (slug: string) {
@@ -724,6 +735,12 @@ export class ChainService {
 
       this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi);
     }
+
+    if (chainInfo.bitcoinInfo !== null && chainInfo.bitcoinInfo !== undefined) {
+      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
+
+      this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi);
+    }
   }
 
   private destroyApiForChain (chainInfo: _ChainInfo) {
@@ -733,6 +750,10 @@ export class ChainService {
 
     if (chainInfo.evmInfo !== null) {
       this.evmChainHandler.destroyEvmApi(chainInfo.slug);
+    }
+
+    if (chainInfo.bitcoinInfo !== null && chainInfo.bitcoinInfo !== undefined) {
+      this.bitcoinChainHandler.destroyApi(chainInfo.slug);
     }
   }
 
@@ -1183,7 +1204,7 @@ export class ChainService {
         targetChainState.active = true;
       }
 
-      // It auto detects the change of api url to create new instance or reuse existed one
+      // It auto-detects the change of api url to create new instance or reuse existed one
       await this.initApiForChain(targetChainInfo);
       this.updateChainStateMapSubscription();
     }
@@ -1378,6 +1399,8 @@ export class ChainService {
 
       if (providerError === _CHAIN_VALIDATION_ERROR.NONE) {
         let api: _EvmApi | _SubstrateApi;
+
+        // TODO: Support validate for custom Bitcoin chain
 
         // TODO: EVM chain might have WS provider
         if (provider.startsWith('http')) {
@@ -1590,7 +1613,8 @@ export class ChainService {
   public async stopAllChainApis () {
     await Promise.all([
       this.substrateChainHandler.sleep(),
-      this.evmChainHandler.sleep()
+      this.evmChainHandler.sleep(),
+      this.bitcoinChainHandler.sleep()
     ]);
 
     this.stopCheckLatestChainData();
@@ -1599,7 +1623,8 @@ export class ChainService {
   public async resumeAllChainApis () {
     await Promise.all([
       this.substrateChainHandler.wakeUp(),
-      this.evmChainHandler.wakeUp()
+      this.evmChainHandler.wakeUp(),
+      this.bitcoinChainHandler.wakeUp()
     ]);
 
     this.checkLatestData();

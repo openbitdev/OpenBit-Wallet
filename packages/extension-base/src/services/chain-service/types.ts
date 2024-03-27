@@ -97,6 +97,18 @@ export interface _EvmApi extends _ChainBaseApi {
   isReady: Promise<_EvmApi>;
 }
 
+export interface BitcoinApiProxy {
+  setBaseUrl: (baseUrl: string) => void,
+  getRequest: (urlPath: string, params?: Record<string, string>, headers?: Record<string, string>) => Promise<unknown>,
+  postRequest: (urlPath: string, body?: BodyInit, headers?: Record<string, string>) => Promise<unknown>
+}
+
+export interface _BitcoinApi extends _ChainBaseApi {
+  api: BitcoinApiProxy;
+
+  isReady: Promise<_BitcoinApi>;
+}
+
 export type _NetworkUpsertParams = {
   mode: 'update' | 'insert',
   chainEditInfo: {

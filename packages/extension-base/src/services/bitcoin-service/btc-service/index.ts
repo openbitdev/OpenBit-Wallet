@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { AccountBalances, BTCRequest, BTCResponse, RequestBlockRange , TransfersListResponse, TransferItem } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { AccountBalances, BTCRequest, BTCResponse , TransfersListResponse, TransferItem } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
 import fetch from 'cross-fetch';
 
 import { BTC_API_CHAIN_MAP } from './btc-chain-map';
 import { wait } from '@subwallet/extension-base/utils';
+
 
 
 export class BTCService {
@@ -38,8 +39,8 @@ export class BTCService {
 
     return `https://blockstream.info/${btcScanChain}/api/${path}`;
   }
-  
-  private getRequest(url: string) {
+
+  private getRequest (url: string) {
     return fetch(url, {
       method: 'GET',
       headers: {
@@ -48,6 +49,7 @@ export class BTCService {
     });
   }
 
+  // @ts-ignore
   private postRequest (url: string, body: any) {
     return fetch(url, {
       method: 'POST',
@@ -122,9 +124,8 @@ export class BTCService {
   public setSubscanChainMap (btcChainMap: Record<string, string>) {
     this.btcChainMap = btcChainMap;
   }
-  
 
-  public getAddressUTXO(chain: string, address: string): Promise<AccountBalances[]> {
+  public getAddressUTXO (chain: string, address: string): Promise<AccountBalances[]> {
     return this.addRequest(async () => {
       const url = `${this.getApiUrl(chain, `/address/${address}/utxo`)}`;
       const rs = await this.getRequest(url);
