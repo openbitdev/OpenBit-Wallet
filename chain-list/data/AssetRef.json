@@ -1,0 +1,660 @@
+{
+  "polkadot-NATIVE-DOT___moonbeam-LOCAL-xcDOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "moonbeam-LOCAL-xcDOT",
+    "srcChain": "polkadot",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___acala-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "acala-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "acala",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___astar-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "astar-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "astar",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___statemint-NATIVE-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "statemint-NATIVE-DOT",
+    "srcChain": "polkadot",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___interlay-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "interlay-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "interlay",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___parallel-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "parallel-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "parallel",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___bifrost_dot-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "bifrost_dot-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "bifrost_dot",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___hydradx_main-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "hydradx_main-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "hydradx_main",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___manta_network-LOCAL-DOT": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "manta_network-LOCAL-DOT",
+    "srcChain": "polkadot",
+    "destChain": "manta_network",
+    "path": "XCM"
+  },
+  "polkadot-NATIVE-DOT___ethereum-NATIVE-ETH": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "ethereum-NATIVE-ETH",
+    "srcChain": "polkadot",
+    "destChain": "ethereum",
+    "path": "SWAP"
+  },
+  "polkadot-NATIVE-DOT___ethereum-ERC20-USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {
+    "srcAsset": "polkadot-NATIVE-DOT",
+    "destAsset": "ethereum-ERC20-USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "srcChain": "polkadot",
+    "destChain": "ethereum",
+    "path": "SWAP"
+  },
+  "kusama-NATIVE-KSM___statemine-NATIVE-KSM": {
+    "srcAsset": "kusama-NATIVE-KSM",
+    "destAsset": "statemine-NATIVE-KSM",
+    "srcChain": "kusama",
+    "destChain": "statemine",
+    "path": "XCM"
+  },
+  "kusama-NATIVE-KSM___moonriver-LOCAL-xcKSM": {
+    "srcAsset": "kusama-NATIVE-KSM",
+    "destAsset": "moonriver-LOCAL-xcKSM",
+    "srcChain": "kusama",
+    "destChain": "moonriver",
+    "path": "XCM"
+  },
+  "kusama-NATIVE-KSM___shiden-LOCAL-KSM": {
+    "srcAsset": "kusama-NATIVE-KSM",
+    "destAsset": "shiden-LOCAL-KSM",
+    "srcChain": "kusama",
+    "destChain": "shiden",
+    "path": "XCM"
+  },
+  "kusama-NATIVE-KSM___karura-LOCAL-KSM": {
+    "srcAsset": "kusama-NATIVE-KSM",
+    "destAsset": "karura-LOCAL-KSM",
+    "srcChain": "kusama",
+    "destChain": "karura",
+    "path": "XCM"
+  },
+  "kusama-NATIVE-KSM___bifrost-LOCAL-KSM": {
+    "srcAsset": "kusama-NATIVE-KSM",
+    "destAsset": "bifrost-LOCAL-KSM",
+    "srcChain": "kusama",
+    "destChain": "bifrost",
+    "path": "XCM"
+  },
+  "kusama-NATIVE-KSM___amplitude-LOCAL-KSM": {
+    "srcAsset": "kusama-NATIVE-KSM",
+    "destAsset": "amplitude-LOCAL-KSM",
+    "srcChain": "kusama",
+    "destChain": "amplitude",
+    "path": "XCM"
+  },
+  "ethereum-NATIVE-ETH___polkadot-NATIVE-DOT": {
+    "srcAsset": "ethereum-NATIVE-ETH",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "ethereum",
+    "destChain": "polkadot",
+    "path": "SWAP"
+  },
+  "pioneer-NATIVE-NEER___karura-LOCAL-NEER": {
+    "srcAsset": "pioneer-NATIVE-NEER",
+    "destAsset": "karura-LOCAL-NEER",
+    "srcChain": "pioneer",
+    "destChain": "karura",
+    "path": "XCM"
+  },
+  "astar-NATIVE-ASTR___acala-LOCAL-ASTR": {
+    "srcAsset": "astar-NATIVE-ASTR",
+    "destAsset": "acala-LOCAL-ASTR",
+    "srcChain": "astar",
+    "destChain": "acala",
+    "path": "XCM"
+  },
+  "statemint-NATIVE-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "statemint-NATIVE-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "statemint",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "acala-NATIVE-ACA___moonbeam-LOCAL-xcACA": {
+    "srcAsset": "acala-NATIVE-ACA",
+    "destAsset": "moonbeam-LOCAL-xcACA",
+    "srcChain": "acala",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "acala-NATIVE-ACA___parallel-LOCAL-ACA": {
+    "srcAsset": "acala-NATIVE-ACA",
+    "destAsset": "parallel-LOCAL-ACA",
+    "srcChain": "acala",
+    "destChain": "parallel",
+    "path": "XCM"
+  },
+  "acala-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "acala-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "acala",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "acala-LOCAL-GLMR___moonbeam-NATIVE-GLMR": {
+    "srcAsset": "acala-LOCAL-GLMR",
+    "destAsset": "moonbeam-NATIVE-GLMR",
+    "srcChain": "acala",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "acala-LOCAL-USDT___statemint-LOCAL-USDt": {
+    "srcAsset": "acala-LOCAL-USDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "acala",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcDOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "moonbeam-LOCAL-xcDOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "moonbeam",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcDOT___manta_network-LOCAL-DOT": {
+    "srcAsset": "moonbeam-LOCAL-xcDOT",
+    "destAsset": "manta_network-LOCAL-DOT",
+    "srcChain": "moonbeam",
+    "destChain": "manta_network",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcINTR___interlay-NATIVE-INTR": {
+    "srcAsset": "moonbeam-LOCAL-xcINTR",
+    "destAsset": "interlay-NATIVE-INTR",
+    "srcChain": "moonbeam",
+    "destChain": "interlay",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcIBTC___interlay-LOCAL-iBTC": {
+    "srcAsset": "moonbeam-LOCAL-xcIBTC",
+    "destAsset": "interlay-LOCAL-iBTC",
+    "srcChain": "moonbeam",
+    "destChain": "interlay",
+    "path": "XCM"
+  },
+  "astar-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "astar-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "astar",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "astar-LOCAL-USDT___statemint-LOCAL-USDt": {
+    "srcAsset": "astar-LOCAL-USDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "astar",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "bifrost_dot-LOCAL-USDT___statemint-LOCAL-USDt": {
+    "srcAsset": "bifrost_dot-LOCAL-USDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "bifrost_dot",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "ethereum_goerli-NATIVE-ETH___chainflip_dot-NATIVE-pDOT": {
+    "srcAsset": "ethereum_goerli-NATIVE-ETH",
+    "destAsset": "chainflip_dot-NATIVE-pDOT",
+    "srcChain": "ethereum_goerli",
+    "destChain": "chainflip_dot",
+    "path": "SWAP"
+  },
+  "ethereum_goerli-NATIVE-ETH___ethereum_goerli-ERC20-USDC-0x07865c6E87B9F70255377e024ace6630C1Eaa37F": {
+    "srcAsset": "ethereum_goerli-NATIVE-ETH",
+    "destAsset": "ethereum_goerli-ERC20-USDC-0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
+    "srcChain": "ethereum_goerli",
+    "destChain": "ethereum_goerli",
+    "path": "SWAP"
+  },
+  "parallel-LOCAL-USDT___statemint-LOCAL-USDt": {
+    "srcAsset": "parallel-LOCAL-USDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "parallel",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "hydradx_main-LOCAL-USDT___statemint-LOCAL-USDt": {
+    "srcAsset": "hydradx_main-LOCAL-USDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "hydradx_main",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "centrifuge-NATIVE-CFG___hydradx_main-LOCAL-CFG": {
+    "srcAsset": "centrifuge-NATIVE-CFG",
+    "destAsset": "hydradx_main-LOCAL-CFG",
+    "srcChain": "centrifuge",
+    "destChain": "hydradx_main",
+    "path": "XCM"
+  },
+  "interlay-NATIVE-INTR___moonbeam-LOCAL-xcINTR": {
+    "srcAsset": "interlay-NATIVE-INTR",
+    "destAsset": "moonbeam-LOCAL-xcINTR",
+    "srcChain": "interlay",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "interlay-NATIVE-INTR___acala-LOCAL-INTR": {
+    "srcAsset": "interlay-NATIVE-INTR",
+    "destAsset": "acala-LOCAL-INTR",
+    "srcChain": "interlay",
+    "destChain": "acala",
+    "path": "XCM"
+  },
+  "interlay-LOCAL-USDT___statemint-LOCAL-USDt": {
+    "srcAsset": "interlay-LOCAL-USDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "interlay",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "interlay-LOCAL-iBTC___moonbeam-LOCAL-xcIBTC": {
+    "srcAsset": "interlay-LOCAL-iBTC",
+    "destAsset": "moonbeam-LOCAL-xcIBTC",
+    "srcChain": "interlay",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "statemine-NATIVE-KSM___kusama-NATIVE-KSM": {
+    "srcAsset": "statemine-NATIVE-KSM",
+    "destAsset": "kusama-NATIVE-KSM",
+    "srcChain": "statemine",
+    "destChain": "kusama",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___moonbeam-LOCAL-xcUSDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "moonbeam-LOCAL-xcUSDT",
+    "srcChain": "statemint",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___astar-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "astar-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "astar",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___hydradx_main-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "hydradx_main-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "hydradx_main",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___parallel-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "parallel-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "parallel",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___equilibrium_parachain-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "equilibrium_parachain-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "equilibrium_parachain",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___bifrost_dot-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "bifrost_dot-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "bifrost_dot",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___acala-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "acala-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "acala",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDt___interlay-LOCAL-USDT": {
+    "srcAsset": "statemint-LOCAL-USDt",
+    "destAsset": "interlay-LOCAL-USDT",
+    "srcChain": "statemint",
+    "destChain": "interlay",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcUSDT___statemint-LOCAL-USDt": {
+    "srcAsset": "moonbeam-LOCAL-xcUSDT",
+    "destAsset": "statemint-LOCAL-USDt",
+    "srcChain": "moonbeam",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "ethereum-ERC20-USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48___polkadot-NATIVE-DOT": {
+    "srcAsset": "ethereum-ERC20-USDC-0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "ethereum",
+    "destChain": "polkadot",
+    "path": "SWAP"
+  },
+  "bifrost_dot-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "bifrost_dot-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "bifrost_dot",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "parallel-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "parallel-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "parallel",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "interlay-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "interlay-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "interlay",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "hydradx_main-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "hydradx_main-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "hydradx_main",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-USDC___hydradx_main-LOCAL-USDC": {
+    "srcAsset": "statemint-LOCAL-USDC",
+    "destAsset": "hydradx_main-LOCAL-USDC",
+    "srcChain": "statemint",
+    "destChain": "hydradx_main",
+    "path": "XCM"
+  },
+  "hydradx_main-LOCAL-USDC___statemint-LOCAL-USDC": {
+    "srcAsset": "hydradx_main-LOCAL-USDC",
+    "destAsset": "statemint-LOCAL-USDC",
+    "srcChain": "hydradx_main",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "acala-LOCAL-INTR___interlay-NATIVE-INTR": {
+    "srcAsset": "acala-LOCAL-INTR",
+    "destAsset": "interlay-NATIVE-INTR",
+    "srcChain": "acala",
+    "destChain": "interlay",
+    "path": "XCM"
+  },
+  "parallel-LOCAL-ACA___acala-NATIVE-ACA": {
+    "srcAsset": "parallel-LOCAL-ACA",
+    "destAsset": "acala-NATIVE-ACA",
+    "srcChain": "parallel",
+    "destChain": "acala",
+    "path": "XCM"
+  },
+  "hydradx_main-LOCAL-CFG___centrifuge-NATIVE-CFG": {
+    "srcAsset": "hydradx_main-LOCAL-CFG",
+    "destAsset": "centrifuge-NATIVE-CFG",
+    "srcChain": "hydradx_main",
+    "destChain": "centrifuge",
+    "path": "XCM"
+  },
+  "manta_network-NATIVE-MANTA___moonbeam-LOCAL-xcMANTA": {
+    "srcAsset": "manta_network-NATIVE-MANTA",
+    "destAsset": "moonbeam-LOCAL-xcMANTA",
+    "srcChain": "manta_network",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "manta_network-NATIVE-MANTA___bifrost_dot-LOCAL-MANTA": {
+    "srcAsset": "manta_network-NATIVE-MANTA",
+    "destAsset": "bifrost_dot-LOCAL-MANTA",
+    "srcChain": "manta_network",
+    "destChain": "bifrost_dot",
+    "path": "XCM"
+  },
+  "manta_network-LOCAL-DOT___polkadot-NATIVE-DOT": {
+    "srcAsset": "manta_network-LOCAL-DOT",
+    "destAsset": "polkadot-NATIVE-DOT",
+    "srcChain": "manta_network",
+    "destChain": "polkadot",
+    "path": "XCM"
+  },
+  "manta_network-LOCAL-DOT___moonbeam-LOCAL-xcDOT": {
+    "srcAsset": "manta_network-LOCAL-DOT",
+    "destAsset": "moonbeam-LOCAL-xcDOT",
+    "srcChain": "manta_network",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcMANTA___manta_network-NATIVE-MANTA": {
+    "srcAsset": "moonbeam-LOCAL-xcMANTA",
+    "destAsset": "manta_network-NATIVE-MANTA",
+    "srcChain": "moonbeam",
+    "destChain": "manta_network",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___moonbeam-LOCAL-xcPINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "moonbeam-LOCAL-xcPINK",
+    "srcChain": "statemint",
+    "destChain": "moonbeam",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___astar-LOCAL-PINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "astar-LOCAL-PINK",
+    "srcChain": "statemint",
+    "destChain": "astar",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___bifrost_dot-LOCAL-PINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "bifrost_dot-LOCAL-PINK",
+    "srcChain": "statemint",
+    "destChain": "bifrost_dot",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___acala-LOCAL-PINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "acala-LOCAL-PINK",
+    "srcChain": "statemint",
+    "destChain": "acala",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___phala-LOCAL-PINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "phala-LOCAL-PINK",
+    "srcChain": "statemint",
+    "destChain": "phala",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___darwinia2-LOCAL-PINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "darwinia2-LOCAL-PINK",
+    "srcChain": "statemint",
+    "destChain": "darwinia2",
+    "path": "XCM"
+  },
+  "statemint-LOCAL-PINK___crust-LOCAL-PINK": {
+    "srcAsset": "statemint-LOCAL-PINK",
+    "destAsset": "crust-LOCAL-PINK",
+    "srcChain": "statemint",
+    "destChain": "crust",
+    "path": "XCM"
+  },
+  "moonbeam-LOCAL-xcPINK___statemint-LOCAL-PINK": {
+    "srcAsset": "moonbeam-LOCAL-xcPINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "moonbeam",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "bifrost_dot-LOCAL-MANTA___manta_network-NATIVE-MANTA": {
+    "srcAsset": "bifrost_dot-LOCAL-MANTA",
+    "destAsset": "manta_network-NATIVE-MANTA",
+    "srcChain": "bifrost_dot",
+    "destChain": "manta_network",
+    "path": "XCM"
+  },
+  "chainflip_dot-NATIVE-pDOT___sepolia_ethereum-NATIVE-ETH": {
+    "srcAsset": "chainflip_dot-NATIVE-pDOT",
+    "destAsset": "sepolia_ethereum-NATIVE-ETH",
+    "srcChain": "chainflip_dot",
+    "destChain": "sepolia_ethereum",
+    "path": "SWAP"
+  },
+  "chainflip_dot-NATIVE-pDOT___sepolia_ethereum-ERC20-USDC-0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238": {
+    "srcAsset": "chainflip_dot-NATIVE-pDOT",
+    "destAsset": "sepolia_ethereum-ERC20-USDC-0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "srcChain": "chainflip_dot",
+    "destChain": "sepolia_ethereum",
+    "path": "SWAP"
+  },
+  "ethereum_goerli-ERC20-USDC-0x07865c6E87B9F70255377e024ace6630C1Eaa37F___chainflip_dot-NATIVE-pDOT": {
+    "srcAsset": "ethereum_goerli-ERC20-USDC-0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
+    "destAsset": "chainflip_dot-NATIVE-pDOT",
+    "srcChain": "ethereum_goerli",
+    "destChain": "chainflip_dot",
+    "path": "SWAP"
+  },
+  "ethereum_goerli-ERC20-USDC-0x07865c6E87B9F70255377e024ace6630C1Eaa37F___ethereum_goerli-NATIVE-ETH": {
+    "srcAsset": "ethereum_goerli-ERC20-USDC-0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
+    "destAsset": "ethereum_goerli-NATIVE-ETH",
+    "srcChain": "ethereum_goerli",
+    "destChain": "ethereum_goerli",
+    "path": "SWAP"
+  },
+  "sepolia_ethereum-NATIVE-ETH___chainflip_dot-NATIVE-pDOT": {
+    "srcAsset": "sepolia_ethereum-NATIVE-ETH",
+    "destAsset": "chainflip_dot-NATIVE-pDOT",
+    "srcChain": "sepolia_ethereum",
+    "destChain": "chainflip_dot",
+    "path": "SWAP"
+  },
+  "sepolia_ethereum-ERC20-USDC-0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238___chainflip_dot-NATIVE-pDOT": {
+    "srcAsset": "sepolia_ethereum-ERC20-USDC-0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "destAsset": "chainflip_dot-NATIVE-pDOT",
+    "srcChain": "sepolia_ethereum",
+    "destChain": "chainflip_dot",
+    "path": "SWAP"
+  },
+  "hydradx_rococo-NATIVE-HDX___hydradx_rococo-LOCAL-DOT": {
+    "srcAsset": "hydradx_rococo-NATIVE-HDX",
+    "destAsset": "hydradx_rococo-LOCAL-DOT",
+    "srcChain": "hydradx_rococo",
+    "destChain": "hydradx_rococo",
+    "path": "SWAP"
+  },
+  "hydradx_rococo-NATIVE-HDX___hydradx_rococo-LOCAL-USDT": {
+    "srcAsset": "hydradx_rococo-NATIVE-HDX",
+    "destAsset": "hydradx_rococo-LOCAL-USDT",
+    "srcChain": "hydradx_rococo",
+    "destChain": "hydradx_rococo",
+    "path": "SWAP"
+  },
+  "hydradx_rococo-LOCAL-DOT___hydradx_rococo-NATIVE-HDX": {
+    "srcAsset": "hydradx_rococo-LOCAL-DOT",
+    "destAsset": "hydradx_rococo-NATIVE-HDX",
+    "srcChain": "hydradx_rococo",
+    "destChain": "hydradx_rococo",
+    "path": "SWAP"
+  },
+  "hydradx_rococo-LOCAL-DOT___hydradx_rococo-LOCAL-USDT": {
+    "srcAsset": "hydradx_rococo-LOCAL-DOT",
+    "destAsset": "hydradx_rococo-LOCAL-USDT",
+    "srcChain": "hydradx_rococo",
+    "destChain": "hydradx_rococo",
+    "path": "SWAP"
+  },
+  "hydradx_rococo-LOCAL-USDT___hydradx_rococo-NATIVE-HDX": {
+    "srcAsset": "hydradx_rococo-LOCAL-USDT",
+    "destAsset": "hydradx_rococo-NATIVE-HDX",
+    "srcChain": "hydradx_rococo",
+    "destChain": "hydradx_rococo",
+    "path": "SWAP"
+  },
+  "hydradx_rococo-LOCAL-USDT___hydradx_rococo-LOCAL-DOT": {
+    "srcAsset": "hydradx_rococo-LOCAL-USDT",
+    "destAsset": "hydradx_rococo-LOCAL-DOT",
+    "srcChain": "hydradx_rococo",
+    "destChain": "hydradx_rococo",
+    "path": "SWAP"
+  },
+  "bifrost_dot-LOCAL-PINK___statemint-LOCAL-PINK": {
+    "srcAsset": "bifrost_dot-LOCAL-PINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "bifrost_dot",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "astar-LOCAL-PINK___statemint-LOCAL-PINK": {
+    "srcAsset": "astar-LOCAL-PINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "astar",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "phala-LOCAL-PINK___statemint-LOCAL-PINK": {
+    "srcAsset": "phala-LOCAL-PINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "phala",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "acala-LOCAL-PINK___statemint-LOCAL-PINK": {
+    "srcAsset": "acala-LOCAL-PINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "acala",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "crust-LOCAL-PINK___statemint-LOCAL-PINK": {
+    "srcAsset": "crust-LOCAL-PINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "crust",
+    "destChain": "statemint",
+    "path": "XCM"
+  },
+  "darwinia2-LOCAL-PINK___statemint-LOCAL-PINK": {
+    "srcAsset": "darwinia2-LOCAL-PINK",
+    "destAsset": "statemint-LOCAL-PINK",
+    "srcChain": "darwinia2",
+    "destChain": "statemint",
+    "path": "XCM"
+  }
+}
