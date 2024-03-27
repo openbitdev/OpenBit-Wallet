@@ -5,7 +5,7 @@ import { CrowdloanParaState, NetworkJson } from '@subwallet/extension-base/backg
 import { AccountAuthType, AccountJson } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { getRandomIpfsGateway, SUBWALLET_IPFS } from '@subwallet/extension-base/koni/api/nft/config';
-import { decodeAddress, encodeAddress, getKeypairTypeByAddress } from '@subwallet/keyring';
+import { decodeAddress, encodeAddress, getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import { KeypairType } from '@subwallet/keyring/types';
 import { t } from 'i18next';
 
@@ -74,16 +74,19 @@ export function filterAddressByNetworkKey (addresses: string[], networkKey: stri
 export function categoryAddresses (addresses: string[]) {
   const substrateAddresses: string[] = [];
   const evmAddresses: string[] = [];
+  const bitcoinAddresses: string[] = [];
 
   addresses.forEach((address) => {
     if (isEthereumAddress(address)) {
       evmAddresses.push(address);
+    } else if (isBitcoinAddress(address)) {
+      bitcoinAddresses.push(address);
     } else {
       substrateAddresses.push(address);
     }
   });
 
-  return [substrateAddresses, evmAddresses];
+  return [substrateAddresses, evmAddresses, bitcoinAddresses];
 }
 
 export function categoryNetworks (networks: NetworkJson[]) {

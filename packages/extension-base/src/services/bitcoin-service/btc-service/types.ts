@@ -18,18 +18,16 @@ export interface BTCResponse<T = any> {
 
 export interface AccountBalances {
   txid: string;
-  vout: number;
+  vout: string;
   status: {
     confirmed: boolean;
-    block_height: number;
+    block_height: string;
     block_hash: string;
-    block_time: number;
+    block_time: string;
   };
-  value: number;
-} 
-
-
-export interface AccountTransaction {
+  value: string;
+}
+export interface TransferItem {
   txid: string;
   version: number;
   locktime: number;
@@ -58,11 +56,22 @@ export interface AccountTransaction {
   }[];
   size: number;
   weight: number;
-  fee: number;
+  fee: string;
   status: {
     confirmed: boolean;
     block_height: number;
     block_hash: string;
     block_time: number;
-  };
+  }
+}
+
+export interface TransfersListResponse {
+  count: number,
+  transfers: null | TransferItem[]
+}
+
+
+export type RequestBlockRange = {
+  from: number | null,
+  to: number | null
 }

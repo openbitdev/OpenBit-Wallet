@@ -1,4 +1,5 @@
-
+// Copyright 2019-2022 @subwallet/extension-base
+// SPDX-License-Identifier: Apache-2.0
 
 import { BTC_API_CHAIN_MAP } from '@subwallet/extension-base/services/bitcoin-service/btc-service/btc-chain-map';
 
@@ -15,7 +16,8 @@ describe('SubscanService', () => {
 
   it('BTC service', async () => {
     const rs = await Promise.all([
-        btcService.getAddressUTXO('testnet','tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh'),
+        btcService.checkSupportedSubscanChain('testnet'),
+        btcService.getAddressUTXO('testnet','tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh')
     ]);
 
     console.log(rs);

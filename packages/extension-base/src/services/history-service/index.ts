@@ -16,6 +16,10 @@ import { reformatAddress } from '@subwallet/extension-base/utils';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { keyring } from '@subwallet/ui-keyring';
 import { BehaviorSubject } from 'rxjs';
+import { BTCService } from '@subwallet/extension-base/services/bitcoin-service/btc-service';
+import { parseBitcoinTransferData } from '@subwallet/extension-base/services/history-service/bitcoin-history';
+
+
 
 function filterHistoryItemByAddressAndChain (chain: string, address: string) {
   return (item: TransactionHistoryItem) => {
@@ -32,7 +36,8 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     private chainService: ChainService,
     private eventService: EventService,
     private keyringService: KeyringService,
-    private subscanService: SubscanService
+    private subscanService: SubscanService,
+    private btcService: BTCService
   ) {
     this.init().catch(console.error);
   }
@@ -165,6 +170,36 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     });
   }
 
+  async fetchBitcoinTransactionHistory(chain: string, address: string) {
+    if (!this.btcService.checkSupportedSubscanChain(chain)) {
+      return;
+    }
+  
+    const chainInfo = this.chainService.getChainInfoByKey(chain);
+  
+    // Fetch all possible transfer items
+    const transferItems = await this.btcService.fetchAllPossibleTransferItems(chain, address);
+  
+    // Process received transfer items
+    const receivedTransferItems = transferItems['received'] || [];
+    const parsedReceivedItems = receivedTransferItems.map((item) => {
+      return this.parseBitcoinTransferData(address, item, chainInfo);
+    });
+  
+    // Process sent transfer items
+    const sentTransferItems = transferItems['sent'] || [];
+    const parsedSentItems = sentTransferItems.map((item) => {
+      return this.parseBitcoinTransferData(address, item, chainInfo);
+    });
+  
+    // Combine received and sent items
+    const allParsedItems = [...parsedReceivedItems, ...parsedSentItems];
+  
+    // Add parsed items to transaction history
+    await this.addHistoryItems(allParsedItems);
+  }
+
+
   subscribeHistories (chain: string, address: string, cb: (items: TransactionHistoryItem[]) => void) {
     const _address = reformatAddress(address);
 
@@ -172,7 +207,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
       cb(items.filter(filterHistoryItemByAddressAndChain(chain, _address)));
     });
 
-    this.fetchSubscanTransactionHistory(chain, _address);
+    this.fetchBitcoinTransactionHistory(chain, _address);
 
     return {
       unsubscribe: subscription.unsubscribe,

@@ -6,7 +6,7 @@ import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { SWHandler } from '@subwallet/extension-base/koni/background/handlers';
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getSubstrateGenesisHash, _isChainEvmCompatible, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getSubstrateGenesisHash, _isChainEvmCompatible, _isPureEvmChain ,_isPureBitcoinChain} from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { categoryAddresses } from '@subwallet/extension-base/utils';
 import keyring from '@subwallet/ui-keyring';
@@ -43,12 +43,12 @@ export const getAccountJsonByAddress = (address: string): AccountJson | null => 
   }
 };
 
-const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[]] => {
+const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[], string[]] => {
   const isEvmChain = _isChainEvmCompatible(chainInfo);
-  const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
+  const [substrateAddresses, evmAddresses, bitcoinAddresses] = categoryAddresses(addresses);
 
   if (isEvmChain) {
-    return [evmAddresses, substrateAddresses];
+    return [evmAddresses, substrateAddresses, bitcoinAddresses];
   } else {
     const fetchList: string[] = [];
     const unfetchList: string[] = [];
@@ -74,7 +74,7 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
       }
     });
 
-    return [fetchList, [...unfetchList, ...evmAddresses]];
+    return [fetchList, [...unfetchList, ...evmAddresses], bitcoinAddresses];
   }
 };
 
@@ -116,6 +116,11 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
       return subscribeEVMBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
     }
 
+    if (_isPureBitcoinChain(chainInfo)) {
+      const nativeTokenInfo = state.getNativeTokenInfo(chainSlug);
+
+      return subscribeBitcoinBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
+    }
     // if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
     //   const fungibleTokensByChain = state.chainService.getFungibleTokensByChain(chainSlug, true);
     //   const now = new Date().getTime();

@@ -1,7 +1,12 @@
+// Copyright 2019-2022 @subwallet/extension-base
+// SPDX-License-Identifier: Apache-2.0
+
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
+import { AccountBalances, BTCRequest, BTCResponse, RequestBlockRange , TransfersListResponse, TransferItem } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
 import fetch from 'cross-fetch';
-import { AccountBalances, AccountTransaction, BTCRequest, BTCResponse } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+
 import { BTC_API_CHAIN_MAP } from './btc-chain-map';
+import { wait } from '@subwallet/extension-base/utils';
 
 
 export class BTCService {
@@ -123,31 +128,89 @@ export class BTCService {
     return this.addRequest(async () => {
       const url = `${this.getApiUrl(chain, `/address/${address}/utxo`)}`;
       const rs = await this.getRequest(url);
-  
+
       if (rs.status !== 200) {
         throw new SWError('BTCScanService.getAddressUTXO', await rs.text());
       }
-  
+
       const jsonData = (await rs.json()) as BTCResponse<AccountBalances[]>;
-  
+
       return jsonData.data;
     });
   }
-  public getAddressTransaction(chain: string, address: string): Promise<AccountTransaction[]> {
+
+  public getAddressTransaction(chain: string, address: string, page: string): Promise<TransfersListResponse[]> {
     return this.addRequest(async () => {
-      const url = `${this.getApiUrl(chain, `/address/${address}/txs`)}`;
+      const url = `${this.getApiUrl(chain, `/address/${address}/txs?page=${page}`)}`;
       const rs = await this.getRequest(url);
-  
+
       if (rs.status !== 200) {
-        throw new SWError('BTCScanService.getAddressUTXO', await rs.text());
+        throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
       }
-  
-      const jsonData = (await rs.json()) as BTCResponse<AccountTransaction[]>;
-  
+
+      const jsonData = (await rs.json()) as BTCResponse<TransfersListResponse[]>;
+
       return jsonData.data;
     });
   }
-  
+
+  public async fetchAllPossibleTransferItems(
+    chain: string,
+    address: string,
+    direction?: 'sent' | 'received',
+    cbAfterEachRequest?: (items: TransferItem[]) => void,
+    limit = {
+      page: 10,
+      record: 1000
+    }
+  ): Promise<Record<string, TransferItem[]>> {
+    let maxCount = 0;
+    let currentCount = 0;
+    const resultMap: Record<string, TransferItem[]> = {};
+
+    const _getTransferItems = async (page: number) => {
+      const res = await this.getAddressTransaction(chain, address, page.toString());
+
+      if (!res || !res.length) {
+        return;
+      }
+
+      // Loop through the list of transactions and process transfer items
+      res.forEach((transfersListResponse) => {
+        // Extract transfer items from transaction list response
+        const transfers = transfersListResponse.transfers || [];
+        
+        // Loop through transfer items and add them to resultMap
+        transfers.forEach((transfer) => {
+          if (!resultMap[transfer.txid]) {
+            resultMap[transfer.txid] = [transfer];
+          } else {
+            resultMap[transfer.txid].push(transfer);
+          }
+        });
+
+        // Call callback function if provided
+        cbAfterEachRequest?.(transfers);
+      });
+
+      currentCount += res.length;
+
+      if (page > limit.page || currentCount > limit.record) {
+        return;
+      }
+
+      // Wait for a period before continuing to fetch data from the next page
+      await wait(100);
+
+      // Fetch data from the next page
+      await _getTransferItems(++page);
+    };
+
+    await _getTransferItems(0);
+
+    return resultMap;
+  }
+}
   
 
-}
+  

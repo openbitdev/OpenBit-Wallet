@@ -455,7 +455,8 @@ export enum TransactionDirection {
 
 export enum ChainType {
   EVM = 'evm',
-  SUBSTRATE = 'substrate'
+  SUBSTRATE = 'substrate',
+  BITCOIN ='bitcoin'
 }
 
 export enum ExtrinsicType {
@@ -596,6 +597,8 @@ export interface BasicTokenInfo {
 
 export interface AmountData extends BasicTokenInfo {
   value: string;
+  decimals: number;
+  symbol: string;
 }
 
 export interface FeeData extends AmountData {
