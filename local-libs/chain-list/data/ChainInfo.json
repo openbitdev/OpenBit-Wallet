@@ -129,7 +129,7 @@
     }
   },
   "bitcoinTestnet": {
-    "slug": "bitcoin",
+    "slug": "bitcoinTestnet",
     "name": "Bitcoin Testnet",
     "isTestnet": true,
     "chainStatus": "ACTIVE",
