@@ -1186,10 +1186,19 @@ export default class KoniState {
     return this.chainService.getEvmApi(networkKey);
   }
 
+  public getBitcoinApiMap () {
+    return this.chainService.getBitcoinApiMap();
+  }
+
+  public getBitcoinApi (networkKey: string) {
+    return this.chainService.getBitcoinApi(networkKey);
+  }
+
   public getApiMap () {
     return {
       substrate: this.chainService.getSubstrateApiMap(),
-      evm: this.chainService.getEvmApiMap()
+      evm: this.chainService.getEvmApiMap(),
+      bitcoin: this.chainService.getBitcoinApiMap()
     } as ApiMap;
   }
 

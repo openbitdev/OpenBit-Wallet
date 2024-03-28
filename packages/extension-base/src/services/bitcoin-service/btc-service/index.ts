@@ -6,7 +6,16 @@ import { AccountBalances, BTCRequest, BTCResponse , TransfersListResponse, Trans
 import fetch from 'cross-fetch';
 
 import { BTC_API_CHAIN_MAP } from './btc-chain-map';
-import { wait } from '@subwallet/extension-base/utils';
+// import { wait } from '@subwallet/extension-base/utils';
+
+
+function wait (milliseconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, milliseconds);
+  });
+}
 
 
 
@@ -135,34 +144,37 @@ export class BTCService {
       }
 
       const jsonData = (await rs.json()) as BTCResponse<AccountBalances[]>;
+      const sortedUTXO = jsonData.data.sort((a, b) => parseInt(a.vout) - parseInt(b.vout));
 
-      return jsonData.data;
+      return { rawData: jsonData.data, sortedUTXO };
     });
   }
 
-  public getAddressTransaction(chain: string, address: string, page: string): Promise<TransfersListResponse[]> {
+  public getAddressTransaction(chain: string, address: string , page:string): Promise<TransfersListResponse[]> {
     return this.addRequest(async () => {
-      // const url = `${this.getApiUrl(chain, `/address/${address}/txs?page=${page}`)}`;
-      const url = `https://blockstream.info/testnet/api/address/tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh/txs`;
-      const rs = await this.getRequest(url);
+        const limit = 500; 
+        const url = `${this.getApiUrl(chain, `/address/${address}/txs?limit=${limit}`)}`;
+        console.log('url', url);
 
-      if (rs.status !== 200) {
-        throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
-      }
+        const rs = await this.getRequest(url);
 
-      const jsonData = (await rs.json()) as BTCResponse<TransfersListResponse[]>;
+        if (rs.status !== 200) {
+            throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
+        }
 
-      return jsonData.data;
+        const jsonData = (await rs.json()) as BTCResponse<TransfersListResponse[]>;
+
+        return jsonData.data;
     });
-  }
+}
 
   public async fetchAllPossibleTransferItems(
     chain: string,
     address: string,
     cbAfterEachRequest?: (items: TransferItemBitCoin[]) => void,
     limit = {
-      page: 10,
-      record: 1000
+      page: 5,
+      record: 500
     }
   ): Promise<Record<string, TransferItemBitCoin[]>> {
     let currentCount = 0;

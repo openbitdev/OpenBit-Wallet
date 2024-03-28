@@ -27,6 +27,18 @@ export interface AccountBalances {
   };
   value: string;
 }
+
+export interface AddressBalances {
+  txid: string;
+  vout: string;
+  status: {
+    confirmed: boolean;
+    block_height: string;
+    block_hash: string;
+    block_time: string;
+  };
+  value: string;
+}
 export interface TransferItemBitCoin {
   txid: string;
   version: number;

@@ -7,7 +7,7 @@ import { subscribeCrowdloan } from '@subwallet/extension-base/koni/api/dotsama/c
 import { NftHandler } from '@subwallet/extension-base/koni/api/nft';
 import { getNominationStakingRewardData } from '@subwallet/extension-base/koni/api/staking';
 import { subscribeBalance } from '@subwallet/extension-base/services/balance-service/helpers/subscribe/balance';
-import { _ChainState, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
+import { _BitcoinApi, _ChainState, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _isChainEnabled, _isChainSupportSubstrateStaking } from '@subwallet/extension-base/services/chain-service/utils';
 import { COMMON_RELOAD_EVENTS, EventItem, EventType } from '@subwallet/extension-base/services/event-service/types';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -73,7 +73,7 @@ export class KoniSubscription {
     const currentAddress = this.state.keyringService.currentAccount?.address;
 
     if (currentAddress) {
-      this.subscribeBalances(currentAddress, this.state.getChainInfoMap(), this.state.getChainStateMap(), this.state.getSubstrateApiMap(), this.state.getEvmApiMap());
+      this.subscribeBalances(currentAddress, this.state.getChainInfoMap(), this.state.getChainStateMap(), this.state.getSubstrateApiMap(), this.state.getEvmApiMap() , this.state.getBitcoinApiMap());
       this.subscribeCrowdloans(currentAddress, this.state.getSubstrateApiMap());
     }
 
@@ -91,7 +91,7 @@ export class KoniSubscription {
         return;
       }
 
-      this.subscribeBalances(address, serviceInfo.chainInfoMap, serviceInfo.chainStateMap, serviceInfo.chainApiMap.substrate, serviceInfo.chainApiMap.evm);
+      this.subscribeBalances(address, serviceInfo.chainInfoMap, serviceInfo.chainStateMap, serviceInfo.chainApiMap.substrate, serviceInfo.chainApiMap.evm , serviceInfo.chainApiMap.bitcoin);
       this.subscribeCrowdloans(address, serviceInfo.chainApiMap.substrate);
     };
 
@@ -109,7 +109,7 @@ export class KoniSubscription {
     return Promise.resolve();
   }
 
-  subscribeBalances (address: string, chainInfoMap: Record<string, _ChainInfo>, chainStateMap: Record<string, _ChainState>, substrateApiMap: Record<string, _SubstrateApi>, web3ApiMap: Record<string, _EvmApi>, onlyRunOnFirstTime?: boolean) {
+  subscribeBalances (address: string, chainInfoMap: Record<string, _ChainInfo>, chainStateMap: Record<string, _ChainState>, substrateApiMap: Record<string, _SubstrateApi>, web3ApiMap: Record<string, _EvmApi> ,bitcoinApiMap: Record<string, _BitcoinApi> , onlyRunOnFirstTime?: boolean) {
     const addresses = this.state.getDecodedAddresses(address);
 
     if (!addresses.length) {
@@ -117,7 +117,7 @@ export class KoniSubscription {
     }
 
     this.state.handleResetBalance(address).then(() => {
-      this.updateSubscription('balance', this.initBalanceSubscription(addresses, chainInfoMap, chainStateMap, substrateApiMap, web3ApiMap, onlyRunOnFirstTime));
+      this.updateSubscription('balance', this.initBalanceSubscription(addresses, chainInfoMap, chainStateMap, substrateApiMap, web3ApiMap, bitcoinApiMap , onlyRunOnFirstTime));
     }).catch((err) => this.logger.warn(err));
   }
 
@@ -133,7 +133,7 @@ export class KoniSubscription {
     }).catch(console.error);
   }
 
-  initBalanceSubscription (addresses: string[], chainInfoMap: Record<string, _ChainInfo>, chainStateMap: Record<string, _ChainState>, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi>, onlyRunOnFirstTime?: boolean) {
+  initBalanceSubscription (addresses: string[], chainInfoMap: Record<string, _ChainInfo>, chainStateMap: Record<string, _ChainState>, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi>, bitcoinApiMap: Record<string, _BitcoinApi>, onlyRunOnFirstTime?: boolean) {
     const filteredChainInfoMap: Record<string, _ChainInfo> = {};
 
     Object.values(chainStateMap).forEach((chainState) => {
@@ -141,8 +141,9 @@ export class KoniSubscription {
         filteredChainInfoMap[chainState.slug] = chainInfoMap[chainState.slug];
       }
     });
+    console.log('check')
 
-    const unsub = subscribeBalance(addresses, filteredChainInfoMap, substrateApiMap, evmApiMap, (result) => {
+    const unsub = subscribeBalance(addresses, filteredChainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap , (result) => {
       this.state.setBalanceItem(result);
     });
 
@@ -227,7 +228,7 @@ export class KoniSubscription {
     const currentAddress = this.state.keyringService.currentAccount?.address;
 
     await this.state.handleResetBalance(currentAddress, true);
-    this.subscribeBalances(currentAddress, this.state.getChainInfoMap(), this.state.getChainStateMap(), this.state.getSubstrateApiMap(), this.state.getEvmApiMap());
+    this.subscribeBalances(currentAddress, this.state.getChainInfoMap(), this.state.getChainStateMap(), this.state.getSubstrateApiMap(), this.state.getEvmApiMap() , this.state.getBitcoinApiMap());
 
     await waitTimeout(1800);
   }

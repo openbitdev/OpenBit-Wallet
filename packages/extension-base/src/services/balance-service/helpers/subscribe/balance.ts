@@ -13,6 +13,7 @@ import keyring from '@subwallet/ui-keyring';
 
 import { subscribeEVMBalance } from './evm';
 import { subscribeSubstrateBalance } from './substrate';
+import { subscribeBitcoinBalance } from './bitcoin';
 
 /**
  * @function getAccountJsonByAddress
