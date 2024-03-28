@@ -141,8 +141,8 @@ if (isFirefox) {
   });
 }
 
-if (!RuntimeInfo.protocol ||
-  (!RuntimeInfo.protocol.startsWith('http') || RuntimeInfo.protocol.startsWith('https'))) {
+if (!RuntimeInfo?.protocol ||
+  (!RuntimeInfo?.protocol.startsWith('http') || RuntimeInfo?.protocol.startsWith('https'))) {
   RANDOM_IPFS_GATEWAY_SETTING.push({
     provider: IPFS_FLEEK,
     weight: 4

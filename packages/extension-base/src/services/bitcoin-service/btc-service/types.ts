@@ -66,7 +66,7 @@ export interface TransferItemBitCoin {
 }
 
 export interface TransfersListResponse {
-  count: number,
+  count?: number,
   transfers: null | TransferItemBitCoin[]
 }
 
