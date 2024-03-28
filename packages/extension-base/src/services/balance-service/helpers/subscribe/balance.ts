@@ -44,12 +44,12 @@ export const getAccountJsonByAddress = (address: string): AccountJson | null => 
   }
 };
 
-const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[], string[]] => {
+const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[]] => {
   const isEvmChain = _isChainEvmCompatible(chainInfo);
   const [substrateAddresses, evmAddresses, bitcoinAddresses] = categoryAddresses(addresses);
 
   if (isEvmChain) {
-    return [evmAddresses, substrateAddresses, bitcoinAddresses];
+    return [evmAddresses, [...substrateAddresses, ...bitcoinAddresses]];
   } else {
     const fetchList: string[] = [];
     const unfetchList: string[] = [];
@@ -75,13 +75,15 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
       }
     });
 
-    return [fetchList, [...unfetchList, ...evmAddresses], bitcoinAddresses];
+    return [fetchList, [...unfetchList, ...evmAddresses]];
   }
 };
 
 // main subscription
 export function subscribeBalance (addresses: string[], chainInfoMap: Record<string, _ChainInfo>, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi  >, bitcoinApiMap :Record<string, _BitcoinApi>, callback: (rs: BalanceItem[]) => void) {
   const state = SWHandler.instance.state;
+  console.log('ok');
+  
   // Looping over each chain
   const unsubList = Object.entries(chainInfoMap).map(async ([chainSlug, chainInfo]) => {
     const [useAddresses, notSupportAddresses] = filterAddress(addresses, chainInfo);
@@ -117,11 +119,15 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
       return subscribeEVMBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
     }
 
-    if (_isPureBitcoinChain(chainInfo)) {
-      const nativeTokenInfo = state.getNativeTokenInfo(chainSlug);
+    const nativeTokenInfo = state.getNativeTokenInfo(chainSlug);
+    console.log('here');
+    
 
-      return subscribeBitcoinBalance(chainSlug, useAddresses, bitcoinApiMap, callback, nativeTokenInfo);
-    }
+    return subscribeBitcoinBalance(chainSlug, ['tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh'], bitcoinApiMap, callback, nativeTokenInfo);
+
+    // if (_isPureBitcoinChain(chainInfo)) {
+
+    // }
     // if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
     //   const fungibleTokensByChain = state.chainService.getFungibleTokensByChain(chainSlug, true);
     //   const now = new Date().getTime();

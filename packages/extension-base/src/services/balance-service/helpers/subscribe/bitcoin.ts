@@ -82,7 +82,7 @@ export async function getBitcoinBalance(chain: string, addresses: string[], bitc
     return Promise.all(responses.map(async (response) => {
       if (response.status !== 200) {
         console.error(`Error while fetching Bitcoin balance: ${await response.text()}`);
-        return '0';
+        return '0'; // todo: can show wrong balance in case response returns error
       }
 
       const jsonData = await response.json();
@@ -124,6 +124,8 @@ export function subscribeBitcoinBalance(chain: string, addresses: string[], bitc
         });
       })
       .then((items) => {
+        console.log('items', items);
+        
         callback(items);
       })
       .catch(console.error);
