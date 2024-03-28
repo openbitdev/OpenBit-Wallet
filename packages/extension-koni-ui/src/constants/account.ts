@@ -8,12 +8,18 @@ export const EVM_ACCOUNT_TYPE: KeypairType = 'ethereum';
 export const BIT44_ACCOUNT_TYPE: KeypairType = 'bitcoin-44';
 export const BIT84_ACCOUNT_TYPE: KeypairType = 'bitcoin-84';
 export const BIT86_ACCOUNT_TYPE: KeypairType = 'bitcoin-86';
+export const BITTEST44_ACCOUNT_TYPE: KeypairType = 'bittest-44';
+export const BITTEST84_ACCOUNT_TYPE: KeypairType = 'bittest-84';
+export const BITTEST86_ACCOUNT_TYPE: KeypairType = 'bittest-86';
 
 export const NEED_MASTER_ACCOUNT_TO_DERIVE_TYPES: KeypairType[] = [
   EVM_ACCOUNT_TYPE,
   BIT44_ACCOUNT_TYPE,
   BIT84_ACCOUNT_TYPE,
-  BIT86_ACCOUNT_TYPE
+  BIT86_ACCOUNT_TYPE,
+  BITTEST44_ACCOUNT_TYPE,
+  BITTEST84_ACCOUNT_TYPE,
+  BITTEST86_ACCOUNT_TYPE
 ];
 
-export const DEFAULT_ACCOUNT_TYPES: KeypairType[] = [BIT44_ACCOUNT_TYPE, BIT84_ACCOUNT_TYPE, BIT86_ACCOUNT_TYPE];
+export const DEFAULT_ACCOUNT_TYPES: KeypairType[] = [BIT84_ACCOUNT_TYPE, BITTEST84_ACCOUNT_TYPE];
