@@ -10,7 +10,7 @@ import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils';
 import { AccountSelector, BasicInputEvent, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useChainInfoWithState, useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
-import { cancelSubscription, subscribeTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
+import { cancelSubscription, subscribeBitcoinTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
 import { ChainItemType, ThemeProps, TransactionHistoryDisplayData, TransactionHistoryDisplayItem } from '@subwallet/extension-koni-ui/types';
 import { customFormatDate, findAccountByAddress, findNetworkJsonByGenesisHash, formatHistoryDate, isTypeStaking, isTypeTransfer } from '@subwallet/extension-koni-ui/utils';
 import { ActivityIndicator, ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
@@ -602,15 +602,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     setCurrentItemDisplayCount(DEFAULT_ITEMS_COUNT);
 
-    subscribeTransactionHistory(
-      selectedChain,
+    subscribeBitcoinTransactionHistory(
       selectedAddress,
       (items: TransactionHistoryItem[]) => {
         if (isSubscribed) {
           setRawHistoryList(isSelectedChainEvm ? filterDuplicateItems(items) : items);
+          setLoading(false);
         }
-
-        setLoading(false);
       }
     ).then((res) => {
       id = res.id;

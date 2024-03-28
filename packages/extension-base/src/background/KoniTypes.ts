@@ -2162,6 +2162,10 @@ export interface RequestSubscribeHistory {
   chain: string;
 }
 
+export interface RequestSubscribeBitcoinHistory {
+  address: string;
+}
+
 export interface ResponseSubscribeHistory {
   id: string;
   items: TransactionHistoryItem[]
@@ -2379,6 +2383,7 @@ export interface KoniRequestSignatures {
   // Subscription
   'pri(transaction.history.getSubscription)': [null, TransactionHistoryItem[], TransactionHistoryItem[]];
   'pri(transaction.history.subscribe)': [RequestSubscribeHistory, ResponseSubscribeHistory, TransactionHistoryItem[]];
+  'pri(transaction.history.bitcoin.subscribe)': [RequestSubscribeBitcoinHistory, ResponseSubscribeHistory, TransactionHistoryItem[]];
   // 'pri(transaction.history.add)': [RequestTransactionHistoryAdd, boolean, TransactionHistoryItem[]];
   'pri(transfer.checkReferenceCount)': [RequestTransferCheckReferenceCount, boolean];
   'pri(transfer.checkSupporting)': [RequestTransferCheckSupporting, SupportTransferResponse];

@@ -104,8 +104,6 @@ export interface BitcoinApiProxy {
 }
 
 export interface _BitcoinApi extends _ChainBaseApi {
-  api: BitcoinApiProxy;
-
   isReady: Promise<_BitcoinApi>;
 }
 

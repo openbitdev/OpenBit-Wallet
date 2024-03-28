@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { AccountBalances, BTCRequest, BTCResponse , TransfersListResponse, TransferItemBitCoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { AccountBalances, BTCRequest, BTCResponse, TransferItemBitcoin, TransfersListResponse } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
 import fetch from 'cross-fetch';
 
 import { BTC_API_CHAIN_MAP } from './btc-chain-map';
 // import { wait } from '@subwallet/extension-base/utils';
-
 
 function wait (milliseconds: number) {
   return new Promise<void>((resolve) => {
@@ -16,8 +15,6 @@ function wait (milliseconds: number) {
     }, milliseconds);
   });
 }
-
-
 
 export class BTCService {
   private limitRate = 1; // limit per interval check
@@ -150,35 +147,36 @@ export class BTCService {
     });
   }
 
-  public getAddressTransaction(chain: string, address: string , page:string): Promise<TransfersListResponse[]> {
+  public getAddressTransaction (chain: string, address: string, page: string): Promise<TransfersListResponse[]> {
     return this.addRequest(async () => {
-        const limit = 500;
-        const url = `${this.getApiUrl(chain, `/address/${address}/txs?limit=${limit}`)}`;
-        console.log('url', url);
+      const limit = 500;
+      const url = `${this.getApiUrl(chain, `/address/${address}/txs?limit=${limit}`)}`;
 
-        const rs = await this.getRequest(url);
+      console.log('url', url);
 
-        if (rs.status !== 200) {
-            throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
-        }
+      const rs = await this.getRequest(url);
 
-        const jsonData = (await rs.json()) as BTCResponse<TransfersListResponse[]>;
+      if (rs.status !== 200) {
+        throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
+      }
 
-        return jsonData.data;
+      const jsonData = (await rs.json()) as BTCResponse<TransfersListResponse[]>;
+
+      return jsonData.data;
     });
-}
+  }
 
-  public async fetchAllPossibleTransferItems(
+  public async fetchAllPossibleTransferItems (
     chain: string,
     address: string,
-    cbAfterEachRequest?: (items: TransferItemBitCoin[]) => void,
+    cbAfterEachRequest?: (items: TransferItemBitcoin[]) => void,
     limit = {
       page: 5,
       record: 500
     }
-  ): Promise<Record<string, TransferItemBitCoin[]>> {
+  ): Promise<Record<string, TransferItemBitcoin[]>> {
     let currentCount = 0;
-    const resultMap: Record<string, TransferItemBitCoin[]> = {};
+    const resultMap: Record<string, TransferItemBitcoin[]> = {};
 
     const _getTransferItems = async (page: number) => {
       const res = await this.getAddressTransaction(chain, address, page.toString());
@@ -223,18 +221,14 @@ export class BTCService {
     return resultMap;
   }
 
+  // Singleton
+  private static _instance: BTCService;
 
-   // Singleton
-   private static _instance: BTCService;
-
-   public static getInstance () {
-     if (!BTCService._instance) {
+  public static getInstance () {
+    if (!BTCService._instance) {
       BTCService._instance = new BTCService();
-     }
+    }
 
-     return BTCService._instance;
-   }
+    return BTCService._instance;
+  }
 }
-
-
-

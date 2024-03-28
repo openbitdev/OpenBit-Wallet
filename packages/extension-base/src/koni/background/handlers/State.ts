@@ -11,7 +11,7 @@ import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { BalanceMapImpl } from '@subwallet/extension-base/services/balance-service/BalanceMapImpl';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
-import { BTCService } from '@subwallet/extension-base/services/bitcoin-service/btc-service';
+import { BitcoinService } from '@subwallet/extension-base/services/bitcoin-service';
 import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
@@ -140,7 +140,7 @@ export default class KoniState {
   readonly buyService: BuyService;
   readonly earningService: EarningService;
   readonly feeService: FeeService;
-  readonly btcService: BTCService;
+  readonly bitcoinService: BitcoinService;
 
   // Handle the general status of the extension
   private generalStatus: ServiceStatus = ServiceStatus.INITIALIZING;
@@ -161,8 +161,8 @@ export default class KoniState {
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
-    this.btcService = BTCService.getInstance();
-    this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.subscanService, this.btcService);
+    this.bitcoinService = new BitcoinService();
+    this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.bitcoinService);
     this.mintCampaignService = new MintCampaignService(this);
     this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.migrationService = new MigrationService(this, this.eventService);

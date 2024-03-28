@@ -5,10 +5,9 @@ import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { AbstractChainHandler } from '@subwallet/extension-base/services/chain-service/handler/AbstractChainHandler';
 import { BitcoinApi } from '@subwallet/extension-base/services/chain-service/handler/BitcoinApi';
 import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
-import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 
 export class BitcoinChainHandler extends AbstractChainHandler {
-  private apiMap: Record<string, _BitcoinApi> = {};
+  private apiMap: Record<string, BitcoinApi> = {};
 
   // eslint-disable-next-line no-useless-constructor
   constructor (parent?: ChainService) {

@@ -40,6 +40,10 @@ export async function subscribeTransactionHistory (chain: string, address: strin
   return sendMessage('pri(transaction.history.subscribe)', { address, chain }, callback);
 }
 
+export async function subscribeBitcoinTransactionHistory (address: string, callback: (items: TransactionHistoryItem[]) => void): Promise<ResponseSubscribeHistory> {
+  return sendMessage('pri(transaction.history.bitcoin.subscribe)', { address }, callback);
+}
+
 export * from './accounts';
 export * from './base';
 export * from './confirmation';

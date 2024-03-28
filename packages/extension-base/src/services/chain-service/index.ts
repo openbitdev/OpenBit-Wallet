@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, MultiChainAssetMap } from '@subwallet/chain-list';
-import { _AssetRef, _AssetRefPath, _AssetType, _BitCoinInfo , _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
+import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/BitcoinChainHandler';
@@ -17,6 +17,7 @@ import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storag
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
 import { addLazy, fetchStaticData, MODULE_SUPPORT } from '@subwallet/extension-base/utils';
+import { isBitcoinAddress } from '@subwallet/keyring';
 import { BehaviorSubject, Subject } from 'rxjs';
 import Web3 from 'web3';
 
@@ -737,9 +738,9 @@ export class ChainService {
     }
 
     if (chainInfo.bitcoinInfo !== null && chainInfo.bitcoinInfo !== undefined) {
-      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
+      const chainApi = await this.bitcoinChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
 
-      this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi);
+      this.bitcoinChainHandler.setApi(chainInfo.slug, chainApi);
     }
   }
 
@@ -1252,7 +1253,7 @@ export class ChainService {
     // todo: will support bitcoin later
 
     // eslint-disable-next-line prefer-const
-    let bitcoinInfo: _BitCoinInfo | null = null;
+    let bitcoinInfo: _BitcoinInfo | null = null;
 
     if (params.chainSpec.genesisHash !== '') {
       substrateInfo = {
@@ -1844,5 +1845,17 @@ export class ChainService {
     });
 
     return result;
+  }
+
+  getBitcoinChainByAddress (address: string): string | null {
+    const bitcoinNetwork = isBitcoinAddress(address);
+
+    if (bitcoinNetwork === 'mainnet') {
+      return 'bitcoin';
+    } else if (bitcoinNetwork === 'testnet') {
+      return 'bitcoinTestnet';
+    }
+
+    return null;
   }
 }

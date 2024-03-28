@@ -4,55 +4,12 @@
 import '@polkadot/types-augment';
 
 import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
-import { _BitcoinApi, _ChainConnectionStatus, BitcoinApiProxy } from '@subwallet/extension-base/services/chain-service/types';
+import { _BitcoinApi, _ChainConnectionStatus } from '@subwallet/extension-base/services/chain-service/types';
 import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/utils/promise';
-import fetch from 'cross-fetch';
 import { BehaviorSubject } from 'rxjs';
-
-class BitcoinApiProxyImp implements BitcoinApiProxy {
-  private baseUrl: string;
-
-  constructor (baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
-
-  setBaseUrl (baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
-
-  getRequest (urlPath: string, params?: Record<string, string>, headers?: Record<string, string>) {
-    const queryString = params
-      ? Object.keys(params)
-        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-        .join('&')
-      : '';
-
-    const url = `${this.baseUrl}/${urlPath}?${queryString}`;
-
-    return fetch(url, {
-      method: 'GET',
-      headers: headers || {
-        'Content-Type': 'application/json'
-      }
-    });
-  }
-
-  postRequest (urlPath: string, body?: BodyInit, headers?: Record<string, string>) {
-    const url = `${this.baseUrl}/${urlPath}`;
-
-    return fetch(url, {
-      method: 'POST',
-      headers: headers || {
-        'Content-Type': 'application/json'
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
-  }
-}
 
 export class BitcoinApi implements _BitcoinApi {
   chainSlug: string;
-  api: BitcoinApiProxy;
   apiUrl: string;
   apiError?: string;
   apiRetry = 0;
@@ -90,7 +47,6 @@ export class BitcoinApi implements _BitcoinApi {
 
   async updateApiUrl (apiUrl: string) {
     this.apiUrl = apiUrl;
-    this.api.setBaseUrl(apiUrl);
 
     await this.disconnect();
     this.connect();
@@ -104,7 +60,6 @@ export class BitcoinApi implements _BitcoinApi {
     this.chainSlug = chainSlug;
     this.apiUrl = apiUrl;
     this.providerName = providerName || 'unknown';
-    this.api = new BitcoinApiProxyImp(apiUrl);
     this.isReadyHandler = createPromiseHandler<_BitcoinApi>();
     this.connect();
   }

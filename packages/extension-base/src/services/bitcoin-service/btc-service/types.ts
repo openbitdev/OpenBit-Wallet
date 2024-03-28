@@ -39,7 +39,8 @@ export interface AddressBalances {
   };
   value: string;
 }
-export interface TransferItemBitCoin {
+
+export interface TransferItemBitcoin {
   txid: string;
   version: number;
   locktime: number;
@@ -79,9 +80,8 @@ export interface TransferItemBitCoin {
 
 export interface TransfersListResponse {
   count?: number,
-  transfers: null | TransferItemBitCoin[]
+  transfers: null | TransferItemBitcoin[]
 }
-
 
 export type RequestBlockRange = {
   from: number | null,

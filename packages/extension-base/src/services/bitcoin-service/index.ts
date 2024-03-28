@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { AccountBalances, BTCRequest, BTCResponse, TransfersListResponse } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
-import { BitcoinApiProxy } from '@subwallet/extension-base/services/chain-service/types';
+import { AccountBalances, BTCRequest, BTCResponse, TransferItemBitcoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import fetch from 'cross-fetch';
 
 export class BitcoinService {
   private limitRate = 1; // limit per interval check
@@ -79,9 +79,38 @@ export class BitcoinService {
     }, this.intervalCheck);
   }
 
-  public getAddressUTXO (getRequest: BitcoinApiProxy['getRequest'], address: string): Promise<AccountBalances[]> {
+  getRequest (baseUrl: string, urlPath: string, params?: Record<string, string>, headers?: Record<string, string>) {
+    const queryString = params
+      ? Object.keys(params)
+        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+        .join('&')
+      : '';
+
+    const url = `${baseUrl}/${urlPath}?${queryString}`;
+
+    return fetch(url, {
+      method: 'GET',
+      headers: headers || {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  postRequest (baseUrl: string, urlPath: string, body?: BodyInit, headers?: Record<string, string>) {
+    const url = `${baseUrl}/${urlPath}`;
+
+    return fetch(url, {
+      method: 'POST',
+      headers: headers || {
+        'Content-Type': 'application/json'
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  }
+
+  public getAddressUTXO (baseUrl: string, address: string): Promise<AccountBalances[]> {
     return this.addRequest(async () => {
-      const rs = await getRequest(`/address/${address}/utxo`);
+      const rs = await this.getRequest(baseUrl, `/address/${address}/utxo`);
 
       if (rs.status !== 200) {
         throw new SWError('BTCScanService.getAddressUTXO', await rs.text());
@@ -93,17 +122,17 @@ export class BitcoinService {
     });
   }
 
-  public getAddressTransaction (getRequest: BitcoinApiProxy['getRequest'], address: string): Promise<TransfersListResponse[]> {
+  public getAddressTransaction (baseUrl: string, address: string, limit = 100): Promise<TransferItemBitcoin[]> {
     return this.addRequest(async () => {
-      const rs = await getRequest(`/address/${address}/txs`);
+      const rs = await this.getRequest(baseUrl, `/address/${address}/txs`, {
+        limit: `${limit}`
+      });
 
       if (rs.status !== 200) {
-        throw new SWError('BTCScanService.getAddressUTXO', await rs.text());
+        throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
       }
 
-      const jsonData = (await rs.json()) as BTCResponse<TransfersListResponse[]>;
-
-      return jsonData.data;
+      return (await rs.json()) as TransferItemBitcoin[];
     });
   }
 }

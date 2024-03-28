@@ -52,7 +52,7 @@ const Component: React.FC<Props> = (props: Props) => {
               return (
                 <div
                   className='word-item'
-                  key={item.label}
+                  key={item.index}
                 >
                   <div className='word-index'>{item.index}</div>
                   <div className='word-content'>{item.label}</div>

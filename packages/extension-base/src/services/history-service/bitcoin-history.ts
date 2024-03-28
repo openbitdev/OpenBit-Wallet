@@ -3,25 +3,39 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainType, ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
-import {  TransferItemBitCoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
-import { isSameAddress } from '@subwallet/extension-base/utils';
+import { TransferItemBitcoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
 
-export function parseBitcoinTransferData(address: string, transferItem: TransferItemBitCoin, chainInfo: _ChainInfo): TransactionHistoryItem {
+function isSender (address: string, transferItem: TransferItemBitcoin) {
+  return transferItem.vin.some((i) => i.prevout.scriptpubkey_address === address);
+}
+
+export function parseBitcoinTransferData (address: string, transferItem: TransferItemBitcoin, chainInfo: _ChainInfo): TransactionHistoryItem {
   const chainType = ChainType.BITCOIN;
-  const nativeDecimals = 8;
-  const nativeSymbol = 'BTC';
-  const sender = transferItem.vin.length > 0 ? transferItem.vin[0].prevout.scriptpubkey_address : '';
-  const receiver = transferItem.vout.length > 0 ? transferItem.vout[0].scriptpubkey_address : '';
+  const nativeDecimals = chainInfo.bitcoinInfo?.decimals || 8;
+  const nativeSymbol = chainInfo.bitcoinInfo?.symbol || '';
+
+  const isCurrentAddressSender = isSender(address, transferItem);
+
+  const sender = isCurrentAddressSender ? address : transferItem.vin[0]?.prevout?.scriptpubkey_address || '';
+  const receiver = isCurrentAddressSender ? transferItem.vout[0]?.scriptpubkey_address || '' : address;
+
+  const amountValue = (() => {
+    if (isCurrentAddressSender) {
+      return (transferItem.vout.find((i) => i.scriptpubkey_address === receiver))?.value || '0';
+    }
+
+    return (transferItem.vout.find((i) => i.scriptpubkey_address === address))?.value || '0';
+  })();
 
   return {
     address,
     origin: 'blockstream',
     time: transferItem.status.block_time * 1000,
     chainType,
-    type: ExtrinsicType.TRANSFER_BALANCE ,
+    type: ExtrinsicType.TRANSFER_BALANCE,
     extrinsicHash: transferItem.txid,
     chain: chainInfo.slug,
-    direction: isSameAddress(address, sender) ? TransactionDirection.SEND : TransactionDirection.RECEIVED,
+    direction: address === sender ? TransactionDirection.SEND : TransactionDirection.RECEIVED,
     fee: {
       value: transferItem.fee,
       decimals: nativeDecimals,
@@ -29,11 +43,10 @@ export function parseBitcoinTransferData(address: string, transferItem: Transfer
     },
     from: sender,
     to: receiver,
-   
     blockNumber: transferItem.status.block_height,
     blockHash: transferItem.status.block_hash,
     amount: {
-      value: transferItem.vout.reduce((total, output) => total + output.value, 0).toString(),
+      value: `${amountValue}`,
       decimals: nativeDecimals,
       symbol: nativeSymbol
     },
