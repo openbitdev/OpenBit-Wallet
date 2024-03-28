@@ -142,7 +142,8 @@ export class BTCService {
 
   public getAddressTransaction(chain: string, address: string, page: string): Promise<TransfersListResponse[]> {
     return this.addRequest(async () => {
-      const url = `${this.getApiUrl(chain, `/address/${address}/txs?page=${page}`)}`;
+      // const url = `${this.getApiUrl(chain, `/address/${address}/txs?page=${page}`)}`;
+      const url = `https://blockstream.info/testnet/api/address/tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh/txs`;
       const rs = await this.getRequest(url);
 
       if (rs.status !== 200) {
@@ -158,7 +159,6 @@ export class BTCService {
   public async fetchAllPossibleTransferItems(
     chain: string,
     address: string,
-    direction?: 'sent' | 'received',
     cbAfterEachRequest?: (items: TransferItemBitCoin[]) => void,
     limit = {
       page: 10,
