@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { AccountBalances, BTCRequest, BTCResponse , TransfersListResponse, TransferItemBitCoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { AccountBalances, BTCRequest, BTCResponse, TransferItemBitCoin, TransfersListResponse } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { wait } from '@subwallet/extension-base/utils';
 import fetch from 'cross-fetch';
 
 import { BTC_API_CHAIN_MAP } from './btc-chain-map';
-import { wait } from '@subwallet/extension-base/utils';
-
-
 
 export class BTCService {
   private limitRate = 1; // limit per interval check
@@ -140,10 +138,10 @@ export class BTCService {
     });
   }
 
-  public getAddressTransaction(chain: string, address: string, page: string): Promise<TransfersListResponse[]> {
+  public getAddressTransaction (chain: string, address: string, page: string): Promise<TransfersListResponse[]> {
     return this.addRequest(async () => {
       // const url = `${this.getApiUrl(chain, `/address/${address}/txs?page=${page}`)}`;
-      const url = `https://blockstream.info/testnet/api/address/tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh/txs`;
+      const url = 'https://blockstream.info/testnet/api/address/tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh/txs';
       const rs = await this.getRequest(url);
 
       if (rs.status !== 200) {
@@ -156,7 +154,7 @@ export class BTCService {
     });
   }
 
-  public async fetchAllPossibleTransferItems(
+  public async fetchAllPossibleTransferItems (
     chain: string,
     address: string,
     cbAfterEachRequest?: (items: TransferItemBitCoin[]) => void,
@@ -179,7 +177,7 @@ export class BTCService {
       res.forEach((transfersListResponse) => {
         // Extract transfer items from transaction list response
         const transfers = transfersListResponse.transfers || [];
-        
+
         // Loop through transfer items and add them to resultMap
         transfers.forEach((transfer) => {
           if (!resultMap[transfer.txid]) {
@@ -211,18 +209,14 @@ export class BTCService {
     return resultMap;
   }
 
+  // Singleton
+  private static _instance: BTCService;
 
-   // Singleton
-   private static _instance: BTCService;
-
-   public static getInstance () {
-     if (!BTCService._instance) {
+  public static getInstance () {
+    if (!BTCService._instance) {
       BTCService._instance = new BTCService();
-     }
- 
-     return BTCService._instance;
-   }
-}
-  
+    }
 
-  
+    return BTCService._instance;
+  }
+}

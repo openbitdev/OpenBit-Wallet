@@ -7,13 +7,13 @@ import { AccountJson } from '@subwallet/extension-base/background/types';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils';
-import { AccountSelector, BasicInputEvent, ChainSelector, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountSelector, BasicInputEvent, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useChainInfoWithState, useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, subscribeTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
 import { ChainItemType, ThemeProps, TransactionHistoryDisplayData, TransactionHistoryDisplayItem } from '@subwallet/extension-koni-ui/types';
 import { customFormatDate, findAccountByAddress, findNetworkJsonByGenesisHash, formatHistoryDate, isTypeStaking, isTypeTransfer } from '@subwallet/extension-koni-ui/utils';
-import { ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
+import { ActivityIndicator, ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
 import { Aperture, ArrowDownLeft, ArrowUpRight, Clock, ClockCounterClockwise, Database, FadersHorizontal, Rocket, Spinner } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -213,6 +213,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { chainInfoMap } = useSelector((root) => root.chainStore);
   const chainInfoList = useChainInfoWithState();
   const { language } = useSelector((root) => root.settings);
+  // @ts-ignore
   const [loading, setLoading] = useState<boolean>(true);
   const [rawHistoryList, setRawHistoryList] = useState<TransactionHistoryItem[]>([]);
 
@@ -274,13 +275,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return [
       { label: t('Send token'), value: FilterValue.SEND },
       { label: t('Receive token'), value: FilterValue.RECEIVED },
-      { label: t('NFT transaction'), value: FilterValue.NFT },
-      { label: t('Stake transaction'), value: FilterValue.STAKE },
-      { label: t('Claim staking reward'), value: FilterValue.CLAIM },
-      // { label: t('Crowdloan transaction'), value: FilterValue.CROWDLOAN }, // support crowdloan later
       { label: t('Successful'), value: FilterValue.SUCCESSFUL },
-      { label: t('Failed'), value: FilterValue.FAILED },
-      { label: t('Start earning'), value: FilterValue.EARN }
+      { label: t('Failed'), value: FilterValue.FAILED }
     ];
   }, [t]);
 
@@ -519,29 +515,11 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     setSelectedAddress(event.target.value);
   }, [setSelectedAddress]);
 
-  const onSelectChain = useCallback((event: BasicInputEvent) => {
-    setSelectedChain(event.target.value);
-  }, [setSelectedChain]);
-
   const currentLedgerChainOfSelectedAccount = useMemo(() => {
     return findLedgerChainOfSelectedAccount(selectedAddress,
       accounts,
       chainInfoMap);
   }, [accounts, chainInfoMap, selectedAddress]);
-
-  const isChainSelectorEmpty = !chainItems.length;
-
-  const chainSelectorDisabled = useMemo(() => {
-    if (!selectedAddress || isChainSelectorEmpty) {
-      return true;
-    }
-
-    if (!isEthereumAddress(selectedAddress)) {
-      return !!currentLedgerChainOfSelectedAccount;
-    }
-
-    return false;
-  }, [isChainSelectorEmpty, currentLedgerChainOfSelectedAccount, selectedAddress]);
 
   const historySelectorsNode = (
     <>
@@ -554,16 +532,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           />
         )
       }
-
-      <ChainSelector
-        className={'__history-chain-selector'}
-        disabled={chainSelectorDisabled}
-        items={chainItems}
-        loading={loading}
-        onChange={onSelectChain}
-        title={t('Select chain')}
-        value={selectedChain}
-      />
     </>
   );
 
@@ -710,14 +678,26 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             paddingVertical
             rightButtons={headerIcons}
             showBackButton={false}
-            title={t('History')}
+            title={(
+              <>
+                <div className={'ant-sw-sub-header-title-content'}>
+                  {t('History')}
+                </div>
+
+                {loading && <ActivityIndicator size={20} />}
+              </>
+            )}
           />
 
           <div className={'__page-background'}></div>
 
-          <div className={'__page-tool-area'}>
-            {historySelectorsNode}
-          </div>
+          {
+            isAllAccount && (
+              <div className={'__page-tool-area'}>
+                {historySelectorsNode}
+              </div>
+            )
+          }
 
           {listSection}
         </Layout.Base>
@@ -744,6 +724,12 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
     display: 'flex',
     flexDirection: 'column',
+
+    '.ant-sw-sub-header-title': {
+      display: 'flex',
+      alignItems: 'center',
+      gap: token.sizeXS
+    },
 
     '.__page-background': {
       position: 'relative',
