@@ -18,6 +18,7 @@ import { keyring } from '@subwallet/ui-keyring';
 import { BehaviorSubject } from 'rxjs';
 import { BTCService } from '@subwallet/extension-base/services/bitcoin-service/btc-service';
 import { parseBitcoinTransferData } from '@subwallet/extension-base/services/history-service/bitcoin-history';
+import { TransferItemBitCoin } from '@subwallet/extension-base/src/services/bitcoin-service/btc-service/types';
 
 
 
@@ -94,111 +95,101 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     return this.historySubject;
   }
 
-  private fetchSubscanTransactionHistory (chain: string, address: string) {
+  // private fetchSubscanTransactionHistory (chain: string, address: string) {
+  //   if (!this.subscanService.checkSupportedSubscanChain(chain)) {
+  //     return;
+  //   }
+
+  //   const chainInfo = this.chainService.getChainInfoByKey(chain);
+
+  //   const excludeExtrinsicParserKeys: string[] = [
+  //     'balances.transfer_all'
+  //   ];
+
+  //   // Note: fetchAllPossibleExtrinsicItems and fetchAllPossibleTransferItems-receive can run parallelly
+  //   // However, fetchAllPossibleTransferItems-sent must run after fetchAllPossibleExtrinsicItems,
+  //   // to avoid "duplicate Extrinsic Hash between items" problem
+
+  //   this.subscanService.fetchAllPossibleExtrinsicItems(chain, address, (extrinsicItems) => {
+  //     const result: TransactionHistoryItem[] = [];
+
+  //     extrinsicItems.forEach((x) => {
+  //       const item = parseSubscanExtrinsicData(address, x, chainInfo);
+
+  //       if (item) {
+  //         result.push(item);
+  //       }
+  //     });
+
+  //     this.addHistoryItems(result).catch((e) => {
+  //       console.log('addHistoryItems in fetchAllPossibleExtrinsicItems error', e);
+  //     });
+  //   }).then((extrinsicItems) => {
+  //     const excludeTransferExtrinsicHash: string[] = [];
+
+  //     extrinsicItems.forEach((x) => {
+  //       if (!excludeExtrinsicParserKeys.includes(getExtrinsicParserKey(x))) {
+  //         excludeTransferExtrinsicHash.push(x.extrinsic_hash);
+  //       }
+  //     });
+
+  //     this.subscanService.fetchAllPossibleTransferItems(chain, address, 'sent').then((rsMap) => {
+  //       const result: TransactionHistoryItem[] = [];
+
+  //       Object.keys(rsMap).forEach((hash) => {
+  //         // only push item that does not have same hash with another item
+  //         if (!excludeTransferExtrinsicHash.includes(hash) && rsMap[hash].length === 1) {
+  //           result.push(parseSubscanTransferData(address, rsMap[hash][0], chainInfo));
+  //         }
+  //       });
+
+  //       this.addHistoryItems(result).catch((e) => {
+  //         console.log('addHistoryItems in fetchAllPossibleTransferItems-sent error', e);
+  //       });
+  //     }).catch((e) => {
+  //       console.log('fetchAllPossibleTransferItems-sent error', e);
+  //     });
+  //   }).catch((e) => {
+  //     console.log('fetchAllPossibleExtrinsicItems error', e);
+  //   });
+
+  //   this.subscanService.fetchAllPossibleTransferItems(chain, address, 'received').then((rsMap) => {
+  //     const result: TransactionHistoryItem[] = [];
+
+  //     Object.keys(rsMap).forEach((hash) => {
+  //       // only push item that does not have same hash with another item
+  //       if (rsMap[hash].length === 1) {
+  //         result.push(parseSubscanTransferData(address, rsMap[hash][0], chainInfo));
+  //       }
+  //     });
+
+  //     this.addHistoryItems(result).catch((e) => {
+  //       console.log('addHistoryItems in fetchAllPossibleTransferItems-receive error', e);
+  //     });
+  //   }).catch((e) => {
+  //     console.log('fetchAllPossibleTransferItems-receive error', e);
+  //   });
+  // }
+
+  
+  private async fetchBitcoinTransactionHistory(chain: string, address: string) {
     if (!this.subscanService.checkSupportedSubscanChain(chain)) {
-      return;
+        return;
     }
 
     const chainInfo = this.chainService.getChainInfoByKey(chain);
 
-    const excludeExtrinsicParserKeys: string[] = [
-      'balances.transfer_all'
-    ];
-
-    // Note: fetchAllPossibleExtrinsicItems and fetchAllPossibleTransferItems-receive can run parallelly
-    // However, fetchAllPossibleTransferItems-sent must run after fetchAllPossibleExtrinsicItems,
-    // to avoid "duplicate Extrinsic Hash between items" problem
-
-    this.subscanService.fetchAllPossibleExtrinsicItems(chain, address, (extrinsicItems) => {
-      const result: TransactionHistoryItem[] = [];
-
-      extrinsicItems.forEach((x) => {
-        const item = parseSubscanExtrinsicData(address, x, chainInfo);
-
-        if (item) {
-          result.push(item);
-        }
-      });
-
-      this.addHistoryItems(result).catch((e) => {
-        console.log('addHistoryItems in fetchAllPossibleExtrinsicItems error', e);
-      });
-    }).then((extrinsicItems) => {
-      const excludeTransferExtrinsicHash: string[] = [];
-
-      extrinsicItems.forEach((x) => {
-        if (!excludeExtrinsicParserKeys.includes(getExtrinsicParserKey(x))) {
-          excludeTransferExtrinsicHash.push(x.extrinsic_hash);
-        }
-      });
-
-      this.subscanService.fetchAllPossibleTransferItems(chain, address, 'sent').then((rsMap) => {
-        const result: TransactionHistoryItem[] = [];
-
-        Object.keys(rsMap).forEach((hash) => {
-          // only push item that does not have same hash with another item
-          if (!excludeTransferExtrinsicHash.includes(hash) && rsMap[hash].length === 1) {
-            result.push(parseSubscanTransferData(address, rsMap[hash][0], chainInfo));
-          }
-        });
-
-        this.addHistoryItems(result).catch((e) => {
-          console.log('addHistoryItems in fetchAllPossibleTransferItems-sent error', e);
-        });
-      }).catch((e) => {
-        console.log('fetchAllPossibleTransferItems-sent error', e);
-      });
-    }).catch((e) => {
-      console.log('fetchAllPossibleExtrinsicItems error', e);
-    });
-
-    this.subscanService.fetchAllPossibleTransferItems(chain, address, 'received').then((rsMap) => {
-      const result: TransactionHistoryItem[] = [];
-
-      Object.keys(rsMap).forEach((hash) => {
-        // only push item that does not have same hash with another item
-        if (rsMap[hash].length === 1) {
-          result.push(parseSubscanTransferData(address, rsMap[hash][0], chainInfo));
-        }
-      });
-
-      this.addHistoryItems(result).catch((e) => {
-        console.log('addHistoryItems in fetchAllPossibleTransferItems-receive error', e);
-      });
-    }).catch((e) => {
-      console.log('fetchAllPossibleTransferItems-receive error', e);
-    });
-  }
-
-  async fetchBitcoinTransactionHistory(chain: string, address: string) {
-    if (!this.btcService.checkSupportedSubscanChain(chain)) {
-      return;
-    }
-  
-    const chainInfo = this.chainService.getChainInfoByKey(chain);
-  
     // Fetch all possible transfer items
     const transferItems = await this.btcService.fetchAllPossibleTransferItems(chain, address);
-  
-    // Process received transfer items
-    const receivedTransferItems = transferItems['received'] || [];
-    const parsedReceivedItems = receivedTransferItems.map((item) => {
-      return this.parseBitcoinTransferData(address, item, chainInfo);
-    });
-  
-    // Process sent transfer items
-    const sentTransferItems = transferItems['sent'] || [];
-    const parsedSentItems = sentTransferItems.map((item) => {
-      return this.parseBitcoinTransferData(address, item, chainInfo);
-    });
-  
-    // Combine received and sent items
-    const allParsedItems = [...parsedReceivedItems, ...parsedSentItems];
-  
-    // Add parsed items to transaction history
-    await this.addHistoryItems(allParsedItems);
-  }
 
+    // Process transfer items
+    const parsedItems = Object.values(transferItems).flatMap((items: TransferItemBitCoin[]) => {
+        return items.map((item) => parseBitcoinTransferData(address, item, chainInfo));
+    });
+
+    // Add parsed items to transaction history
+    await this.addHistoryItems(parsedItems);
+}
 
   subscribeHistories (chain: string, address: string, cb: (items: TransactionHistoryItem[]) => void) {
     const _address = reformatAddress(address);

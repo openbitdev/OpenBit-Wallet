@@ -62,6 +62,7 @@ import { base64Decode, isEthereumAddress, keyExtractSuri } from '@polkadot/util-
 
 import { KoniCron } from '../cron';
 import { KoniSubscription } from '../subscription';
+import { BTCService } from '@subwallet/extension-base/services/bitcoin-service/btc-service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const passworder = require('browser-passworder');
@@ -139,6 +140,7 @@ export default class KoniState {
   readonly buyService: BuyService;
   readonly earningService: EarningService;
   readonly feeService: FeeService;
+  readonly btcService: BTCService;
 
   // Handle the general status of the extension
   private generalStatus: ServiceStatus = ServiceStatus.INITIALIZING;
@@ -159,7 +161,8 @@ export default class KoniState {
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
-    this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.subscanService);
+    this.btcService = BTCService.getInstance()
+    this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.subscanService, this.btcService);
     this.mintCampaignService = new MintCampaignService(this);
     this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.migrationService = new MigrationService(this, this.eventService);

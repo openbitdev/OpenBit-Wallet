@@ -6224,12 +6224,12 @@ __metadata:
 
 "@subwallet/chain-list@file:./chain-list::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.53-beta.1
-  resolution: "@subwallet/chain-list@file:./chain-list#./chain-list::hash=faee05&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:./chain-list#./chain-list::hash=54a8fa&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: 4da946e3a4386e0ce59ac2f5bcd47d373853f11f91664ab143fecac4f7694992a54266bdbf604dd5d70f38878fdc7e5b68d479d2889327219c1ba4cb7e268bb1
+  checksum: 4a7686f6261d7b522e36db31bcac456ecc602fa1f9f9c49b12aea31fea03483ba131417762d2d713b541faa9a1c1d742b482b438a96b5ab45238a0d66142cfdb
   languageName: node
   linkType: hard
 
@@ -6280,6 +6280,7 @@ __metadata:
     "@walletconnect/utils": ^2.11.0
     avail-js-sdk: ^0.0.10
     bignumber.js: ^9.1.1
+    bitcoinjs-lib: 6.1.5
     bn.js: ^5.2.1
     bowser: ^2.11.0
     browser-passworder: ^2.0.3
@@ -10479,7 +10480,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bitcoinjs-lib@npm:^6.1.5":
+"bitcoinjs-lib@npm:6.1.5":
   version: 6.1.5
   resolution: "bitcoinjs-lib@npm:6.1.5"
   dependencies:

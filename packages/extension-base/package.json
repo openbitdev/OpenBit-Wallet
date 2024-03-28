@@ -62,6 +62,7 @@
     "@walletconnect/utils": "^2.11.0",
     "avail-js-sdk": "^0.0.10",
     "bignumber.js": "^9.1.1",
+    "bitcoinjs-lib": "6.1.5",
     "bn.js": "^5.2.1",
     "bowser": "^2.11.0",
     "browser-passworder": "^2.0.3",

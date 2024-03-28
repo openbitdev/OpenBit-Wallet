@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { AccountBalances, BTCRequest, BTCResponse , TransfersListResponse, TransferItem } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { AccountBalances, BTCRequest, BTCResponse , TransfersListResponse, TransferItemBitCoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
 import fetch from 'cross-fetch';
 
 import { BTC_API_CHAIN_MAP } from './btc-chain-map';
@@ -159,15 +159,14 @@ export class BTCService {
     chain: string,
     address: string,
     direction?: 'sent' | 'received',
-    cbAfterEachRequest?: (items: TransferItem[]) => void,
+    cbAfterEachRequest?: (items: TransferItemBitCoin[]) => void,
     limit = {
       page: 10,
       record: 1000
     }
-  ): Promise<Record<string, TransferItem[]>> {
-    let maxCount = 0;
+  ): Promise<Record<string, TransferItemBitCoin[]>> {
     let currentCount = 0;
-    const resultMap: Record<string, TransferItem[]> = {};
+    const resultMap: Record<string, TransferItemBitCoin[]> = {};
 
     const _getTransferItems = async (page: number) => {
       const res = await this.getAddressTransaction(chain, address, page.toString());
@@ -211,6 +210,18 @@ export class BTCService {
 
     return resultMap;
   }
+
+
+   // Singleton
+   private static _instance: BTCService;
+
+   public static getInstance () {
+     if (!BTCService._instance) {
+      BTCService._instance = new BTCService();
+     }
+ 
+     return BTCService._instance;
+   }
 }
   
 

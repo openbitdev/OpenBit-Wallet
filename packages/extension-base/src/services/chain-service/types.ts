@@ -99,8 +99,8 @@ export interface _EvmApi extends _ChainBaseApi {
 
 export interface BitcoinApiProxy {
   setBaseUrl: (baseUrl: string) => void,
-  getRequest: (urlPath: string, params?: Record<string, string>, headers?: Record<string, string>) => Promise<unknown>,
-  postRequest: (urlPath: string, body?: BodyInit, headers?: Record<string, string>) => Promise<unknown>
+  getRequest: (urlPath: string, params?: Record<string, string>, headers?: Record<string, string>) => Promise<Response>,
+  postRequest: (urlPath: string, body?: BodyInit, headers?: Record<string, string>) => Promise<Response>
 }
 
 export interface _BitcoinApi extends _ChainBaseApi {

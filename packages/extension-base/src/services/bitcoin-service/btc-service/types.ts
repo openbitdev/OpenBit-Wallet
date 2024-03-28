@@ -27,7 +27,7 @@ export interface AccountBalances {
   };
   value: string;
 }
-export interface TransferItem {
+export interface TransferItemBitCoin {
   txid: string;
   version: number;
   locktime: number;
@@ -67,7 +67,7 @@ export interface TransferItem {
 
 export interface TransfersListResponse {
   count: number,
-  transfers: null | TransferItem[]
+  transfers: null | TransferItemBitCoin[]
 }
 
 

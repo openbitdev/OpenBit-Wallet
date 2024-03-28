@@ -41,7 +41,7 @@ class BitcoinApiProxyImp implements BitcoinApiProxy {
     const url = `${this.baseUrl}/${urlPath}`;
 
     return fetch(url, {
-      method: 'GET',
+      method: 'POST',
       headers: headers || {
         'Content-Type': 'application/json'
       },

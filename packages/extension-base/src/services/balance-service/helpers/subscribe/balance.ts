@@ -116,11 +116,11 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
       return subscribeEVMBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
     }
 
-    if (_isPureBitcoinChain(chainInfo)) {
-      const nativeTokenInfo = state.getNativeTokenInfo(chainSlug);
+    // if (_isPureBitcoinChain(chainInfo)) {
+    //   const nativeTokenInfo = state.getNativeTokenInfo(chainSlug);
 
-      return subscribeBitcoinBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
-    }
+    //   return subscribeBitcoinBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
+    // }
     // if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
     //   const fungibleTokensByChain = state.chainService.getFungibleTokensByChain(chainSlug, true);
     //   const now = new Date().getTime();
