@@ -6604,9 +6604,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@subwallet/keyring@npm:0.1.5-beta.0":
-  version: 0.1.5-beta.0
-  resolution: "@subwallet/keyring@npm:0.1.5-beta.0"
+"@subwallet/keyring@file:./keyring-lib::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 0.1.4
+  resolution: "@subwallet/keyring@file:./keyring-lib#./keyring-lib::hash=def2fb&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
@@ -6620,7 +6620,7 @@ __metadata:
     rxjs: ^7.5.6
     tiny-secp256k1: ^2.2.3
     tslib: ^2.6.2
-  checksum: cf709bafccb2b803573559f2986bcc57c30119bb196a5e768d8ef478159afacebfe2a900951a59f9b98c602a158070d051544bd3e7af25eed35263d5d458af2b
+  checksum: 1bdc8d453af6b4033cf1eef1d4073901428ccd41acc351e1861c0c9f773a75535f8761259b6a380c07661cce77a344f5de001b7c7469237ef80e74b28afef146
   languageName: node
   linkType: hard
 

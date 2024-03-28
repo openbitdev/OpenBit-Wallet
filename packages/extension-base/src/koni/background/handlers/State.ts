@@ -11,6 +11,7 @@ import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { BalanceMapImpl } from '@subwallet/extension-base/services/balance-service/BalanceMapImpl';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
+import { BTCService } from '@subwallet/extension-base/services/bitcoin-service/btc-service';
 import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
@@ -62,7 +63,6 @@ import { base64Decode, isEthereumAddress, keyExtractSuri } from '@polkadot/util-
 
 import { KoniCron } from '../cron';
 import { KoniSubscription } from '../subscription';
-import { BTCService } from '@subwallet/extension-base/services/bitcoin-service/btc-service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const passworder = require('browser-passworder');
@@ -161,7 +161,7 @@ export default class KoniState {
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
-    this.btcService = BTCService.getInstance()
+    this.btcService = BTCService.getInstance();
     this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService, this.subscanService, this.btcService);
     this.mintCampaignService = new MintCampaignService(this);
     this.walletConnectService = new WalletConnectService(this, this.requestService);
