@@ -299,7 +299,6 @@ function createPair(_ref, _ref2) {
     sign,
     // eslint-disable-next-line sort-keys
     changePkcs8(newPassphrase, oldPassphrase) {
-      console.log(oldPassphrase, newPassphrase);
       encoded && decodePkcs8(oldPassphrase, encoded);
       encoded = (0, _encode.encodePair)({
         publicKey,
@@ -336,7 +335,7 @@ function createPair(_ref, _ref2) {
 
       // Address is public key if not substrate pair
       // Address is address if substrate pair
-      const address = ['ecdsa', 'ethereum'].includes(type) ? publicKey.length === 20 ? (0, _util.u8aToHex)(publicKey) : (0, _util.u8aToHex)((0, _utilCrypto.secp256k1Compress)(publicKey)) : ['bitcoin-44', 'bitcoin-84', 'bitcoin-86'].includes(type) ? (0, _util.u8aToHex)(publicKey) : encodeAddress();
+      const address = ['ecdsa', 'ethereum'].includes(type) ? publicKey.length === 20 ? (0, _util.u8aToHex)(publicKey) : (0, _util.u8aToHex)((0, _utilCrypto.secp256k1Compress)(publicKey)) : ['bitcoin-44', 'bitcoin-84', 'bitcoin-86', 'bittest-44', 'bittest-84', 'bittest-86'].includes(type) ? (0, _util.u8aToHex)(publicKey) : encodeAddress();
       return (0, _toJson.pairToJson)(type, {
         address,
         meta

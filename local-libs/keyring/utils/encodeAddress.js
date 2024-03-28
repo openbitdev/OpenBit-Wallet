@@ -7,14 +7,14 @@ import { decodeAddress } from "./decodeAddress.js";
 export const encodeAddress = (key, ss58Format = 42, type) => {
   // decode it, this means we can re-encode an address
   const u8a = decodeAddress(key);
-  const network = ss58Format === 0 ? bitcoin.networks.testnet : ss58Format === 1 ? bitcoin.networks.regtest : bitcoin.networks.bitcoin;
-  if (type === 'bitcoin-44') {
+  const network = !type || ['bitcoin-44', 'bitcoin-84', 'bitcoin-86'].includes(type) ? bitcoin.networks.bitcoin : ['bittest-44', 'bittest-84', 'bittest-86'].includes(type) ? bitcoin.networks.testnet : bitcoin.networks.regtest;
+  if (type === 'bitcoin-44' || type === 'bittest-44') {
     return bitcoin.address.toBase58Check(Buffer.from(u8a), network.pubKeyHash);
   }
-  if (type === 'bitcoin-84') {
+  if (type === 'bitcoin-84' || type === 'bittest-84') {
     return bitcoin.address.toBech32(Buffer.from(u8a), 0, network.bech32);
   }
-  if (type === 'bitcoin-86') {
+  if (type === 'bitcoin-86' || type === 'bittest-86') {
     return bitcoin.address.toBech32(Buffer.from(u8a), 1, network.bech32);
   }
   return polkadotEncodeAddress(u8a, ss58Format);

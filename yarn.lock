@@ -6606,7 +6606,7 @@ __metadata:
 
 "@subwallet/keyring@file:./local-libs/keyring::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.1.4
-  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=def2fb&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=9d441d&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
@@ -6620,7 +6620,7 @@ __metadata:
     rxjs: ^7.5.6
     tiny-secp256k1: ^2.2.3
     tslib: ^2.6.2
-  checksum: 1bdc8d453af6b4033cf1eef1d4073901428ccd41acc351e1861c0c9f773a75535f8761259b6a380c07661cce77a344f5de001b7c7469237ef80e74b28afef146
+  checksum: 88f1d3449e6c4a1579a221503f412c1f8b213f14ada58ba5a1f7207d5de161401089e89e6978d78454b7c749dc5276bb52199a74a0728eb506d0b8066ed22695
   languageName: node
   linkType: hard
 
