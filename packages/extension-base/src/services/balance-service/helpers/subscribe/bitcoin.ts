@@ -1,86 +1,117 @@
-// Copyright 2019-2022 @subwallet/extension-base
-// SPDX-License-Identifier: Apache-2.0
-
-import { _AssetType, _ChainAsset } from '@subwallet/chain-list/types';
-import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
-import { ASTAR_REFRESH_BALANCE_INTERVAL, SUB_TOKEN_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
-import { getEVMBalance } from '@subwallet/extension-base/koni/api/tokens/evm/balance';
-import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/web3';
-import { SWHandler } from '@subwallet/extension-base/koni/background/handlers';
-import { _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getContractAddressOfToken } from '@subwallet/extension-base/services/chain-service/utils';
+import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { Contract } from 'web3-eth-contract';
+import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
+import { _ChainAsset } from '@subwallet/chain-list/types';
+import { ASTAR_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 
-import { BN } from '@polkadot/util';
+// export async function subscribeBitcoinBalance(
+//   chain: string,
+//   addresses: string[],
+//   bitcoinApi: Record<string, _BitcoinApi>,
+//   callback: (rs: BalanceItem[]) => void,
+//   tokenInfo: _ChainAsset
+// ): Promise<() => void> {
+//   const bitcoinInstance = bitcoinApi[chain] ;
+//   if (!bitcoinInstance || !bitcoinInstance.api || !bitcoinInstance.api.setBaseUrl ) {
+//     console.error(`API proxy for Bitcoin is not available or does not have necessary properties`);
+//     return () => {};
+//   }
 
-export function subscribeERC20Interval (addresses: string[], chain: string, evmApiMap: Record<string, _EvmApi>, callBack: (result: BalanceItem[]) => void): () => void {
-  let tokenList = {} as Record<string, _ChainAsset>;
-  const erc20ContractMap = {} as Record<string, Contract>;
+//   bitcoinInstance.api.setBaseUrl(bitcoinInstance.apiUrl); // Sử dụng apiUrl từ bitcoinInstance
 
-  const getTokenBalances = () => {
-    Object.values(tokenList).map(async (tokenInfo) => {
-      try {
-        const contract = erc20ContractMap[tokenInfo.slug];
-        const balances = await Promise.all(addresses.map(async (address): Promise<string> => {
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
-            return await contract.methods.balanceOf(address).call();
-          } catch (e) {
-            console.error(`Error on get balance of account ${address} for token ${tokenInfo.slug}`, e);
+//   const unsub = setInterval(async () => {
+//     try {
+//       const promises = addresses.map(address => {
+//         const url = `/address/${address}`;
+//         return bitcoinInstance.api.getRequest(url);
+//       });
 
-            return '0';
-          }
-        }));
+//       const responses = await Promise.all(promises);
 
-        const items: BalanceItem[] = balances.map((balance, index): BalanceItem => {
-          return {
-            address: addresses[index],
-            tokenSlug: tokenInfo.slug,
-            free: new BN(balance || 0).toString(),
-            locked: '0',
-            state: APIItemState.READY
-          };
-        });
+//       const items: BalanceItem[] = responses.map(async (response, index) => {
+//         if (response.status !== 200) {
+//           console.error(`Error while fetching Bitcoin balance for addres`);
+//           return {
+//             address: addresses[index],
+//             tokenSlug: tokenInfo.slug,
+//             state: APIItemState.READY,
+           
+//           };
+//         }
 
-        callBack(items);
-      } catch (err) {
-        console.log(tokenInfo.slug, err);
-      }
+//         const jsonData = await response.json();
+//         const balance = jsonData.chain_stats.funded_txo_sum - jsonData.chain_stats.spent_txo_sum;
+
+//         return {
+//           address: addresses[index],
+//           tokenSlug: tokenInfo.slug,
+//           state: APIItemState.READY,
+//           free: balance.toString(),
+//           locked: '0'
+//         };
+//       });
+
+//       callback(items);
+//     } catch (error) {
+//       console.error(`Error while fetching Bitcoin balances: ${error}`);
+//     }
+//   }, bitcoinInstance.refreshInterval);
+
+//   return () => {
+//     clearInterval(unsub);
+//   };
+// }
+
+
+export async function getBitcoinBalance(chain: string, addresses: string[], bitcoinApiMap: Record<string, _BitcoinApi>): Promise<string[]> {
+  const bitcoinInstance = bitcoinApiMap[chain];
+
+  if (!bitcoinInstance || !bitcoinInstance.api || !bitcoinInstance.api.getRequest) {
+    console.error(`API proxy for Bitcoin is not available or does not have necessary methods`);
+    return [];
+  }
+
+  try {
+    const promises = addresses.map(address => {
+      const url = `/address/${address}`;
+      return bitcoinInstance.api.getRequest(url);
     });
-  };
 
-  tokenList = SWHandler.instance.state.getAssetByChainAndAsset(chain, [_AssetType.ERC20]);
+    const responses = await Promise.all(promises);
 
-  Object.entries(tokenList).forEach(([slug, tokenInfo]) => {
-    erc20ContractMap[slug] = getERC20Contract(chain, _getContractAddressOfToken(tokenInfo), evmApiMap);
-  });
+    return Promise.all(responses.map(async (response) => {
+      if (response.status !== 200) {
+        console.error(`Error while fetching Bitcoin balance: ${await response.text()}`);
+        return '0';
+      }
 
-  getTokenBalances();
+      const jsonData = await response.json();
+      const balance = jsonData.chain_stats.funded_txo_sum - jsonData.chain_stats.spent_txo_sum;
 
-  const interval = setInterval(getTokenBalances, SUB_TOKEN_REFRESH_BALANCE_INTERVAL);
-
-  return () => {
-    clearInterval(interval);
-  };
+      return balance.toString();
+    }));
+  } catch (error) {
+    console.error(`Error while fetching Bitcoin balances: ${error}`);
+    return [];
+  }
 }
 
-export function subscribeBitcoinBalance (chain: string, addresses: string[], evmApiMap: Record<string, _EvmApi>, callback: (rs: BalanceItem[]) => void, tokenInfo: _ChainAsset) {
-  function getBalance () {
-    getEVMBalance(chain, addresses, evmApiMap)
+export function subscribeBitcoinBalance(chain: string, addresses: string[], bitcoinApiMap: Record<string, _BitcoinApi>, callback: (rs: BalanceItem[]) => void, tokenInfo: _ChainAsset): () => void {
+  function getBalance() {
+    getBitcoinBalance(chain, addresses, bitcoinApiMap)
       .then((balances) => {
         return balances.map((balance, index): BalanceItem => {
           return {
             address: addresses[index],
             tokenSlug: tokenInfo.slug,
-            state: APIItemState.READY, 
-            free: (new BN(balance || '0')).toString(),
+            state: APIItemState.READY,
+            free: balance,
             locked: '0'
           };
         });
       })
       .catch((e) => {
-        console.error(`Error on get native balance with token ${tokenInfo.slug}`, e);
+        console.error(`Error on get Bitcoin balance with token ${tokenInfo.slug}`, e);
 
         return addresses.map((address): BalanceItem => {
           return {
@@ -95,16 +126,13 @@ export function subscribeBitcoinBalance (chain: string, addresses: string[], evm
       .then((items) => {
         callback(items);
       })
-      .catch(console.error)
-    ;
+      .catch(console.error);
   }
 
   getBalance();
   const interval = setInterval(getBalance, ASTAR_REFRESH_BALANCE_INTERVAL);
-  const unsub2 = subscribeERC20Interval(addresses, chain, evmApiMap, callback);
 
   return () => {
     clearInterval(interval);
-    unsub2 && unsub2();
   };
 }

@@ -96,5 +96,35 @@ describe('BTCService', () => {
       // For example:
       expect(Object.keys(result)).toContain('1234567890');
     });
+
+  });
+});
+
+describe('BTCScanService', () => {
+  let originalConsoleLog: typeof console.log;
+  let consoleLogSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    originalConsoleLog = console.log;
+  });
+
+  beforeEach(() => {
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+  });
+
+  it('should fetch address transactions', async () => {
+    const mockUrl = 'mocked-url';
+
+    const btcScanService = new BTCService();
+    const getAddressTransactionSpy = jest.spyOn(btcScanService, 'getAddressTransaction');
+
+    await btcScanService.getAddressTransaction('testnet', 'tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh', '1');
+
+    expect(getAddressTransactionSpy).toHaveBeenCalledWith('testnet', 'tb1q8n62n0vst8t3x6zt9svfg0afyxanuzyhazqnwh', '1');
+    expect(consoleLogSpy).toHaveBeenCalledWith('url', expect.any(String)); // Kiểm tra nội dung của console.log
   });
 });
