@@ -8,10 +8,11 @@ import { groupBalance } from '@subwallet/extension-base/services/balance-service
 import { subscribeEVMBalance } from '@subwallet/extension-base/services/balance-service/helpers/subscribe/evm';
 import { subscribeSubstrateBalance } from '@subwallet/extension-base/services/balance-service/helpers/subscribe/substrate';
 import { _PURE_EVM_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
-import { _getChainNativeTokenSlug, _isChainEvmCompatible, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenSlug, _isChainBitcoinCompatible, _isChainEvmCompatible, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { categoryAddresses } from '@subwallet/extension-base/utils';
 import { t } from 'i18next';
+import { subscribeBitcoinBalance } from './helpers/subscribe/bitcoin';
 
 /**
  * Balance service
@@ -100,44 +101,51 @@ export class BalanceService {
     return balance;
   }
 
-  public subscribeBalance (addresses: string[], chains: string[] | null, _callback: (rs: BalanceItem) => void) {
-    const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
+  public subscribeBalance(addresses: string[], chains: string[] | null, _callback: (rs: BalanceItem) => void) {
+    const [substrateAddresses, evmAddresses, bitcoinAddresses] = categoryAddresses(addresses);
     const chainInfoMap = this.state.chainService.getChainInfoMap();
     const chainStateMap = this.state.chainService.getChainStateMap();
     const substrateApiMap = this.state.chainService.getSubstrateApiMap();
     const evmApiMap = this.state.chainService.getEvmApiMap();
-
+    const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
+  
     // Get data from chain or all chains
     const chainList = chains || Object.keys(chainInfoMap);
     // Filter active chain only
     const useChainInfos = chainList.filter((c) => chainStateMap[c] && chainStateMap[c].active).map((c) => chainInfoMap[c]);
-
+  
     const callback = (items: BalanceItem[]) => {
       if (items.length) {
         _callback(groupBalance(items, 'GROUPED', items[0].tokenSlug));
       }
     };
-
+  
     // Looping over each chain
     const unsubList = useChainInfos.map(async (chainInfo) => {
       const chainSlug = chainInfo.slug;
-      const useAddresses = _isChainEvmCompatible(chainInfo) ? evmAddresses : substrateAddresses;
-
-      if (_isPureEvmChain(chainInfo)) {
+      let useAddresses: string[] = [];
+  
+      if (_isChainEvmCompatible(chainInfo)) {
+        useAddresses = evmAddresses;
         const nativeTokenInfo = this.state.getNativeTokenInfo(chainSlug);
-
         return subscribeEVMBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
+      } else if (_isChainBitcoinCompatible(chainInfo)) {
+        useAddresses = bitcoinAddresses;
+        const nativeTokenInfo = this.state.getNativeTokenInfo(chainSlug);
+        return subscribeBitcoinBalance(chainSlug, useAddresses, bitcoinApiMap, callback, nativeTokenInfo);
+      } else {
+        useAddresses = substrateAddresses;
       }
-
+  
       if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
         return undefined;
       }
-
+  
       const networkAPI = await substrateApiMap[chainSlug].isReady;
-
+  
       return subscribeSubstrateBalance(useAddresses, chainInfo, chainSlug, networkAPI, evmApiMap, callback);
     });
-
+  
     return () => {
       unsubList.forEach((subProm) => {
         subProm.then((unsub) => {

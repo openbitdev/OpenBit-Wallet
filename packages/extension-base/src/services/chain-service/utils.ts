@@ -125,6 +125,9 @@ export function _getTokenMinAmount (tokenInfo: _ChainAsset) {
 export function _isChainEvmCompatible (chainInfo: _ChainInfo) {
   return !!chainInfo.evmInfo;
 }
+export function _isChainBitcoinCompatible (chainInfo: _ChainInfo) {
+  return !!chainInfo.bitcoinInfo;
+}
 
 export function _isNativeToken (tokenInfo: _ChainAsset) {
   return tokenInfo.assetType === _AssetType.NATIVE;

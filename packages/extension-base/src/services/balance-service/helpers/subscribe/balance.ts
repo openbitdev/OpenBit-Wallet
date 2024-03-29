@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { _AssetType, _BitCoinInfo, _ChainInfo } from '@subwallet/chain-list/types';
+import { _AssetType, _BitcoinInfo, _ChainInfo } from '@subwallet/chain-list/types';
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { SWHandler } from '@subwallet/extension-base/koni/background/handlers';
@@ -44,44 +44,56 @@ export const getAccountJsonByAddress = (address: string): AccountJson | null => 
   }
 };
 
-const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[], string[]] => {
+const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[]] => {
   const isEvmChain = _isChainEvmCompatible(chainInfo);
-  const [substrateAddresses, evmAddresses, bitcoinAddresses] = categoryAddresses(addresses);
+  const [substrateAddresses, evmAddresses, mainnetBitcoinAddresses, testnetBitcoinAddresses] = categoryAddresses(addresses);
 
   if (isEvmChain) {
-    return [evmAddresses, substrateAddresses, bitcoinAddresses];
+      return [evmAddresses, [...substrateAddresses, ...mainnetBitcoinAddresses, ...testnetBitcoinAddresses]];
   } else {
-    const fetchList: string[] = [];
-    const unfetchList: string[] = [];
+      const fetchList: string[] = [];
+      const unfetchList: string[] = [];
+      const mainnetBitcoinFetchList: string[] = [];
+      const testnetBitcoinFetchList: string[] = [];
 
-    substrateAddresses.forEach((address) => {
-      const account = getAccountJsonByAddress(address);
+      substrateAddresses.forEach((address) => {
+          const account = getAccountJsonByAddress(address);
 
-      if (account) {
-        if (account.isHardware) {
-          const availGen = account.availableGenesisHashes || [];
-          const gen = _getSubstrateGenesisHash(chainInfo);
+          if (account) {
+              if (account.isHardware) {
+                  const availGen = account.availableGenesisHashes || [];
+                  const gen = _getSubstrateGenesisHash(chainInfo);
 
-          if (availGen.includes(gen)) {
-            fetchList.push(address);
+                  if (availGen.includes(gen)) {
+                      fetchList.push(address);
+                  } else {
+                      unfetchList.push(address);
+                  }
+              } else {
+                  fetchList.push(address);
+              }
           } else {
-            unfetchList.push(address);
+              fetchList.push(address);
           }
-        } else {
-          fetchList.push(address);
-        }
-      } else {
-        fetchList.push(address);
-      }
-    });
+      });
 
-    return [fetchList, [...unfetchList, ...evmAddresses], bitcoinAddresses];
+      mainnetBitcoinAddresses.forEach((address) => {       
+          mainnetBitcoinFetchList.push(address);
+      });
+
+      testnetBitcoinAddresses.forEach((address) => {
+          testnetBitcoinFetchList.push(address);
+      });
+
+      return [fetchList, [...unfetchList, ...substrateAddresses, ...mainnetBitcoinFetchList, ...testnetBitcoinFetchList]];
   }
-};
+}
 
 // main subscription
 export function subscribeBalance (addresses: string[], chainInfoMap: Record<string, _ChainInfo>, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi  >, bitcoinApiMap :Record<string, _BitcoinApi>, callback: (rs: BalanceItem[]) => void) {
   const state = SWHandler.instance.state;
+  console.log('ok');
+  
   // Looping over each chain
   const unsubList = Object.entries(chainInfoMap).map(async ([chainSlug, chainInfo]) => {
     const [useAddresses, notSupportAddresses] = filterAddress(addresses, chainInfo);
@@ -117,10 +129,11 @@ export function subscribeBalance (addresses: string[], chainInfoMap: Record<stri
       return subscribeEVMBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
     }
 
+    
     if (_isPureBitcoinChain(chainInfo)) {
-      const nativeTokenInfo = state.getNativeTokenInfo(chainSlug);
-
+      const nativeTokenInfo = state.getNativeTokenInfo(chainSlug); 
       return subscribeBitcoinBalance(chainSlug, useAddresses, bitcoinApiMap, callback, nativeTokenInfo);
+
     }
     // if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
     //   const fungibleTokensByChain = state.chainService.getFungibleTokensByChain(chainSlug, true);
