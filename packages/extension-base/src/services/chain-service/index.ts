@@ -17,7 +17,6 @@ import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storag
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
 import { addLazy, fetchStaticData, MODULE_SUPPORT } from '@subwallet/extension-base/utils';
-import { isBitcoinAddress } from '@subwallet/keyring';
 import { BehaviorSubject, Subject } from 'rxjs';
 import Web3 from 'web3';
 
@@ -1845,17 +1844,5 @@ export class ChainService {
     });
 
     return result;
-  }
-
-  getBitcoinChainByAddress (address: string): string | null {
-    const bitcoinNetwork = isBitcoinAddress(address);
-
-    if (bitcoinNetwork === 'mainnet') {
-      return 'bitcoin';
-    } else if (bitcoinNetwork === 'testnet') {
-      return 'bitcoinTestnet';
-    }
-
-    return null;
   }
 }

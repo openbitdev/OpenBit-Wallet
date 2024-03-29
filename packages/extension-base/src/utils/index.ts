@@ -6,7 +6,7 @@ import { AccountAuthType, AccountJson } from '@subwallet/extension-base/backgrou
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { getRandomIpfsGateway, SUBWALLET_IPFS } from '@subwallet/extension-base/koni/api/nft/config';
 import { decodeAddress, encodeAddress, getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
-import { KeypairType } from '@subwallet/keyring/types';
+import { BitcoinNetwork, KeypairType } from '@subwallet/keyring/types';
 import { t } from 'i18next';
 
 import { assert, BN, hexToU8a, isHex } from '@polkadot/util';
@@ -434,6 +434,20 @@ export function wait (milliseconds: number) {
       resolve();
     }, milliseconds);
   });
+}
+
+export function getChainSlugByBitcoinNetwork (bitcoinNetwork: BitcoinNetwork): string | null {
+  if (bitcoinNetwork === 'mainnet') {
+    return 'bitcoin';
+  } else if (bitcoinNetwork === 'testnet') {
+    return 'bitcoinTestnet';
+  }
+
+  return null;
+}
+
+export function getBitcoinChainByAddress (address: string): string | null {
+  return getChainSlugByBitcoinNetwork(isBitcoinAddress(address));
 }
 
 export * from './account';

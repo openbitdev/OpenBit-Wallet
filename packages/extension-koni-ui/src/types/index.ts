@@ -30,7 +30,7 @@ export type AlertDialogProps = {
   okButton: AlertDialogButtonProps,
 };
 
-export type AccountType = 'ALL' | 'ETHEREUM' | 'SUBSTRATE';
+export type AccountType = 'ALL' | 'ETHEREUM' | 'SUBSTRATE' | 'BITCOIN_MAINNET' | 'BITCOIN_TESTNET' | 'UNSUPPORTED';
 
 export interface ThemeProps {
   theme: _Theme;

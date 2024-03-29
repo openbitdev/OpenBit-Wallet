@@ -5,5 +5,6 @@ export { default as useAccountBalance } from './useAccountBalance';
 export { default as useGetTokensBySettings } from './useGetTokensBySettings';
 export { default as useReceiveQR } from './useReceiveQR';
 export { default as useTokenGroup } from './useTokenGroup';
+export { default as useGetBitcoinChainSlugsByCurrentAccount } from './useGetBitcoinChainSlugsByCurrentAccount';
 
 export * from './useGetChainSlugsByAccountType';

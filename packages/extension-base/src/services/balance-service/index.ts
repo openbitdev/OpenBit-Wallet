@@ -12,7 +12,7 @@ import { subscribeSubstrateBalance } from '@subwallet/extension-base/services/ba
 import { _PURE_EVM_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _getChainNativeTokenSlug, _isChainBitcoinCompatible, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { categoryAddresses } from '@subwallet/extension-base/utils';
+import { categoryAddresses, getBitcoinChainByAddress } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 import { t } from 'i18next';
 
@@ -104,7 +104,7 @@ export class BalanceService {
   }
 
   public async getBitcoinBalance (chain: string, address: string): Promise<string> {
-    const bitcoinChainSlug = this.state.chainService.getBitcoinChainByAddress(address);
+    const bitcoinChainSlug = getBitcoinChainByAddress(address);
 
     if (!bitcoinChainSlug) {
       console.log(`Invalid address for getting bitcoin balance: ${address}`);
