@@ -71,25 +71,26 @@ export function filterAddressByNetworkKey (addresses: string[], networkKey: stri
   }
 }
 
-export function categoryAddresses(addresses: string[]) {
+export function categoryAddresses (addresses: string[]) {
   const substrateAddresses: string[] = [];
   const evmAddresses: string[] = [];
   const mainnetBitcoinAddresses: string[] = [];
   const testnetBitcoinAddresses: string[] = [];
 
   addresses.forEach((address) => {
-      if (isEthereumAddress(address)) {
-          evmAddresses.push(address);
-      } else if (isBitcoinAddress(address)) {
-          const network = isBitcoinAddress(address);
-          if (network === 'mainnet') {
-              mainnetBitcoinAddresses.push(address);
-          } else if (network === 'testnet') {
-              testnetBitcoinAddresses.push(address);
-          }
-      } else {
-          substrateAddresses.push(address);
+    if (isEthereumAddress(address)) {
+      evmAddresses.push(address);
+    } else if (isBitcoinAddress(address)) {
+      const network = isBitcoinAddress(address);
+
+      if (network === 'mainnet') {
+        mainnetBitcoinAddresses.push(address);
+      } else if (network === 'testnet') {
+        testnetBitcoinAddresses.push(address);
       }
+    } else {
+      substrateAddresses.push(address);
+    }
   });
 
   return [substrateAddresses, evmAddresses, mainnetBitcoinAddresses, testnetBitcoinAddresses];

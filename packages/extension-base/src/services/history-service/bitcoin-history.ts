@@ -3,13 +3,13 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainType, ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
-import { TransferItemBitcoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { BitcoinTransferItem } from '@subwallet/extension-base/services/bitcoin-service/types';
 
-function isSender (address: string, transferItem: TransferItemBitcoin) {
+function isSender (address: string, transferItem: BitcoinTransferItem) {
   return transferItem.vin.some((i) => i.prevout.scriptpubkey_address === address);
 }
 
-export function parseBitcoinTransferData (address: string, transferItem: TransferItemBitcoin, chainInfo: _ChainInfo): TransactionHistoryItem {
+export function parseBitcoinTransferData (address: string, transferItem: BitcoinTransferItem, chainInfo: _ChainInfo): TransactionHistoryItem {
   const chainType = ChainType.BITCOIN;
   const nativeDecimals = chainInfo.bitcoinInfo?.decimals || 8;
   const nativeSymbol = chainInfo.bitcoinInfo?.symbol || '';

@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { AccountBalances, BTCRequest, BTCResponse, TransferItemBitcoin } from '@subwallet/extension-base/services/bitcoin-service/btc-service/types';
+import { BitcoinAddressSummaryInfo, BitcoinApiRequest, BitcoinTransferItem } from '@subwallet/extension-base/services/bitcoin-service/types';
 import fetch from 'cross-fetch';
 
 export class BitcoinService {
   private limitRate = 1; // limit per interval check
   private intervalCheck = 1000; // interval check in ms
   private maxRetry = 9; // interval check in ms
-  private requestMap: Record<number, BTCRequest<any>> = {};
+  private requestMap: Record<number, BitcoinApiRequest<any>> = {};
   private nextId = 0;
   private isRunning = false;
   private getId () {
@@ -22,7 +22,7 @@ export class BitcoinService {
     this.maxRetry = options?.maxRetry || this.maxRetry;
   }
 
-  public addRequest<T> (run: BTCRequest<T>['run']) {
+  public addRequest<T> (run: BitcoinApiRequest<T>['run']) {
     const newId = this.getId();
 
     return new Promise<T>((resolve, reject) => {
@@ -108,21 +108,19 @@ export class BitcoinService {
     });
   }
 
-  public getAddressUTXO (baseUrl: string, address: string): Promise<AccountBalances[]> {
+  public getAddressSummaryInfo (baseUrl: string, address: string): Promise<BitcoinAddressSummaryInfo> {
     return this.addRequest(async () => {
-      const rs = await this.getRequest(baseUrl, `/address/${address}/utxo`);
+      const rs = await this.getRequest(baseUrl, `/address/${address}`);
 
       if (rs.status !== 200) {
-        throw new SWError('BTCScanService.getAddressUTXO', await rs.text());
+        throw new SWError('BTCScanService.getAddressSummaryInfo', await rs.text());
       }
 
-      const jsonData = (await rs.json()) as BTCResponse<AccountBalances[]>;
-
-      return jsonData.data;
+      return (await rs.json()) as BitcoinAddressSummaryInfo;
     });
   }
 
-  public getAddressTransaction (baseUrl: string, address: string, limit = 100): Promise<TransferItemBitcoin[]> {
+  public getAddressTransaction (baseUrl: string, address: string, limit = 100): Promise<BitcoinTransferItem[]> {
     return this.addRequest(async () => {
       const rs = await this.getRequest(baseUrl, `/address/${address}/txs`, {
         limit: `${limit}`
@@ -132,7 +130,7 @@ export class BitcoinService {
         throw new SWError('BTCScanService.getAddressTransaction', await rs.text());
       }
 
-      return (await rs.json()) as TransferItemBitcoin[];
+      return (await rs.json()) as BitcoinTransferItem[];
     });
   }
 }

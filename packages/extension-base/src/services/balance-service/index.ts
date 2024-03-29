@@ -1,18 +1,20 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ChainAsset } from '@subwallet/chain-list/types';
 import { BalanceError } from '@subwallet/extension-base/background/errors/BalanceError';
-import { AmountData, BalanceErrorType } from '@subwallet/extension-base/background/KoniTypes';
+import { AmountData, APIItemState, BalanceErrorType } from '@subwallet/extension-base/background/KoniTypes';
+import { ASTAR_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { groupBalance } from '@subwallet/extension-base/services/balance-service/helpers/group';
 import { subscribeEVMBalance } from '@subwallet/extension-base/services/balance-service/helpers/subscribe/evm';
 import { subscribeSubstrateBalance } from '@subwallet/extension-base/services/balance-service/helpers/subscribe/substrate';
 import { _PURE_EVM_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
-import { _getChainNativeTokenSlug, _isChainBitcoinCompatible, _isChainEvmCompatible, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenSlug, _isChainBitcoinCompatible, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { categoryAddresses } from '@subwallet/extension-base/utils';
+import BigN from 'bignumber.js';
 import { t } from 'i18next';
-import { subscribeBitcoinBalance } from './helpers/subscribe/bitcoin';
 
 /**
  * Balance service
@@ -101,51 +103,133 @@ export class BalanceService {
     return balance;
   }
 
-  public subscribeBalance(addresses: string[], chains: string[] | null, _callback: (rs: BalanceItem) => void) {
-    const [substrateAddresses, evmAddresses, bitcoinAddresses] = categoryAddresses(addresses);
+  public async getBitcoinBalance (chain: string, address: string): Promise<string> {
+    const bitcoinChainSlug = this.state.chainService.getBitcoinChainByAddress(address);
+
+    if (!bitcoinChainSlug) {
+      console.log(`Invalid address for getting bitcoin balance: ${address}`);
+
+      return '0';
+    }
+
+    if (bitcoinChainSlug !== chain) {
+      console.log(`Cannot get bitcoin balance of address ${address} with chain ${chain}`);
+
+      return '0';
+    }
+
+    const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
+
+    if (!bitcoinApi) {
+      console.log(`Api of ${chain} is not available to get bitcoin balance`);
+
+      return '0';
+    }
+
+    try {
+      const accountSummaryInfo = await this.state.bitcoinService.getAddressSummaryInfo(bitcoinApi.apiUrl, address);
+
+      return new BigN(accountSummaryInfo.chain_stats.funded_txo_sum).minus(accountSummaryInfo.chain_stats.spent_txo_sum).toString();
+    } catch (error) {
+      console.log('Error while fetching Bitcoin balances', error);
+
+      return '0';
+    }
+  }
+
+  public async getAddressesBitcoinBalance (chain: string, addresses: string[]): Promise<string[]> {
+    return await Promise.all(addresses.map((address) => {
+      return this.getBitcoinBalance(chain, address);
+    }));
+  }
+
+  public subscribeBitcoinBalance (chain: string, addresses: string[], callback: (rs: BalanceItem[]) => void, tokenInfo: _ChainAsset): () => void {
+    const getBalance = () => {
+      this.getAddressesBitcoinBalance(chain, addresses)
+        .then((balances) => {
+          return balances.map((balance, index): BalanceItem => {
+            return {
+              address: addresses[index],
+              tokenSlug: tokenInfo.slug,
+              state: APIItemState.READY,
+              free: balance,
+              locked: '0'
+            };
+          });
+        })
+        .catch((e) => {
+          console.error(`Error on get Bitcoin balance with token ${tokenInfo.slug}`, e);
+
+          return addresses.map((address): BalanceItem => {
+            return {
+              address: address,
+              tokenSlug: tokenInfo.slug,
+              state: APIItemState.READY,
+              free: '0',
+              locked: '0'
+            };
+          });
+        })
+        .then((items) => {
+          callback(items);
+        })
+        .catch(console.error);
+    };
+
+    getBalance();
+    const interval = setInterval(getBalance, ASTAR_REFRESH_BALANCE_INTERVAL);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }
+
+  public subscribeBalance (addresses: string[], chains: string[] | null, _callback: (rs: BalanceItem) => void) {
+    const [substrateAddresses, evmAddresses, mainnetBitcoinAddresses, testnetBitcoinAddresses] = categoryAddresses(addresses);
     const chainInfoMap = this.state.chainService.getChainInfoMap();
     const chainStateMap = this.state.chainService.getChainStateMap();
     const substrateApiMap = this.state.chainService.getSubstrateApiMap();
     const evmApiMap = this.state.chainService.getEvmApiMap();
-    const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
-  
+
     // Get data from chain or all chains
     const chainList = chains || Object.keys(chainInfoMap);
     // Filter active chain only
     const useChainInfos = chainList.filter((c) => chainStateMap[c] && chainStateMap[c].active).map((c) => chainInfoMap[c]);
-  
+
     const callback = (items: BalanceItem[]) => {
       if (items.length) {
         _callback(groupBalance(items, 'GROUPED', items[0].tokenSlug));
       }
     };
-  
+
     // Looping over each chain
     const unsubList = useChainInfos.map(async (chainInfo) => {
       const chainSlug = chainInfo.slug;
       let useAddresses: string[] = [];
-  
+
       if (_isChainEvmCompatible(chainInfo)) {
         useAddresses = evmAddresses;
         const nativeTokenInfo = this.state.getNativeTokenInfo(chainSlug);
+
         return subscribeEVMBalance(chainSlug, useAddresses, evmApiMap, callback, nativeTokenInfo);
       } else if (_isChainBitcoinCompatible(chainInfo)) {
-        useAddresses = bitcoinAddresses;
+        useAddresses = [...mainnetBitcoinAddresses, ...testnetBitcoinAddresses];
         const nativeTokenInfo = this.state.getNativeTokenInfo(chainSlug);
-        return subscribeBitcoinBalance(chainSlug, useAddresses, bitcoinApiMap, callback, nativeTokenInfo);
+
+        return this.subscribeBitcoinBalance(chainSlug, useAddresses, callback, nativeTokenInfo);
       } else {
         useAddresses = substrateAddresses;
       }
-  
+
       if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
         return undefined;
       }
-  
+
       const networkAPI = await substrateApiMap[chainSlug].isReady;
-  
+
       return subscribeSubstrateBalance(useAddresses, chainInfo, chainSlug, networkAPI, evmApiMap, callback);
     });
-  
+
     return () => {
       unsubList.forEach((subProm) => {
         subProm.then((unsub) => {

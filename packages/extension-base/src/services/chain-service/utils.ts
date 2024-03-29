@@ -61,15 +61,15 @@ export function _isEqualSmartContractAsset (asset1: _ChainAsset, asset2: _ChainA
 }
 
 export function _isPureEvmChain (chainInfo: _ChainInfo) {
-  return (chainInfo.evmInfo !== null && chainInfo.substrateInfo === null && chainInfo.bitcoinInfo === null);
+  return (!!chainInfo.evmInfo && !chainInfo.substrateInfo && !chainInfo.bitcoinInfo);
 }
 
 export function _isPureSubstrateChain (chainInfo: _ChainInfo) {
-  return (chainInfo.evmInfo === null && chainInfo.substrateInfo !== null && chainInfo.bitcoinInfo === null);
+  return (!chainInfo.evmInfo && !!chainInfo.substrateInfo && !chainInfo.bitcoinInfo);
 }
 
 export function _isPureBitcoinChain (chainInfo: _ChainInfo) {
-  return (chainInfo.evmInfo === null && chainInfo.substrateInfo === null && chainInfo.bitcoinInfo !== null);
+  return (!chainInfo.evmInfo && !chainInfo.substrateInfo && !!chainInfo.bitcoinInfo);
 }
 
 export function _getOriginChainOfAsset (assetSlug: string) {
@@ -125,6 +125,7 @@ export function _getTokenMinAmount (tokenInfo: _ChainAsset) {
 export function _isChainEvmCompatible (chainInfo: _ChainInfo) {
   return !!chainInfo.evmInfo;
 }
+
 export function _isChainBitcoinCompatible (chainInfo: _ChainInfo) {
   return !!chainInfo.bitcoinInfo;
 }
