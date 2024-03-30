@@ -15,10 +15,11 @@ import styled from 'styled-components';
 interface Props extends ThemeProps {
   chainInfo: ChainInfoWithState,
   showDetailNavigation?: boolean,
-  navigate?: NavigateFunction
+  navigate?: NavigateFunction,
+  disabled?: boolean
 }
 
-function Component ({ chainInfo, className = '', navigate, showDetailNavigation }: Props): React.ReactElement<Props> {
+function Component ({ chainInfo, className = '', disabled, navigate, showDetailNavigation }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const showNotification = useNotification();
   const [loading, setLoading] = useState(false);
@@ -55,6 +56,7 @@ function Component ({ chainInfo, className = '', navigate, showDetailNavigation 
     <div className={`${className}`}>
       <Switch
         checked={chainInfo.active}
+        disabled={disabled || loading}
         loading={loading}
         onClick={onSwitchChainState}
       />

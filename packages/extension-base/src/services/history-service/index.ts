@@ -115,8 +115,6 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     });
 
     if (bitcoinChainSlug) {
-      console.log('this.chainService.getChainStateByKey(chain)', this.chainService.getChainStateByKey(bitcoinChainSlug));
-
       this.fetchBitcoinTransactionHistory(address, bitcoinChainSlug).catch((e) => {
         console.log('fetchBitcoinTransactionHistory Error', e);
       });

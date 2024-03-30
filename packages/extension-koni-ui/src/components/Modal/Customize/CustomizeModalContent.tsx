@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
+import { _ALWAYS_ACTIVE_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
 import { NetworkEmptyList } from '@subwallet/extension-koni-ui/components';
 import ChainItemFooter from '@subwallet/extension-koni-ui/components/ChainItemFooter';
 import { CUSTOMIZE_MODAL } from '@subwallet/extension-koni-ui/constants';
@@ -32,7 +33,12 @@ const Component: React.FC<Props> = (props: Props) => {
         key={chainInfo.slug}
         name={chainInfo.name}
         networkKey={chainInfo.slug}
-        rightItem={<ChainItemFooter chainInfo={chainInfo} />}
+        rightItem={(
+          <ChainItemFooter
+            chainInfo={chainInfo}
+            disabled={_ALWAYS_ACTIVE_CHAINS.includes(chainInfo.slug)}
+          />
+        )}
         subSymbol={connectSymbol}
       />
     );

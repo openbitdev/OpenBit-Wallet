@@ -13,9 +13,15 @@ export default function useChainInfoWithState ({ filterStatus = true } = {} as {
   const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
   const chainStateMap = useSelector((state: RootState) => state.chainStore.chainStateMap);
 
-  const chainInfoList: ChainInfoWithState[] = useMemo(() => {
-    const rs = Object.values(chainInfoMap).map((item) => {
-      return { ...item, ...(chainStateMap[item.slug] || {}) };
+  return useMemo(() => {
+    const rs: ChainInfoWithState[] = [];
+
+    ['bitcoin', 'bitcoinTestnet'].forEach((chainSlug) => {
+      const item = chainInfoMap[chainSlug];
+
+      if (item) {
+        rs.push({ ...item, ...(chainStateMap[item.slug] || {}) });
+      }
     });
 
     if (filterStatus) {
@@ -24,6 +30,4 @@ export default function useChainInfoWithState ({ filterStatus = true } = {} as {
       return rs;
     }
   }, [chainInfoMap, chainStateMap, filterStatus]);
-
-  return chainInfoList;
 }

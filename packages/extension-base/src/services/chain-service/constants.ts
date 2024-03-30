@@ -247,8 +247,13 @@ export const _XCM_TYPE = {
 };
 
 export const _DEFAULT_ACTIVE_CHAINS = [
-  ..._DEFAULT_CHAINS,
-  'vara_network'
+  'bitcoin',
+  'bitcoinTestnet'
+];
+
+export const _ALWAYS_ACTIVE_CHAINS = [
+  'bitcoin',
+  'bitcoinTestnet'
 ];
 
 export const EVM_PASS_CONNECT_STATUS: Record<string, string[]> = {

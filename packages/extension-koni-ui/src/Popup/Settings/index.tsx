@@ -14,7 +14,7 @@ import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { openInNewTab } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, Button, ButtonProps, Icon, Image, ModalContext, SettingItem, SwHeader, SwIconProps, SwModal } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { ArrowsOut, ArrowSquareOut, Book, BookBookmark, CaretRight, ChatTeardropText, Coin, EnvelopeSimple, FrameCorners, Globe, GlobeHemisphereEast, Lock, ShareNetwork, ShieldCheck, X } from 'phosphor-react';
+import { ArrowsOut, ArrowSquareOut, Book, BookBookmark, CaretRight, ChatTeardropText, EnvelopeSimple, FrameCorners, Globe, GlobeHemisphereEast, Lock, ShieldCheck, X } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
@@ -175,26 +175,26 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       key: 'assets-&-addresses',
       label: t('Assets & addresses'),
       items: [
-        {
-          key: 'manage-networks',
-          leftIcon: ShareNetwork,
-          leftIconBgColor: token['purple-7'],
-          rightIcon: CaretRight,
-          title: t('Manage networks'),
-          onClick: () => {
-            navigate('/settings/chains/manage');
-          }
-        },
-        {
-          key: 'manage-tokens',
-          leftIcon: Coin,
-          leftIconBgColor: token['gold-6'],
-          rightIcon: CaretRight,
-          title: t('Manage tokens'),
-          onClick: () => {
-            navigate('/settings/tokens/manage');
-          }
-        },
+        // {
+        //   key: 'manage-networks',
+        //   leftIcon: ShareNetwork,
+        //   leftIconBgColor: token['purple-7'],
+        //   rightIcon: CaretRight,
+        //   title: t('Manage networks'),
+        //   onClick: () => {
+        //     navigate('/settings/chains/manage');
+        //   }
+        // },
+        // {
+        //   key: 'manage-tokens',
+        //   leftIcon: Coin,
+        //   leftIconBgColor: token['gold-6'],
+        //   rightIcon: CaretRight,
+        //   title: t('Manage tokens'),
+        //   onClick: () => {
+        //     navigate('/settings/tokens/manage');
+        //   }
+        // },
         {
           key: 'manage-address-book',
           leftIcon: BookBookmark,
