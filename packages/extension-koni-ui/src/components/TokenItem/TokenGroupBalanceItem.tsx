@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
 import { ActivityIndicator, BalanceItem, BalanceItemProps, Icon, Number } from '@subwallet/react-ui';
@@ -17,6 +17,7 @@ type Props = TokenBalanceItemType & ThemeProps & {
 function Component (
   { className = '',
     isReady,
+    isTestnet,
     logoKey,
     onPressItem,
     priceChangeStatus,
@@ -28,6 +29,7 @@ function Component (
   // - loading
   // - auto detect logo, only use logoKey
   // - price change status
+  const { t } = useTranslation();
 
   const { isShowBalance } = useSelector((state) => state.settings);
 
@@ -40,8 +42,7 @@ function Component (
         balanceValue={total.value}
         convertedBalanceValue={total.convertedValue}
         decimal={0}
-        displayToken={symbol}
-        name={symbol}
+        name={isTestnet ? `${symbol} (${t('Testnet')})` : symbol}
         networkMainLogoShape={'squircle'}
         onPressItem={onPressItem}
         price={priceValue}

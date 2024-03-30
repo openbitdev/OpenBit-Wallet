@@ -239,6 +239,10 @@ function getAccountBalance (
     tokenGroupBalance.isReady = isTokenGroupBalanceReady;
     tokenGroupBalance.isNotSupport = tokenGroupNotSupport.every((e) => e);
 
+    if (!multiChainAsset && tokenGroupMap[tokenGroupKey].length === 1 && tokenBalanceMap[tokenGroupKey]) {
+      tokenGroupBalance.isTestnet = tokenBalanceMap[tokenGroupKey].isTestnet;
+    }
+
     if (!isShowZeroBalance && (!isTokenGroupBalanceReady || tokenGroupBalance.total.value.eq(BN_0))) {
       return;
     }
