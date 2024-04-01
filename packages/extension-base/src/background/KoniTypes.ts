@@ -706,6 +706,7 @@ export enum BasicTxErrorType {
   UNSUPPORTED = 'UNSUPPORTED',
   TIMEOUT = 'TIMEOUT',
   NOT_ENOUGH_EXISTENTIAL_DEPOSIT = 'NOT_ENOUGH_EXISTENTIAL_DEPOSIT',
+  UNABLE_TO_CREATE_EMITTER = 'UNABLE_TO_CREATE_EMITTER',
 }
 
 export enum StakingTxErrorType {
@@ -1292,7 +1293,18 @@ export interface EvmSignRequest {
   canSign: boolean;
 }
 
+export interface BitcoinSignRequest {
+  account: AccountJson;
+  hashPayload: string;
+  canSign: boolean;
+}
+
 export interface EvmSignatureRequest extends EvmSignRequest {
+  id: string;
+  type: string;
+  payload: unknown;
+}
+export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   id: string;
   type: string;
   payload: unknown;
@@ -1304,7 +1316,13 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
+export interface BitcoinSendTransactionRequest extends TransactionConfig , BitcoinSignRequest {
+  txHex: string;
+  isToContract: boolean;
+}
+
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
+export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
 
 export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
@@ -1375,10 +1393,21 @@ export interface ConfirmationDefinitions {
   evmWatchTransactionRequest: [ConfirmationsQueueItem<EvmWatchTransactionRequest>, ConfirmationResult<string>]
 }
 
+export interface ConfirmationDefinitionsBitcoin {
+  bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<string>],
+  bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
+  bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>]
+}
+
 export type ConfirmationType = keyof ConfirmationDefinitions;
+
+export type ConfirmationTypeBitcoin = keyof ConfirmationDefinitionsBitcoin;
 
 export type ConfirmationsQueue = {
   [CT in ConfirmationType]: Record<string, ConfirmationDefinitions[CT][0]>;
+}
+export type ConfirmationsQueueBitcoin = {
+  [CT in ConfirmationTypeBitcoin]: Record<string, ConfirmationDefinitionsBitcoin[CT][0]>;
 }
 
 export type RequestConfirmationsSubscribe = null;
@@ -1386,6 +1415,9 @@ export type RequestConfirmationsSubscribe = null;
 // Design to use only one confirmation
 export type RequestConfirmationComplete = {
   [CT in ConfirmationType]?: ConfirmationDefinitions[CT][1];
+}
+export type RequestConfirmationCompleteBitcoin = {
+  [CT in ConfirmationTypeBitcoin]?: ConfirmationDefinitionsBitcoin[CT][1];
 }
 
 export interface BasicTxInfo {

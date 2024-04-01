@@ -19,7 +19,7 @@ import { getNftTransferExtrinsic, isRecipientSelf } from '@subwallet/extension-b
 import { getBondingExtrinsic, getCancelWithdrawalExtrinsic, getClaimRewardExtrinsic, getNominationPoolsInfo, getUnbondingExtrinsic, getValidatorsInfo, validateBondingCondition, validateUnbondingCondition } from '@subwallet/extension-base/koni/api/staking/bonding';
 import { getTuringCancelCompoundingExtrinsic, getTuringCompoundExtrinsic } from '@subwallet/extension-base/koni/api/staking/bonding/paraChain';
 import { getPoolingBondingExtrinsic, getPoolingUnbondingExtrinsic, validatePoolBondingCondition, validateRelayUnbondingCondition } from '@subwallet/extension-base/koni/api/staking/bonding/relayChain';
-import { getERC20TransactionObject, getERC721Transaction, getEVMTransactionObject } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
+import { getBitcoinTransactionObject, getERC20TransactionObject, getERC721Transaction, getEVMTransactionObject } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
 import { getPSP34TransferExtrinsic } from '@subwallet/extension-base/koni/api/tokens/wasm';
 import { createXcmExtrinsic } from '@subwallet/extension-base/koni/api/xcm';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
@@ -1808,6 +1808,73 @@ export default class KoniExtension {
       additionalValidator: additionalValidator
     });
   }
+
+  private async makeTransferBitcoin(inputData: RequestTransfer): Promise<SWTransactionResponse> {
+    const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
+    const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
+
+    const warnings: TransactionWarning[] = [];
+    const bitcoinApiMap = this.#koniState.getBitcoinApiMap(); // Get Bitcoin API map
+
+    // const chainInfo = this.#koniState.getChainInfo(networkKey);
+
+    let chainType = ChainType.BITCOIN;
+
+    const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
+    const transferAmount: AmountData = { ...tokenBaseAmount };
+
+    let transaction: ValidateTransactionResponseInput['transaction'];
+
+    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
+
+    try {
+      chainType = ChainType.BITCOIN;
+
+      const txVal: string = transferAll ? freeBalance.value : (value || '0');
+
+      // Estimate with Bitcoin API
+      // const bitcoinChainInfo: string = bitcoinApi.baseUrl;
+      [
+          transaction,
+          transferAmount.value
+      ] = await getBitcoinTransactionObject(from, to, txVal.toString(), !!transferAll, bitcoinApiMap);
+    } catch (e) {
+        const error = e as Error;
+        if (error.message.includes('transfer amount exceeds balance')) {
+            error.message = t('Insufficient balance');
+        }
+        throw error;
+    }
+
+    const additionalValidator = async (inputTransaction: SWTransactionResponse): Promise<void> => {
+        const minAmount = tokenInfo.minAmount || '0';
+
+        const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey, token: tokenSlug });
+
+        // Check ed for receiver
+        if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
+            const atLeast = new BigN(minAmount).minus(receiverBalance).plus((tokenInfo.decimals || 0) === 0 ? 0 : 1);
+            const atLeastStr = formatNumber(atLeast, tokenInfo.decimals || 0, balanceFormatter, { maxNumberFormat: tokenInfo.decimals || 6 });
+            inputTransaction.errors.push(new TransactionError(TransferTxErrorType.RECEIVER_NOT_ENOUGH_EXISTENTIAL_DEPOSIT, t('You must transfer at least {{amount}} {{symbol}} to keep the destination account alive', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
+        }
+    };
+
+    return this.#koniState.transactionService.handleTransaction({
+        errors,
+        warnings,
+        address: from,
+        chain: networkKey,
+        chainType,
+        transferNativeAmount: '0',
+        transaction,
+        data: inputData,
+        extrinsicType: ExtrinsicType.TRANSFER_BALANCE,
+        ignoreWarnings: transferAll,
+        isTransferAll: false,
+        edAsWarning: false,
+        additionalValidator: additionalValidator
+    });
+}
 
   private validateCrossChainTransfer (
     destinationNetworkKey: string,
@@ -4668,6 +4735,9 @@ export default class KoniExtension {
       /// Transfer
       case 'pri(accounts.transfer)':
         return await this.makeTransfer(request as RequestTransfer);
+      /// Transfer
+      case 'pri(accounts.transfer)':
+        return await this.makeTransferBitcoin(request as RequestTransfer);
       case 'pri(accounts.crossChainTransfer)':
         return await this.makeCrossChainTransfer(request as RequestCrossChainTransfer);
 

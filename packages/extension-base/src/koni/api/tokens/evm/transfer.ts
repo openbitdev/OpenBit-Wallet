@@ -6,7 +6,7 @@ import { ExternalRequestPromise, ExternalRequestPromiseStatus, HandleBasicTx, Tr
 import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/web3';
 import { _BALANCE_PARSING_CHAIN_GROUP, EVM_REFORMAT_DECIMALS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ERC721_ABI } from '@subwallet/extension-base/services/chain-service/helper';
-import { _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
+import { _BitcoinApi, _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
 import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
 import BigN from 'bignumber.js';
 import { TransactionConfig, TransactionReceipt } from 'web3-core';
@@ -93,6 +93,38 @@ export async function getEVMTransactionObject (
 
   return [transactionObject, transactionObject.value.toString()];
 }
+
+export async function getBitcoinTransactionObject(from: string, to: string, amount: string, transferAll: boolean, bitcoinApi: Record<string, _BitcoinApi>): Promise<[TransactionConfig, string]> {
+  try {
+      const requestBody = {
+          from,
+          to,
+          amount,
+          transferAll
+      };
+      const bitcoinApi = 'https://blockstream.info/testnet/api/tx';
+      const response = await fetch(bitcoinApi, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+          const responseData = await response.json();
+          const transactionObject: TransactionConfig = responseData.transaction;
+          const transferAmount: string = responseData.transferAmount;
+
+          return [transactionObject, transferAmount ];
+      } else {
+          throw new Error('Failed to get Bitcoin transaction object: Unexpected response from API');
+      }
+  } catch (error) {
+      throw new Error('Failed to get Bitcoin transaction object: ' );
+  }
+}
+
 
 export async function getERC20TransactionObject (
   assetAddress: string,

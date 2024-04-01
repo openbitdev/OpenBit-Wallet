@@ -3,7 +3,7 @@
 
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
-import { AmountData, BasicTxErrorType, BasicTxWarningCode, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, FeeData, NotificationType, TransactionAdditionalInfo, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSendTransactionRequest, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, FeeData, NotificationType, TransactionAdditionalInfo, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
@@ -46,6 +46,7 @@ import { HexString } from '@polkadot/util/types';
 
 import { _TRANSFER_CHAIN_GROUP } from '../chain-service/constants';
 import NotificationService from '../notification-service/NotificationService';
+import { getBitcoinTransactionObject } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
 
 export default class TransactionService {
   private readonly state: KoniState;
@@ -336,36 +337,44 @@ export default class TransactionService {
     return validatedTransaction;
   }
 
-  private async sendTransaction (transaction: SWTransaction): Promise<TransactionEmitter> {
-    // Send Transaction
-    const emitter = transaction.chainType === 'substrate' ? this.signAndSendSubstrateTransaction(transaction) : (await this.signAndSendEvmTransaction(transaction));
+  private async sendTransaction(transaction: SWTransaction): Promise<TransactionEmitter> {
+    let emitter: TransactionEmitter;
+
+    if (transaction.chainType === 'substrate') {
+        emitter = await this.signAndSendSubstrateTransaction(transaction) as TransactionEmitter;
+    } else if (transaction.chainType === 'evm') {
+        emitter = await this.signAndSendEvmTransaction(transaction) as TransactionEmitter;
+    } else if (transaction.chainType === 'bitcoin') {
+        emitter = await this.signAndSendBitcoinTransaction(transaction) as TransactionEmitter;
+    } else {
+        throw new Error('Unsupported chain type');
+    }
 
     const { eventsHandler } = transaction;
 
     emitter.on('signed', (data: TransactionEventResponse) => {
-      this.onSigned(data);
+        this.onSigned(data);
     });
 
     emitter.on('send', (data: TransactionEventResponse) => {
-      this.onSend(data);
+        this.onSend(data);
     });
 
     emitter.on('extrinsicHash', (data: TransactionEventResponse) => {
-      this.onHasTransactionHash(data);
+        this.onHasTransactionHash(data);
     });
 
     emitter.on('success', (data: TransactionEventResponse) => {
-      this.handlePostProcessing(data.id);
-      this.onSuccess(data);
+        this.handlePostProcessing(data.id);
+        this.onSuccess(data);
     });
 
     emitter.on('error', (data: TransactionEventResponse) => {
-      // this.handlePostProcessing(data.id); // might enable this later
-      this.onFailed({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.INTERNAL_ERROR)] });
+        this.onFailed({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.INTERNAL_ERROR)] });
     });
 
     emitter.on('timeout', (data: TransactionEventResponse) => {
-      this.onTimeOut({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.TIMEOUT)] });
+        this.onTimeOut({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.TIMEOUT)] });
     });
 
     // Todo: handle any event with transaction.eventsHandler
@@ -373,7 +382,7 @@ export default class TransactionService {
     eventsHandler?.(emitter);
 
     return emitter;
-  }
+}
 
   private removeTransaction (id: string): void {
     if (this.transactions[id]) {
@@ -913,6 +922,141 @@ export default class TransactionService {
     }
 
     return ethers.Transaction.from(txObject).unsignedSerialized as HexString;
+  }
+
+//   private async signAndSendBitcoinTransaction(transaction: SWTransaction): Promise<TransactionEmitter> {
+//     const payload = transaction.transaction as BitcoinSendTransactionRequest;
+//     const bitcoinApi = this.state.chainService.getBitcoinApi(transaction.chain);
+
+//     // Initialize emitter with null
+//     let emitter: TransactionEmitter | null = null;
+
+//     const eventData: TransactionEventResponse = {
+//         id: transaction.id,
+//         errors: [],
+//         warnings: [],
+//         extrinsicHash: transaction.id
+//     };
+
+//     // Try creating emitter
+//     try {
+//         emitter = new EventEmitter<TransactionEventMap>();
+//  } catch (error) {
+//     const castedError = error as Error;
+//     // Error occurred while creating emitter
+//     eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_CREATE_EMITTER, castedError.message || 'Failed to create emitter'));
+//     return Promise.reject(eventData);
+// }
+
+//     // Check if emitter is null before using it
+//     if (emitter) {
+//         // Continue with the rest of the code
+//         // Assuming payload contains necessary data for Bitcoin transaction
+//         // You may need to adjust this based on the actual implementation
+//         const txHex = payload.txHex;
+
+//         // Emit signed event
+//         emitter.emit('signed', eventData);
+
+//         // Send Bitcoin transaction
+//         // Replace this with actual logic to send Bitcoin transaction using Bitcoin API
+//         try {
+//             const response = await bitcoinApi.broadcastTransaction(txHex);
+//             const result = await response.json();
+
+//             if (response.ok) {
+//                 // Transaction successfully broadcasted
+//                 // Emit extrinsicHash event with txid
+//                 eventData.extrinsicHash = result.txid;
+//                 emitter.emit('extrinsicHash', eventData);
+
+//                 // Assuming success event is emitted after transaction is confirmed
+//                 emitter.emit('success', eventData);
+//             } else {
+//                 // Transaction broadcast failed
+//                 eventData.errors.push(new TransactionError(BasicTxErrorType.SEND_TRANSACTION_FAILED, result.message || 'Failed to broadcast transaction'));
+//                 emitter.emit('error', eventData);
+//             }
+//         } catch (error) {
+//             // Error occurred while broadcasting transaction
+//             eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND || 'Failed to send transaction'));
+//             emitter.emit('error', eventData);
+//         }
+//     } else {
+//         // Error occurred while creating emitter
+//         eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_CREATE_EMITTER, 'Failed to create emitter'));
+//     }
+
+//     // Return emitter if it's not null, otherwise return a rejected Promise with eventData
+//     return emitter ? emitter : Promise.reject(eventData);
+//   }
+  private async  signAndSendBitcoinTransaction(transaction: SWTransaction): Promise<TransactionEmitter> {
+    const payload = transaction.transaction as BitcoinSendTransactionRequest;
+    const bitcoinApi = 'https://blockstream.info/testnet/api/tx';
+
+    // Initialize emitter with null
+    let emitter: TransactionEmitter | null = null;
+
+    const eventData: TransactionEventResponse = {
+        id: transaction.id,
+        errors: [],
+        warnings: [],
+        extrinsicHash: transaction.id
+    };
+
+    // Try creating emitter
+    try {
+        emitter = new EventEmitter<TransactionEventMap>();
+    } catch (error) {
+        const castedError = error as Error;
+        // Error occurred while creating emitter
+        eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_CREATE_EMITTER, castedError.message || 'Failed to create emitter'));
+        return Promise.reject(eventData);
+    }
+
+    // Check if emitter is null before using it
+    if (emitter) {
+        // Emit signed event
+        emitter.emit('signed', eventData);
+
+        // Send Bitcoin transaction
+        try {
+            const response = await fetch(bitcoinApi, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                // Assuming responseData contains the transaction hash
+                const txHash = responseData.txid;
+
+                // Emit extrinsicHash event with txid
+                eventData.extrinsicHash = txHash;
+                emitter.emit('extrinsicHash', eventData);
+
+                // Assuming success event is emitted after transaction is confirmed
+                emitter.emit('success', eventData);
+            } else {
+                // Transaction broadcast failed
+                eventData.errors.push(new TransactionError(BasicTxErrorType.SEND_TRANSACTION_FAILED, 'Failed to broadcast transaction'));
+                emitter.emit('error', eventData);
+            }
+        } catch (error) {
+            // Error occurred while broadcasting transaction
+            eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, 'Failed to send transaction'));
+            emitter.emit('error', eventData);
+        }
+    } else {
+        // Error occurred while creating emitter
+        eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_CREATE_EMITTER, 'Failed to create emitter'));
+    }
+
+    // Return emitter if it's not null, otherwise return a rejected Promise with eventData
+    return emitter ? emitter : Promise.reject(eventData);
   }
 
   private async signAndSendEvmTransaction ({ address,

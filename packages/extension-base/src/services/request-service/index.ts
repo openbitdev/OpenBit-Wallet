@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AuthRequestV2, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueItemOptions, ConfirmationType, RequestConfirmationComplete } from '@subwallet/extension-base/background/KoniTypes';
+import { AuthRequestV2, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationType, ConfirmationTypeBitcoin ,RequestConfirmationComplete } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AccountJson, AuthorizeRequest, MetadataRequest, RequestAuthorizeTab, RequestSign, ResponseSigning, SigningRequest } from '@subwallet/extension-base/background/types';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
@@ -12,8 +12,9 @@ import { BehaviorSubject } from 'rxjs';
 
 import { SignerPayloadJSON } from '@polkadot/types/types/extrinsic';
 
-import { AuthRequestHandler, ConnectWCRequestHandler, EvmRequestHandler, MetadataRequestHandler, NotSupportWCRequestHandler, PopupHandler, SubstrateRequestHandler } from './handler';
+import { AuthRequestHandler, ConnectWCRequestHandler, EvmRequestHandler, MetadataRequestHandler, NotSupportWCRequestHandler, PopupHandler, SubstrateRequestHandler  } from './handler';
 import { AuthUrls, MetaRequest } from './types';
+import BitcoinRequestHandler from './handler/BitcoinRequestHandler';
 
 export default class RequestService {
   // Common
@@ -25,6 +26,7 @@ export default class RequestService {
   readonly #authRequestHandler: AuthRequestHandler;
   readonly #substrateRequestHandler: SubstrateRequestHandler;
   readonly #evmRequestHandler: EvmRequestHandler;
+  readonly #bitcoinRequestHandler: BitcoinRequestHandler;
   readonly #connectWCRequestHandler: ConnectWCRequestHandler;
   readonly #notSupportWCRequestHandler: NotSupportWCRequestHandler;
 
@@ -38,6 +40,7 @@ export default class RequestService {
     this.#authRequestHandler = new AuthRequestHandler(this, this.#chainService, this.keyringService);
     this.#substrateRequestHandler = new SubstrateRequestHandler(this);
     this.#evmRequestHandler = new EvmRequestHandler(this);
+    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this);
     this.#connectWCRequestHandler = new ConnectWCRequestHandler(this);
     this.#notSupportWCRequestHandler = new NotSupportWCRequestHandler(this);
 
@@ -173,6 +176,9 @@ export default class RequestService {
 
   public get confirmationsQueueSubject (): BehaviorSubject<ConfirmationsQueue> {
     return this.#evmRequestHandler.getConfirmationsQueueSubject();
+  }
+  public get confirmationsQueueSubjectBitcoin (): BehaviorSubject<ConfirmationsQueueBitcoin> {
+    return this.#bitcoinRequestHandler.getConfirmationsQueueSubjectBitcoin();
   }
 
   public getSignRequest (id: string) {
