@@ -1,12 +1,12 @@
-import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
+import {  ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, Input, Output, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
 import { BehaviorSubject } from 'rxjs';
 import { Logger } from '@polkadot/util/types';
 import { logger as createLogger } from '@polkadot/util';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
-import keyring, { Keyring } from '@subwallet/ui-keyring';
-import { Psbt } from 'bitcoinjs-lib';
+import keyring from '@subwallet/ui-keyring';
+import { Psbt  } from 'bitcoinjs-lib';
 
 export default class BitcoinRequestHandler {
   readonly #requestService: RequestService;
@@ -133,49 +133,57 @@ export default class BitcoinRequestHandler {
         throw new Error('Invalid payload type');
     }
   }
-  configToTransactionBitcoin(config: BitcoinTransactionConfig): Psbt {
+ 
+  private async signTransactionBitcoin(request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): Promise<string> {
+    // Extract necessary information from the BitcoinSendTransactionRequest
+    const { account, inputs, outputs } = request.payload;
+    const address = account.address;
+    const pair = keyring.getPair(address);
+
+    // Unlock the pair if it is locked
+    if (pair.isLocked) {
+        keyring.unlockPair(pair.address);
+    }
+
+    // Create a new Psbt object
     const psbt = new Psbt();
 
-    // Set version and locktime
-    psbt.setVersion(1);
-    psbt.setLocktime(0);
-
     // Set inputs
-    config.inputs.forEach(input => {
-        psbt.addInput(input);
+    inputs.forEach((input: Input) => {
+        psbt.addInput({
+            hash: input.hash,
+            index: input.index,
+            sequence: input.sequence,
+            witnessUtxo: {
+                script: input.script,
+                value: input.value // Assuming the input has a 'value' property
+            }
+        });
     });
 
     // Set outputs
-    config.outputs.forEach(output => {
-        psbt.addOutput(output);
+    outputs.forEach((output: Output) => {
+        psbt.addOutput({
+            script: output.script,
+            value: output.value
+        });
     });
 
-    // Finalize inputs
+    // Finalize all inputs in the Psbt
     psbt.finalizeAllInputs();
 
-    return psbt;
+    // Sign the Psbt using the pair's bitcoin object
+    const signedTransaction = await pair.bitcoin.signTransaction(psbt);
+
+    return signedTransaction;
   }
 
-  private async signTransactionBitcoin(config: BitcoinTransactionConfig, keyring: Keyring): Promise<string> {
-    const psbt = this.configToTransaction(config);
-
-    // Sign transaction inputs
-    for (let i = 0; i < config.inputs.length; i++) {
-        const input = config.inputs[i];
-        const pair = keyring.getPair(input.address);
-        await psbt.signInput(i, pair);
-    }
-
-    // Serialize and return the signed transaction
-    return psbt.toHex();
-  
-  }
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
-    // Implement logic for decorating result (if needed)
     if (result.payload === '') {
       if (t === 'bitcoinSignatureRequest') {
         result.payload = await this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
       } else if (t === 'bitcoinSendTransactionRequest') {
+        // Thay đổi đối số từ KeyringService thành Keyring
         result.payload = await this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
       }
 
@@ -187,7 +195,8 @@ export default class BitcoinRequestHandler {
         }
       }
     }
-  }
+}
+
 
   public async completeConfirmationBitcoin(request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
@@ -221,7 +230,7 @@ export default class BitcoinRequestHandler {
     return true;
   }
 
-  public resetWalletBitcoin() {
+  public resetWallet() {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
 
     for (const [type, requests] of Object.entries(confirmations)) {

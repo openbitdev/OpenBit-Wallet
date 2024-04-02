@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AuthRequestV2, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationType, ConfirmationTypeBitcoin ,RequestConfirmationComplete } from '@subwallet/extension-base/background/KoniTypes';
+import { AuthRequestV2, ConfirmationDefinitions, ConfirmationDefinitionsBitcoin, ConfirmationsQueue, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationType, ConfirmationTypeBitcoin ,RequestConfirmationComplete, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AccountJson, AuthorizeRequest, MetadataRequest, RequestAuthorizeTab, RequestSign, ResponseSigning, SigningRequest } from '@subwallet/extension-base/background/types';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
@@ -177,9 +177,6 @@ export default class RequestService {
   public get confirmationsQueueSubject (): BehaviorSubject<ConfirmationsQueue> {
     return this.#evmRequestHandler.getConfirmationsQueueSubject();
   }
-  public get confirmationsQueueSubjectBitcoin (): BehaviorSubject<ConfirmationsQueueBitcoin> {
-    return this.#bitcoinRequestHandler.getConfirmationsQueueSubjectBitcoin();
-  }
 
   public getSignRequest (id: string) {
     return this.#substrateRequestHandler.getSignRequest(id);
@@ -213,6 +210,39 @@ export default class RequestService {
   ) {
     return this.#evmRequestHandler.updateConfirmation(id, type, payload, options, validator);
   }
+
+
+
+  // Bitcoin requests
+  public get confirmationsQueueSubjectBitcoin (): BehaviorSubject<ConfirmationsQueueBitcoin> {
+    return this.#bitcoinRequestHandler.getConfirmationsQueueSubjectBitcoin();
+  }
+
+
+
+  public addConfirmationBitcoin<CT extends ConfirmationTypeBitcoin> (
+    id: string,
+    url: string,
+    type: CT,
+    payload: ConfirmationDefinitionsBitcoin[CT][0]['payload'],
+    options: ConfirmationsQueueItemOptions = {},
+  ): Promise<ConfirmationDefinitionsBitcoin[CT][1]> {
+    return this.#bitcoinRequestHandler.addConfirmationBitcoin(id, url, type, payload, options);
+  }
+
+  public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
+    return await this.#bitcoinRequestHandler.completeConfirmationBitcoin(request);
+  }
+
+  public updateConfirmationBitcoin<CT extends ConfirmationTypeBitcoin> (
+    id: string,
+    type: CT,
+    payload: ConfirmationDefinitionsBitcoin[CT][0]['payload'],
+    options: ConfirmationsQueueItemOptions = {},
+  ) {
+    return this.#bitcoinRequestHandler.updateConfirmationBitcoin(id, type, payload, options);
+  }
+
 
   // WalletConnect Connect requests
   public getConnectWCRequest (id: string) {
@@ -265,6 +295,7 @@ export default class RequestService {
     this.#authRequestHandler.resetWallet();
     this.#substrateRequestHandler.resetWallet();
     this.#evmRequestHandler.resetWallet();
+    this.#bitcoinRequestHandler.resetWallet();
     this.#metadataRequestHandler.resetWallet();
     this.#connectWCRequestHandler.resetWallet();
     this.#notSupportWCRequestHandler.resetWallet();

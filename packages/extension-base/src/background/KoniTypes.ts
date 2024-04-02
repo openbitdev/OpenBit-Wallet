@@ -1308,6 +1308,8 @@ export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   id: string;
   type: string;
   payload: unknown;
+  payloadJson: any;
+  url: string;
 }
 
 export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignRequest {
@@ -1319,6 +1321,22 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
 export interface BitcoinSendTransactionRequest extends TransactionConfig , BitcoinSignRequest {
   txHex: string;
   isToContract: boolean;
+  inputs: Input[]; 
+  outputs: Output[];
+}
+export interface Input {
+  hash: Buffer;
+  index: number;
+  script: Buffer;
+  sequence: number;
+  witness: Buffer[];
+  value: number
+}
+
+// Định nghĩa lại kiểu Output
+export interface Output {
+  script: Buffer;
+  value: number;
 }
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
@@ -2435,6 +2453,7 @@ export interface KoniRequestSignatures {
   // Confirmation Queues
   'pri(confirmations.subscribe)': [RequestConfirmationsSubscribe, ConfirmationsQueue, ConfirmationsQueue];
   'pri(confirmations.complete)': [RequestConfirmationComplete, boolean];
+  'pri(confirmationsBitcoin.complete)': [RequestConfirmationCompleteBitcoin, boolean];
 
   'pub(utils.getRandom)': [RandomTestRequest, number];
   'pub(accounts.listV2)': [RequestAccountList, InjectedAccount[]];
