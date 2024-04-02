@@ -4,7 +4,7 @@
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
-import { AccountAuthType, AccountJson, AddressJson, AuthorizeRequest, ConfirmationRequestBase, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeCancel, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestCurrentAccountAddress, ResponseAuthorizeList, ResponseJsonGetAccountInfo, SeedLengths } from '@subwallet/extension-base/background/types';
+import { AccountAuthType, AccountGroup, AccountJson, AddressJson, AuthorizeRequest, ConfirmationRequestBase, RequestAccountGroup, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeCancel, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestCurrentAccountAddress, ResponseAuthorizeList, ResponseJsonGetAccountInfo, SeedLengths } from '@subwallet/extension-base/background/types';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
@@ -377,6 +377,11 @@ export interface AccountsWithCurrentAddress {
   currentGenesisHash?: string | null;
   isShowBalance?: boolean; // Deprecated and move to setting
   allAccountLogo?: string; // Deprecated and move to setting
+}
+
+export interface AccountGroupsWithCurrentGroup {
+  accountGroups: AccountGroup[];
+  currentAccountGroupId?: string;
 }
 
 export interface OptionInputAddress {
@@ -1866,6 +1871,11 @@ export interface RequestKeyringExportMnemonic {
   password: string;
 }
 
+export interface RequestKeyringExportAccountGroupMnemonic {
+  groupId: string;
+  password: string;
+}
+
 export interface ResponseKeyringExportMnemonic {
   result: string;
 }
@@ -2171,6 +2181,16 @@ export interface ResponseSubscribeHistory {
   items: TransactionHistoryItem[]
 }
 
+export interface RequestAccountGroupEdit {
+  groupId: string;
+  name: string;
+}
+
+export interface RequestAccountGroupCreateSuri {
+  name: string;
+  suri: string;
+}
+
 /* Campaign */
 
 // Use stringify to communicate, pure boolean value will error with case 'false' value
@@ -2312,6 +2332,13 @@ export interface KoniRequestSignatures {
   // For input UI
   'pri(accounts.subscribeAccountsInputAddress)': [RequestAccountSubscribe, string, OptionInputAddress];
 
+  // Account group
+  'pri(accountGroups.subscribeWithCurrentGroup)': [null, AccountGroupsWithCurrentGroup, AccountGroupsWithCurrentGroup];
+  'pri(accountGroups.saveCurrentGroup)': [RequestAccountGroup, boolean];
+  'pri(accountGroups.edit)': [RequestAccountGroupEdit, boolean];
+  'pri(accountGroups.forget)': [RequestAccountGroup, boolean];
+  'pri(accountGroups.create.suri)': [RequestAccountGroupCreateSuri, boolean];
+
   /* Account management */
 
   // Settings
@@ -2438,6 +2465,7 @@ export interface KoniRequestSignatures {
   'pri(keyring.unlock)': [RequestUnlockKeyring, ResponseUnlockKeyring];
   'pri(keyring.lock)': [null, void];
   'pri(keyring.export.mnemonic)': [RequestKeyringExportMnemonic, ResponseKeyringExportMnemonic];
+  'pri(keyring.export.accountGroup.mnemonic)': [RequestKeyringExportAccountGroupMnemonic, ResponseKeyringExportMnemonic];
   'pri(keyring.reset)': [RequestResetWallet, ResponseResetWallet];
 
   // Signing
@@ -2448,6 +2476,7 @@ export interface KoniRequestSignatures {
   'pri(derivation.getList)': [RequestGetDeriveAccounts, ResponseGetDeriveAccounts];
   'pri(derivation.create.multiple)': [RequestDeriveCreateMultiple, boolean];
   'pri(derivation.createV3)': [RequestDeriveCreateV3, boolean];
+  'pri(derivation.accountGroup.create)': [RequestAccountGroup, boolean];
 
   // Transaction
   // Get Transaction

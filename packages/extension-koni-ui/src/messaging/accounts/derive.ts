@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { RequestDeriveCreateMultiple, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestGetDeriveAccounts, ResponseDeriveValidateV2, ResponseGetDeriveAccounts } from '@subwallet/extension-base/background/KoniTypes';
-import { ResponseDeriveValidate } from '@subwallet/extension-base/background/types';
+import { RequestAccountGroup, ResponseDeriveValidate } from '@subwallet/extension-base/background/types';
 
 import { sendMessage } from '../base';
 
@@ -20,6 +20,10 @@ export async function deriveMultiple (request: RequestDeriveCreateMultiple): Pro
 
 export async function deriveAccountV3 (request: RequestDeriveCreateV3): Promise<boolean> {
   return sendMessage('pri(derivation.createV3)', request);
+}
+
+export async function deriveAccountGroup (request: RequestAccountGroup): Promise<boolean> {
+  return sendMessage('pri(derivation.accountGroup.create)', request);
 }
 
 export async function validateDerivationPath (parentAddress: string, suri: string, parentPassword: string): Promise<ResponseDeriveValidate> {

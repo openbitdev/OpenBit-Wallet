@@ -61,10 +61,10 @@ export interface AddressJson extends AbstractAddressJson {
   recentChainSlugs?: string[];
 }
 
-// all Accounts and the address of the current Account
-export interface AccountsWithCurrentAddress {
-  accounts: AccountJson[];
-  currentAddress?: string;
+export interface AccountGroup {
+  groupId: string,
+  isMaster?: boolean,
+  accounts: AccountJson[]
 }
 
 export interface CurrentAccountInfo {
@@ -219,6 +219,10 @@ export interface RequestMetadataApprove {
 
 export interface RequestCurrentAccountAddress {
   address: string;
+}
+
+export interface RequestAccountGroup {
+  groupId: string;
 }
 
 export interface RequestMetadataReject {
