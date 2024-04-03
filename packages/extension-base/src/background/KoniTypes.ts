@@ -16,6 +16,7 @@ import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyr
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
+import { Transaction } from 'bitcoinjs-lib';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
 import { RequestArguments, TransactionConfig } from 'web3-core';
@@ -603,6 +604,9 @@ export interface AmountData extends BasicTokenInfo {
 
 export interface FeeData extends AmountData {
   tooHigh?: boolean;
+  fast: number;
+  medium: number;
+  slow: number;
 }
 
 export interface AmountDataWithId extends AmountData {
@@ -1318,24 +1322,24 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends TransactionConfig , BitcoinSignRequest {
+export interface BitcoinSendTransactionRequest extends Transaction, BitcoinSignRequest {
   txHex: string;
   isToContract: boolean;
-  inputs: Input[]; 
+  inputs: Input[];
   outputs: Output[];
 }
 export interface Input {
-  hash: Buffer;
+  hash: string;
   index: number;
-  script: Buffer;
+  script: string;
   sequence: number;
-  witness: Buffer[];
+  witness: string[];
   value: number
 }
 
 // Định nghĩa lại kiểu Output
 export interface Output {
-  script: Buffer;
+  script: string;
   value: number;
 }
 
@@ -1610,6 +1614,7 @@ export interface ValidateTransactionResponse {
 }
 
 export type RequestTransfer = InternalRequestSign<RequestCheckTransfer>;
+export type RequestTransferBitcoin = RequestTransfer & { id: string };
 
 export interface RequestCheckCrossChainTransfer extends BaseRequestSign {
   originNetworkKey: string,
@@ -2446,6 +2451,7 @@ export interface KoniRequestSignatures {
   // Transfer
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ValidateTransactionResponse];
   'pri(accounts.transfer)': [RequestTransfer, SWTransactionResponse];
+  'pri(accounts.transferBitcoin)': [RequestTransfer, SWTransactionResponse];
 
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ValidateTransactionResponse];
   'pri(accounts.crossChainTransfer)': [RequestCrossChainTransfer, SWTransactionResponse];

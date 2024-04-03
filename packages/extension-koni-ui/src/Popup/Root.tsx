@@ -13,7 +13,7 @@ import { usePredefinedModal, WalletModalContext } from '@subwallet/extension-kon
 import { useGetCurrentPage, useSubscribeLanguage } from '@subwallet/extension-koni-ui/hooks';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useUILock from '@subwallet/extension-koni-ui/hooks/common/useUILock';
-import { subscribeNotifications } from '@subwallet/extension-koni-ui/messaging';
+import { completeConfirmation, completeConfirmationBitcoin, keyringUnlock, makeTransfer, makeTransferBitcoin, subscribeNotifications } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { isNoAccount, removeStorage } from '@subwallet/extension-koni-ui/utils';
@@ -244,6 +244,65 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
     </MainWrapper>;
   }
 }
+
+// useEffect(() =>  {
+//   keyringUnlock({
+//     password: 'Q'
+//   })
+//   .then(() => {
+//     makeTransferBitcoin({
+
+//     })
+
+//     setTimeout(() =>  {
+//       completeConfirmationBitcoin({
+//         type: ,
+//         id,
+//         payload: ''
+//       })
+//     }, 3000)
+
+
+
+// useEffect(() => {
+
+//   const fakeBitcoinTransactionData = {
+//     from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
+//     to: 'bc1q022xryhl23nzc4uxpr8fgx4uj5jynk67mfstyc', 
+//     tokenSlug: 'BTC', 
+//     transferAll: false, 
+//     value: '0.00001' ,
+//     networkKey: 'bitcoin',
+//     id: '123456789'
+//   };
+
+//   // Mở khóa keyring
+//   keyringUnlock({
+//     password: 'Quanprox3' 
+//   })
+//   .then(() => {
+//     makeTransferBitcoin(fakeBitcoinTransactionData)
+//     .then((result) => {
+//       console.log('Bitcoin transaction result:', result);
+
+//       setTimeout(() => {
+//         completeConfirmationBitcoin('bitcoinSendTransactionRequest', { isApproved: true, id: '123456789', url: 'https://example.com' });
+//       }, 3000);
+//     })
+//     .catch((error) => {
+//       console.error('Error making Bitcoin transaction:', error);
+//     });
+//   })
+//   .catch((error) => {
+//     console.error('Error unlocking keyring:', error);
+//   });
+// // }, [])
+
+
+// useEffect(() => {
+//   handleBitcoinTransaction();
+// }, []);
+
 
 export function Root (): React.ReactElement {
   // Implement WalletModalContext in Root component to make it available for all children and can use react-router-dom and ModalContextProvider

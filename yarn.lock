@@ -6224,12 +6224,12 @@ __metadata:
 
 "@subwallet/chain-list@file:./local-libs/chain-list::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.53-beta.1
-  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=1a5de3&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=d3d74b&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: ede4e6ab43e060d1017a4295e28e461589d3e5c1a34135d8d3c664a8250bdbc28614454cba5d0b937c21e2143cd282cca8eb2408b57c39ca1cb39f5d4bc083dc
+  checksum: 8e7ee16a1451693057da8b6dc6a63d60d3d41978d5d1d0243a703b902928aef3378c97ecf347571a4035dd2681295a9fa421f260c28ec5b01c98b3113402fe88
   languageName: node
   linkType: hard
 
@@ -6606,7 +6606,7 @@ __metadata:
 
 "@subwallet/keyring@file:./local-libs/keyring::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.1.4
-  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=a3a1a2&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=ed63d9&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
@@ -6620,7 +6620,7 @@ __metadata:
     rxjs: ^7.5.6
     tiny-secp256k1: ^2.2.3
     tslib: ^2.6.2
-  checksum: 357cc377a3db963c5884fb965cba0bc2502782c862e4395e4994258a8539b5d1dfc520f5709b2612a9bf7f6b3edc198de90350ea34b5a836355573057ca714d3
+  checksum: f5f0a4e9e7be89e8c06503d63bceacedbaf18bf47b9ec32c5e7c9b5c7fff9c679c38fdf79ceb45e9e995785eefa2678940f22c2411e0367a656e8048c7a8f700
   languageName: node
   linkType: hard
 

@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
-import { ExternalRequestPromise, ExternalRequestPromiseStatus, HandleBasicTx, TransactionResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { ExternalRequestPromise, ExternalRequestPromiseStatus, FeeData, FeeResult, HandleBasicTx, TransactionResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/web3';
 import { _BALANCE_PARSING_CHAIN_GROUP, EVM_REFORMAT_DECIMALS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ERC721_ABI } from '@subwallet/extension-base/services/chain-service/helper';
 import { _BitcoinApi, _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
 import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
 import BigN from 'bignumber.js';
+import { Transaction } from 'bitcoinjs-lib';
+import { Input, Output } from 'bitcoinjs-lib/src/transaction';
 import { TransactionConfig, TransactionReceipt } from 'web3-core';
 
 import { hexToBn } from '@polkadot/util';
@@ -94,34 +96,106 @@ export async function getEVMTransactionObject (
   return [transactionObject, transactionObject.value.toString()];
 }
 
-export async function getBitcoinTransactionObject(from: string, to: string, amount: string, transferAll: boolean, bitcoinApi: Record<string, _BitcoinApi>): Promise<[TransactionConfig, string]> {
+export async function getBitcoinTransactionObject (
+  from: string,
+  to: string,
+  amount: string,
+  transferAll: boolean,
+  bitcoinApi: Record<string, _BitcoinApi> // Change type to string
+): Promise<[Transaction, string]> { // Change return type to [Transaction, string]
   try {
-      const requestBody = {
-          from,
-          to,
-          amount,
-          transferAll
-      };
-      const bitcoinApi = 'https://blockstream.info/testnet/api/tx';
-      const response = await fetch(bitcoinApi, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestBody)
-      });
+    const requestBody = {
+      inputs: [{ addresses: [from] }],
+      outputs: [{ addresses: [to], value: parseInt(amount) }]
+    };
+    console.log('requestBody', requestBody)
+    const bitcoinApi = 'https://api.blockcypher.com/v1/btc/test/txs';
+    console.log('bitcoinApi', requestBody)
 
-      if (response.ok) {
-          const responseData = await response.json();
-          const transactionObject: TransactionConfig = responseData.transaction;
-          const transferAmount: string = responseData.transferAmount;
+    const response = await fetch(bitcoinApi, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
 
-          return [transactionObject, transferAmount ];
-      } else {
-          throw new Error('Failed to get Bitcoin transaction object: Unexpected response from API');
-      }
+     console.log('responseresponse', response.json())
+    if (response.ok) {
+      const responseData = await response.json();
+      // Create Transaction object
+      const transactionObject = buildBitcoinTransaction(responseData);
+      const transferAmount = responseData.outputs[0].value.toString();
+
+      return [transactionObject, transferAmount];
+    } else {
+      throw new Error('Failed to get Bitcoin transaction object: Unexpected response from API');
+    }
   } catch (error) {
-      throw new Error('Failed to get Bitcoin transaction object: ' );
+    throw new Error('Failed to get Bitcoin transaction object: ' );
+  }
+}
+
+function buildBitcoinTransaction (responseData: any): Transaction {
+  // Assuming responseData contains necessary transaction information
+  // Build the Transaction object here based on the responseData
+  const transaction = new Transaction();
+
+  // Assuming responseData has properties corresponding to Transaction fields
+  transaction.version = responseData.version;
+  transaction.locktime = responseData.locktime;
+
+  // Map input and output data to Input and Output objects
+  responseData.vin.forEach((inputData: any) => {
+    const input: Input = {
+      hash: Buffer.from(inputData.txid, 'hex'), // Assuming txid is provided in hexadecimal format
+      index: inputData.vout,
+      script: Buffer.from(inputData.scriptSig.hex, 'hex'), // Assuming scriptSig.hex is provided in hexadecimal format
+      sequence: inputData.sequence,
+      witness: [] // Initialize empty witness array
+      // value: inputData.value // Add value property to Input object
+    };
+
+    transaction.ins.push(input);
+  });
+
+  responseData.vout.forEach((outputData: any) => {
+    const output: Output = {
+      script: Buffer.from(outputData.scriptPubKey.hex, 'hex'), // Assuming scriptPubKey.hex is provided in hexadecimal format
+      value: outputData.value
+    };
+
+    transaction.outs.push(output);
+  });
+
+  return transaction;
+}
+
+export async function getFeeEstimatesFromBlockcypherApi(network: 'main' | 'test3'): Promise<FeeData> {
+  try {
+    const url = `https://api.blockcypher.com/v1/btc/${network}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch fee estimates from Blockcypher API');
+    }
+
+    const responseData = await response.json();
+    const { high_fee_per_kb, low_fee_per_kb, medium_fee_per_kb } = responseData;
+
+    const feeData: FeeData = {
+      symbol: '', 
+      decimals: 0,
+      value: '', 
+      tooHigh: false,
+      slow: low_fee_per_kb / 1000,
+      medium: medium_fee_per_kb / 1000,
+      fast: high_fee_per_kb / 1000
+    };
+
+    return feeData;
+  } catch (error) {
+    throw new Error('Failed to get fee estimates from Blockcypher API: ');
   }
 }
 

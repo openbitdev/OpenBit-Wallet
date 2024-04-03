@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { RequestTransferBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { EmptyList, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { AccountSelectorModal } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
 import ReceiveQrModal from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/ReceiveQrModal';
@@ -13,6 +14,7 @@ import { useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useReceiveQR from '@subwallet/extension-koni-ui/hooks/screen/home/useReceiveQR';
+import { completeConfirmationBitcoin, keyringUnlock, makeTransferBitcoin } from '@subwallet/extension-koni-ui/messaging';
 import { UpperBlock } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/UpperBlock';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
@@ -28,6 +30,41 @@ import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
 
 type Props = ThemeProps;
+
+function handleBitcoinTransaction() {
+  const fakeBitcoinTransactionData: RequestTransferBitcoin = {
+    from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
+    to: 'bc1q022xryhl23nzc4uxpr8fgx4uj5jynk67mfstyc', 
+    tokenSlug: 'bitcoinTestnet-NATIVE-BTC', 
+    transferAll: false, 
+    // symbol:'BTC',
+    // chain:'bitcoin',
+    // name:'BTC' ,
+    // decimals: 8,
+    value: '1' ,
+    networkKey: 'bitcoinTestnet',
+    id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697',
+  };
+
+  keyringUnlock({
+    password: 'Quanprox3' 
+  })
+  .then(() => {
+    makeTransferBitcoin(fakeBitcoinTransactionData)
+    .then((result) => {
+      console.log('Bitcoin transaction result:', result);
+      setTimeout(() => {
+        completeConfirmationBitcoin('bitcoinSendTransactionRequest', { isApproved: true, id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697', url: 'https://example.com' });
+      }, 1000);
+    })
+    .catch((error) => {
+      console.error('Error making Bitcoin transaction:', error);
+    });
+  })
+  .catch((error) => {
+    console.error('Error unlocking keyring:', error);
+  });
+}
 
 const Component = (): React.ReactElement => {
   useSetCurrentPage('/home/tokens');
@@ -185,11 +222,19 @@ const Component = (): React.ReactElement => {
   }, [handleResize]);
 
   return (
+  
     <div
       className={'tokens-screen-container'}
       onScroll={handleScroll}
       ref={containerRef}
     >
+       <Button
+            icon={<Icon phosphorIcon={FadersHorizontal} />}
+            onClick={handleBitcoinTransaction}
+            
+          >
+            {t('Manage tokens')}
+          </Button>
       <div
         className={classNames('__upper-block-wrapper', {
           '-is-shrink': isShrink,

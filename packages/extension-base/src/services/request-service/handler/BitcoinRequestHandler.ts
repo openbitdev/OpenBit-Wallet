@@ -1,12 +1,16 @@
-import {  ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, Input, Output, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
+// Copyright 2019-2022 @subwallet/extension-base authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
+import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, Input, Output, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
-import { BehaviorSubject } from 'rxjs';
-import { Logger } from '@polkadot/util/types';
-import { logger as createLogger } from '@polkadot/util';
-import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import keyring from '@subwallet/ui-keyring';
-import { Psbt  } from 'bitcoinjs-lib';
+import { Psbt } from 'bitcoinjs-lib';
+import { BehaviorSubject } from 'rxjs';
+
+import { logger as createLogger } from '@polkadot/util';
+import { Logger } from '@polkadot/util/types';
 
 export default class BitcoinRequestHandler {
   readonly #requestService: RequestService;
@@ -16,16 +20,17 @@ export default class BitcoinRequestHandler {
     bitcoinSendTransactionRequest: {},
     bitcoinWatchTransactionRequest: {}
   });
+
   private readonly confirmationsPromiseMap: Record<string, { resolver: Resolver<any>, validator?: (rs: any) => Error | undefined }> = {};
-  
-  constructor(requestService: RequestService) {
+
+  constructor (requestService: RequestService) {
     this.#requestService = requestService;
     this.#logger = createLogger('BitcoinRequestHandler');
   }
+
   public getConfirmationsQueueSubjectBitcoin (): BehaviorSubject<ConfirmationsQueueBitcoin> {
     return this.confirmationsQueueSubjectBitcoin;
   }
-
 
   public async addConfirmationBitcoin<CT extends ConfirmationTypeBitcoin> (
     id: string,
@@ -74,6 +79,7 @@ export default class BitcoinRequestHandler {
 
     return promise;
   }
+
   public updateConfirmationBitcoin<CT extends ConfirmationTypeBitcoin> (
     id: string,
     type: CT,
@@ -107,7 +113,7 @@ export default class BitcoinRequestHandler {
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
   }
 
-  private async signMessageBitcoin(confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): Promise<string> {
+  private async signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): Promise<string> {
     const { account, payload } = confirmation.payload;
     const address = account.address;
     const pair = keyring.getPair(address);
@@ -118,23 +124,23 @@ export default class BitcoinRequestHandler {
 
     // Check if payload is a string
     if (typeof payload === 'string') {
-        // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-        return await pair.bitcoin.signMessage(payload, false); // Assuming compressed = false
-    } 
+      // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
+      return await pair.bitcoin.signMessage(payload, false); // Assuming compressed = false
+    }
     // Check if payload is a byte array (Uint8Array)
     else if (payload instanceof Uint8Array) {
-        // Convert Uint8Array to string
-        const payloadString = Buffer.from(payload).toString('hex');
-        // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-        return await pair.bitcoin.signMessage(payloadString, false); // Assuming compressed = false
-    } 
-    else {
-        // Handle the case where payload is invalid
-        throw new Error('Invalid payload type');
+      // Convert Uint8Array to string
+      const payloadString = Buffer.from(payload).toString('hex');
+
+      // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
+      return await pair.bitcoin.signMessage(payloadString, false); // Assuming compressed = false
+    } else {
+      // Handle the case where payload is invalid
+      throw new Error('Invalid payload type');
     }
   }
- 
-  private async signTransactionBitcoin(request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): Promise<string> {
+
+  private async signTransactionBitcoin (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): Promise<string> {
     // Extract necessary information from the BitcoinSendTransactionRequest
     const { account, inputs, outputs } = request.payload;
     const address = account.address;
@@ -142,7 +148,7 @@ export default class BitcoinRequestHandler {
 
     // Unlock the pair if it is locked
     if (pair.isLocked) {
-        keyring.unlockPair(pair.address);
+      keyring.unlockPair(pair.address);
     }
 
     // Create a new Psbt object
@@ -150,23 +156,27 @@ export default class BitcoinRequestHandler {
 
     // Set inputs
     inputs.forEach((input: Input) => {
-        psbt.addInput({
-            hash: input.hash,
-            index: input.index,
-            sequence: input.sequence,
-            witnessUtxo: {
-                script: input.script,
-                value: input.value // Assuming the input has a 'value' property
-            }
-        });
+      const scriptBuffer = Buffer.from(input.script, 'hex'); // Convert hex string to Buffer
+
+      psbt.addInput({
+        hash: input.hash,
+        index: input.index,
+        sequence: input.sequence,
+        witnessUtxo: {
+          script: scriptBuffer, // Use the converted Buffer
+          value: input.value
+        }
+      });
     });
 
     // Set outputs
     outputs.forEach((output: Output) => {
-        psbt.addOutput({
-            script: output.script,
-            value: output.value
-        });
+      const scriptBuffer = Buffer.from(output.script, 'hex'); // Convert hex string to Buffer
+
+      psbt.addOutput({
+        script: scriptBuffer,
+        value: output.value
+      });
     });
 
     // Finalize all inputs in the Psbt
@@ -195,10 +205,9 @@ export default class BitcoinRequestHandler {
         }
       }
     }
-}
+  }
 
-
-  public async completeConfirmationBitcoin(request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
+  public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
 
     for (const ct in request) {
@@ -230,7 +239,7 @@ export default class BitcoinRequestHandler {
     return true;
   }
 
-  public resetWallet() {
+  public resetWallet () {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
 
     for (const [type, requests] of Object.entries(confirmations)) {

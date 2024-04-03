@@ -7,6 +7,7 @@ import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSendTransactio
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
+import { getFeeEstimatesFromBlockcypherApi } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { _getAssetDecimals, _getAssetSymbol, _getChainNativeTokenBasicInfo, _getEvmChainId, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
@@ -16,7 +17,7 @@ import { HistoryService } from '@subwallet/extension-base/services/history-servi
 import { EXTENSION_REQUEST_URL } from '@subwallet/extension-base/services/request-service/constants';
 import { TRANSACTION_TIMEOUT } from '@subwallet/extension-base/services/transaction-service/constants';
 import { parseLiquidStakingEvents, parseLiquidStakingFastUnstakeEvents, parseTransferEventLogs, parseXcmEventLogs } from '@subwallet/extension-base/services/transaction-service/event-parser';
-import { getBaseTransactionInfo, getTransactionId, isSubstrateTransaction } from '@subwallet/extension-base/services/transaction-service/helpers';
+import { getBaseTransactionInfo, getTransactionId, isBitcoinTransaction, isSubstrateTransaction } from '@subwallet/extension-base/services/transaction-service/helpers';
 import { SWTransaction, SWTransactionInput, SWTransactionResponse, TransactionEmitter, TransactionEventMap, TransactionEventResponse, ValidateTransactionResponseInput } from '@subwallet/extension-base/services/transaction-service/types';
 import { getExplorerLink, parseTransactionData } from '@subwallet/extension-base/services/transaction-service/utils';
 import { isWalletConnectRequest } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
@@ -120,56 +121,53 @@ export default class TransactionService {
 
     // Estimate fee
     const estimateFee: FeeData = {
-      symbol: '',
-      decimals: 0,
-      value: '',
-      tooHigh: false
+      symbol: '', 
+      decimals: 0, 
+      value: '', 
+      tooHigh: false,
+      fast: 0,  
+      medium: 0,
+      slow: 0
     };
 
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
 
-    if (!chainInfo) {
-      validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('Cannot find network')));
-    } else {
-      const { decimals, symbol } = _getChainNativeTokenBasicInfo(chainInfo);
+    if (transaction) {
+      try {
+        if (isSubstrateTransaction(transaction)) {
+          estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
+        } else if (isBitcoinTransaction(transaction)) {
+          const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
 
-      estimateFee.decimals = decimals;
-      estimateFee.symbol = symbol;
+          estimateFee.value = feeEstimates.medium.toString();
+        } else {
+          const web3 = this.state.chainService.getEvmApi(chain);
 
-      if (transaction) {
-        try {
-          if (isSubstrateTransaction(transaction)) {
-            estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
+          if (!web3) {
+            validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
           } else {
-            const web3 = this.state.chainService.getEvmApi(chain);
+            const gasLimit = await web3.api.eth.estimateGas(transaction);
+            const priority = await calculateGasFeeParams(web3, chainInfo.slug);
 
-            if (!web3) {
-              validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
+            if (priority.baseGasFee) {
+              const maxFee = priority.maxFeePerGas; // TODO: Need review
+
+              estimateFee.value = maxFee.multipliedBy(gasLimit).toFixed(0);
             } else {
-              const gasLimit = await web3.api.eth.estimateGas(transaction);
-
-              const priority = await calculateGasFeeParams(web3, chainInfo.slug);
-
-              if (priority.baseGasFee) {
-                const maxFee = priority.maxFeePerGas; // TODO: Need review
-
-                estimateFee.value = maxFee.multipliedBy(gasLimit).toFixed(0);
-              } else {
-                estimateFee.value = new BigN(priority.gasPrice).multipliedBy(gasLimit).toFixed(0);
-              }
-
-              estimateFee.tooHigh = priority.busyNetwork;
+              estimateFee.value = new BigN(priority.gasPrice).multipliedBy(gasLimit).toFixed(0);
             }
-          }
-        } catch (e) {
-          const error = e as Error;
 
-          if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
-            validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+            estimateFee.tooHigh = priority.busyNetwork;
           }
-
-          estimateFee.value = '0';
         }
+      } catch (e) {
+        const error = e as Error;
+
+        if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
+          validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+        }
+
+        estimateFee.value = '0';
       }
     }
 
@@ -336,44 +334,44 @@ export default class TransactionService {
     return validatedTransaction;
   }
 
-  private async sendTransaction(transaction: SWTransaction): Promise<TransactionEmitter> {
+  private async sendTransaction (transaction: SWTransaction): Promise<TransactionEmitter> {
     let emitter: TransactionEmitter;
 
     if (transaction.chainType === 'substrate') {
-        emitter = await this.signAndSendSubstrateTransaction(transaction) as TransactionEmitter;
+      emitter = await this.signAndSendSubstrateTransaction(transaction);
     } else if (transaction.chainType === 'evm') {
-        emitter = await this.signAndSendEvmTransaction(transaction) as TransactionEmitter;
+      emitter = await this.signAndSendEvmTransaction(transaction);
     } else if (transaction.chainType === 'bitcoin') {
-        emitter = await this.signAndSendBitcoinTransaction(transaction) as TransactionEmitter;
+      emitter = await this.signAndSendBitcoinTransaction(transaction);
     } else {
-        throw new Error('Unsupported chain type');
+      throw new Error('Unsupported chain type');
     }
 
     const { eventsHandler } = transaction;
 
     emitter.on('signed', (data: TransactionEventResponse) => {
-        this.onSigned(data);
+      this.onSigned(data);
     });
 
     emitter.on('send', (data: TransactionEventResponse) => {
-        this.onSend(data);
+      this.onSend(data);
     });
 
     emitter.on('extrinsicHash', (data: TransactionEventResponse) => {
-        this.onHasTransactionHash(data);
+      this.onHasTransactionHash(data);
     });
 
     emitter.on('success', (data: TransactionEventResponse) => {
-        this.handlePostProcessing(data.id);
-        this.onSuccess(data);
+      this.handlePostProcessing(data.id);
+      this.onSuccess(data);
     });
 
     emitter.on('error', (data: TransactionEventResponse) => {
-        this.onFailed({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.INTERNAL_ERROR)] });
+      this.onFailed({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.INTERNAL_ERROR)] });
     });
 
     emitter.on('timeout', (data: TransactionEventResponse) => {
-        this.onTimeOut({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.TIMEOUT)] });
+      this.onTimeOut({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.TIMEOUT)] });
     });
 
     // Todo: handle any event with transaction.eventsHandler
@@ -381,7 +379,7 @@ export default class TransactionService {
     eventsHandler?.(emitter);
 
     return emitter;
-}
+  }
 
   private removeTransaction (id: string): void {
     if (this.transactions[id]) {
@@ -927,7 +925,7 @@ export default class TransactionService {
   //   const payload = transaction as BitcoinSendTransactionRequest;
   //   const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
   //   const bitcoinApiUrl = bitcoinApi.apiUrl;
-    
+
   //   const accountPair = keyring.getPair(address);
   //   const account: AccountJson = { address, ...accountPair.meta };
 
@@ -1013,16 +1011,16 @@ export default class TransactionService {
 
   //   return emitter;
   // }
-  private async signAndSendBitcoinTransaction({ address, chain, id, transaction }: SWTransaction): Promise<TransactionEmitter> {
+  private async signAndSendBitcoinTransaction ({ address, chain, id, transaction }: SWTransaction): Promise<TransactionEmitter> {
     const payload = transaction as BitcoinSendTransactionRequest;
     const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
     const bitcoinApiUrl = bitcoinApi.apiUrl;
-    
+
     const accountPair = keyring.getPair(address);
     const account: AccountJson = { address, ...accountPair.meta };
 
     if (!payload.account) {
-        payload.account = account;
+      payload.account = account;
     }
 
     // Allow sign transaction
@@ -1031,49 +1029,46 @@ export default class TransactionService {
     const emitter = new EventEmitter<TransactionEventMap>();
 
     const eventData: TransactionEventResponse = {
-        id,
-        errors: [],
-        warnings: [],
-        extrinsicHash: id
+      id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: id
     };
 
     try {
-        // Emit signed event
-        emitter.emit('signed', eventData);
+      // Emit signed event
+      emitter.emit('signed', eventData);
 
-        // Add confirmation for Bitcoin transaction
-        this.state.requestService.addConfirmationBitcoin(id, bitcoinApiUrl, 'bitcoinSendTransactionRequest', payload, {})
-            .then(async ({ isApproved, payload }) => {
-                if (isApproved) {
-                    if (!payload) {
-                        throw new Error('Failed to sign transaction');
-                    }
+      // Add confirmation for Bitcoin transaction
+      this.state.requestService.addConfirmationBitcoin(id, bitcoinApiUrl, 'bitcoinSendTransactionRequest', payload, {})
+        .then(async ({ isApproved, payload }) => {
+          if (isApproved) {
+            if (!payload) {
+              throw new Error('Failed to sign transaction');
+            }
 
-                    // Assuming success event is emitted after transaction is confirmed
-                    emitter.emit('success', eventData);
-                } else {
-                    // User rejected request
-                    this.removeTransaction(id);
-                    eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
-                    emitter.emit('error', eventData);
-                }
-            })
-            .catch((e: Error) => {
-                this.removeTransaction(id);
-                eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SIGN, e.message));
-                emitter.emit('error', eventData);
-            });
+            // Assuming success event is emitted after transaction is confirmed
+            emitter.emit('success', eventData);
+          } else {
+            // User rejected request
+            this.removeTransaction(id);
+            eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
+            emitter.emit('error', eventData);
+          }
+        })
+        .catch((e: Error) => {
+          this.removeTransaction(id);
+          eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SIGN, e.message));
+          emitter.emit('error', eventData);
+        });
     } catch (error) {
-        // Error occurred while adding confirmation
-        eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, 'Failed to add confirmation'));
-        emitter.emit('error', eventData);
+      // Error occurred while adding confirmation
+      eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, 'Failed to add confirmation'));
+      emitter.emit('error', eventData);
     }
 
     return emitter;
-}
-
-
-
+  }
 
   private async signAndSendEvmTransaction ({ address,
     chain,

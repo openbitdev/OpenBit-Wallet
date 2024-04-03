@@ -1697,6 +1697,7 @@ export default class KoniState {
   public async completeConfirmation (request: RequestConfirmationComplete) {
     return await this.requestService.completeConfirmation(request);
   }
+
   public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin) {
     return await this.requestService.completeConfirmationBitcoin(request);
   }
