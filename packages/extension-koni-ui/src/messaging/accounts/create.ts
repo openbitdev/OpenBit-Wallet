@@ -26,7 +26,7 @@ export async function createAccountSuriV2 (request: RequestAccountCreateSuriV2):
   return sendMessage('pri(accounts.create.suriV2)', request);
 }
 
-export async function createAccountGroupSuri (request: RequestAccountGroupCreateSuri): Promise<boolean> {
+export async function createAccountGroupSuri (request: RequestAccountGroupCreateSuri): Promise<ResponseAccountCreateSuriV2> {
   return sendMessage('pri(accountGroups.create.suri)', request);
 }
 

@@ -1,10 +1,10 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { CurrentAccountInfo, KeyringState } from '@subwallet/extension-base/background/KoniTypes';
+import { CurrentAccountGroupInfo, CurrentAccountInfo, KeyringState } from '@subwallet/extension-base/background/KoniTypes';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { EventService } from '@subwallet/extension-base/services/event-service';
-import { CurrentAccountStore } from '@subwallet/extension-base/stores';
+import { CurrentAccountGroupStore, CurrentAccountStore } from '@subwallet/extension-base/stores';
 import { InjectedAccountWithMeta } from '@subwallet/extension-inject/types';
 import { keyring } from '@subwallet/ui-keyring';
 import { SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -15,6 +15,9 @@ import { stringShorten } from '@polkadot/util';
 export class KeyringService {
   private readonly currentAccountStore = new CurrentAccountStore();
   readonly currentAccountSubject = new BehaviorSubject<CurrentAccountInfo>({ address: '', currentGenesisHash: null });
+
+  private readonly currentAccountGroupStore = new CurrentAccountGroupStore();
+  readonly currentAccountGroupSubject = new BehaviorSubject<CurrentAccountGroupInfo>({ groupId: '' });
 
   readonly addressesSubject = keyring.addresses.subject;
   public readonly accountSubject = keyring.accounts.subject;
@@ -30,8 +33,8 @@ export class KeyringService {
   constructor (private eventService: EventService) {
     this.injected = false;
     this.eventService.waitCryptoReady.then(() => {
-      this.currentAccountStore.get('CurrentAccountInfo', (rs) => {
-        rs && this.currentAccountSubject.next(rs);
+      this.currentAccountGroupStore.get('CurrentAccountGroupInfo', (rs) => {
+        rs && this.currentAccountGroupSubject.next(rs);
       });
       this.subscribeAccounts().catch(console.error);
     }).catch(console.error);
@@ -44,26 +47,36 @@ export class KeyringService {
     this.beforeAccount = { ...this.accountSubject.value };
 
     this.accountSubject.subscribe((subjectInfo) => {
-      // Check if accounts changed
-      const beforeAddresses = Object.keys(this.beforeAccount);
-      const afterAddresses = Object.keys(subjectInfo);
+      const beforeAccounts = Object.values(this.beforeAccount);
+      const afterAccounts = Object.values(subjectInfo);
 
-      if (beforeAddresses.length > afterAddresses.length) {
-        const removedAddresses = beforeAddresses.filter((address) => !afterAddresses.includes(address));
+      const beforeAccountGroupIdsSet = new Set(beforeAccounts.map((item) => (item.json.meta.groupId || '') as string));
+      const afterAccountGroupIdsSet = new Set(afterAccounts.map((item) => (item.json.meta.groupId || '') as string));
 
-        // Remove account
-        removedAddresses.forEach((address) => {
-          this.eventService.emit('account.remove', address);
+      const groupIdsNotInBefore: string[] = [];
+      const groupIdsNotInAfter: string[] = [];
+
+      beforeAccountGroupIdsSet.forEach((groupId) => {
+        if (!afterAccountGroupIdsSet.has(groupId)) {
+          groupIdsNotInAfter.push(groupId); // groupId not in afterItems
+        }
+      });
+      afterAccountGroupIdsSet.forEach((groupId) => {
+        if (!beforeAccountGroupIdsSet.has(groupId)) {
+          groupIdsNotInBefore.push(groupId); // groupId not in beforeItems
+        }
+      });
+
+      if (groupIdsNotInAfter.length) {
+        // Remove account group
+        groupIdsNotInAfter.forEach((groupId) => {
+          this.eventService.emit('accountGroup.remove', groupId);
         });
-      } else if (beforeAddresses.length < afterAddresses.length) {
-        const addedAddresses = afterAddresses.filter((address) => !beforeAddresses.includes(address));
-
-        // Add account
-        addedAddresses.forEach((address) => {
-          this.eventService.emit('account.add', address);
+      } else if (groupIdsNotInBefore.length) {
+        // Add account group
+        groupIdsNotInBefore.forEach((groupId) => {
+          this.eventService.emit('accountGroup.add', groupId);
         });
-      } else {
-        // Handle case update later
       }
 
       this.beforeAccount = { ...subjectInfo };
@@ -78,7 +91,7 @@ export class KeyringService {
     if (!this.keyringState.isReady && isReady) {
       this.eventService.waitCryptoReady.then(() => {
         this.eventService.emit('keyring.ready', true);
-        this.eventService.emit('account.ready', true);
+        this.eventService.emit('accountGroup.ready', true);
       }).catch(console.error);
     }
 
@@ -97,14 +110,26 @@ export class KeyringService {
     return this.addressesSubject.value;
   }
 
+  // deprecated
   get currentAccount (): CurrentAccountInfo {
     return this.currentAccountSubject.value;
   }
 
+  get currentAccountGroup (): CurrentAccountInfo {
+    return this.currentAccountSubject.value;
+  }
+
+  // deprecated
   setCurrentAccount (currentAccountData: CurrentAccountInfo) {
     this.currentAccountSubject.next(currentAccountData);
     this.eventService.emit('account.updateCurrent', currentAccountData);
     this.currentAccountStore.set('CurrentAccountInfo', currentAccountData);
+  }
+
+  setCurrentAccountGroup (currentAccountGroup: CurrentAccountGroupInfo) {
+    this.currentAccountGroupSubject.next(currentAccountGroup);
+    this.eventService.emit('accountGroup.updateCurrent', currentAccountGroup);
+    this.currentAccountGroupStore.set('CurrentAccountGroupInfo', currentAccountGroup);
   }
 
   public lock () {
@@ -184,6 +209,6 @@ export class KeyringService {
       }, 1500);
     });
     this.updateKeyringState();
-    this.currentAccountSubject.next({ address: ALL_ACCOUNT_KEY, currentGenesisHash: null });
+    this.currentAccountGroupSubject.next({ groupId: '' });
   }
 }

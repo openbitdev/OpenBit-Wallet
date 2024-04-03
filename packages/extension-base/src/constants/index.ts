@@ -38,3 +38,4 @@ export const ORDINAL_METHODS = ['drc-20', 'pol-20'];
 
 export * from './staking';
 export * from './storage';
+export * from './keyring';

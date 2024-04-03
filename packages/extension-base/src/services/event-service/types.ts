@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { CurrentAccountInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { CurrentAccountGroupInfo, CurrentAccountInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { SWTransaction } from '@subwallet/extension-base/services/transaction-service/types';
 
 export interface EventRegistry {
@@ -25,6 +25,18 @@ export interface EventRegistry {
   'account.remove': [string]; // address
   /** Inject account done  */
   'inject.ready': [boolean]; // address
+
+  /** Update current account group */
+  'accountGroup.updateCurrent': [CurrentAccountGroupInfo];
+  /** Account group list loaded  */
+  'accountGroup.ready': [boolean];
+  /** Add a new account group */
+  'accountGroup.add': [string]; // group id
+  /** Update account group */
+  'accountGroup.update': [string]; // group id
+  /** Remove an account group */
+  'accountGroup.remove': [string]; // group id
+
   /* Keyring */
 
   'chain.ready': [boolean]; // chain is ready and migration done

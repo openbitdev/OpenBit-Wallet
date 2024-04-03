@@ -394,6 +394,10 @@ export interface CurrentAccountInfo {
   allGenesisHash?: string;
 }
 
+export interface CurrentAccountGroupInfo {
+  groupId: string;
+}
+
 export type LanguageType = 'en'
 | 'zh'
 | 'fr'
@@ -2337,7 +2341,7 @@ export interface KoniRequestSignatures {
   'pri(accountGroups.saveCurrentGroup)': [RequestAccountGroup, boolean];
   'pri(accountGroups.edit)': [RequestAccountGroupEdit, boolean];
   'pri(accountGroups.forget)': [RequestAccountGroup, boolean];
-  'pri(accountGroups.create.suri)': [RequestAccountGroupCreateSuri, boolean];
+  'pri(accountGroups.create.suri)': [RequestAccountGroupCreateSuri, ResponseAccountCreateSuriV2];
 
   /* Account management */
 
