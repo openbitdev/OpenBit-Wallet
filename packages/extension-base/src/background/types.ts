@@ -63,6 +63,7 @@ export interface AddressJson extends AbstractAddressJson {
 
 export interface AccountGroup {
   groupId: string,
+  name?: string,
   isMaster?: boolean,
   accounts: AccountJson[]
 }

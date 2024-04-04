@@ -124,8 +124,8 @@ export class KeyringService {
     return this.currentAccountSubject.value;
   }
 
-  get currentAccountGroup (): CurrentAccountInfo {
-    return this.currentAccountSubject.value;
+  get currentAccountGroup (): CurrentAccountGroupInfo {
+    return this.currentAccountGroupSubject.value;
   }
 
   // deprecated

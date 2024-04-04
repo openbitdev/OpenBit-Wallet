@@ -8,7 +8,7 @@ import { TransactionError } from '@subwallet/extension-base/background/errors/Tr
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
 import { AccountExternalError, AccountExternalErrorCode, AccountGroupsWithCurrentGroup, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountGroupCreateSuri, RequestAccountGroupEdit, RequestAccountMeta, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountGroupMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeBitcoinHistory, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransfer, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountAuthType, AccountJson, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountGroup, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
+import { AccountAuthType, AccountGroup, AccountJson, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountGroup, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, SUPPORT_KEYPAIR_TYPES, XCM_MIN_AMOUNT_RATIO } from '@subwallet/extension-base/constants';
 import { ALLOWED_PATH } from '@subwallet/extension-base/defaults';
@@ -44,7 +44,7 @@ import { MetadataDef } from '@subwallet/extension-inject/types';
 import { createPair, decodeAddress, getDerivePath } from '@subwallet/keyring';
 import { KeypairType, KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
-import { SubjectInfo } from '@subwallet/ui-keyring/observable/types';
+import { SingleAddress, SubjectInfo } from '@subwallet/ui-keyring/observable/types';
 import { KeyringAddress, KeyringJson$Meta } from '@subwallet/ui-keyring/types';
 import { ProposalTypes } from '@walletconnect/types/dist/types/sign-client/proposal';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
@@ -66,17 +66,55 @@ function getSuri (seed: string, type?: KeypairType): string {
   return seed + (extraPath ? '/' + extraPath : '');
 }
 
-function transformAccounts (accounts: SubjectInfo): AccountJson[] {
-  return Object.values(accounts).map(({ json: { address, meta }, type }): AccountJson => ({
+function transformAccount (account: SingleAddress): AccountJson {
+  const { json: { address, meta }, type } = account;
+
+  return {
     address,
     ...meta,
     type
-  }));
+  };
+}
+
+function transformAccounts (accounts: SubjectInfo): AccountJson[] {
+  return Object.values(accounts).map(transformAccount);
+}
+
+function transformAccountGroups (accounts: SubjectInfo): AccountGroup[] {
+  const groupMap: { [groupId: string]: AccountGroup } = {};
+
+  for (const address in accounts) {
+    const singleAddress = accounts[address];
+    const groupId = (singleAddress.json.meta.groupId || '') as string;
+
+    if (groupId && !(groupId in groupMap)) {
+      groupMap[groupId] = {
+        groupId,
+        accounts: []
+      };
+    }
+
+    const accountToAdd = transformAccount(singleAddress);
+
+    if (!groupMap[groupId].accounts.length) {
+      groupMap[groupId].name = accountToAdd.name;
+      groupMap[groupId].isMaster = accountToAdd.isMasterAccount;
+    }
+
+    groupMap[groupId].accounts.push(accountToAdd);
+  }
+
+  return Object.values(groupMap);
 }
 
 const ACCOUNT_ALL_JSON: AccountJson = {
   address: ALL_ACCOUNT_KEY,
   name: 'All'
+};
+
+const ACCOUNT_GROUP_ALL_JSON: AccountGroup = {
+  groupId: ALL_ACCOUNT_KEY,
+  accounts: []
 };
 
 export const SEED_DEFAULT_LENGTH = 12;
@@ -521,24 +559,44 @@ export default class KoniExtension {
   }
 
   private async accountGroupsWithCurrentGroup (id: string, port: chrome.runtime.Port): Promise<AccountGroupsWithCurrentGroup> {
-    // @ts-ignore
     const cb = createSubscription<'pri(accountGroups.subscribeWithCurrentGroup)'>(id, port);
+
+    await this.#koniState.eventService.waitAccountReady;
+    await this.#koniState.eventService.waitInjectReady;
+
+    const keyringService = this.#koniState.keyringService;
+    const transformedAccountGroups = transformAccountGroups(keyringService.accounts);
 
     // @ts-ignore
     const responseData: AccountGroupsWithCurrentGroup = {
-      accountGroups: [],
-      currentAccountGroupId: undefined
+      accountGroups: transformedAccountGroups?.length ? [{ ...ACCOUNT_GROUP_ALL_JSON }, ...transformedAccountGroups] : [],
+      currentAccountGroupId: keyringService.currentAccountGroup?.groupId
     };
 
+    const accountGroupsSubscription = keyringService.accountSubject.subscribe((storedAccounts: SubjectInfo): void => {
+      const _transformedAccountGroups = transformAccountGroups(storedAccounts);
+
+      responseData.accountGroups = _transformedAccountGroups?.length ? [{ ...ACCOUNT_GROUP_ALL_JSON }, ..._transformedAccountGroups] : [];
+
+      cb(responseData);
+    });
+
+    const currentAccountGroupSubscription = keyringService.currentAccountGroupSubject.subscribe((currentAccountGroupData) => {
+      responseData.currentAccountGroupId = currentAccountGroupData.groupId;
+
+      cb(responseData);
+    });
+
     this.createUnsubscriptionHandle(id, () => {
-      //
+      accountGroupsSubscription.unsubscribe();
+      currentAccountGroupSubscription.unsubscribe();
     });
 
     port.onDisconnect.addListener((): void => {
       this.cancelSubscription(id);
     });
 
-    return Promise.resolve(responseData);
+    return responseData;
   }
 
   private accountsGetAll (id: string, port: chrome.runtime.Port): string {
