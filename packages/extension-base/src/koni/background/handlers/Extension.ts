@@ -1449,7 +1449,19 @@ export default class KoniExtension {
   }
 
   private async accountGroupForget ({ groupId }: RequestAccountGroup): Promise<boolean> {
-    return Promise.resolve(true);
+    keyring.getAccounts().forEach((a) => {
+      if (a.meta.groupId === groupId) {
+        keyring.forgetAccount(a.address);
+      }
+    });
+
+    await new Promise<void>((resolve) => {
+      this.#koniState.setCurrentAccountGroup({
+        groupId: ALL_ACCOUNT_KEY
+      }, resolve);
+    });
+
+    return true;
   }
 
   private seedCreateV2 ({ length = SEED_DEFAULT_LENGTH,

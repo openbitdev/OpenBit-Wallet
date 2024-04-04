@@ -675,7 +675,16 @@ export default class KoniState {
   }
 
   public setCurrentAccountGroup (data: CurrentAccountGroupInfo, callback?: () => void): void {
+    const { groupId } = data;
     const result: CurrentAccountGroupInfo = { ...data };
+
+    if (groupId === ALL_ACCOUNT_KEY) {
+      const groupIds = this.keyringService.accountGroupIds;
+
+      if (groupIds.length === 1 && !!groupIds[0]) {
+        result.groupId = groupIds[0];
+      }
+    }
 
     this.keyringService.setCurrentAccountGroup(result);
     callback && callback();

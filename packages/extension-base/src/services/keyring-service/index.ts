@@ -106,6 +106,15 @@ export class KeyringService {
     return this.accountSubject.value;
   }
 
+  get accountGroupIds (): string[] {
+    const groupIdsSet: Set<string> = new Set(
+      Object.values(this.accountSubject.value)
+        .map((item) => (item.json.meta.groupId || '') as string)
+    );
+
+    return Array.from(groupIdsSet);
+  }
+
   get addresses (): SubjectInfo {
     return this.addressesSubject.value;
   }
