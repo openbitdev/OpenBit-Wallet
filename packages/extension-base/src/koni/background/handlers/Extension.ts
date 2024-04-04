@@ -1838,6 +1838,7 @@ export default class KoniExtension {
         transaction,
         transferAmount.value
       ] = await getBitcoinTransactionObject(from, to, txVal.toString(), !!transferAll, bitcoinApiMap);
+      console.log('getBitcoinTransactionObject', transaction)
     } catch (e) {
       const error = e as Error;
 
@@ -1861,6 +1862,7 @@ export default class KoniExtension {
         inputTransaction.errors.push(new TransactionError(TransferTxErrorType.RECEIVER_NOT_ENOUGH_EXISTENTIAL_DEPOSIT, t('You must transfer at least {{amount}} {{symbol}} to keep the destination account alive', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
       }
     };
+    console.log('additionalValidator', additionalValidator)
 
     return this.#koniState.transactionService.handleTransaction({
       errors,

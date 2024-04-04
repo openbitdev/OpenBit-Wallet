@@ -1614,7 +1614,7 @@ export interface ValidateTransactionResponse {
 }
 
 export type RequestTransfer = InternalRequestSign<RequestCheckTransfer>;
-export type RequestTransferBitcoin = RequestTransfer & { id: string };
+export type RequestTransferBitcoin = RequestTransfer & { txId: string };
 
 export interface RequestCheckCrossChainTransfer extends BaseRequestSign {
   originNetworkKey: string,
