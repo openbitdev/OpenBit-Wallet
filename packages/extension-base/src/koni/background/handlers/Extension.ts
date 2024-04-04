@@ -3235,7 +3235,13 @@ export default class KoniExtension {
   }
 
   private keyringExportAccountGroupMnemonic ({ groupId, password }: RequestKeyringExportAccountGroupMnemonic): ResponseKeyringExportMnemonic {
-    return { result: '' };
+    const pairs = keyring.getPairs();
+
+    const pair = pairs.find((p) => p.meta.groupId === groupId);
+
+    const result = pair?.exportMnemonic(password) || '';
+
+    return { result };
   }
 
   // Reset wallet
