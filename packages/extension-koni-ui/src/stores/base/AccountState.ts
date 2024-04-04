@@ -72,6 +72,15 @@ const accountStateSlice = createSlice({
         reduxStatus: ReduxStatus.READY
       };
     },
+    updateAccountGroups (state, action: PayloadAction<AccountGroup[]>) {
+      const payload = action.payload;
+
+      return {
+        ...state,
+        accountGroups: payload,
+        reduxStatus: ReduxStatus.READY
+      };
+    },
     updateAddressBook (state, action: PayloadAction<AddressBookInfo>) {
       const { addresses } = action.payload;
 
