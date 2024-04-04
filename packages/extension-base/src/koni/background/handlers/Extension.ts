@@ -3392,7 +3392,66 @@ export default class KoniExtension {
     return true;
   }
 
-  private derivationAccountGroupCreate ({ groupId }: RequestAccountGroup): boolean {
+  private async derivationAccountGroupCreate ({ groupId }: RequestAccountGroup): Promise<boolean> {
+    const pairs = keyring.getPairs();
+
+    const groupIds = this.#koniState.keyringService.accountGroupIds;
+    const newGroupId = generateAccountGroupId();
+    const newGroupName = `Account ${groupIds.length}`;
+
+    // todo: may check if group is master (?)
+
+    pairs.forEach((pair) => {
+      if (pair.meta.groupId !== groupId) {
+        return;
+      }
+
+      const isEvm = pair.type === 'ethereum';
+      const isBitcoin = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86', 'bittest-44', 'bittest-84', 'bittest-86'].includes(pair.type);
+
+      // todo: will support more types
+      if (!isEvm || !isBitcoin) {
+        return;
+      }
+
+      if (pair.isLocked) {
+        keyring.unlockPair(pair.address);
+      }
+
+      const children = pairs.filter((p) => p.meta.parentAddress === pair.address);
+
+      let index = 1;
+      let valid = false;
+
+      do {
+        const exist = children.find((p) => p.meta.suri === `//${index}`);
+
+        if (exist) {
+          index++;
+        } else {
+          valid = true;
+        }
+      } while (!valid);
+
+      const meta = {
+        name: newGroupName,
+        parentAddress: pair.address,
+        groupId: newGroupId,
+        suri: `//${index}`
+      };
+
+      // todo: will update logic if support more type
+      const childPair = isEvm ? pair.evm.derive(index, meta) : pair.bitcoin.derive(index, meta);
+
+      keyring.addPair(childPair, true);
+    });
+
+    await this.saveCurrentAccountGroup({ groupId: newGroupId });
+
+    if (this.#alwaysLock) {
+      this.keyringLock();
+    }
+
     return true;
   }
 
@@ -4867,7 +4926,7 @@ export default class KoniExtension {
       case 'pri(derivation.createV3)':
         return this.derivationCreateV3(request as RequestDeriveCreateV3);
       case 'pri(derivation.accountGroup.create)':
-        return this.derivationAccountGroupCreate(request as RequestAccountGroup);
+        return await this.derivationAccountGroupCreate(request as RequestAccountGroup);
 
       // Transaction
       case 'pri(transactions.getOne)':
