@@ -183,6 +183,16 @@ export default class KoniExtension {
   }
 
   private accountGroupEdit ({ groupId, name }: RequestAccountGroupEdit): boolean {
+    const accounts = keyring.getAccounts();
+
+    accounts.forEach((a) => {
+      const pair = keyring.getPair(a.address);
+
+      if (pair.meta.groupId === groupId) {
+        keyring.saveAccountMeta(pair, { ...pair.meta, name });
+      }
+    });
+
     return true;
   }
 
