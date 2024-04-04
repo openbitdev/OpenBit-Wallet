@@ -9,7 +9,7 @@ import EventEmitter from 'eventemitter3';
 const DEFAULT_LAZY_TIME = 300;
 const LONG_LAZY_TIME = 900;
 const LONG_LAZY_EVENTS: EventType[] = [
-  'account.add',
+  'accountGroup.add',
   'chain.add'
 ];
 
@@ -37,7 +37,7 @@ export class EventService extends EventEmitter<EventRegistry> {
     this.waitCryptoReady = this.generateWaitPromise('crypto.ready');
     this.waitDatabaseReady = this.generateWaitPromise('database.ready');
     this.waitKeyringReady = this.generateWaitPromise('keyring.ready');
-    this.waitAccountReady = this.generateWaitPromise('account.ready');
+    this.waitAccountReady = this.generateWaitPromise('accountGroup.ready');
     // TODO: Need to merge logic on web-runner file
     this.waitInjectReady = TARGET_ENV === 'webapp' ? this.generateWaitPromise('inject.ready') : Promise.resolve(true);
     this.waitChainReady = this.generateWaitPromise('chain.ready');

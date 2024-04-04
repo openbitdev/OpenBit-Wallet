@@ -69,9 +69,9 @@ export interface EventRegistry {
 export type EventType = keyof EventRegistry;
 
 export const COMMON_RELOAD_EVENTS: EventType[] = [
-  'account.updateCurrent',
-  'account.add',
-  'account.remove',
+  'accountGroup.updateCurrent',
+  'accountGroup.add',
+  'accountGroup.remove',
   'asset.updateState',
   'chain.updateState',
   'chain.add',
