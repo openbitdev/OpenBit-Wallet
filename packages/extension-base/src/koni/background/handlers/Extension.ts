@@ -1137,7 +1137,11 @@ export default class KoniExtension {
   }
 
   private async saveCurrentAccountGroup (data: RequestAccountGroup): Promise<boolean> {
-    return Promise.resolve(true);
+    return new Promise<boolean>((resolve) => {
+      this.#koniState.setCurrentAccountGroup(data, () => {
+        resolve(true);
+      });
+    });
   }
 
   private async getAssetSetting (): Promise<Record<string, AssetSetting>> {
