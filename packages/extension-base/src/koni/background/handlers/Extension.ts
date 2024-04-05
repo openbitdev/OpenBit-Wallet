@@ -1674,7 +1674,9 @@ export default class KoniExtension {
 
   private validateTransfer (tokenSlug: string, from: string, to: string, value: string | undefined, transferAll: boolean | undefined): [TransactionError[], KeyringPair | undefined, BN | undefined, _ChainAsset] {
     const errors: TransactionError[] = [];
+    console.log('errors1677', errors)
     const keypair = keyring.getPair(from);
+    console.log('keypair1678', keypair)
     let transferValue;
 
     if (!transferAll) {
@@ -1688,10 +1690,12 @@ export default class KoniExtension {
     }
 
     const tokenInfo = this.#koniState.getAssetBySlug(tokenSlug);
+    console.log('tokenInfo1693', tokenInfo)
 
     if (!tokenInfo) {
       errors.push(new TransactionError(BasicTxErrorType.INVALID_PARAMS, t('Not found token from registry')));
     }
+    
 
     if (isEthereumAddress(from) && isEthereumAddress(to) && _isTokenEvmSmartContract(tokenInfo) && _getContractAddressOfToken(tokenInfo).length === 0) {
       errors.push(new TransactionError(BasicTxErrorType.INVALID_PARAMS, t('Not found ERC20 address for this token')));
@@ -1812,6 +1816,9 @@ export default class KoniExtension {
   private async makeTransferBitcoin (inputData: RequestTransferBitcoin): Promise<SWTransactionResponse> {
     const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
+    console.log('errors1815', errors)
+    console.log('chainType', tokenInfo)
+
 
     const warnings: TransactionWarning[] = [];
     const bitcoinApiMap = this.#koniState.getBitcoinApiMap(); // Get Bitcoin API map
@@ -1819,6 +1826,7 @@ export default class KoniExtension {
     // const chainInfo = this.#koniState.getChainInfo(networkKey);
 
     let chainType = ChainType.BITCOIN;
+    console.log('chainType', chainType)
 
     const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
     const transferAmount: AmountData = { ...tokenBaseAmount };
@@ -1826,7 +1834,7 @@ export default class KoniExtension {
     let transaction: ValidateTransactionResponseInput['transaction'];
 
     const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
-
+    console.log('freeBalance', freeBalance)
     try {
       chainType = ChainType.BITCOIN;
 
@@ -1863,6 +1871,21 @@ export default class KoniExtension {
       }
     };
     console.log('additionalValidator', additionalValidator)
+    console.log('Return from makeTransferBitcoin 1870:', {
+      errors,
+      warnings,
+      address: from,
+      chain: networkKey,
+      chainType,
+      transferNativeAmount: '0',
+      transaction,
+      data: inputData,
+      extrinsicType: ExtrinsicType.TRANSFER_BALANCE,
+      ignoreWarnings: transferAll,
+      isTransferAll: false,
+      edAsWarning: false,
+      additionalValidator: additionalValidator
+    });
 
     return this.#koniState.transactionService.handleTransaction({
       errors,

@@ -31,52 +31,57 @@ import { useLocalStorage } from 'usehooks-ts';
 
 type Props = ThemeProps;
 
-// function handleBitcoinTransaction() {
-//   const fakeBitcoinTransactionData: RequestTransferBitcoin = {
-//     from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
-//     to: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
-//     // tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
-//     tokenSlug: 'bitcoinTestnet-NATIVE-BTC', 
-//     transferAll: false, 
-//     // symbol:'BTC',
-//     // chain:'bitcoin',
-//     // name:'BTC' ,
+function handleBitcoinTransaction() {
+  const fakeBitcoinTransactionData: RequestTransferBitcoin = {
+    from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
+    to: 'tb1qaqe355z3ghpm09s0g40hkxsw74ppurmvrregcl', 
+    // tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
+    //tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
+    // bc1qm5l5rgsznd8mfpjf0ukjzyacedts5g7l8782am
+    // tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
+    // tb1qaqe355z3ghpm09s0g40hkxsw74ppurmvrregcl
+    tokenSlug: 'bitcoinTestnet-NATIVE-BTC', 
+    transferAll: false, 
+    // symbol:'BTC',
+    //
+    // chain:'bitcoin',
+    // name:'BTC' ,
     
-//     // decimals: 8,
-//     value: '1' ,
-//     networkKey: 'bitcoinTestnet',
-//     txId: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697',
-//   };
+    // decimals: 8,
+    value: '1000000' ,
+    networkKey: 'bitcoinTestnet',
+    id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697',
+  };
 
-//   keyringUnlock({
-//     password: 'Quanprox3' 
-//   })
-//   .then(() => {
-//     makeTransferBitcoin(fakeBitcoinTransactionData)
-//     .then((result) => {
-//       console.log('Bitcoin transaction result:', result);
-//       setTimeout(() => {
-//         completeConfirmationBitcoin('bitcoinSendTransactionRequest', { isApproved: true, id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697', url: 'https://example.com' });
-//       }, 1000);
-//     })
-//     .catch((error) => {
-//       console.error('Error making Bitcoin transaction:', error);
-//     });
-//   })
-//   .catch((error) => {
-//     console.error('Error unlocking keyring:', error);
-//   });
-// }
-async function handleBitcoinTransaction() {
+  keyringUnlock({
+    password: 'Quanprox3' 
+  })
+  .then(() => {
+    makeTransferBitcoin(fakeBitcoinTransactionData)
+    .then((result) => {
+      console.log('Bitcoin transaction result:', result);
+      setTimeout(() => {
+        completeConfirmationBitcoin('bitcoinSendTransactionRequest', { isApproved: true, id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697', url: 'https://example.com' });
+      }, 1000);
+    })
+    .catch((error) => {
+      console.error('Error making Bitcoin transaction:', error);
+    });
+  })
+  .catch((error) => {
+    console.error('Error unlocking keyring:', error);
+  });
+}
+async function handleBitcoinTransaction1() {
   try {
-    const fakeBitcoinTransactionData = {
+    const fakeBitcoinTransactionData: RequestTransferBitcoin = {
       from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
-      to: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
+      to: 'tb1qaqe355z3ghpm09s0g40hkxsw74ppurmvrregcl', 
       tokenSlug: 'bitcoinTestnet-NATIVE-BTC', 
       transferAll: false, 
-      value: '1',
+      value: '1000',
       networkKey: 'bitcoinTestnet',
-      txId: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697',
+      id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697',
     };
 
     await keyringUnlock({ password: 'Quanprox3' });
@@ -84,17 +89,49 @@ async function handleBitcoinTransaction() {
     const result = await makeTransferBitcoin(fakeBitcoinTransactionData);
     console.log('Bitcoin transaction result:', result);
 
-    setTimeout(() => {
-      completeConfirmationBitcoin('bitcoinSendTransactionRequest', { 
-        isApproved: true, 
-        id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697', 
-        url: 'https://example.com' 
-      });
-    }, 1000);
-  } catch (error) {
-    console.error('Error handling Bitcoin transaction:', error);
+    // Thực hiện xác nhận ngay sau khi nhận được kết quả
+    await completeConfirmationBitcoin('bitcoinSignatureRequest', { 
+      isApproved: true, 
+      id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697', 
+      url: 'https://example.com' 
+    });
+  } catch (error: any) {
+    if (error.message && typeof error.message === 'string') {
+      console.error('Error:', error.message);
+    } else {
+      console.error('Unknown error occurred.');
+    }
   }
 }
+
+// async function handleBitcoinTransaction() {
+//   try {
+//     const fakeBitcoinTransactionData = {
+//       from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
+//       to: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
+//       tokenSlug: 'bitcoinTestnet-NATIVE-BTC', 
+//       transferAll: false, 
+//       value: '1',
+//       networkKey: 'bitcoinTestnet',
+//       txId: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697',
+//     };
+
+//     await keyringUnlock({ password: 'Quanprox3' });
+
+//     const result = await makeTransferBitcoin(fakeBitcoinTransactionData);
+//     console.log('Bitcoin transaction result:', result);
+
+//     setTimeout(() => {
+//       completeConfirmationBitcoin('bitcoinSendTransactionRequest', { 
+//         isApproved: true, 
+//         id: '71bb1c2af12a7ecf9e2ddac0c68f5881c9c64898596d0b0c3fdb723f0d4a9697', 
+//         url: 'https://example.com' 
+//       });
+//     }, 1000);
+//   } catch (error) {
+//     console.error('Error handling Bitcoin transaction:', error);
+//   }
+// }
 
 const Component = (): React.ReactElement => {
   useSetCurrentPage('/home/tokens');

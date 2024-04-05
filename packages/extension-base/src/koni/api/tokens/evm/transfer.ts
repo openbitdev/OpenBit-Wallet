@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
-import { ExternalRequestPromise, ExternalRequestPromiseStatus, FeeData, FeeResult, HandleBasicTx, TransactionResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { ExternalRequestPromise, ExternalRequestPromiseStatus, FeeData, HandleBasicTx, TransactionResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/web3';
 import { _BALANCE_PARSING_CHAIN_GROUP, EVM_REFORMAT_DECIMALS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ERC721_ABI } from '@subwallet/extension-base/services/chain-service/helper';
@@ -10,7 +10,6 @@ import { _BitcoinApi, _EvmApi } from '@subwallet/extension-base/services/chain-s
 import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
 import BigN from 'bignumber.js';
 import { Transaction } from 'bitcoinjs-lib';
-import { Input, Output } from 'bitcoinjs-lib/src/transaction';
 import { TransactionConfig, TransactionReceipt } from 'web3-core';
 
 import { hexToBn } from '@polkadot/util';
@@ -95,6 +94,8 @@ export async function getEVMTransactionObject (
 
   return [transactionObject, transactionObject.value.toString()];
 }
+
+
 export async function getBitcoinTransactionObject(
   from: string,
   to: string,
@@ -121,7 +122,7 @@ export async function getBitcoinTransactionObject(
     console.log('Data:', data);
 
     const bitcoinApi = `https://api.blockcypher.com/v1/btc/test3/txs/new`;
-    const bitcoinApitest = 'https://blockstream.info/testnet/api/tx';
+    // const bitcoinApitest = 'https://blockstream.info/testnet/api/tx';
     
     console.log('Bitcoin API:', bitcoinApi);
 
@@ -172,6 +173,46 @@ export async function getBitcoinTransactionObject(
     throw new Error(`Failed to get Bitcoin transaction object: ${error}`);
   }
 }
+
+
+// export async function getBitcoinTransactionObject (
+//   from: string,
+//   to: string,
+//   amount: string,
+//   transferAll: boolean,
+//   bitcoinApi: Record<string, _BitcoinApi> // Change type to string
+// ): Promise<[Transaction, string]> { // Change return type to [Transaction, string]
+//   try {
+//     const requestBody = {
+//       from , to , amount , transferAll
+//     };
+//     console.log('requestBody', requestBody)
+//     const bitcoinApi = 'https://blockstream.info/testnet/api/tx';
+//     console.log('bitcoinApi', requestBody)
+
+//     const response = await fetch(bitcoinApi, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json'
+//       },
+//       body: JSON.stringify(requestBody)
+//     });
+
+//      console.log('responseresponse', response.json())
+//     if (response.ok) {
+//       const responseData = await response.json();
+//       // Create Transaction object
+//       const transactionObject = buildBitcoinTransaction(responseData);
+//       const transferAmount = responseData.outputs[0].value.toString();
+
+//       return [transactionObject, transferAmount];
+//     } else {
+//       throw new Error('Failed to get Bitcoin transaction object: Unexpected response from API');
+//     }
+//   } catch (error) {
+//     throw new Error('Failed to get Bitcoin transaction object: ' );
+//   }
+// }
 
 // function buildBitcoinTransaction (responseData: any): Transaction {
 //   // Assuming responseData contains necessary transaction information

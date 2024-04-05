@@ -209,6 +209,7 @@ export default class BitcoinRequestHandler {
 
   public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
+    console.log('confirmations', confirmations)
 
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;

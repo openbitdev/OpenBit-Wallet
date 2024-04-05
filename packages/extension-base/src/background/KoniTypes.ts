@@ -697,6 +697,7 @@ export interface SWWarning {
   data?: unknown;
 }
 
+
 export enum BasicTxErrorType {
   NOT_ENOUGH_BALANCE = 'NOT_ENOUGH_BALANCE',
   CHAIN_DISCONNECTED = 'CHAIN_DISCONNECTED',
@@ -711,6 +712,7 @@ export enum BasicTxErrorType {
   TIMEOUT = 'TIMEOUT',
   NOT_ENOUGH_EXISTENTIAL_DEPOSIT = 'NOT_ENOUGH_EXISTENTIAL_DEPOSIT',
   UNABLE_TO_CREATE_EMITTER = 'UNABLE_TO_CREATE_EMITTER',
+  INVALID_TRANSACTION = "INVALID_TRANSACTION"
 }
 
 export enum StakingTxErrorType {
@@ -1614,7 +1616,7 @@ export interface ValidateTransactionResponse {
 }
 
 export type RequestTransfer = InternalRequestSign<RequestCheckTransfer>;
-export type RequestTransferBitcoin = RequestTransfer & { txId: string };
+export type RequestTransferBitcoin = RequestTransfer & { id: string };
 
 export interface RequestCheckCrossChainTransfer extends BaseRequestSign {
   originNetworkKey: string,

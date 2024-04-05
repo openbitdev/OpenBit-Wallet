@@ -100,8 +100,12 @@ export default class TransactionService {
       errors: validationInput.errors || [],
       warnings: validationInput.warnings || []
     };
+    console.log('validationInput103',validationInput)
+    console.log('validationInput.errors',validationInput.errors)
+    console.log('validationInput.warnings',validationInput.warnings)
+    console.log('validation103', validation)
     const { additionalValidator, address, chain, edAsWarning, extrinsicType, isTransferAll, transaction } = validation;
-
+    console.log('transaction105', transaction)
     // Check duplicate transaction
     validation.errors.push(...this.checkDuplicate(validationInput));
 
@@ -129,23 +133,26 @@ export default class TransactionService {
       medium: 0,
       slow: 0
     };
-
+    console.log('estimateFee124', estimateFee)
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
-
+    console.log('chainInfo135', chainInfo)
     if (transaction) {
       try {
         if (isSubstrateTransaction(transaction)) {
           estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
-        } else if (isBitcoinTransaction(transaction)) {
+        }
+         else if (isBitcoinTransaction(transaction)) {
           const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
 
           estimateFee.value = feeEstimates.medium.toString();
-        } else {
+        } 
+        
+        else {
           const web3 = this.state.chainService.getEvmApi(chain);
 
           if (!web3) {
             validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
-          } else {
+          } else { 
             const gasLimit = await web3.api.eth.estimateGas(transaction);
             const priority = await calculateGasFeeParams(web3, chainInfo.slug);
 
@@ -259,6 +266,7 @@ export default class TransactionService {
 
   public async addTransaction (inputTransaction: SWTransactionInput): Promise<TransactionEmitter> {
     const transactions = this.transactions;
+    console.log('addTransaction268',transactions)
     // Fill transaction default info
     const transaction = this.fillTransactionDefaultInfo(inputTransaction);
 
@@ -286,6 +294,8 @@ export default class TransactionService {
 
   public async handleTransaction (transaction: SWTransactionInput): Promise<SWTransactionResponse> {
     const validatedTransaction = await this.generalValidate(transaction);
+
+    console.log('validatedTransaction291', validatedTransaction)
     const stopByErrors = validatedTransaction.errors.length > 0;
     const stopByWarnings = validatedTransaction.warnings.length > 0 && !validatedTransaction.ignoreWarnings;
 
@@ -299,8 +309,10 @@ export default class TransactionService {
     }
 
     validatedTransaction.warnings = [];
+   
 
     const emitter = await this.addTransaction(validatedTransaction);
+    console.log('emitter311', emitter)
 
     await new Promise<void>((resolve, reject) => {
       // TODO
