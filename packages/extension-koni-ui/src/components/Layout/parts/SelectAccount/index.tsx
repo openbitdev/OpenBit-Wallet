@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup, AccountJson } from '@subwallet/extension-base/background/types';
+import { AccountGroup } from '@subwallet/extension-base/background/types';
 import { AccountGroupBriefInfo } from '@subwallet/extension-koni-ui/components';
 import { SimpleQrModal } from '@subwallet/extension-koni-ui/components/Modal';
 import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
@@ -10,16 +10,14 @@ import { saveCurrentAccountGroup } from '@subwallet/extension-koni-ui/messaging'
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { funcSortByName, groupFuncSortByName, isAccountAll, searchAccountGroupFunction } from '@subwallet/extension-koni-ui/utils';
+import { groupFuncSortByName, isAccountAll, searchAccountGroupFunction } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Plug, Plugs, PlugsConnected } from 'phosphor-react';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { AccountItemWithName } from '../../../Account';
 import AccountGroupSelectorItem from '../../../AccountGroup/AccountGroupSelectorItem';
@@ -59,43 +57,16 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const location = useLocation();
   const { goHome } = useDefaultNavigate();
 
-  const { accountGroups: _accountGroups, accounts: _accounts, currentAccount, currentAccountGroup, isAllAccount } = useSelector((state: RootState) => state.accountState);
+  const { accountGroups: _accountGroups, currentAccountGroup, isAllAccount } = useSelector((state: RootState) => state.accountState);
 
-  const [connected, setConnected] = useState(0);
-  const [canConnect, setCanConnect] = useState(0);
-  const [connectionState, setConnectionState] = useState<ConnectionStatement>(ConnectionStatement.NOT_CONNECTED);
+  const [connected] = useState(0);
+  const [canConnect] = useState(0);
+  const [connectionState] = useState<ConnectionStatement>(ConnectionStatement.NOT_CONNECTED);
   const currentTab = useGetCurrentTab();
   const isCurrentTabFetched = !!currentTab;
   const currentAuth = useGetCurrentAuth();
   const isPopup = useIsPopup();
   const [selectedQrAddress, setSelectedQrAddress] = useState<string | undefined>();
-
-  const accounts = useMemo((): AccountJson[] => {
-    const result = [..._accounts].sort(funcSortByName);
-    const all = result.find((acc) => isAccountAll(acc.address));
-
-    if (all) {
-      const index = result.indexOf(all);
-
-      result.splice(index, 1);
-      result.unshift(all);
-    }
-
-    if (!!currentAccount?.address && (currentAccount?.address !== (all && all.address))) {
-      const currentAccountIndex = result.findIndex((item) => {
-        return item.address === currentAccount?.address;
-      });
-
-      if (currentAccountIndex > -1) {
-        const _currentAccount = result[currentAccountIndex];
-
-        result.splice(currentAccountIndex, 1);
-        result.splice(1, 0, _currentAccount);
-      }
-    }
-
-    return result;
-  }, [_accounts, currentAccount?.address]);
 
   const accountGroups = useMemo((): AccountGroup[] => {
     const result = [..._accountGroups].sort(groupFuncSortByName);
@@ -125,8 +96,8 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   }, [_accountGroups, currentAccountGroup?.groupId]);
 
   const noAllAccounts = useMemo(() => {
-    return accounts.filter(({ address }) => !isAccountAll(address));
-  }, [accounts]);
+    return accountGroups.filter(({ groupId }) => !isAccountAll(groupId));
+  }, [accountGroups]);
 
   const showAllAccount = useMemo(() => {
     return noAllAccounts.length > 1;
@@ -217,73 +188,6 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       </div>
     );
   }, []);
-
-  useEffect(() => {
-    if (currentAuth) {
-      if (!currentAuth.isAllowed) {
-        setCanConnect(0);
-        setConnected(0);
-        setConnectionState(ConnectionStatement.BLOCKED);
-      } else {
-        const type = currentAuth.accountAuthType;
-        const allowedMap = currentAuth.isAllowedMap;
-
-        const filterType = (address: string) => {
-          if (type === 'both') {
-            return true;
-          }
-
-          const _type = type || 'substrate';
-
-          return _type === 'substrate' ? !isEthereumAddress(address) : isEthereumAddress(address);
-        };
-
-        if (!isAllAccount) {
-          const _allowedMap: Record<string, boolean> = {};
-
-          Object.entries(allowedMap)
-            .filter(([address]) => filterType(address))
-            .forEach(([address, value]) => {
-              _allowedMap[address] = value;
-            });
-
-          const isAllowed = _allowedMap[currentAccount?.address || ''];
-
-          setCanConnect(0);
-          setConnected(0);
-
-          if (isAllowed === undefined) {
-            setConnectionState(ConnectionStatement.NOT_CONNECTED);
-          } else {
-            setConnectionState(isAllowed ? ConnectionStatement.CONNECTED : ConnectionStatement.DISCONNECTED);
-          }
-        } else {
-          const numberAccounts = noAllAccounts.filter(({ address }) => filterType(address)).length;
-          const numberAllowedAccounts = Object.entries(allowedMap)
-            .filter(([address]) => filterType(address))
-            .filter(([, value]) => value)
-            .length;
-
-          setConnected(numberAllowedAccounts);
-          setCanConnect(numberAccounts);
-
-          if (numberAllowedAccounts === 0) {
-            setConnectionState(ConnectionStatement.DISCONNECTED);
-          } else {
-            if (numberAllowedAccounts > 0 && numberAllowedAccounts < numberAccounts) {
-              setConnectionState(ConnectionStatement.PARTIAL_CONNECTED);
-            } else {
-              setConnectionState(ConnectionStatement.CONNECTED);
-            }
-          }
-        }
-      }
-    } else {
-      setCanConnect(0);
-      setConnected(0);
-      setConnectionState(ConnectionStatement.NOT_CONNECTED);
-    }
-  }, [currentAccount?.address, currentAuth, isAllAccount, noAllAccounts]);
 
   const visibleText = useMemo((): string => {
     switch (connectionState) {

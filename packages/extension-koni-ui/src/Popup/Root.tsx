@@ -99,8 +99,6 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
   const { isUILocked } = useUILock();
   const needUnlock = isUILocked || (isLocked && unlockType === WalletUnlockType.ALWAYS_REQUIRED);
 
-  console.log('accountGroups', accountGroups);
-
   const needMigrate = false;
 
   useEffect(() => {
