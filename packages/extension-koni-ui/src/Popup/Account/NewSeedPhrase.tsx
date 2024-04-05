@@ -3,9 +3,9 @@
 
 import { CloseIcon, Layout, PageWrapper, WordPhrase } from '@subwallet/extension-koni-ui/components';
 import { SeedPhraseTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/SeedPhraseTermModal';
-import { CONFIRM_TERM_SEED_PHRASE, DEFAULT_ACCOUNT_TYPES, DEFAULT_ROUTER_PATH, NEW_SEED_MODAL, SEED_PREVENT_MODAL, SELECTED_ACCOUNT_TYPE, TERM_AND_CONDITION_SEED_PHRASE_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { CONFIRM_TERM_SEED_PHRASE, DEFAULT_ACCOUNT_TYPES, DEFAULT_ROUTER_PATH, NEW_SEED_MODAL, SEED_PREVENT_MODAL, TERM_AND_CONDITION_SEED_PHRASE_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useGetDefaultAccountName, useIsPopup, useNotification, useTranslation, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { createAccountSuriV2, createSeedV2, windowOpen } from '@subwallet/extension-koni-ui/messaging';
+import { createAccountGroupSuri, createSeedV2, windowOpen } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { isFirefox, isNoAccount } from '@subwallet/extension-koni-ui/utils';
@@ -45,11 +45,8 @@ const Component: React.FC<Props> = ({ className }: Props) => {
 
   const isOpenWindowRef = useRef(false);
 
-  const [typesStorage] = useLocalStorage(SELECTED_ACCOUNT_TYPE, DEFAULT_ACCOUNT_TYPES);
   const [preventModalStorage] = useLocalStorage(SEED_PREVENT_MODAL, false);
   const [preventModal] = useState(preventModalStorage);
-
-  const [accountTypes] = useState(typesStorage);
 
   const [seedPhrase, setSeedPhrase] = useState('');
   const [loading, setLoading] = useState(false);
@@ -74,11 +71,9 @@ const Component: React.FC<Props> = ({ className }: Props) => {
     checkUnlock().then(() => {
       setLoading(true);
       setTimeout(() => {
-        createAccountSuriV2({
+        createAccountGroupSuri({
           name: accountName,
-          suri: seedPhrase,
-          types: accountTypes,
-          isAllowed: true
+          suri: seedPhrase
         })
           .then(() => {
             onComplete();
@@ -96,7 +91,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
     }).catch(() => {
       // User cancel unlock
     });
-  }, [seedPhrase, checkUnlock, accountName, accountTypes, onComplete, notify]);
+  }, [seedPhrase, checkUnlock, accountName, onComplete, notify]);
 
   const onConfirmTerms = useCallback(() => {
     _onCreate();

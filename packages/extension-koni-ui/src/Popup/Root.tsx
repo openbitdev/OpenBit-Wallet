@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { WalletUnlockType } from '@subwallet/extension-base/background/KoniTypes';
-import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { isSameAddress } from '@subwallet/extension-base/utils';
 import { BackgroundExpandView } from '@subwallet/extension-koni-ui/components';
 import { Logo2D } from '@subwallet/extension-koni-ui/components/Logo';
@@ -16,7 +15,7 @@ import useUILock from '@subwallet/extension-koni-ui/hooks/common/useUILock';
 import { subscribeNotifications } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { isNoAccount, removeStorage } from '@subwallet/extension-koni-ui/utils';
+import { isNoAccountGroup, removeStorage } from '@subwallet/extension-koni-ui/utils';
 import { changeHeaderLogo } from '@subwallet/react-ui';
 import { NotificationProps } from '@subwallet/react-ui/es/notification/NotificationProvider';
 import CN from 'classnames';
@@ -94,19 +93,15 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
 
   const { unlockType } = useSelector((state: RootState) => state.settings);
   const { hasConfirmations, hasInternalConfirmations } = useSelector((state: RootState) => state.requestState);
-  const { accounts, currentAccount, hasMasterPassword, isLocked } = useSelector((state: RootState) => state.accountState);
+  const { accountGroups, currentAccount, hasMasterPassword, isLocked } = useSelector((state: RootState) => state.accountState);
   const [initAccount, setInitAccount] = useState(currentAccount);
-  const noAccount = useMemo(() => isNoAccount(accounts), [accounts]);
+  const noAccountGroup = useMemo(() => isNoAccountGroup(accountGroups), [accountGroups]);
   const { isUILocked } = useUILock();
   const needUnlock = isUILocked || (isLocked && unlockType === WalletUnlockType.ALWAYS_REQUIRED);
 
-  const needMigrate = useMemo(
-    () => !!accounts
-      .filter((acc) => acc.address !== ALL_ACCOUNT_KEY && !acc.isExternal && !acc.isInjected)
-      .filter((acc) => !acc.isMasterPassword)
-      .length
-    , [accounts]
-  );
+  console.log('accountGroups', accountGroups);
+
+  const needMigrate = false;
 
   useEffect(() => {
     initDataRef.current.then(() => {
@@ -172,14 +167,14 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
     } else if (hasMasterPassword && pathName === createPasswordUrl) {
       redirectTarget = DEFAULT_ROUTER_PATH;
     } else if (!hasMasterPassword) {
-      if (noAccount) {
+      if (noAccountGroup) {
         if (![...allowImportAccountUrls, welcomeUrl, createPasswordUrl, securityUrl].includes(pathName)) {
           redirectTarget = welcomeUrl;
         }
       } else if (pathName !== createDoneUrl) {
         redirectTarget = createPasswordUrl;
       }
-    } else if (noAccount) {
+    } else if (noAccountGroup) {
       if (![...allowImportAccountUrls, welcomeUrl, createPasswordUrl, securityUrl].includes(pathName)) {
         redirectTarget = welcomeUrl;
       }
@@ -193,10 +188,10 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
       }
     } else if (pathName === loginUrl && !needUnlock) {
       redirectTarget = DEFAULT_ROUTER_PATH;
-    } else if (pathName === welcomeUrl && !noAccount) {
+    } else if (pathName === welcomeUrl && !noAccountGroup) {
       redirectTarget = DEFAULT_ROUTER_PATH;
     } else if (pathName === migratePasswordUrl && !needMigrate) {
-      if (noAccount) {
+      if (noAccountGroup) {
         redirectTarget = welcomeUrl;
       } else {
         redirectTarget = DEFAULT_ROUTER_PATH;
@@ -222,7 +217,7 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
     } else {
       return null;
     }
-  }, [location.pathname, dataLoaded, needMigrate, hasMasterPassword, needUnlock, noAccount, hasInternalConfirmations, isOpenPModal, hasConfirmations, currentPage, openPModal]);
+  }, [location.pathname, dataLoaded, needMigrate, hasMasterPassword, needUnlock, noAccountGroup, hasInternalConfirmations, isOpenPModal, hasConfirmations, currentPage, openPModal]);
 
   // Remove transaction persist state
   useEffect(() => {

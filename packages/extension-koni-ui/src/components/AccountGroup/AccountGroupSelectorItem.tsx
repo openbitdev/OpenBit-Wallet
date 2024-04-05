@@ -1,30 +1,24 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { useAccountAvatarInfo, useAccountAvatarTheme, useGetAccountSignModeByAddress, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useAccountAvatarTheme, useGetAccountSignModeByAddress, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { PhosphorIcon } from '@subwallet/extension-koni-ui/types';
 import { AccountSignMode } from '@subwallet/extension-koni-ui/types/account';
-import { KeypairType } from '@subwallet/keyring/types';
-import { Button, Icon, Logo } from '@subwallet/react-ui';
+import { Button, Icon } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import CN from 'classnames';
 import { CheckCircle, CopySimple, Eye, PencilSimpleLine, PuzzlePiece, QrCode, Swatches } from 'phosphor-react';
 import React, { Context, useCallback, useContext, useMemo } from 'react';
-import CopyToClipboard from 'react-copy-to-clipboard';
 import styled, { ThemeContext } from 'styled-components';
 
 export interface _AccountCardItem {
   className?: string;
   onPressMoreButton?: () => void;
-  source?: string;
   isSelected?: boolean;
   onClickQrButton?: (address: string) => void;
   accountName?: string;
   address?: string;
-  genesisHash?: string | null;
-  preventPrefix?: boolean;
-  type?: KeypairType;
 }
 interface AbstractIcon {
   type: 'icon' | 'node',
@@ -46,15 +40,10 @@ type IconProps = SwIconProps | NodeIconProps;
 function Component (props: _AccountCardItem): React.ReactElement<_AccountCardItem> {
   const { accountName,
     address,
-    genesisHash,
     isSelected,
-    onClickQrButton,
-    onPressMoreButton,
-    preventPrefix,
-    type: givenType } = props;
+    onPressMoreButton } = props;
 
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
-  const { address: formattedAddress, prefix } = useAccountAvatarInfo(address ?? '', preventPrefix, genesisHash, givenType);
 
   const notify = useNotification();
   const { t } = useTranslation();
@@ -111,8 +100,8 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
   }, [onPressMoreButton]);
 
   const _onClickQrBtn = useCallback(() => {
-    onClickQrButton?.(formattedAddress || '');
-  }, [onClickQrButton, formattedAddress]);
+    //
+  }, []);
 
   const _onClickCopyButton = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -121,30 +110,20 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
     });
   }, [notify, t]);
 
-  const truncatedAddress = formattedAddress ? `${formattedAddress.substring(0, 9)}...${formattedAddress.slice(-9)}` : '';
-
   return (
     <>
       <div className={CN(props.className)}>
         <div className='__item-left-part'>
           <SwAvatar
-            identPrefix={prefix}
             isShowSubIcon={true}
             size={40}
-            subIcon={(
-              <Logo
-                network={avatarTheme}
-                shape={'circle'}
-                size={16}
-              />
-            )}
             theme={avatarTheme}
-            value={formattedAddress || ''}
+            value={''}
           />
         </div>
         <div className='__item-center-part'>
           <div className='__item-name'>{accountName}</div>
-          <div className='__item-address'>{truncatedAddress}</div>
+          <div className='__item-address'>{accountName}</div>
         </div>
         <div className='__item-right-part'>
           <div className='__item-actions'>
@@ -161,21 +140,19 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
               tooltip={t('Show QR code')}
               type='ghost'
             />
-            <CopyToClipboard text={formattedAddress || ''}>
-              <Button
-                className='-show-on-hover'
-                icon={
-                  <Icon
-                    phosphorIcon={CopySimple}
-                    size='sm'
-                  />
-                }
-                onClick={_onClickCopyButton}
-                size='xs'
-                tooltip={t('Copy address')}
-                type='ghost'
-              />
-            </CopyToClipboard>
+            <Button
+              className='-show-on-hover'
+              icon={
+                <Icon
+                  phosphorIcon={CopySimple}
+                  size='sm'
+                />
+              }
+              onClick={_onClickCopyButton}
+              size='xs'
+              tooltip={t('Copy address')}
+              type='ghost'
+            />
             <Button
               icon={
                 <Icon
@@ -227,7 +204,7 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
   );
 }
 
-const AccountCardItem = styled(Component)<_AccountCardItem>(({ theme }) => {
+const AccountGroupSelectorItem = styled(Component)<_AccountCardItem>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
@@ -302,4 +279,4 @@ const AccountCardItem = styled(Component)<_AccountCardItem>(({ theme }) => {
   };
 });
 
-export default AccountCardItem;
+export default AccountGroupSelectorItem;

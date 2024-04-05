@@ -1,15 +1,16 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountJson, CurrentAccountInfo } from '@subwallet/extension-base/background/types';
+import { AccountGroup, AccountJson } from '@subwallet/extension-base/background/types';
+import { AccountGroupBriefInfo } from '@subwallet/extension-koni-ui/components';
 import { SimpleQrModal } from '@subwallet/extension-koni-ui/components/Modal';
-import { DISCONNECT_EXTENSION_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useDefaultNavigate, useGetCurrentAuth, useGetCurrentTab, useGoBackSelectAccount, useIsPopup, useTranslation } from '@subwallet/extension-koni-ui/hooks';
-import { saveCurrentAccountAddress } from '@subwallet/extension-koni-ui/messaging';
+import { saveCurrentAccountGroup } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { findAccountByAddress, funcSortByName, isAccountAll, searchAccountFunction } from '@subwallet/extension-koni-ui/utils';
+import { funcSortByName, groupFuncSortByName, isAccountAll, searchAccountGroupFunction } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Plug, Plugs, PlugsConnected } from 'phosphor-react';
@@ -20,7 +21,8 @@ import styled from 'styled-components';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
-import { AccountBriefInfo, AccountCardItem, AccountItemWithName } from '../../../Account';
+import { AccountItemWithName } from '../../../Account';
+import AccountGroupSelectorItem from '../../../AccountGroup/AccountGroupSelectorItem';
 import { GeneralEmptyList } from '../../../EmptyList';
 import { ConnectWebsiteModal } from '../ConnectWebsiteModal';
 import SelectAccountFooter from '../SelectAccount/Footer';
@@ -57,7 +59,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const location = useLocation();
   const { goHome } = useDefaultNavigate();
 
-  const { accounts: _accounts, currentAccount, isAllAccount } = useSelector((state: RootState) => state.accountState);
+  const { accountGroups: _accountGroups, accounts: _accounts, currentAccount, currentAccountGroup, isAllAccount } = useSelector((state: RootState) => state.accountState);
 
   const [connected, setConnected] = useState(0);
   const [canConnect, setCanConnect] = useState(0);
@@ -95,6 +97,33 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     return result;
   }, [_accounts, currentAccount?.address]);
 
+  const accountGroups = useMemo((): AccountGroup[] => {
+    const result = [..._accountGroups].sort(groupFuncSortByName);
+    const all = result.find((ag) => isAccountAll(ag.groupId));
+
+    if (all) {
+      const index = result.indexOf(all);
+
+      result.splice(index, 1);
+      result.unshift(all);
+    }
+
+    if (!!currentAccountGroup?.groupId && (currentAccountGroup?.groupId !== (all && all.groupId))) {
+      const currentAccountGroupIndex = result.findIndex((item) => {
+        return item.groupId === currentAccountGroup?.groupId;
+      });
+
+      if (currentAccountGroupIndex > -1) {
+        const _currentAccountGroup = result[currentAccountGroupIndex];
+
+        result.splice(currentAccountGroupIndex, 1);
+        result.splice(1, 0, _currentAccountGroup);
+      }
+    }
+
+    return result;
+  }, [_accountGroups, currentAccountGroup?.groupId]);
+
   const noAllAccounts = useMemo(() => {
     return accounts.filter(({ address }) => !isAccountAll(address));
   }, [accounts]);
@@ -103,16 +132,12 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     return noAllAccounts.length > 1;
   }, [noAllAccounts]);
 
-  const _onSelect = useCallback((address: string) => {
-    if (address) {
-      const accountByAddress = findAccountByAddress(accounts, address);
+  const _onSelect = useCallback((groupId: string) => {
+    if (groupId) {
+      const accountGroup = accountGroups.find((ag) => ag.groupId === groupId);
 
-      if (accountByAddress) {
-        const accountInfo = {
-          address: address
-        } as CurrentAccountInfo;
-
-        saveCurrentAccountAddress(accountInfo).then(() => {
+      if (accountGroup) {
+        saveCurrentAccountGroup({ groupId }).then(() => {
           const pathName = location.pathname;
           const locationPaths = location.pathname.split('/');
 
@@ -138,8 +163,9 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         console.error('Failed to switch account');
       }
     }
-  }, [accounts, location.pathname, navigate, goHome]);
+  }, [accountGroups, location.pathname, navigate, goHome]);
 
+  // @ts-ignore
   const onClickDetailAccount = useCallback((address: string) => {
     return () => {
       inactiveModal(modalId);
@@ -149,10 +175,6 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     };
   }, [navigate, inactiveModal]);
 
-  const openDisconnectExtensionModal = useCallback(() => {
-    activeModal(DISCONNECT_EXTENSION_MODAL);
-  }, [activeModal]);
-
   const onClickItemQrButton = useCallback((address: string) => {
     setSelectedQrAddress(address);
     activeModal(simpleQrModalId);
@@ -160,14 +182,14 @@ function Component ({ className }: Props): React.ReactElement<Props> {
 
   const onQrModalBack = useGoBackSelectAccount(simpleQrModalId);
 
-  const renderItem = useCallback((item: AccountJson, _selected: boolean): React.ReactNode => {
-    const currentAccountIsAll = isAccountAll(item.address);
+  const renderItem = useCallback((item: AccountGroup, _selected: boolean): React.ReactNode => {
+    const currentAccountGroupIsAll = isAccountAll(item.groupId);
 
-    if (currentAccountIsAll) {
+    if (currentAccountGroupIsAll) {
       if (showAllAccount) {
         return (
           <AccountItemWithName
-            address={item.address}
+            address={''}
             className='all-account-selection'
             isSelected={_selected}
           />
@@ -177,26 +199,21 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       }
     }
 
-    const isInjected = !!item.isInjected;
-
     return (
-      <AccountCardItem
+      <AccountGroupSelectorItem
         accountName={item.name || ''}
-        address={item.address}
+        address={''}
         className={className}
-        genesisHash={item.genesisHash}
         isSelected={_selected}
         onClickQrButton={onClickItemQrButton}
-        onPressMoreButton={isInjected ? openDisconnectExtensionModal : onClickDetailAccount(item.address)}
-        source={item.source}
       />
     );
-  }, [className, onClickDetailAccount, openDisconnectExtensionModal, onClickItemQrButton, showAllAccount]);
+  }, [className, onClickItemQrButton, showAllAccount]);
 
-  const renderSelectedItem = useCallback((item: AccountJson): React.ReactNode => {
+  const renderSelectedItem = useCallback((item: AccountGroup): React.ReactNode => {
     return (
       <div className='selected-account'>
-        <AccountBriefInfo account={item} />
+        <AccountGroupBriefInfo accountGroup={item} />
       </div>
     );
   }, []);
@@ -331,16 +348,16 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         id={modalId}
         ignoreScrollbarMethod='padding'
         inputWidth={'100%'}
-        itemKey='address'
-        items={accounts}
+        itemKey='groupId'
+        items={accountGroups}
         onSelect={_onSelect}
         renderItem={renderItem}
         renderSelected={renderSelectedItem}
         renderWhenEmpty={renderEmpty}
-        searchFunction={searchAccountFunction}
+        searchFunction={searchAccountGroupFunction}
         searchMinCharactersCount={2}
         searchPlaceholder={t<string>('Account name')}
-        selected={currentAccount?.address || ''}
+        selected={currentAccountGroup?.groupId || ''}
         shape='round'
         size='small'
         title={t('Select account')}

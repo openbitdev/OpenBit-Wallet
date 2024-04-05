@@ -3,7 +3,7 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
-import { AbstractAddressJson, AccountAuthType, AccountJson } from '@subwallet/extension-base/background/types';
+import { AbstractAddressJson, AccountAuthType, AccountGroup, AccountJson } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { _getChainSubstrateAddressPrefix, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { isAccountAll, uniqueStringArray } from '@subwallet/extension-base/utils';
@@ -93,8 +93,16 @@ export const isNoAccount = (accounts: AccountJson[] | null): boolean => {
   return accounts ? !accounts.filter((acc) => acc.address !== ALL_ACCOUNT_KEY).length : false;
 };
 
+export const isNoAccountGroup = (accountGroups: AccountGroup[] | null): boolean => {
+  return accountGroups ? !accountGroups.filter((ag) => ag.groupId !== ALL_ACCOUNT_KEY).length : false;
+};
+
 export const searchAccountFunction = (item: AbstractAddressJson, searchText: string): boolean => {
   return item.address.toLowerCase().includes(searchText.toLowerCase()) || (item.name || '').toLowerCase().includes(searchText.toLowerCase());
+};
+
+export const searchAccountGroupFunction = (item: AccountGroup, searchText: string): boolean => {
+  return (item.name || '').toLowerCase().includes(searchText.toLowerCase());
 };
 
 export const formatAccountAddress = (account: AccountJson, networkInfo: _ChainInfo | null): string => {
@@ -128,6 +136,14 @@ export const getAccountAddressType = (address?: string): AccountAddressType => {
 
 export const funcSortByName = (a: AbstractAddressJson, b: AbstractAddressJson) => {
   if (isAccountAll(b.address)) {
+    return 3;
+  }
+
+  return ((a?.name || '').toLowerCase() > (b?.name || '').toLowerCase()) ? 1 : -1;
+};
+
+export const groupFuncSortByName = (a: AccountGroup, b: AccountGroup) => {
+  if (isAccountAll(b.groupId)) {
     return 3;
   }
 
