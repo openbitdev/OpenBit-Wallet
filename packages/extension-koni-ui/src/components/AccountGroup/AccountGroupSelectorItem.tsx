@@ -1,14 +1,14 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { useAccountAvatarTheme, useGetAccountSignModeByAddress, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useAccountAvatarTheme, useGetAccountSignModeByAddress, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { PhosphorIcon } from '@subwallet/extension-koni-ui/types';
 import { AccountSignMode } from '@subwallet/extension-koni-ui/types/account';
 import { Button, Icon } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import CN from 'classnames';
-import { CheckCircle, CopySimple, Eye, PencilSimpleLine, PuzzlePiece, QrCode, Swatches } from 'phosphor-react';
+import { CheckCircle, Eye, PencilSimpleLine, PuzzlePiece, QrCode, Swatches } from 'phosphor-react';
 import React, { Context, useCallback, useContext, useMemo } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
@@ -45,7 +45,6 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
 
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
-  const notify = useNotification();
   const { t } = useTranslation();
 
   const avatarTheme = useAccountAvatarTheme(address || '');
@@ -103,13 +102,6 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
     //
   }, []);
 
-  const _onClickCopyButton = useCallback((e: React.SyntheticEvent) => {
-    e.stopPropagation();
-    notify({
-      message: t('Copied to clipboard')
-    });
-  }, [notify, t]);
-
   return (
     <>
       <div className={CN(props.className)}>
@@ -138,19 +130,6 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
               onClick={_onClickQrBtn}
               size='xs'
               tooltip={t('Show QR code')}
-              type='ghost'
-            />
-            <Button
-              className='-show-on-hover'
-              icon={
-                <Icon
-                  phosphorIcon={CopySimple}
-                  size='sm'
-                />
-              }
-              onClick={_onClickCopyButton}
-              size='xs'
-              tooltip={t('Copy address')}
               type='ghost'
             />
             <Button

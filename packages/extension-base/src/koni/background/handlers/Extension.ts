@@ -3474,7 +3474,7 @@ export default class KoniExtension {
       const isBitcoin = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86', 'bittest-44', 'bittest-84', 'bittest-86'].includes(pair.type);
 
       // todo: will support more types
-      if (!isEvm || !isBitcoin) {
+      if (!(isEvm || isBitcoin)) {
         return;
       }
 

@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Icon } from '@subwallet/react-ui';
@@ -11,37 +10,43 @@ import React, { Context, useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
 type Props = ThemeProps & {
+  name?: string;
   isSelected?: boolean;
+  renderRightPart?: (existNode: React.ReactNode) => React.ReactNode;
+  onClick?: VoidFunction;
 };
 
 function Component (props: Props): React.ReactElement<Props> {
-  const { className, isSelected } = props;
-  const { t } = useTranslation();
-
+  const { className, isSelected, name, onClick, renderRightPart } = props;
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
+  const checkedIconNode = (isSelected && (
+    <div className='__checked-icon-wrapper'>
+      <Icon
+        iconColor={token.colorSuccess}
+        phosphorIcon={CheckCircle}
+        size='sm'
+        weight='fill'
+      />
+    </div>
+  ));
+
   return (
-    <div className={CN(className)}>
+    <div
+      className={CN(className)}
+      onClick={onClick}
+    >
       <div className='__item-left-part'>
-        {t('All account')}
+        {name}
       </div>
       <div className='__item-right-part'>
-        {isSelected && (
-          <div className='__checked-icon-wrapper'>
-            <Icon
-              iconColor={token.colorSuccess}
-              phosphorIcon={CheckCircle}
-              size='sm'
-              weight='fill'
-            />
-          </div>
-        )}
+        {renderRightPart ? renderRightPart(checkedIconNode) : checkedIconNode}
       </div>
     </div>
   );
 }
 
-const AccountGroupSelectorAllItem = styled(Component)<Props>(({ theme }) => {
+const AccountGroupItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
@@ -56,6 +61,10 @@ const AccountGroupSelectorAllItem = styled(Component)<Props>(({ theme }) => {
 
     '.__item-left-part': {
       flex: 1
+    },
+
+    '.__item-right-part': {
+      display: 'flex'
     },
 
     '.__checked-icon-wrapper': {
@@ -76,4 +85,4 @@ const AccountGroupSelectorAllItem = styled(Component)<Props>(({ theme }) => {
   };
 });
 
-export default AccountGroupSelectorAllItem;
+export default AccountGroupItem;
