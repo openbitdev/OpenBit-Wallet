@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountGroup } from '@subwallet/extension-base/background/types';
-import { AccountGroupBriefInfo } from '@subwallet/extension-koni-ui/components';
+import { AccountGroupBriefInfo, AccountGroupSelectorAllItem } from '@subwallet/extension-koni-ui/components';
 import { SimpleQrModal } from '@subwallet/extension-koni-ui/components/Modal';
 import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useDefaultNavigate, useGetCurrentAuth, useGetCurrentTab, useGoBackSelectAccount, useIsPopup, useTranslation } from '@subwallet/extension-koni-ui/hooks';
@@ -19,7 +19,6 @@ import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-import { AccountItemWithName } from '../../../Account';
 import AccountGroupSelectorItem from '../../../AccountGroup/AccountGroupSelectorItem';
 import { GeneralEmptyList } from '../../../EmptyList';
 import { ConnectWebsiteModal } from '../ConnectWebsiteModal';
@@ -95,13 +94,13 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     return result;
   }, [_accountGroups, currentAccountGroup?.groupId]);
 
-  const noAllAccounts = useMemo(() => {
+  const noAllAccountGroups = useMemo(() => {
     return accountGroups.filter(({ groupId }) => !isAccountAll(groupId));
   }, [accountGroups]);
 
   const showAllAccount = useMemo(() => {
-    return noAllAccounts.length > 1;
-  }, [noAllAccounts]);
+    return noAllAccountGroups.length > 1;
+  }, [noAllAccountGroups]);
 
   const _onSelect = useCallback((groupId: string) => {
     if (groupId) {
@@ -154,13 +153,10 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const onQrModalBack = useGoBackSelectAccount(simpleQrModalId);
 
   const renderItem = useCallback((item: AccountGroup, _selected: boolean): React.ReactNode => {
-    const currentAccountGroupIsAll = isAccountAll(item.groupId);
-
-    if (currentAccountGroupIsAll) {
+    if (isAccountAll(item.groupId)) {
       if (showAllAccount) {
         return (
-          <AccountItemWithName
-            address={''}
+          <AccountGroupSelectorAllItem
             className='all-account-selection'
             isSelected={_selected}
           />

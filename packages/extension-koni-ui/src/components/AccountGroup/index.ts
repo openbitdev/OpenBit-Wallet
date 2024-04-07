@@ -3,3 +3,4 @@
 
 export { default as AccountGroupSelectorItem } from './AccountGroupSelectorItem';
 export { default as AccountGroupBriefInfo } from './AccountGroupBriefInfo';
+export { default as AccountGroupSelectorAllItem } from './AccountGroupSelectorAllItem';
