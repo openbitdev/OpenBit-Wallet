@@ -100,7 +100,7 @@ const CreatePassword = new LazyLoader('CreatePassword', () => import('@subwallet
 const ChangePassword = new LazyLoader('ChangePassword', () => import('@subwallet/extension-koni-ui/Popup/Keyring/ChangePassword'));
 const ApplyMasterPassword = new LazyLoader('ApplyMasterPassword', () => import('@subwallet/extension-koni-ui/Popup/Keyring/ApplyMasterPassword'));
 
-const AccountDetail = new LazyLoader('AccountDetail', () => import('@subwallet/extension-koni-ui/Popup/Account/AccountDetail'));
+const AccountGroupDetail = new LazyLoader('AccountGroupDetail', () => import('@subwallet/extension-koni-ui/Popup/Account/AccountGroupDetail'));
 const AccountExport = new LazyLoader('AccountExport', () => import('@subwallet/extension-koni-ui/Popup/Account/AccountExport'));
 
 const Transaction = new LazyLoader('Transaction', () => import('@subwallet/extension-koni-ui/Popup/Transaction/Transaction'));
@@ -248,7 +248,7 @@ export const router = createHashRouter([
           ConnectPolkadotVault.generateRouterObject('connect-polkadot-vault'),
           ConnectKeystone.generateRouterObject('connect-keystone'),
           ConnectLedger.generateRouterObject('connect-ledger'),
-          AccountDetail.generateRouterObject('detail/:accountAddress'),
+          AccountGroupDetail.generateRouterObject('detail/:accountGroupId'),
           AccountExport.generateRouterObject('export/:accountAddress')
         ]
       },

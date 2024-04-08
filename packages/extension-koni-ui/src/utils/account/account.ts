@@ -55,6 +55,22 @@ export const findAccountByAddress = (accounts: AccountJson[], address?: string):
   }
 };
 
+export const findAccountGroupByGroupId = (accountGroups: AccountGroup[], groupId?: string): AccountGroup | null => {
+  try {
+    if (!groupId) {
+      return null;
+    }
+
+    const result = accountGroups.find((ag) => ag.groupId === groupId);
+
+    return result || null;
+  } catch (e) {
+    console.error('Fail to detect group id', e);
+
+    return null;
+  }
+};
+
 export const getSignMode = (account: AccountJson | null | undefined): AccountSignMode => {
   if (!account) {
     return AccountSignMode.UNKNOWN;

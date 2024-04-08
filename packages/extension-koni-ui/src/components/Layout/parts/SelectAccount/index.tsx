@@ -135,12 +135,11 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     }
   }, [accountGroups, location.pathname, navigate, goHome]);
 
-  // @ts-ignore
-  const onClickDetailAccount = useCallback((address: string) => {
+  const onClickAccountGroupDetail = useCallback((groupId: string) => {
     return () => {
       inactiveModal(modalId);
       setTimeout(() => {
-        navigate(`/accounts/detail/${address}`);
+        navigate(`/accounts/detail/${groupId}`);
       }, 100);
     };
   }, [navigate, inactiveModal]);
@@ -169,13 +168,13 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     return (
       <AccountGroupSelectorItem
         accountName={item.name || ''}
-        address={''}
         className={className}
         isSelected={_selected}
+        onClickMoreButton={onClickAccountGroupDetail(item.groupId)}
         onClickQrButton={onClickItemQrButton}
       />
     );
-  }, [className, onClickItemQrButton, showAllAccount]);
+  }, [className, onClickAccountGroupDetail, onClickItemQrButton, showAllAccount]);
 
   const renderSelectedItem = useCallback((item: AccountGroup): React.ReactNode => {
     return (

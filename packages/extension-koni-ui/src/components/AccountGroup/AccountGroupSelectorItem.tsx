@@ -1,102 +1,37 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { useAccountAvatarTheme, useGetAccountSignModeByAddress, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
-import { PhosphorIcon } from '@subwallet/extension-koni-ui/types';
-import { AccountSignMode } from '@subwallet/extension-koni-ui/types/account';
+import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, Icon } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import CN from 'classnames';
-import { CheckCircle, Eye, PencilSimpleLine, PuzzlePiece, QrCode, Swatches } from 'phosphor-react';
-import React, { Context, useCallback, useContext, useMemo } from 'react';
+import { CheckCircle, PencilSimpleLine, QrCode } from 'phosphor-react';
+import React, { Context, useCallback, useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
-export interface _AccountCardItem {
+type Props = ThemeProps & {
   className?: string;
-  onPressMoreButton?: () => void;
+  onClickMoreButton?: () => void;
   isSelected?: boolean;
   onClickQrButton?: (address: string) => void;
   accountName?: string;
-  address?: string;
-}
-interface AbstractIcon {
-  type: 'icon' | 'node',
-  value: PhosphorIcon | React.ReactNode
 }
 
-interface SwIconProps extends AbstractIcon {
-  type: 'icon',
-  value: PhosphorIcon
-}
-
-interface NodeIconProps extends AbstractIcon {
-  type: 'node',
-  value: React.ReactNode
-}
-
-type IconProps = SwIconProps | NodeIconProps;
-
-function Component (props: _AccountCardItem): React.ReactElement<_AccountCardItem> {
+function Component (props: Props): React.ReactElement<Props> {
   const { accountName,
-    address,
     isSelected,
-    onPressMoreButton } = props;
+    onClickMoreButton } = props;
 
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
   const { t } = useTranslation();
 
-  const avatarTheme = useAccountAvatarTheme(address || '');
-
-  const signMode = useGetAccountSignModeByAddress(address);
-  // const isMantaPayEnabled = useIsMantaPayEnabled(address);
-
-  const iconProps: IconProps | undefined = useMemo((): IconProps | undefined => {
-    switch (signMode) {
-      case AccountSignMode.LEDGER:
-        return {
-          type: 'icon',
-          value: Swatches
-        };
-      case AccountSignMode.QR:
-        return {
-          type: 'icon',
-          value: QrCode
-        };
-      case AccountSignMode.READ_ONLY:
-        return {
-          type: 'icon',
-          value: Eye
-        };
-      case AccountSignMode.INJECTED:
-        // if (source === 'SubWallet') {
-        //   return {
-        //     type: 'node',
-        //     value: (
-        //       <Image
-        //         className='logo-image'
-        //         height='var(--height)'
-        //         shape='square'
-        //         src={'/images/subwallet/gradient-logo.png'}
-        //       />
-        //     )
-        //   };
-        // }
-
-        return {
-          type: 'icon',
-          value: PuzzlePiece
-        };
-    }
-
-    return undefined;
-  }, [signMode]);
-
   const _onClickMore: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> = React.useCallback((event) => {
     event.stopPropagation();
-    onPressMoreButton && onPressMoreButton();
-  }, [onPressMoreButton]);
+    onClickMoreButton && onClickMoreButton();
+  }, [onClickMoreButton]);
 
   const _onClickQrBtn = useCallback(() => {
     //
@@ -109,7 +44,6 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
           <SwAvatar
             isShowSubIcon={true}
             size={40}
-            theme={avatarTheme}
             value={''}
           />
         </div>
@@ -160,22 +94,6 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
                 type='ghost'
               />
             )}
-            {iconProps && (
-              <Button
-                icon={
-                  iconProps.type === 'icon'
-                    ? (
-                      <Icon
-                        phosphorIcon={iconProps.value}
-                        size='sm'
-                      />
-                    )
-                    : iconProps.value
-                }
-                size='xs'
-                type='ghost'
-              />
-            )}
           </div>
         </div>
       </div>
@@ -183,7 +101,7 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
   );
 }
 
-const AccountGroupSelectorItem = styled(Component)<_AccountCardItem>(({ theme }) => {
+const AccountGroupSelectorItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
