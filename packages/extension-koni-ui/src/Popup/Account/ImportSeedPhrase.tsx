@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { CloseIcon, Layout, PageWrapper, PhraseNumberSelector, SeedPhraseInput } from '@subwallet/extension-koni-ui/components';
-import { DEFAULT_ACCOUNT_TYPES, IMPORT_SEED_MODAL, SELECTED_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants';
-import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useFocusFormItem, useGetDefaultAccountName, useGoBackFromCreateAccount, useNotification, useTranslation, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { createAccountSuriV2, validateSeedV2 } from '@subwallet/extension-koni-ui/messaging';
+import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useFocusFormItem, useGetDefaultAccountGroupName, useGoBackFromCreateAccount, useNotification, useTranslation, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
+import { createAccountGroupSuri, validateSeedV2 } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, FormRule, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, noop, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon, Input } from '@subwallet/react-ui';
@@ -13,7 +13,6 @@ import CN from 'classnames';
 import { Eye, EyeSlash, FileArrowDown } from 'phosphor-react';
 import React, { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import { useLocalStorage } from 'usehooks-ts';
 
 type Props = ThemeProps;
 
@@ -42,18 +41,15 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const notification = useNotification();
 
   const onComplete = useCompleteCreateAccount();
-  const onBack = useGoBackFromCreateAccount(IMPORT_SEED_MODAL);
+  const onBack = useGoBackFromCreateAccount(SELECT_ACCOUNT_MODAL);
 
-  const accountName = useGetDefaultAccountName();
+  const accountName = useGetDefaultAccountGroupName();
 
   const [form] = Form.useForm<FormState>();
 
   const phraseNumber = Form.useWatch('phraseNumber', form);
 
   const [submitting, setSubmitting] = useState(false);
-  const [storage] = useLocalStorage(SELECTED_ACCOUNT_TYPE, DEFAULT_ACCOUNT_TYPES);
-
-  const [keyTypes] = useState(storage);
 
   const [disabled, setDisabled] = useState(true);
   const [showSeed, setShowSeed] = useState(false);
@@ -106,13 +102,11 @@ const Component: React.FC<Props> = ({ className }: Props) => {
       checkUnlock()
         .then(() => {
           setSubmitting(true);
-          validateSeedV2(seed, DEFAULT_ACCOUNT_TYPES)
+          validateSeedV2(seed, [])
             .then(() => {
-              return createAccountSuriV2({
+              return createAccountGroupSuri({
                 name: accountName,
-                suri: seed,
-                isAllowed: true,
-                types: keyTypes
+                suri: seed
               });
             })
             .then(() => {
@@ -132,7 +126,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
           // Unlock is cancelled
         });
     }
-  }, [t, checkUnlock, accountName, keyTypes, onComplete, notification]);
+  }, [t, checkUnlock, accountName, onComplete, notification]);
 
   const seedValidator = useCallback((rule: FormRule, value: string) => {
     return new Promise<void>((resolve, reject) => {

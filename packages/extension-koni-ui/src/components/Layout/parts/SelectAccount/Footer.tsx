@@ -1,12 +1,13 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CREATE_ACCOUNT_MODAL, IMPORT_SEED_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { CREATE_ACCOUNT_MODAL, SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
 import { FileArrowDown, PlusCircle } from 'phosphor-react';
 import React, { useCallback, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 type Props = ThemeProps;
@@ -14,6 +15,7 @@ type Props = ThemeProps;
 const Component: React.FC<Props> = ({ className }: Props) => {
   const { t } = useTranslation();
   const { activeModal, inactiveModal } = useContext(ModalContext);
+  const navigate = useNavigate();
 
   const openModal = useCallback((id: string) => {
     inactiveModal(SELECT_ACCOUNT_MODAL);
@@ -25,8 +27,8 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   }, [openModal]);
 
   const openImportAccount = useCallback(() => {
-    openModal(IMPORT_SEED_MODAL);
-  }, [openModal]);
+    navigate('/accounts/import-seed-phrase');
+  }, [navigate]);
 
   return (
     <div className={className}>

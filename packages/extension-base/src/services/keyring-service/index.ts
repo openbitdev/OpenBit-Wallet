@@ -108,8 +108,8 @@ export class KeyringService {
 
   get accountGroupIds (): string[] {
     const groupIdsSet: Set<string> = new Set(
-      Object.values(this.accountSubject.value)
-        .map((item) => (item.json.meta.groupId || '') as string)
+      keyring.getAccounts()
+        .map((item) => (item.meta.groupId || '') as string)
     );
 
     return Array.from(groupIdsSet);

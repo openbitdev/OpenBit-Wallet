@@ -3461,7 +3461,7 @@ export default class KoniExtension {
 
     const groupIds = this.#koniState.keyringService.accountGroupIds;
     const newGroupId = generateAccountGroupId();
-    const newGroupName = `Account ${groupIds.length}`;
+    const newGroupName = `Account ${groupIds.length + 1}`;
 
     // todo: may check if group is master (?)
 
