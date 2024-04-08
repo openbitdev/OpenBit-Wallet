@@ -1325,7 +1325,6 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
 }
 
 export interface BitcoinSendTransactionRequest extends Transaction, BitcoinSignRequest {
-  txHex: string;
   isToContract: boolean;
   inputs: Input[];
   outputs: Output[];

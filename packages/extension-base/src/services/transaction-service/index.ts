@@ -94,101 +94,218 @@ export default class TransactionService {
     return [];
   }
 
+  // public async generalValidate (validationInput: SWTransactionInput): Promise<SWTransactionResponse> {
+  //   const validation = {
+  //     ...validationInput,
+  //     errors: validationInput.errors || [],
+  //     warnings: validationInput.warnings || []
+  //   };
+  //   console.log('validation103', validation)
+  //   const { additionalValidator, address, chain, edAsWarning, extrinsicType, isTransferAll, transaction } = validation;
+  //   console.log('transaction105', transaction)
+  //   // Check duplicate transaction
+  //   validation.errors.push(...this.checkDuplicate(validationInput));
+
+  //   // Return unsupported error if not found transaction
+  //   if (!transaction) {
+  //     if (extrinsicType === ExtrinsicType.SEND_NFT) {
+  //       validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED, t('This feature is not yet available for this NFT')));
+  //     } else {
+  //       validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED));
+  //     }
+  //   }
+
+  //   const validationResponse: SWTransactionResponse = {
+  //     status: undefined,
+  //     ...validation
+  //   };
+
+  //   // Estimate fee
+  //   const estimateFee: FeeData = {
+  //     symbol: '', 
+  //     decimals: 0, 
+  //     value: '', 
+  //     tooHigh: false,
+  //     fast: 0,  
+  //     medium: 0,
+  //     slow: 0
+  //   };
+  //   console.log('estimateFee124', estimateFee)
+  //   const chainInfo = this.state.chainService.getChainInfoByKey(chain);
+  //   console.log('chainInfo135', chainInfo)
+  //   if (transaction) {
+  //     try {
+  //       if (isSubstrateTransaction(transaction)) {
+  //         estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
+  //       }
+  //        else if (isBitcoinTransaction(transaction)) {
+  //         const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
+  //         console.log('feeEstimates143', feeEstimates)
+
+  //         estimateFee.value = feeEstimates.medium.toString();
+  //       } 
+        
+  //       else {
+  //         const web3 = this.state.chainService.getEvmApi(chain);
+  //         console.log('web3153' , web3)
+  //         if (!web3) {
+  //           validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
+  //         }  { 
+  //           const gasLimit = await web3.api.eth.estimateGas(transaction);
+  //           console.log('gasLimit158',gasLimit)
+  //           const priority = await calculateGasFeeParams(web3, chainInfo.slug);
+
+  //           if (priority.baseGasFee) {
+  //             const maxFee = priority.maxFeePerGas; // TODO: Need review
+
+  //             estimateFee.value = maxFee.multipliedBy(gasLimit).toFixed(0);
+  //           } else {
+  //             estimateFee.value = new BigN(priority.gasPrice).multipliedBy(gasLimit).toFixed(0);
+  //           }
+
+  //           estimateFee.tooHigh = priority.busyNetwork;
+  //         }
+  //       }
+  //     } catch (e) {
+  //       const error = e as Error;
+
+  //       if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
+  //         validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+  //       }
+
+  //       estimateFee.value = '0';
+  //     }
+  //   }
+  
+  //   validationResponse.estimateFee = estimateFee;
+
+  //   // Read-only account
+  //   const pair = keyring.getPair(address);
+
+  //   if (!pair) {
+  //     validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('Unable to find account')));
+  //   } else {
+  //     if (pair.meta?.isReadOnly) {
+  //       validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('This account is watch-only')));
+  //     }
+  //   }
+
+  //   // Balance
+  //   const transferNative = validationResponse.transferNativeAmount || '0';
+  //   const nativeTokenInfo = this.state.chainService.getNativeTokenInfo(chain);
+
+  //   const balance = await this.state.balanceService.getTokenFreeBalance(address, chain, nativeTokenInfo.slug);
+
+  //   const existentialDeposit = nativeTokenInfo.minAmount || '0';
+
+  //   const feeNum = parseInt(estimateFee.value);
+  //   const balanceNum = parseInt(balance.value);
+  //   const edNum = parseInt(existentialDeposit);
+  //   const transferNativeNum = parseInt(transferNative);
+
+  //   if (!validationInput.skipFeeValidation) {
+  //     // TODO
+  //     if (!new BigN(balance.value).gt(0)) {
+  //       validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+  //     }
+
+  //     if (transferNativeNum + feeNum > balanceNum) {
+  //       if (!isTransferAll) {
+  //         validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+  //       } else {
+  //         if ([
+  //           ..._TRANSFER_CHAIN_GROUP.acala,
+  //           ..._TRANSFER_CHAIN_GROUP.genshiro,
+  //           ..._TRANSFER_CHAIN_GROUP.bitcountry,
+  //           ..._TRANSFER_CHAIN_GROUP.statemine
+  //         ].includes(chain)) { // Chain not have transfer all function
+  //           validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+  //         }
+  //       }
+  //     }
+
+  //     if (!isTransferAll) {
+  //       if (balanceNum - (transferNativeNum + feeNum) < edNum) {
+  //         if (edAsWarning) {
+  //           validationResponse.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
+  //         } else {
+  //           validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   // Validate transaction with additionalValidator method
+  //   additionalValidator && await additionalValidator(validationResponse);
+
+  //   return validationResponse;
+  // }
   public async generalValidate (validationInput: SWTransactionInput): Promise<SWTransactionResponse> {
     const validation = {
-      ...validationInput,
-      errors: validationInput.errors || [],
-      warnings: validationInput.warnings || []
+        ...validationInput,
+        errors: validationInput.errors || [],
+        warnings: validationInput.warnings || []
     };
-    console.log('validationInput103',validationInput)
-    console.log('validationInput.errors',validationInput.errors)
-    console.log('validationInput.warnings',validationInput.warnings)
-    console.log('validation103', validation)
+    console.log('validation103', validation);
     const { additionalValidator, address, chain, edAsWarning, extrinsicType, isTransferAll, transaction } = validation;
-    console.log('transaction105', transaction)
+    console.log('transaction105', transaction);
     // Check duplicate transaction
     validation.errors.push(...this.checkDuplicate(validationInput));
 
     // Return unsupported error if not found transaction
     if (!transaction) {
-      if (extrinsicType === ExtrinsicType.SEND_NFT) {
-        validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED, t('This feature is not yet available for this NFT')));
-      } else {
-        validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED));
-      }
+        if (extrinsicType === ExtrinsicType.SEND_NFT) {
+            validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED, t('This feature is not yet available for this NFT')));
+        } else {
+            validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED));
+        }
     }
 
     const validationResponse: SWTransactionResponse = {
-      status: undefined,
-      ...validation
+        status: undefined,
+        ...validation
     };
-
+    const chainInfo = this.state.chainService.getChainInfoByKey(chain);
     // Estimate fee
     const estimateFee: FeeData = {
-      symbol: '', 
-      decimals: 0, 
-      value: '', 
-      tooHigh: false,
-      fast: 0,  
-      medium: 0,
-      slow: 0
+        symbol: '',
+        decimals: 0,
+        value: '',
+        tooHigh: false,
+        fast: 0,
+        medium: 0,
+        slow: 0
     };
-    console.log('estimateFee124', estimateFee)
-    const chainInfo = this.state.chainService.getChainInfoByKey(chain);
-    console.log('chainInfo135', chainInfo)
+
     if (transaction) {
       try {
-        if (isSubstrateTransaction(transaction)) {
-          estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
-        }
-         else if (isBitcoinTransaction(transaction)) {
-          const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
-
-          estimateFee.value = feeEstimates.medium.toString();
-        } 
-        
-        else {
-          const web3 = this.state.chainService.getEvmApi(chain);
-
-          if (!web3) {
-            validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
-          } else { 
-            const gasLimit = await web3.api.eth.estimateGas(transaction);
-            const priority = await calculateGasFeeParams(web3, chainInfo.slug);
-
-            if (priority.baseGasFee) {
-              const maxFee = priority.maxFeePerGas; // TODO: Need review
-
-              estimateFee.value = maxFee.multipliedBy(gasLimit).toFixed(0);
-            } else {
-              estimateFee.value = new BigN(priority.gasPrice).multipliedBy(gasLimit).toFixed(0);
-            }
-
-            estimateFee.tooHigh = priority.busyNetwork;
+          if (isSubstrateTransaction(transaction)) {
+            estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
+          } else if (isBitcoinTransaction(transaction)) {
+              const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
+              console.log('feeEstimates143', feeEstimates);
+              estimateFee.value = feeEstimates.medium.toString();
           }
-        }
       } catch (e) {
-        const error = e as Error;
-
-        if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
-          validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-        }
-
-        estimateFee.value = '0';
+          const error = e as Error;
+          if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
+              validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+          }
+          estimateFee.value = '0';
       }
-    }
-
+  }
+    console.log('transaction',transaction)
     validationResponse.estimateFee = estimateFee;
 
     // Read-only account
     const pair = keyring.getPair(address);
 
     if (!pair) {
-      validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('Unable to find account')));
+        validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('Unable to find account')));
     } else {
-      if (pair.meta?.isReadOnly) {
-        validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('This account is watch-only')));
-      }
+        if (pair.meta?.isReadOnly) {
+            validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('This account is watch-only')));
+        }
     }
 
     // Balance
@@ -205,49 +322,49 @@ export default class TransactionService {
     const transferNativeNum = parseInt(transferNative);
 
     if (!validationInput.skipFeeValidation) {
-      // TODO
-      if (!new BigN(balance.value).gt(0)) {
-        validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-      }
-
-      if (transferNativeNum + feeNum > balanceNum) {
-        if (!isTransferAll) {
-          validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-        } else {
-          if ([
-            ..._TRANSFER_CHAIN_GROUP.acala,
-            ..._TRANSFER_CHAIN_GROUP.genshiro,
-            ..._TRANSFER_CHAIN_GROUP.bitcountry,
-            ..._TRANSFER_CHAIN_GROUP.statemine
-          ].includes(chain)) { // Chain not have transfer all function
+        // TODO
+        if (!new BigN(balance.value).gt(0)) {
             validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-          }
         }
-      }
 
-      if (!isTransferAll) {
-        if (balanceNum - (transferNativeNum + feeNum) < edNum) {
-          if (edAsWarning) {
-            validationResponse.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
-          } else {
-            validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
-          }
+        if (transferNativeNum + feeNum > balanceNum) {
+            if (!isTransferAll) {
+                validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+            } else {
+                if ([
+                    ..._TRANSFER_CHAIN_GROUP.acala,
+                    ..._TRANSFER_CHAIN_GROUP.genshiro,
+                    ..._TRANSFER_CHAIN_GROUP.bitcountry,
+                    ..._TRANSFER_CHAIN_GROUP.statemine
+                ].includes(chain)) { // Chain not have transfer all function
+                    validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+                }
+            }
         }
-      }
+
+        if (!isTransferAll) {
+            if (balanceNum - (transferNativeNum + feeNum) < edNum) {
+                if (edAsWarning) {
+                    validationResponse.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
+                } else {
+                    validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
+                }
+            }
+        }
     }
 
     // Validate transaction with additionalValidator method
     additionalValidator && await additionalValidator(validationResponse);
-
+    console.log('validationResponse362', validationResponse)
     return validationResponse;
-  }
+}
 
   public getTransactionSubject () {
     return this.transactionSubject;
   }
 
   private fillTransactionDefaultInfo (transaction: SWTransactionInput): SWTransaction {
-    const isInternal = !transaction.url;
+    const isInternal = true;
     const transactionId = getTransactionId(transaction.chainType, transaction.chain, isInternal, isWalletConnectRequest(transaction.id));
 
     return {
@@ -258,9 +375,9 @@ export default class TransactionService {
       warnings: transaction.warnings || [],
       url: transaction.url || EXTENSION_REQUEST_URL,
       status: ExtrinsicStatus.QUEUED,
-      isInternal,
-      id: transactionId,
-      extrinsicHash: transactionId
+      isInternal: false,
+      id: 'internal.1712319332794',
+      extrinsicHash: 'internal.1712319332794'
     } as SWTransaction;
   }
 
@@ -269,6 +386,7 @@ export default class TransactionService {
     console.log('addTransaction268',transactions)
     // Fill transaction default info
     const transaction = this.fillTransactionDefaultInfo(inputTransaction);
+    console.log('transaction390',transactions)
 
     // Add Transaction
     transactions[transaction.id] = transaction;
@@ -322,6 +440,7 @@ export default class TransactionService {
           validatedTransaction.extrinsicHash = data.extrinsicHash;
           resolve();
         });
+        console.log('emmitteron')
       } else {
         emitter.on('signed', (data: TransactionEventResponse) => {
           validatedTransaction.id = data.id;
@@ -337,11 +456,13 @@ export default class TransactionService {
         }
       });
     });
+    console.log('handleTransaction478')
 
     // @ts-ignore
     'transaction' in validatedTransaction && delete validatedTransaction.transaction;
     'additionalValidator' in validatedTransaction && delete validatedTransaction.additionalValidator;
     'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
+    console.log('validatedTransaction482', validatedTransaction)
 
     return validatedTransaction;
   }
@@ -358,9 +479,9 @@ export default class TransactionService {
     } else {
       throw new Error('Unsupported chain type');
     }
-
+    console.log('emmiter483',emitter)
     const { eventsHandler } = transaction;
-
+    console.log('sendtransactions')
     emitter.on('signed', (data: TransactionEventResponse) => {
       this.onSigned(data);
     });
@@ -389,6 +510,7 @@ export default class TransactionService {
     // Todo: handle any event with transaction.eventsHandler
 
     eventsHandler?.(emitter);
+    console.log('emmiter531', emitter)
 
     return emitter;
   }
@@ -1023,64 +1145,133 @@ export default class TransactionService {
 
   //   return emitter;
   // }
-  private async signAndSendBitcoinTransaction ({ address, chain, id, transaction }: SWTransaction): Promise<TransactionEmitter> {
+  private async signAndSendBitcoinTransaction({ address, chain, id, transaction, url }: SWTransaction): Promise<TransactionEmitter> {
     const payload = transaction as BitcoinSendTransactionRequest;
     const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
-    const bitcoinApiUrl = bitcoinApi.apiUrl;
+    const chainInfo = this.state.chainService.getChainInfoByKey(chain);
 
     const accountPair = keyring.getPair(address);
     const account: AccountJson = { address, ...accountPair.meta };
 
     if (!payload.account) {
-      payload.account = account;
+        payload.account = account;
     }
 
     // Allow sign transaction
     payload.canSign = true;
+   
 
     const emitter = new EventEmitter<TransactionEventMap>();
+    console.log('emitter1165', emitter)
 
     const eventData: TransactionEventResponse = {
-      id,
-      errors: [],
-      warnings: [],
-      extrinsicHash: id
+        id,
+        errors: [],
+        warnings: [],
+        extrinsicHash: id
     };
+    console.log('eventData1174', eventData)
 
-    try {
-      // Emit signed event
-      emitter.emit('signed', eventData);
+    const isInjected = !!account.isInjected;
+    const isExternal = !!account.isExternal;
 
-      // Add confirmation for Bitcoin transaction
-      this.state.requestService.addConfirmationBitcoin(id, bitcoinApiUrl, 'bitcoinSendTransactionRequest', payload, {})
-        .then(async ({ isApproved, payload }) => {
+    if (isInjected) {
+        this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinWatchTransactionRequest', payload, {})
+            .then(async ({ isApproved, payload }) => {
+                if (isApproved) {
+                    if (!payload) {
+                        throw new Error('Bad signature');
+                    }
+                    
+
+                    // Emit signed event
+                    emitter.emit('signed', eventData);
+
+                    // Add start info
+                    emitter.emit('send', eventData);
+
+                    const txHash = payload;
+
+                    eventData.extrinsicHash = txHash;
+                    emitter.emit('extrinsicHash', eventData);
+
+                    emitter.emit('success', eventData);
+
+                    emitter.emit('error', eventData);
+
+                    // Your logic to watch for transaction confirmation using the Bitcoin API URL (bitcoinApiUrl)
+                } else {
+                    this.removeTransaction(id);
+                    eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
+                    emitter.emit('error', eventData);
+                }
+            })
+            .catch((e: Error) => {
+                this.removeTransaction(id);
+                eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SIGN, e.message));
+                emitter.emit('error', eventData);
+            });
+    } else {
+      this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinSendTransactionRequest', payload, {})
+      .then(async ({ isApproved, payload }) => {
           if (isApproved) {
-            if (!payload) {
-              throw new Error('Failed to sign transaction');
-            }
+              let signedTransaction: string | undefined;
 
-            // Assuming success event is emitted after transaction is confirmed
-            emitter.emit('success', eventData);
+              // if (!payload) {
+              //     throw new Error('Failed to sign');
+              // }
+
+              const bitcoinApiUrl = this.state.chainService.getBitcoinApi(chain).apiUrl;
+
+              if (!isExternal) {
+                  signedTransaction = payload;
+              } else {
+                  // Logic to sign the transaction for external accounts (if needed)
+                  // For Bitcoin, you might need to use a library like bitcoinjs-lib to sign the transaction
+                  // You would need the private key associated with the sending address to sign the transaction
+                  // Here is a general idea of how you could sign the transaction (this is simplified and might need adjustments):
+                  // const keyPair = bitcoin.ECPair.fromWIF(privateKey, bitcoin.networks.bitcoin);
+                  // const transaction = new bitcoin.TransactionBuilder(bitcoin.networks.bitcoin);
+                  // transaction.addInput(...); // Add inputs
+                  // transaction.addOutput(...); // Add outputs
+                  // transaction.sign(0, keyPair); // Sign the transaction with the private key
+
+                  // After signing, serialize the transaction to hex format
+                  // signedTransaction = transaction.build().toHex();
+              }
+
+              // Emit signed event
+              emitter.emit('signed', eventData);
+              this.handleTransactionTimeout(emitter, eventData);
+
+              // Add start info
+              emitter.emit('send', eventData);
+
+              const txHash = payload;
+
+              eventData.extrinsicHash = txHash;
+              emitter.emit('extrinsicHash', eventData);
+
+              emitter.emit('success', eventData);
+
+              emitter.emit('error', eventData);
+
+             
           } else {
-            // User rejected request
-            this.removeTransaction(id);
-            eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
-            emitter.emit('error', eventData);
+              this.removeTransaction(id);
+              eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
+              emitter.emit('error', eventData);
           }
-        })
-        .catch((e: Error) => {
+      })
+      .catch((e: Error) => {
           this.removeTransaction(id);
           eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SIGN, e.message));
           emitter.emit('error', eventData);
-        });
-    } catch (error) {
-      // Error occurred while adding confirmation
-      eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, 'Failed to add confirmation'));
-      emitter.emit('error', eventData);
+      });
     }
 
     return emitter;
-  }
+}
 
   private async signAndSendEvmTransaction ({ address,
     chain,

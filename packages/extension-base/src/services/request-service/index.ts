@@ -221,9 +221,10 @@ export default class RequestService {
     url: string,
     type: CT,
     payload: ConfirmationDefinitionsBitcoin[CT][0]['payload'],
-    options: ConfirmationsQueueItemOptions = {}
+    options: ConfirmationsQueueItemOptions = {},
+    validator?: (input: ConfirmationDefinitionsBitcoin[CT][1]) => Error | undefined
   ): Promise<ConfirmationDefinitionsBitcoin[CT][1]> {
-    return this.#bitcoinRequestHandler.addConfirmationBitcoin(id, url, type, payload, options);
+    return this.#bitcoinRequestHandler.addConfirmationBitcoin(id, url, type, payload, options, validator);
   }
 
   public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
@@ -234,9 +235,10 @@ export default class RequestService {
     id: string,
     type: CT,
     payload: ConfirmationDefinitionsBitcoin[CT][0]['payload'],
-    options: ConfirmationsQueueItemOptions = {}
+    options: ConfirmationsQueueItemOptions = {},
+    validator?: (input: ConfirmationDefinitionsBitcoin[CT][1]) => Error | undefined
   ) {
-    return this.#bitcoinRequestHandler.updateConfirmationBitcoin(id, type, payload, options);
+    return this.#bitcoinRequestHandler.updateConfirmationBitcoin(id, type, payload, options ,validator );
   }
 
   // WalletConnect Connect requests

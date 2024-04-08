@@ -37,12 +37,22 @@ export default class BitcoinRequestHandler {
     url: string,
     type: CT,
     payload: ConfirmationDefinitionsBitcoin[CT][0]['payload'],
-    options: ConfirmationsQueueItemOptions = {}
+    options: ConfirmationsQueueItemOptions = {} ,
+    validator?: (input: ConfirmationDefinitionsBitcoin[CT][1]) => Error | undefined
   ): Promise<ConfirmationDefinitionsBitcoin[CT][1]> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
     const confirmationType = confirmations[type] as Record<string, ConfirmationDefinitionsBitcoin[CT][0]>;
     const payloadJson = JSON.stringify(payload);
     const isInternal = isInternalRequest(url);
+
+    if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest'].includes(type)) {
+      const isAlwaysRequired = await this.#requestService.settingService.isAlwaysRequired;
+
+      if (isAlwaysRequired) {
+        this.#requestService.keyringService.lock();
+      }
+    }
+
 
     // Check duplicate request
     const duplicated = Object.values(confirmationType).find((c) => (c.url === url) && (c.payloadJson === payloadJson));
@@ -62,12 +72,14 @@ export default class BitcoinRequestHandler {
 
     const promise = new Promise<ConfirmationDefinitionsBitcoin[CT][1]>((resolve, reject) => {
       this.confirmationsPromiseMap[id] = {
+        validator: validator,
         resolver: {
           resolve: resolve,
           reject: reject
         }
       };
     });
+    console.log('promise71', promise)
 
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
 
@@ -121,7 +133,7 @@ export default class BitcoinRequestHandler {
     if (pair.isLocked) {
       keyring.unlockPair(pair.address);
     }
-
+    console.log('sigMessage124')
     // Check if payload is a string
     if (typeof payload === 'string') {
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
@@ -143,6 +155,8 @@ export default class BitcoinRequestHandler {
   private async signTransactionBitcoin (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): Promise<string> {
     // Extract necessary information from the BitcoinSendTransactionRequest
     const { account, inputs, outputs } = request.payload;
+
+    console.log('signTransactionBitcoin147')
     const address = account.address;
     const pair = keyring.getPair(address);
 
@@ -184,6 +198,7 @@ export default class BitcoinRequestHandler {
 
     // Sign the Psbt using the pair's bitcoin object
     const signedTransaction = await pair.bitcoin.signTransaction(psbt);
+    console.log('sigTransaction189')
 
     return signedTransaction;
   }
@@ -193,7 +208,7 @@ export default class BitcoinRequestHandler {
       if (t === 'bitcoinSignatureRequest') {
         result.payload = await this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
       } else if (t === 'bitcoinSendTransactionRequest') {
-        // Thay đổi đối số từ KeyringService thành Keyring
+        console.log('decorateResultBitcoin')
         result.payload = await this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
       }
 
@@ -213,10 +228,13 @@ export default class BitcoinRequestHandler {
 
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;
+      console.log('type229',type)
       const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
+      console.log('result',result)
 
       const { id } = result;
-      const { resolver } = this.confirmationsPromiseMap[id];
+      console.log('checkid232',id);
+      const { resolver , validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
 
       if (!resolver || !confirmation) {
@@ -226,6 +244,10 @@ export default class BitcoinRequestHandler {
 
       // Fill signature for some special type
       await this.decorateResultBitcoin(type, confirmation, result);
+      const error = validator && validator(result);
+      if (error) {
+        resolver.reject(error);
+      }
 
       // Delete confirmations from queue
       delete this.confirmationsPromiseMap[id];
@@ -239,6 +261,57 @@ export default class BitcoinRequestHandler {
 
     return true;
   }
+//   public async completeConfirmationBitcoin(request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
+//     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
+
+//     try {
+//         for (const ct in request) {
+//             const type = ct as ConfirmationTypeBitcoin;
+//             const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
+//             const { id } = result;
+
+//             const { resolver } = this.confirmationsPromiseMap[id];
+//             const confirmation = confirmations[type][id];
+
+//             if (!resolver || !confirmation) {
+//                 throw new Error(`Unable to proceed. Resolver or confirmation not found for type ${type} with id ${id}`);
+//             }
+
+//             // Fill signature for some special type
+//             await this.decorateResultBitcoin(type, confirmation, result);
+
+//             // Delete confirmations from queue
+//             delete this.confirmationsPromiseMap[id];
+//             delete confirmations[type][id];
+
+//             // Resolve the promise
+//             resolver.resolve(result);
+//         }
+
+//         // Update icon, and close queue
+//         this.#requestService.updateIconV2(this.#requestService.numAllRequests === 0);
+//         this.confirmationsQueueSubjectBitcoin.next(confirmations);
+
+//         return true;
+//     } catch (error) {
+//         console.error('Error completing confirmation:', error);
+
+//         // Reject all promises and rethrow error
+//         for (const ct in request) {
+//             const type = ct as ConfirmationTypeBitcoin;
+//             const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
+//             const { id } = result;
+//             const { resolver } = this.confirmationsPromiseMap[id];
+
+//             if (resolver) {
+//                 resolver.reject(error as Error);
+//             }
+//         }
+
+//         throw error;
+//     }
+// }
+
 
   public resetWallet () {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
