@@ -6,13 +6,13 @@ import { NftCollection, NftItem } from '@subwallet/extension-base/background/Kon
 import { AcalaNftApi } from '@subwallet/extension-base/koni/api/nft/acala_nft';
 import { BitCountryNftApi } from '@subwallet/extension-base/koni/api/nft/bit.country';
 import { EvmNftApi } from '@subwallet/extension-base/koni/api/nft/evm_nft';
+import { InscriptionApi } from '@subwallet/extension-base/koni/api/nft/inscription';
 import { KaruraNftApi } from '@subwallet/extension-base/koni/api/nft/karura_nft';
 import { BaseNftApi } from '@subwallet/extension-base/koni/api/nft/nft';
 import OrdinalNftApi from '@subwallet/extension-base/koni/api/nft/ordinal_nft';
 import { RmrkNftApi } from '@subwallet/extension-base/koni/api/nft/rmrk_nft';
 import StatemineNftApi from '@subwallet/extension-base/koni/api/nft/statemine_nft';
 import { UniqueNftApi } from '@subwallet/extension-base/koni/api/nft/unique_network_nft';
-// import UniqueNftApi from '@subwallet/extension-base/koni/api/nft/unique_nft';
 import { VaraNftApi } from '@subwallet/extension-base/koni/api/nft/vara_nft';
 import { WasmNftApi } from '@subwallet/extension-base/koni/api/nft/wasm_nft';
 import { _NFT_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
@@ -41,6 +41,8 @@ function createSubstrateNftApi (chain: string, substrateApi: _SubstrateApi | nul
     return new BitCountryNftApi(substrateApi, substrateAddresses, chain);
   } else if (_NFT_CHAIN_GROUP.vara.includes(chain)) {
     return new VaraNftApi(chain, substrateAddresses);
+  } else if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
+    return new InscriptionApi(chain, substrateAddresses);
   }
 
   return null;
@@ -129,8 +131,8 @@ export class NftHandler {
         const [substrateAddresses, evmAddresses] = categoryAddresses(this.addresses);
 
         Object.entries(this.chainInfoMap).forEach(([chain, chainInfo]) => {
-          if (_isChainSupportNativeNft(chainInfo)) {
-            if (this.substrateApiMap[chain]) {
+          if (_isChainSupportNativeNft(chainInfo) || chain === 'bitcoin') {
+            if (this.substrateApiMap[chain] || chain === 'bitcoin') {
               const handler = createSubstrateNftApi(chain, this.substrateApiMap[chain], substrateAddresses);
 
               if (handler) {

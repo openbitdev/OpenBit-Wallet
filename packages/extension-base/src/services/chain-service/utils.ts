@@ -175,6 +175,7 @@ export function _getChainSubstrateAddressPrefix (chainInfo: _ChainInfo) {
 }
 
 export function _isChainSupportNativeNft (chainInfo: _ChainInfo) {
+  // todo: return chainInfo.substrateInfo?.hasNativeNft || chainInfo.bitcoinInfo?.hasNativeNft || false;
   return chainInfo.substrateInfo?.hasNativeNft || false;
 }
 
