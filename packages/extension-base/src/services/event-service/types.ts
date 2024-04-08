@@ -43,7 +43,8 @@ export interface EventRegistry {
   'chain.add': [string]; // chain slug
   'chain.updateState': [string]; // chain slug
 
-  'asset.ready': [boolean];
+  'asset.ready': [boolean]; // Init asset ready
+  'asset.online.ready': [boolean]; // Update latest asset done
   'asset.updateState': [string]; // token slug
 
   'transaction.done': [SWTransaction];

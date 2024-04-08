@@ -5,8 +5,9 @@ import { NftCollection, NftItem } from '@subwallet/extension-base/background/Kon
 import { OPAL_SCAN_ENDPOINT, QUARTZ_SCAN_ENDPOINT, UNIQUE_IPFS_GATEWAY, UNIQUE_SCAN_ENDPOINT } from '@subwallet/extension-base/koni/api/nft/config';
 import { BaseNftApi, HandleNftParams } from '@subwallet/extension-base/koni/api/nft/nft';
 import { baseParseIPFSUrl } from '@subwallet/extension-base/utils';
-import { decodeAddress, encodeAddress } from '@subwallet/keyring';
 import fetch from 'cross-fetch';
+
+import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 interface NftAttributeData {
   _: string
@@ -14,7 +15,7 @@ interface NftAttributeData {
 
 interface NftAttribute {
   name: NftAttributeData;
-  value: NftAttributeData | Record<string, NftAttributeData>
+  value: NftAttributeData | Array<NftAttributeData>
 }
 
 interface NftData {
@@ -43,21 +44,22 @@ export class UniqueNftApi extends BaseNftApi {
 
     if (attRecord) {
       for (const item in attRecord) {
-        if (attRecord[item].name._.toLowerCase() === 'traits') {
-          const traits: string[] = [];
+        const attName = attRecord[item].name._;
+        const attInfo = attRecord[item].value;
 
-          const traitValues = attRecord[item].value as Record<string, NftAttributeData>;
+        if (Array.isArray(attInfo)) {
+          const attList: string[] = [];
 
-          for (const trait in traitValues) {
-            traits.push(traitValues[trait]._);
+          for (const trait of attInfo) {
+            attList.push(trait._);
           }
 
-          propertiesMap.traits = {
-            value: traits
+          propertiesMap[attName] = {
+            value: attList
           };
         } else {
-          propertiesMap[attRecord[item].name._] = {
-            value: attRecord[item].value._ as string
+          propertiesMap[attName] = {
+            value: attInfo._
           };
         }
       }

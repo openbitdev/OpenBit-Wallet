@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { _DEFAULT_CHAINS } from '@subwallet/chain-list';
 import { _SubstrateChainType, BitcoinNetworkMode } from '@subwallet/chain-list/types';
 import { SingleModeJson, ThemeNames } from '@subwallet/extension-base/background/KoniTypes';
 import * as bitcoinJs from 'bitcoinjs-lib';
