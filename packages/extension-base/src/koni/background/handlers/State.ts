@@ -875,6 +875,24 @@ export default class KoniState {
     return [checkingAddress];
   }
 
+  public getAccountGroupAddresses (groupId?: string): string[] {
+    let _groupId: string | null | undefined = groupId;
+
+    if (!_groupId) {
+      _groupId = this.keyringService.currentAccountGroup?.groupId;
+    }
+
+    if (!_groupId) {
+      return [];
+    }
+
+    if (_groupId === ALL_ACCOUNT_KEY) {
+      return this.getAllAddresses();
+    }
+
+    return keyring.getAccounts().filter((a) => a.meta.groupId === _groupId).map((a) => a.address);
+  }
+
   public getAllAddresses (): string[] {
     return keyring.getAccounts().map((account) => account.address);
   }

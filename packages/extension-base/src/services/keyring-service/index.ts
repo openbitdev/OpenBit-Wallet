@@ -47,8 +47,16 @@ export class KeyringService {
     this.beforeAccount = { ...this.accountSubject.value };
 
     this.accountSubject.subscribe((subjectInfo) => {
+      const beforeAddresses = Object.keys(this.beforeAccount);
+      const afterAddresses = Object.keys(subjectInfo);
       const beforeAccounts = Object.values(this.beforeAccount);
       const afterAccounts = Object.values(subjectInfo);
+
+      if (beforeAddresses.length > afterAddresses.length) {
+        const removedAddresses = beforeAddresses.filter((address) => !afterAddresses.includes(address));
+
+        this.eventService.emit('accounts.remove', removedAddresses);
+      }
 
       const beforeAccountGroupIdsSet = new Set(beforeAccounts.map((item) => (item.json.meta.groupId || '') as string));
       const afterAccountGroupIdsSet = new Set(afterAccounts.map((item) => (item.json.meta.groupId || '') as string));

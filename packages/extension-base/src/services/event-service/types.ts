@@ -26,6 +26,9 @@ export interface EventRegistry {
   /** Inject account done  */
   'inject.ready': [boolean]; // address
 
+  /** Remove multiple accounts  */
+  'accounts.remove': [string[]]; // addresses
+
   /** Update current account group */
   'accountGroup.updateCurrent': [CurrentAccountGroupInfo];
   /** Account group list loaded  */

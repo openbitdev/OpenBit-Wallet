@@ -4,10 +4,12 @@
 import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
+import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getSubstrateGenesisHash, _isChainEvmCompatible, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenSlug, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { categoryAddresses, filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 
 import { subscribeEVMBalance } from './evm';
@@ -44,52 +46,88 @@ export const getAccountJsonByAddress = (address: string): AccountJson | null => 
 
 /** Filter addresses to subscribe by chain info */
 const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[]] => {
-  const isEvmChain = _isChainEvmCompatible(chainInfo);
-  const [substrateAddresses, evmAddresses] = categoryAddresses(addresses);
+  const isEvmChain = _isPureEvmChain(chainInfo);
+  const isBitcoinChain = _isPureBitcoinChain(chainInfo);
+  const useAddresses: string[] = [];
+  const notSupportAddresses: string[] = [];
 
   if (isEvmChain) {
-    return [evmAddresses, substrateAddresses];
-  } else {
-    const fetchList: string[] = [];
-    const unfetchList: string[] = [];
+    addresses.forEach((a) => {
+      getKeypairTypeByAddress(a) === 'ethereum' ? useAddresses.push(a) : notSupportAddresses.push(a);
+    });
+  } else if (isBitcoinChain) {
+    addresses.forEach((a) => {
+      const addressType = getKeypairTypeByAddress(a);
 
-    substrateAddresses.forEach((address) => {
-      const account = getAccountJsonByAddress(address);
-
-      if (account) {
-        if (account.isHardware) {
-          const availGen = account.availableGenesisHashes || [];
-          const gen = _getSubstrateGenesisHash(chainInfo);
-
-          if (availGen.includes(gen)) {
-            fetchList.push(address);
-          } else {
-            unfetchList.push(address);
-          }
-        } else {
-          fetchList.push(address);
-        }
+      if ((addressType === 'bitcoin-84' && chainInfo.slug === 'bitcoin') || (addressType === 'bittest-84' && chainInfo.slug === 'bitcoinTestnet')) {
+        useAddresses.push(a);
       } else {
-        fetchList.push(address);
+        notSupportAddresses.push(a);
       }
     });
-
-    return [fetchList, [...unfetchList, ...evmAddresses]];
+  } else {
+    notSupportAddresses.push(...addresses);
   }
+
+  return [useAddresses, notSupportAddresses];
 };
 
-// interface SubscribeBlanceOptions {
-//   addresses: string[];
-//   chains: string[];
-//   tokens: string[];
-//   chainInfoMap: Record<string, _ChainInfo>;
-//   substrateApiMap: Record<string, _SubstrateApi>;
-//   evmApiMap: Record<string, _EvmApi>;
-//   callback: (rs: BalanceItem[]) => void;
-// }
+export type BitcoinBalanceFunction = (addresses: string[], chain: string) => Promise<string[]>;
+
+function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, getAddressesBitcoinBalance: BitcoinBalanceFunction, callback: (rs: BalanceItem[]) => void): () => void {
+  const nativeSlug = _getChainNativeTokenSlug(chainInfo);
+
+  const getBalance = () => {
+    getAddressesBitcoinBalance(addresses, chainInfo.slug)
+      .then((balances) => {
+        return balances.map((balance, index): BalanceItem => {
+          return {
+            address: addresses[index],
+            tokenSlug: nativeSlug,
+            state: APIItemState.READY,
+            free: balance,
+            locked: '0'
+          };
+        });
+      })
+      .catch((e) => {
+        console.error(`Error on get Bitcoin balance with token ${nativeSlug}`, e);
+
+        return addresses.map((address): BalanceItem => {
+          return {
+            address: address,
+            tokenSlug: nativeSlug,
+            state: APIItemState.READY,
+            free: '0',
+            locked: '0'
+          };
+        });
+      })
+      .then((items) => {
+        callback(items);
+      })
+      .catch(console.error);
+  };
+
+  getBalance();
+  const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
+
+  return () => {
+    clearInterval(interval);
+  };
+}
 
 // main subscription, use for multiple chains, multiple addresses and multiple tokens
-export function subscribeBalance (addresses: string[], chains: string[], tokens: string[], _chainAssetMap: Record<string, _ChainAsset>, _chainInfoMap: Record<string, _ChainInfo>, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi>, callback: (rs: BalanceItem[]) => void) {
+export function subscribeBalance (
+  addresses: string[],
+  chains: string[],
+  tokens: string[],
+  _chainAssetMap: Record<string, _ChainAsset>,
+  _chainInfoMap: Record<string, _ChainInfo>,
+  substrateApiMap: Record<string, _SubstrateApi>,
+  evmApiMap: Record<string, _EvmApi>,
+  bitcoinBalanceFunction: BitcoinBalanceFunction,
+  callback: (rs: BalanceItem[]) => void) {
   // Filter chain and token
   const chainAssetMap: Record<string, _ChainAsset> = Object.fromEntries(Object.entries(_chainAssetMap).filter(([token]) => tokens.includes(token)));
   const chainInfoMap: Record<string, _ChainInfo> = Object.fromEntries(Object.entries(_chainInfoMap).filter(([chain]) => chains.includes(chain)));
@@ -130,22 +168,14 @@ export function subscribeBalance (addresses: string[], chains: string[], tokens:
       });
     }
 
-    // if (!useAddresses || useAddresses.length === 0 || _PURE_EVM_CHAINS.indexOf(chainSlug) > -1) {
-    //   const fungibleTokensByChain = state.chainService.getFungibleTokensByChain(chainSlug, true);
-    //   const now = new Date().getTime();
-    //
-    //   Object.values(fungibleTokensByChain).map((token) => {
-    //     return {
-    //       tokenSlug: token.slug,
-    //       free: '0',
-    //       locked: '0',
-    //       state: APIItemState.READY,
-    //       timestamp: now
-    //     } as BalanceItem;
-    //   }).forEach(callback);
-    //
-    //   return undefined;
-    // }
+    if (_isPureBitcoinChain(chainInfo)) {
+      return subscribeBitcoinBalance(
+        useAddresses,
+        chainInfo,
+        bitcoinBalanceFunction,
+        callback
+      );
+    }
 
     const substrateApi = await substrateApiMap[chainSlug].isReady;
 

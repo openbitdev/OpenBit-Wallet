@@ -1,10 +1,12 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _ChainAsset, _MultiChainAsset } from '@subwallet/chain-list/types';
+import { _MultiChainAsset } from '@subwallet/chain-list/types';
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
-import { _getAssetDecimals, _getAssetOriginChain, _getAssetPriceId, _getAssetSymbol, _getChainName, _getMultiChainAssetPriceId, _getMultiChainAssetSymbol, _isAssetValuable } from '@subwallet/extension-base/services/chain-service/utils';
-import { SubstrateBalance } from '@subwallet/extension-base/types';
+import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { _getAssetDecimals, _getAssetOriginChain, _getAssetPriceId, _getChainName, _getMultiChainAssetPriceId, _isAssetValuable } from '@subwallet/extension-base/services/chain-service/utils';
+import { isAccountAll } from '@subwallet/extension-base/utils';
+import { getBalanceValue, getConvertedBalanceValue, getDefaultTokenBalance, getDefaultTokenGroupBalance } from '@subwallet/extension-koni-ui/hooks/screen/home/useAccountBalance';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { AssetRegistryStore, BalanceStore, ChainStore, PriceStore } from '@subwallet/extension-koni-ui/stores/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
@@ -13,84 +15,27 @@ import BigN from 'bignumber.js';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-const BN_0 = new BigN(0);
-const BN_10 = new BigN(10);
-const BN_100 = new BigN(100);
-
-export function getBalanceValue (balance: string, decimals: number): BigN {
-  return new BigN(balance).div(BN_10.pow(decimals));
-}
-
-export function getConvertedBalanceValue (balance: BigN, price: number): BigN {
-  return balance ? balance.multipliedBy(new BigN(price)) : BN_0;
-}
-
-export function getDefaultBalanceItem (
-  slug: string,
-  symbol: string,
-  logoKey: string
-): TokenBalanceItemType {
-  return {
-    free: {
-      value: new BigN(0),
-      convertedValue: new BigN(0),
-      pastConvertedValue: new BigN(0)
-    },
-    locked: {
-      value: new BigN(0),
-      convertedValue: new BigN(0),
-      pastConvertedValue: new BigN(0)
-    },
-    total: {
-      value: new BigN(0),
-      convertedValue: new BigN(0),
-      pastConvertedValue: new BigN(0)
-    },
-    isReady: false,
-    isTestnet: false,
-    isNotSupport: true,
-    price24hValue: 0,
-    priceValue: 0,
-    logoKey,
-    slug,
-    symbol
-  };
-}
-
-export function getDefaultTokenGroupBalance (
-  tokenGroupKey: string,
-  assetRegistryMap: AssetRegistryStore['assetRegistry'],
-  multiChainAsset?: _MultiChainAsset
-): TokenBalanceItemType {
-  let symbol: string;
-  let logoKey: string;
-
-  // note: tokenGroupKey is either multiChainAsset or a tokenSlug
-  // Thus, multiChainAsset may be undefined
-  if (multiChainAsset) {
-    symbol = _getMultiChainAssetSymbol(multiChainAsset);
-    logoKey = multiChainAsset.slug;
-  } else {
-    const asset = assetRegistryMap[tokenGroupKey];
-
-    symbol = _getAssetSymbol(asset);
-    logoKey = asset.slug;
+function getAddresses (currentGroup: AccountGroup | null, accountGroups: AccountGroup[]): string[] {
+  if (!currentGroup) {
+    return [];
   }
 
-  return getDefaultBalanceItem(tokenGroupKey, symbol, logoKey.toLowerCase());
+  if (isAccountAll(currentGroup.groupId)) {
+    const result: string[] = [];
+
+    accountGroups.forEach((ag) => {
+      ag.accounts.forEach((a) => result.push(a.address));
+    });
+
+    return result;
+  }
+
+  return currentGroup.accounts.map((a) => a.address);
 }
 
-export function getDefaultTokenBalance (
-  tokenSlug: string,
-  chainAsset: _ChainAsset
-): TokenBalanceItemType {
-  const symbol = _getAssetSymbol(chainAsset);
-
-  return getDefaultBalanceItem(tokenSlug, symbol, chainAsset.slug.toLowerCase());
-}
-
-function getAccountBalance (
-  address: string,
+function getAccountGroupBalance (
+  currentAccountGroup: AccountGroup | null,
+  accountGroups: AccountGroup[],
   tokenGroupMap: Record<string, string[]>,
   balanceMap: BalanceStore['balanceMap'],
   priceMap: PriceStore['priceMap'],
@@ -111,6 +56,16 @@ function getAccountBalance (
   const tokenBalanceMap: Record<string, TokenBalanceItemType> = {};
   const tokenGroupBalanceMap: Record<string, TokenBalanceItemType> = {};
 
+  const addresses = getAddresses(currentAccountGroup, accountGroups);
+
+  if (!addresses.length) {
+    return {
+      tokenBalanceMap,
+      tokenGroupBalanceMap,
+      totalBalanceInfo
+    };
+  }
+
   Object.keys(tokenGroupMap).forEach((tokenGroupKey) => {
     const tokenGroupBalanceReady: boolean[] = [];
     const tokenGroupNotSupport: boolean[] = [];
@@ -129,11 +84,32 @@ function getAccountBalance (
 
       const tokenBalance = getDefaultTokenBalance(tokenSlug, chainAsset);
       const originChain = _getAssetOriginChain(chainAsset);
-      const balanceItem = balanceMap[address]?.[tokenSlug];
       const decimals = _getAssetDecimals(chainAsset);
 
-      const isTokenBalanceReady = !!balanceItem && (balanceItem.state !== APIItemState.PENDING);
-      const isTokenNotSupport = !!balanceItem && (balanceItem.state === APIItemState.NOT_SUPPORT);
+      const tokenBalanceReady: boolean[] = [];
+      const tokenBalanceNotSupport: boolean[] = [];
+
+      addresses.forEach((address) => {
+        const balanceItem = balanceMap[address]?.[tokenSlug];
+
+        const isReady = !!balanceItem && (balanceItem.state !== APIItemState.PENDING);
+        const isNotSupport = !!balanceItem && (balanceItem.state === APIItemState.NOT_SUPPORT);
+
+        tokenBalanceReady.push(isReady);
+        tokenBalanceNotSupport.push(isNotSupport);
+
+        if (!isShowZeroBalance && !isNotSupport) {
+          return;
+        }
+
+        if (isReady) {
+          tokenBalance.free.value = tokenBalance.free.value.plus(getBalanceValue(balanceItem.free || '0', decimals));
+          tokenBalance.locked.value = tokenBalance.locked.value.plus(getBalanceValue(balanceItem.locked || '0', decimals));
+        }
+      });
+
+      const isTokenBalanceReady = tokenBalanceReady.some((b) => b);
+      const isTokenNotSupport = tokenBalanceNotSupport.every((b) => b);
 
       tokenGroupNotSupport.push(isTokenNotSupport);
       tokenGroupBalanceReady.push(isTokenBalanceReady);
@@ -150,32 +126,12 @@ function getAccountBalance (
       tokenBalance.isTestnet = !_isAssetValuable(chainAsset);
 
       if (isTokenBalanceReady) {
-        tokenBalance.free.value = tokenBalance.free.value.plus(getBalanceValue(balanceItem.free || '0', decimals));
         tokenGroupBalance.free.value = tokenGroupBalance.free.value.plus(tokenBalance.free.value);
-
-        tokenBalance.locked.value = tokenBalance.locked.value.plus(getBalanceValue(balanceItem.locked || '0', decimals));
         tokenGroupBalance.locked.value = tokenGroupBalance.locked.value.plus(tokenBalance.locked.value);
 
         tokenBalance.total.value = tokenBalance.free.value.plus(tokenBalance.locked.value);
 
-        if (balanceItem?.substrateInfo) {
-          const mergeData = (key: keyof SubstrateBalance) => {
-            const newValue = balanceItem?.substrateInfo?.[key];
-
-            if (newValue) {
-              const value = getBalanceValue(newValue, decimals);
-
-              tokenBalance[key] = new BigN(tokenBalance[key] || '0').plus(value).toString();
-              tokenGroupBalance[key] = new BigN(tokenGroupBalance[key] || '0').plus(value).toString();
-            }
-          };
-
-          mergeData('reserved');
-          mergeData('miscFrozen');
-          mergeData('feeFrozen');
-        }
-
-        if (!isShowZeroBalance && tokenBalance.total.value.eq(BN_0)) {
+        if (!isShowZeroBalance && tokenBalance.total.value.eq(0)) {
           return;
         }
 
@@ -243,7 +199,7 @@ function getAccountBalance (
       tokenGroupBalance.isTestnet = tokenBalanceMap[tokenGroupKey].isTestnet;
     }
 
-    if (!isShowZeroBalance && (!isTokenGroupBalanceReady || tokenGroupBalance.total.value.eq(BN_0))) {
+    if (!isShowZeroBalance && (!isTokenGroupBalanceReady || tokenGroupBalance.total.value.eq(0))) {
       return;
     }
 
@@ -288,7 +244,7 @@ function getAccountBalance (
   }
 
   if (!totalBalanceInfo.change.value.eq(0)) {
-    totalBalanceInfo.change.percent = totalBalanceInfo.change.value.multipliedBy(BN_100).dividedBy(totalBalanceInfo.converted24hValue);
+    totalBalanceInfo.change.percent = totalBalanceInfo.change.value.multipliedBy(100).dividedBy(totalBalanceInfo.converted24hValue);
   }
 
   return {
@@ -298,7 +254,7 @@ function getAccountBalance (
   };
 }
 
-export default function useAccountBalance (tokenGroupMap: Record<string, string[]>, showZeroBalance?: boolean): AccountBalanceHookType {
+export default function useAccountGroupBalance (tokenGroupMap: Record<string, string[]>, showZeroBalance?: boolean): AccountBalanceHookType {
   const balanceMap = useSelector((state: RootState) => state.balance.balanceMap);
   const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
   const priceMap = useSelector((state: RootState) => state.price.priceMap);
@@ -306,14 +262,16 @@ export default function useAccountBalance (tokenGroupMap: Record<string, string[
   const assetRegistryMap = useSelector((state: RootState) => state.assetRegistry.assetRegistry);
   const multiChainAssetMap = useSelector((state: RootState) => state.assetRegistry.multiChainAssetMap);
   const isShowZeroBalanceSetting = useSelector((state: RootState) => state.settings.isShowZeroBalance);
-  const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
+  const currentAccountGroup = useSelector((state: RootState) => state.accountState.currentAccountGroup);
+  const accountGroups = useSelector((state: RootState) => state.accountState.accountGroups);
 
   const isShowZeroBalance = useMemo(() => {
     return showZeroBalance || isShowZeroBalanceSetting;
   }, [isShowZeroBalanceSetting, showZeroBalance]);
 
-  return getAccountBalance(
-    currentAccount?.address || '',
+  return getAccountGroupBalance(
+    currentAccountGroup,
+    accountGroups,
     tokenGroupMap,
     balanceMap,
     priceMap,

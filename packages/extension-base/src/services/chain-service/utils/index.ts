@@ -236,7 +236,7 @@ export function _getTokenTypesSupportedByChain (chainInfo: _ChainInfo): _AssetTy
   return result;
 }
 
-export function _getChainNativeTokenBasicInfo (chainInfo: _ChainInfo): BasicTokenInfo {
+export function _getChainNativeTokenBasicInfo (chainInfo?: _ChainInfo): BasicTokenInfo {
   if (!chainInfo) {
     return {
       symbol: '',
@@ -244,15 +244,20 @@ export function _getChainNativeTokenBasicInfo (chainInfo: _ChainInfo): BasicToke
     };
   }
 
-  if (chainInfo.substrateInfo !== null) { // substrate by default
+  if (chainInfo.substrateInfo) { // substrate by default
     return {
       symbol: chainInfo.substrateInfo.symbol,
       decimals: chainInfo.substrateInfo.decimals
     };
-  } else if (chainInfo.evmInfo !== null) {
+  } else if (chainInfo.evmInfo) {
     return {
       symbol: chainInfo.evmInfo.symbol,
       decimals: chainInfo.evmInfo.decimals
+    };
+  } else if (chainInfo.bitcoinInfo) {
+    return {
+      symbol: chainInfo.bitcoinInfo.symbol,
+      decimals: chainInfo.bitcoinInfo.decimals
     };
   }
 

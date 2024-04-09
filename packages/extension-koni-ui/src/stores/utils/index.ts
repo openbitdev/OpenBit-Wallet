@@ -49,8 +49,6 @@ export const updateAccountsContext = (data: AccountsContext) => {
 };
 
 export const updateAccountGroupData = (data: AccountGroupsWithCurrentGroup) => {
-  console.log('data-------', data);
-
   let currentAccountGroup: AccountGroup = data.accountGroups[0];
   const accountGroups = data.accountGroups;
 
