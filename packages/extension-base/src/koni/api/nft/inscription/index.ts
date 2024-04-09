@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
+import { TEST_ADDRESS } from '@subwallet/extension-base/koni/api/nft/inscription/constants/accounts';
 import { HIRO_API } from '@subwallet/extension-base/koni/api/nft/inscription/constants/api';
-import { TEST_ADDRESS } from '@subwallet/extension-base/koni/api/nft/inscription/constants/test';
 import { InscriptionResponseItem } from '@subwallet/extension-base/koni/api/nft/inscription/types/interface';
 import { BaseNftApi, HandleNftParams } from '@subwallet/extension-base/koni/api/nft/nft';
 import fetch from 'cross-fetch';
@@ -42,11 +42,12 @@ export class InscriptionApi extends BaseNftApi {
     }
 
     if (type.startsWith('text/')) {
-      return this.createInscriptionInfoUrl(id);
+      return undefined;
     }
 
     if (type.startsWith('image/')) {
       return `${HIRO_API.list_of_incriptions}/${id}/content`;
+      // return `https://ordinals.com/preview/${id}`;
     }
 
     return undefined;
@@ -79,7 +80,6 @@ export class InscriptionApi extends BaseNftApi {
         }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return ordinalsFullList;
     } catch (error) {
       console.error(`Failed to get ${address} balances`, error);
@@ -98,15 +98,36 @@ export class InscriptionApi extends BaseNftApi {
         }
       });
 
-      return await response.json() as string;
+      return await response.json() as Record<string, any>;
     } catch (error) {
       return undefined;
     }
   }
 
+  private handleProperties (inscription: InscriptionResponseItem) {
+    const propertiesMap: Record<string, any> = {};
+    const satRarity = inscription.sat_rarity;
+    const satNumber = inscription.sat_ordinal;
+    const contentType = inscription.content_type;
+
+    propertiesMap.sat_rarity = {
+      value: satRarity
+    };
+
+    propertiesMap.sat_number = {
+      value: satNumber
+    };
+
+    propertiesMap.content_type = {
+      value: contentType
+    };
+
+    return propertiesMap;
+  }
+
   public async handleNfts (params: HandleNftParams) {
     try {
-      const balances = await this.getBalances(TEST_ADDRESS.add1);
+      const balances = await this.getBalances(TEST_ADDRESS.add5);
 
       console.log('balances', balances);
 
@@ -114,11 +135,13 @@ export class InscriptionApi extends BaseNftApi {
         const collectionMap: Record <string, NftCollection> = {};
 
         for (const ins of balances) {
-          if (ins.content_type.startsWith('text/plain')) {
-            continue;
+          let content;
+
+          if (ins.content_type.startsWith('text/plain') || ins.content_type.startsWith('application/json')) {
+            content = await this.getOrdinalContent(ins.id);
           }
 
-          const content = await this.getOrdinalContent(ins.id);
+          const propertiesMap = this.handleProperties(ins);
 
           const parsedNft: NftItem = {
             id: ins.id,
@@ -126,11 +149,10 @@ export class InscriptionApi extends BaseNftApi {
             owner: FAKE_ADDRESS, // todo: ins.address
             name: `#${ins.number.toString()}`,
             image: this.parseInsUrl(ins.id, ins.content_type),
-            description: content,
+            description: content ? JSON.stringify(content) : undefined,
             collectionId: ORDINAL_COLLECTION_INFO.collectionId,
-            rarity: ins.sat_rarity
-            // sat_number
-            // content_type
+            rarity: ins.sat_rarity,
+            properties: propertiesMap
           };
 
           console.log('parsedNft', parsedNft);
