@@ -238,7 +238,7 @@ export default class RequestService {
     options: ConfirmationsQueueItemOptions = {},
     validator?: (input: ConfirmationDefinitionsBitcoin[CT][1]) => Error | undefined
   ) {
-    return this.#bitcoinRequestHandler.updateConfirmationBitcoin(id, type, payload, options ,validator );
+    return this.#bitcoinRequestHandler.updateConfirmationBitcoin(id, type, payload, options, validator);
   }
 
   // WalletConnect Connect requests

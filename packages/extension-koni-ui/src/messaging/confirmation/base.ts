@@ -31,6 +31,7 @@ export async function approveSignSignature (id: string, signature: HexString): P
 export async function completeConfirmation<CT extends ConfirmationType> (type: CT, payload: ConfirmationDefinitions[CT][1]): Promise<boolean> {
   return sendMessage('pri(confirmations.complete)', { [type]: payload });
 }
+
 export async function completeConfirmationBitcoin<CT extends ConfirmationTypeBitcoin> (type: CT, payload: ConfirmationDefinitionsBitcoin[CT][1]): Promise<boolean> {
   return sendMessage('pri(confirmationsBitcoin.complete)', { [type]: payload });
 }
