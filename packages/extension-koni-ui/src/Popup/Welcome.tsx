@@ -52,7 +52,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       if (id === CREATE_ACCOUNT_MODAL) {
         navigate('/accounts/new-seed-phrase');
       } else if (id === IMPORT_SEED_MODAL) {
-        activeModal(IMPORT_SEED_MODAL);
+        navigate('/accounts/import-seed-phrase');
       } else {
         inactiveModal(SELECT_ACCOUNT_MODAL);
         activeModal(id);
