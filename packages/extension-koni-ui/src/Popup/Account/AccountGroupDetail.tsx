@@ -122,8 +122,10 @@ const Component: React.FC<Props> = (props: Props) => {
   }, [accountGroup?.groupId, checkUnlock, goHome, notify]);
 
   const onExport = useCallback(() => {
-    //
-  }, []);
+    if (accountGroup?.groupId) {
+      navigate(`/accounts/export/${accountGroup?.groupId}`);
+    }
+  }, [accountGroup?.groupId, navigate]);
 
   const onUpdate: FormCallbacks<DetailFormState>['onFieldsChange'] = useCallback((changedFields: FormFieldData[], allFields: FormFieldData[]) => {
     const changeMap = convertFieldToObject<DetailFormState>(changedFields);
@@ -290,7 +292,7 @@ const Component: React.FC<Props> = (props: Props) => {
           </Button>
           <Button
             className={CN('account-button')}
-            disabled={deriving}
+            disabled={deriving || !accountGroup.isMaster}
             icon={(
               <Icon
                 phosphorIcon={Export}
