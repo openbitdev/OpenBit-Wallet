@@ -1315,7 +1315,6 @@ export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   type: string;
   payload: unknown;
   payloadJson: any;
-  url: string;
 }
 
 export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignRequest {

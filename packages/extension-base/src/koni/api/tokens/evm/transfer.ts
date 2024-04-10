@@ -95,8 +95,7 @@ export async function getEVMTransactionObject (
   return [transactionObject, transactionObject.value.toString()];
 }
 
-
-export async function getBitcoinTransactionObject(
+export async function getBitcoinTransactionObject (
   from: string,
   to: string,
   amount: string,
@@ -121,9 +120,9 @@ export async function getBitcoinTransactionObject(
 
     console.log('Data:', data);
 
-    const bitcoinApi = `https://api.blockcypher.com/v1/btc/test3/txs/new`;
+    const bitcoinApi = 'https://api.blockcypher.com/v1/btc/test3/txs/new';
     // const bitcoinApitest = 'https://blockstream.info/testnet/api/tx';
-    
+
     console.log('Bitcoin API:', bitcoinApi);
 
     const response = await fetch(bitcoinApi, {
@@ -135,7 +134,7 @@ export async function getBitcoinTransactionObject(
     });
 
     console.log('Response136:', response);
-    
+
     const transactionObject = await response.json();
 
     console.log('Response Data 140 :', transactionObject);
@@ -158,7 +157,6 @@ export async function getBitcoinTransactionObject(
     //   vout_sz: responseData.tx.vout_sz,
     //   confirmations: responseData.tx.confirmations
     // };
-    
 
     console.log('Transaction Object:', transactionObject);
 
@@ -173,7 +171,6 @@ export async function getBitcoinTransactionObject(
     throw new Error(`Failed to get Bitcoin transaction object: ${error}`);
   }
 }
-
 
 // export async function getBitcoinTransactionObject (
 //   from: string,
@@ -249,7 +246,7 @@ export async function getBitcoinTransactionObject(
 //   return transaction;
 // }
 
-export async function getFeeEstimatesFromBlockcypherApi(network: 'main' | 'test3'): Promise<FeeData> {
+export async function getFeeEstimatesFromBlockcypherApi (network: 'main' | 'test3'): Promise<FeeData> {
   try {
     const url = `https://api.blockcypher.com/v1/btc/${network}`;
     const response = await fetch(url);
@@ -262,9 +259,9 @@ export async function getFeeEstimatesFromBlockcypherApi(network: 'main' | 'test3
     const { high_fee_per_kb, low_fee_per_kb, medium_fee_per_kb } = responseData;
 
     const feeData: FeeData = {
-      symbol: '', 
+      symbol: '',
       decimals: 0,
-      value: '', 
+      value: '',
       tooHigh: false,
       slow: low_fee_per_kb / 1000,
       medium: medium_fee_per_kb / 1000,
@@ -276,7 +273,6 @@ export async function getFeeEstimatesFromBlockcypherApi(network: 'main' | 'test3
     throw new Error('Failed to get fee estimates from Blockcypher API: ');
   }
 }
-
 
 export async function getERC20TransactionObject (
   assetAddress: string,
