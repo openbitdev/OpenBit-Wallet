@@ -4,6 +4,7 @@
 /* eslint @typescript-eslint/no-empty-interface: "off" */
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _CrowdloanFund } from '@subwallet/chain-list/types';
+import { BitcoinApiStrategy } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { BehaviorSubject } from 'rxjs';
 import Web3 from 'web3';
@@ -106,6 +107,7 @@ export interface BitcoinApiProxy {
 
 export interface _BitcoinApi extends _ChainBaseApi {
   isReady: Promise<_BitcoinApi>;
+  api: BitcoinApiStrategy;
 }
 
 export type _NetworkUpsertParams = {

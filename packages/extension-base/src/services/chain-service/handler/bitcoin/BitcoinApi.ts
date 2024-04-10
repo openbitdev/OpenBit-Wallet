@@ -3,10 +3,13 @@
 
 import '@polkadot/types-augment';
 
-import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
-import { _BitcoinApi, _ChainConnectionStatus } from '@subwallet/extension-base/services/chain-service/types';
+import { BlockStreamRequestStrategy } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream';
+import { BitcoinApiStrategy } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { createPromiseHandler, PromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { BehaviorSubject } from 'rxjs';
+
+import { _ApiOptions } from '../../handler/types';
+import { _BitcoinApi, _ChainConnectionStatus } from '../../types';
 
 export class BitcoinApi implements _BitcoinApi {
   chainSlug: string;
@@ -20,6 +23,22 @@ export class BitcoinApi implements _BitcoinApi {
   isReadyHandler: PromiseHandler<_BitcoinApi>;
 
   providerName: string;
+  api: BitcoinApiStrategy;
+
+  constructor (chainSlug: string, apiUrl: string, { providerName }: _ApiOptions = {}) {
+    this.chainSlug = chainSlug;
+    this.apiUrl = apiUrl;
+    this.providerName = providerName || 'unknown';
+    this.isReadyHandler = createPromiseHandler<_BitcoinApi>();
+
+    if (apiUrl.includes('https://blockstream.info')) {
+      this.api = new BlockStreamRequestStrategy(apiUrl);
+    } else {
+      throw new Error(`Unsupported provider: ${apiUrl}`);
+    }
+
+    this.connect();
+  }
 
   get isApiConnected (): boolean {
     return this.isApiConnectedSubject.getValue();
@@ -46,22 +65,25 @@ export class BitcoinApi implements _BitcoinApi {
   }
 
   async updateApiUrl (apiUrl: string) {
-    this.apiUrl = apiUrl;
+    if (this.apiUrl === apiUrl) {
+      return;
+    }
 
     await this.disconnect();
+
+    this.apiUrl = apiUrl;
+
+    if (apiUrl.includes('https://blockstream.info')) {
+      this.api = new BlockStreamRequestStrategy(apiUrl);
+    } else {
+      throw new Error(`Unsupported provider: ${apiUrl}`);
+    }
+
     this.connect();
   }
 
   async recoverConnect () {
     await this.isReadyHandler.promise;
-  }
-
-  constructor (chainSlug: string, apiUrl: string, { providerName }: _ApiOptions = {}) {
-    this.chainSlug = chainSlug;
-    this.apiUrl = apiUrl;
-    this.providerName = providerName || 'unknown';
-    this.isReadyHandler = createPromiseHandler<_BitcoinApi>();
-    this.connect();
   }
 
   connect (): void {
@@ -71,6 +93,7 @@ export class BitcoinApi implements _BitcoinApi {
   }
 
   async disconnect () {
+    this.api.stop();
     this.onDisconnect();
 
     this.updateConnectionStatus(_ChainConnectionStatus.DISCONNECTED);

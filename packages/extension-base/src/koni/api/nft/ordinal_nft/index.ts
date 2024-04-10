@@ -61,13 +61,13 @@ export default class OrdinalNftApi extends BaseNftApi {
   public async handleNft (address: string, handleNftParams: HandleNftParams) {
     const events: SubscanEventBaseItemData[] = await this.subscanService.addRequest(async () => {
       return await fetchRemarkEvent(this.subscanChain, address);
-    });
+    }, 3);
 
     if (events && events.length) {
       const extrinsicIds = events.map((data) => data.extrinsic_index);
       const extrinsicParams: SubscanExtrinsicParam[] = await this.subscanService.addRequest(async () => {
         return await fetchExtrinsicParams(this.subscanChain, extrinsicIds);
-      });
+      }, 3);
       const items: NftItem[] = [];
 
       for (const data of extrinsicParams) {

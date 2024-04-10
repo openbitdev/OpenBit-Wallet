@@ -1,10 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ChainService } from '@subwallet/extension-base/services/chain-service';
-import { AbstractChainHandler } from '@subwallet/extension-base/services/chain-service/handler/AbstractChainHandler';
-import { BitcoinApi } from '@subwallet/extension-base/services/chain-service/handler/BitcoinApi';
-import { _ApiOptions } from '@subwallet/extension-base/services/chain-service/handler/types';
+import { ChainService } from '@subwallet/extension-base/services/chain-service/index';
+
+import { AbstractChainHandler } from '../AbstractChainHandler';
+import { _ApiOptions } from '../types';
+import { BitcoinApi } from './BitcoinApi';
 
 export class BitcoinChainHandler extends AbstractChainHandler {
   private apiMap: Record<string, BitcoinApi> = {};

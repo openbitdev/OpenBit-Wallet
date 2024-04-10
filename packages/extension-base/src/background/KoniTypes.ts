@@ -16,6 +16,7 @@ import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyr
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
+import { Transaction } from 'bitcoinjs-lib';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
 import { RequestArguments, TransactionConfig } from 'web3-core';
@@ -614,6 +615,9 @@ export interface AmountData extends BasicTokenInfo {
 
 export interface FeeData extends AmountData {
   tooHigh?: boolean;
+  fast: number;
+  medium: number;
+  slow: number;
 }
 
 export interface AmountDataWithId extends AmountData {
@@ -717,6 +721,8 @@ export enum BasicTxErrorType {
   UNSUPPORTED = 'UNSUPPORTED',
   TIMEOUT = 'TIMEOUT',
   NOT_ENOUGH_EXISTENTIAL_DEPOSIT = 'NOT_ENOUGH_EXISTENTIAL_DEPOSIT',
+  UNABLE_TO_CREATE_EMITTER = 'UNABLE_TO_CREATE_EMITTER',
+  INVALID_TRANSACTION = 'INVALID_TRANSACTION'
 }
 
 export enum StakingTxErrorType {
@@ -1303,10 +1309,22 @@ export interface EvmSignRequest {
   canSign: boolean;
 }
 
+export interface BitcoinSignRequest {
+  account: AccountJson;
+  hashPayload: string;
+  canSign: boolean;
+}
+
 export interface EvmSignatureRequest extends EvmSignRequest {
   id: string;
   type: string;
   payload: unknown;
+}
+export interface BitcoinSignatureRequest extends BitcoinSignRequest {
+  id: string;
+  type: string;
+  payload: unknown;
+  payloadJson: any;
 }
 
 export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignRequest {
@@ -1315,7 +1333,28 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
+export interface BitcoinSendTransactionRequest extends Transaction, BitcoinSignRequest {
+  isToContract: boolean;
+  inputs: Input[];
+  outputs: Output[];
+}
+export interface Input {
+  hash: string;
+  index: number;
+  script: string;
+  sequence: number;
+  witness: string[];
+  value: number
+}
+
+// Định nghĩa lại kiểu Output
+export interface Output {
+  script: string;
+  value: number;
+}
+
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
+export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
 
 export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
@@ -1386,10 +1425,21 @@ export interface ConfirmationDefinitions {
   evmWatchTransactionRequest: [ConfirmationsQueueItem<EvmWatchTransactionRequest>, ConfirmationResult<string>]
 }
 
+export interface ConfirmationDefinitionsBitcoin {
+  bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<string>],
+  bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
+  bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>]
+}
+
 export type ConfirmationType = keyof ConfirmationDefinitions;
+
+export type ConfirmationTypeBitcoin = keyof ConfirmationDefinitionsBitcoin;
 
 export type ConfirmationsQueue = {
   [CT in ConfirmationType]: Record<string, ConfirmationDefinitions[CT][0]>;
+}
+export type ConfirmationsQueueBitcoin = {
+  [CT in ConfirmationTypeBitcoin]: Record<string, ConfirmationDefinitionsBitcoin[CT][0]>;
 }
 
 export type RequestConfirmationsSubscribe = null;
@@ -1397,6 +1447,9 @@ export type RequestConfirmationsSubscribe = null;
 // Design to use only one confirmation
 export type RequestConfirmationComplete = {
   [CT in ConfirmationType]?: ConfirmationDefinitions[CT][1];
+}
+export type RequestConfirmationCompleteBitcoin = {
+  [CT in ConfirmationTypeBitcoin]?: ConfirmationDefinitionsBitcoin[CT][1];
 }
 
 export interface BasicTxInfo {
@@ -1571,6 +1624,7 @@ export interface ValidateTransactionResponse {
 }
 
 export type RequestTransfer = InternalRequestSign<RequestCheckTransfer>;
+export type RequestTransferBitcoin = RequestTransfer & { id: string };
 
 export interface RequestCheckCrossChainTransfer extends BaseRequestSign {
   originNetworkKey: string,
@@ -2431,6 +2485,7 @@ export interface KoniRequestSignatures {
   // Transfer
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ValidateTransactionResponse];
   'pri(accounts.transfer)': [RequestTransfer, SWTransactionResponse];
+  'pri(accounts.transferBitcoin)': [RequestTransfer, SWTransactionResponse];
 
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ValidateTransactionResponse];
   'pri(accounts.crossChainTransfer)': [RequestCrossChainTransfer, SWTransactionResponse];
@@ -2438,6 +2493,7 @@ export interface KoniRequestSignatures {
   // Confirmation Queues
   'pri(confirmations.subscribe)': [RequestConfirmationsSubscribe, ConfirmationsQueue, ConfirmationsQueue];
   'pri(confirmations.complete)': [RequestConfirmationComplete, boolean];
+  'pri(confirmationsBitcoin.complete)': [RequestConfirmationCompleteBitcoin, boolean];
 
   'pub(utils.getRandom)': [RandomTestRequest, number];
   'pub(accounts.listV2)': [RequestAccountList, InjectedAccount[]];

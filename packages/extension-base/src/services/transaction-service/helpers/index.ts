@@ -4,6 +4,7 @@
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { SWTransaction } from '@subwallet/extension-base/services/transaction-service/types';
+import { Transaction } from 'bitcoinjs-lib';
 
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 
@@ -20,6 +21,10 @@ export const getValidationId = (chainType: string, chain: string): string => {
 
 export const isSubstrateTransaction = (tx: SWTransaction['transaction']): tx is SubmittableExtrinsic => {
   return !!(tx as SubmittableExtrinsic).send;
+};
+
+export const isBitcoinTransaction = (tx: SWTransaction['transaction']): tx is Transaction => {
+  return tx instanceof Transaction;
 };
 
 const typeName = (type: SWTransaction['extrinsicType']) => {

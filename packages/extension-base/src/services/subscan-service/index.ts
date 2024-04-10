@@ -2,31 +2,34 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { SUBSCAN_API_CHAIN_MAP } from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
-import { CrowdloanContributionsResponse, ExtrinsicItem, ExtrinsicsListResponse, IMultiChainBalance, RequestBlockRange, RewardHistoryListResponse, SubscanRequest, SubscanResponse, TransferItem, TransfersListResponse } from '@subwallet/extension-base/services/subscan-service/types';
+import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
+import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
+import { ApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/types';
+import { postRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 import { wait } from '@subwallet/extension-base/utils';
-import fetch from 'cross-fetch';
+
+import { SUBSCAN_API_CHAIN_MAP } from './subscan-chain-map';
+import { CrowdloanContributionsResponse, ExtrinsicItem, ExtrinsicsListResponse, IMultiChainBalance, RequestBlockRange, RewardHistoryListResponse, SubscanResponse, TransferItem, TransfersListResponse } from './types';
 
 const QUERY_ROW = 100;
 
-export class SubscanService {
-  private limitRate = 2; // limit per interval check
-  private intervalCheck = 1000; // interval check in ms
-  private maxRetry = 9; // interval check in ms
-  private requestMap: Record<number, SubscanRequest<any>> = {};
-  private nextId = 0;
-  private isRunning = false;
-  private getId () {
-    return this.nextId++;
-  }
+interface SubscanError {
+  code: number;
+  message: string;
+}
 
+export class SubscanService extends BaseApiRequestStrategy {
   private subscanChainMap: Record<string, string>;
 
-  constructor (options?: {limitRate?: number, intervalCheck?: number, maxRetry?: number}) {
+  constructor (context: ApiRequestContext) {
+    super(context);
     this.subscanChainMap = SUBSCAN_API_CHAIN_MAP;
-    this.limitRate = options?.limitRate || this.limitRate;
-    this.intervalCheck = options?.intervalCheck || this.intervalCheck;
-    this.maxRetry = options?.maxRetry || this.maxRetry;
+  }
+
+  override isRateLimited (e: Error): boolean {
+    const error = JSON.parse(e.message) as SubscanError;
+
+    return error.code === 20008;
   }
 
   private getApiUrl (chain: string, path: string) {
@@ -37,73 +40,6 @@ export class SubscanService {
     }
 
     return `https://${subscanChain}.api.subscan.io/${path}`;
-  }
-
-  private postRequest (url: string, body: any) {
-    return fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-  }
-
-  public addRequest<T> (run: SubscanRequest<T>['run']) {
-    const newId = this.getId();
-
-    return new Promise<T>((resolve, reject) => {
-      this.requestMap[newId] = {
-        id: newId,
-        status: 'pending',
-        retry: -1,
-        run,
-        resolve,
-        reject
-      };
-
-      if (!this.isRunning) {
-        this.process();
-      }
-    });
-  }
-
-  private process () {
-    this.isRunning = true;
-    const maxRetry = this.maxRetry;
-
-    const interval = setInterval(() => {
-      const remainingRequests = Object.values(this.requestMap);
-
-      if (remainingRequests.length === 0) {
-        this.isRunning = false;
-        clearInterval(interval);
-
-        return;
-      }
-
-      // Get first this.limit requests base on id
-      const requests = remainingRequests
-        .filter((request) => request.status !== 'running')
-        .sort((a, b) => a.id - b.id)
-        .slice(0, this.limitRate);
-
-      // Start requests
-      requests.forEach((request) => {
-        request.status = 'running';
-        request.run().then((rs) => {
-          request.resolve(rs);
-        }).catch((e) => {
-          if (request.retry < maxRetry) {
-            request.status = 'pending';
-            request.retry++;
-          } else {
-            // Reject request
-            request.reject(new SWError('MAX_RETRY', String(e)));
-          }
-        });
-      });
-    }, this.intervalCheck);
   }
 
   public checkSupportedSubscanChain (chain: string): boolean {
@@ -117,7 +53,7 @@ export class SubscanService {
   // Implement Subscan API
   public getMultiChainBalance (address: string): Promise<IMultiChainBalance[]> {
     return this.addRequest(async () => {
-      const rs = await this.postRequest(this.getApiUrl('polkadot', 'api/scan/multiChain/account'), { address });
+      const rs = await postRequest(this.getApiUrl('polkadot', 'api/scan/multiChain/account'), { address });
 
       if (rs.status !== 200) {
         throw new SWError('SubscanService.getMultiChainBalance', await rs.text());
@@ -126,12 +62,12 @@ export class SubscanService {
       const jsonData = (await rs.json()) as SubscanResponse<IMultiChainBalance[]>;
 
       return jsonData.data;
-    });
+    }, 1);
   }
 
   public getCrowdloanContributions (relayChain: string, address: string, page = 0): Promise<CrowdloanContributionsResponse> {
     return this.addRequest<CrowdloanContributionsResponse>(async () => {
-      const rs = await this.postRequest(this.getApiUrl(relayChain, 'api/scan/account/contributions'), {
+      const rs = await postRequest(this.getApiUrl(relayChain, 'api/scan/account/contributions'), {
         include_total: true,
         page,
         row: QUERY_ROW,
@@ -145,7 +81,7 @@ export class SubscanService {
       const jsonData = (await rs.json()) as SubscanResponse<CrowdloanContributionsResponse>;
 
       return jsonData.data;
-    });
+    }, 2);
   }
 
   public getExtrinsicsList (chain: string, address: string, page = 0, blockRange?: RequestBlockRange): Promise<ExtrinsicsListResponse> {
@@ -158,7 +94,7 @@ export class SubscanService {
     })();
 
     return this.addRequest<ExtrinsicsListResponse>(async () => {
-      const rs = await this.postRequest(this.getApiUrl(chain, 'api/scan/extrinsics'), {
+      const rs = await postRequest(this.getApiUrl(chain, 'api/scan/extrinsics'), {
         page,
         row: QUERY_ROW,
         address,
@@ -172,7 +108,7 @@ export class SubscanService {
       const jsonData = (await rs.json()) as SubscanResponse<ExtrinsicsListResponse>;
 
       return jsonData.data;
-    });
+    }, 0);
   }
 
   public async fetchAllPossibleExtrinsicItems (
@@ -232,7 +168,7 @@ export class SubscanService {
 
   public getTransfersList (chain: string, address: string, page = 0, direction?: 'sent' | 'received', blockRange?: RequestBlockRange): Promise<TransfersListResponse> {
     return this.addRequest<TransfersListResponse>(async () => {
-      const rs = await this.postRequest(this.getApiUrl(chain, 'api/v2/scan/transfers'), {
+      const rs = await postRequest(this.getApiUrl(chain, 'api/v2/scan/transfers'), {
         page,
         row: QUERY_ROW,
         address,
@@ -248,7 +184,7 @@ export class SubscanService {
       const jsonData = (await rs.json()) as SubscanResponse<TransfersListResponse>;
 
       return jsonData.data;
-    });
+    }, 0);
   }
 
   public async fetchAllPossibleTransferItems (
@@ -313,7 +249,7 @@ export class SubscanService {
 
   public getRewardHistoryList (chain: string, address: string, page = 0): Promise<RewardHistoryListResponse> {
     return this.addRequest<RewardHistoryListResponse>(async () => {
-      const rs = await this.postRequest(this.getApiUrl(chain, 'api/scan/account/reward_slash'), {
+      const rs = await postRequest(this.getApiUrl(chain, 'api/scan/account/reward_slash'), {
         page,
         category: 'Reward',
         row: 10,
@@ -327,7 +263,7 @@ export class SubscanService {
       const jsonData = (await rs.json()) as SubscanResponse<RewardHistoryListResponse>;
 
       return jsonData.data;
-    });
+    }, 2);
   }
 
   // Singleton
@@ -335,7 +271,9 @@ export class SubscanService {
 
   public static getInstance () {
     if (!SubscanService._instance) {
-      SubscanService._instance = new SubscanService();
+      const context = new BaseApiRequestContext();
+
+      SubscanService._instance = new SubscanService(context);
     }
 
     return SubscanService._instance;
