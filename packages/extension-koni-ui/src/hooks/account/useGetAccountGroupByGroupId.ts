@@ -11,7 +11,7 @@ const useGetAccountGroupByGroupId = (groupId?: string): AccountGroup | null => {
   const accountGroups = useSelector((state: RootState) => state.accountState.accountGroups);
 
   return useMemo((): AccountGroup | null => {
-    return findAccountGroupByGroupId(accountGroups, groupId);
+    return findAccountGroupByGroupId(accountGroups, groupId) || null;
   }, [accountGroups, groupId]);
 };
 

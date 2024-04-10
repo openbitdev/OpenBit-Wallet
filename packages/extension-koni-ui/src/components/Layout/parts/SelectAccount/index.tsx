@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountGroup } from '@subwallet/extension-base/background/types';
-import { AccountGroupBriefInfo, AccountGroupSelectorAllItem } from '@subwallet/extension-koni-ui/components';
-import { SimpleQrModal } from '@subwallet/extension-koni-ui/components/Modal';
+import { AccountGroupBriefInfo, AccountGroupSelectorAllItem, AccountGroupSelectorItem, AddressQrSelectorModal } from '@subwallet/extension-koni-ui/components';
 import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useDefaultNavigate, useGetCurrentAuth, useGetCurrentTab, useGoBackSelectAccount, useIsPopup, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { saveCurrentAccountGroup } from '@subwallet/extension-koni-ui/messaging';
@@ -19,7 +18,6 @@ import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-import AccountGroupSelectorItem from '../../../AccountGroup/AccountGroupSelectorItem';
 import { GeneralEmptyList } from '../../../EmptyList';
 import { ConnectWebsiteModal } from '../ConnectWebsiteModal';
 import SelectAccountFooter from '../SelectAccount/Footer';
@@ -47,7 +45,7 @@ const ConnectWebsiteId = 'connectWebsiteId';
 const renderEmpty = () => <GeneralEmptyList />;
 
 const modalId = SELECT_ACCOUNT_MODAL;
-const simpleQrModalId = 'simple-qr-modal-id';
+const addressQrSelectorModalId = 'address-qr-selector-modal-id';
 
 function Component ({ className }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
@@ -65,7 +63,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const isCurrentTabFetched = !!currentTab;
   const currentAuth = useGetCurrentAuth();
   const isPopup = useIsPopup();
-  const [selectedQrAddress, setSelectedQrAddress] = useState<string | undefined>();
+  const [selectedQrAccountGroupId, setSelectedQrAccountGroupId] = useState<string | undefined>();
 
   const accountGroups = useMemo((): AccountGroup[] => {
     const result = [..._accountGroups].sort(groupFuncSortByName);
@@ -144,12 +142,14 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     };
   }, [navigate, inactiveModal]);
 
-  const onClickItemQrButton = useCallback((address: string) => {
-    setSelectedQrAddress(address);
-    activeModal(simpleQrModalId);
+  const onClickItemQrButton = useCallback((groupId: string) => {
+    return () => {
+      setSelectedQrAccountGroupId(groupId);
+      activeModal(addressQrSelectorModalId);
+    };
   }, [activeModal]);
 
-  const onQrModalBack = useGoBackSelectAccount(simpleQrModalId);
+  const onAddressQrSelectorModalBack = useGoBackSelectAccount(addressQrSelectorModalId);
 
   const renderItem = useCallback((item: AccountGroup, _selected: boolean): React.ReactNode => {
     if (isAccountAll(item.groupId)) {
@@ -167,11 +167,11 @@ function Component ({ className }: Props): React.ReactElement<Props> {
 
     return (
       <AccountGroupSelectorItem
-        accountName={item.name || ''}
+        accountGroup={item}
         className={className}
         isSelected={_selected}
         onClickMoreButton={onClickAccountGroupDetail(item.groupId)}
-        onClickQrButton={onClickItemQrButton}
+        onClickQrButton={onClickItemQrButton(item.groupId)}
       />
     );
   }, [className, onClickAccountGroupDetail, onClickItemQrButton, showAllAccount]);
@@ -270,10 +270,11 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         onCancel={onCloseConnectWebsiteModal}
         url={currentTab?.url || ''}
       />
-      <SimpleQrModal
-        address={selectedQrAddress}
-        id={simpleQrModalId}
-        onBack={onQrModalBack}
+
+      <AddressQrSelectorModal
+        accountGroupId={selectedQrAccountGroupId}
+        modalId={addressQrSelectorModalId}
+        onBack={onAddressQrSelectorModalBack}
       />
     </div>
   );

@@ -24,6 +24,8 @@ export interface ExtraToken {
   tokensScreenSuccessBackgroundColor: string,
   tokensScreenDangerBackgroundColor: string,
   tokensScreenInfoBackgroundColor: string,
+  colorBgHover1: string,
+  colorBgHover2: string
 }
 
 export type Theme = {
@@ -49,7 +51,9 @@ function genDefaultExtraTokens (token: AliasToken): ExtraToken {
     defaultImagePlaceholder,
     tokensScreenSuccessBackgroundColor: 'linear-gradient(180deg, rgba(76, 234, 172, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
     tokensScreenDangerBackgroundColor: 'linear-gradient(180deg, rgba(234, 76, 76, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
-    tokensScreenInfoBackgroundColor: 'linear-gradient(180deg, rgba(0, 75, 255, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)'
+    tokensScreenInfoBackgroundColor: 'linear-gradient(180deg, rgba(0, 75, 255, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)'.trim(),
+    colorBgHover1: '#2A2E3C',
+    colorBgHover2: '#3C4153'
   };
 }
 

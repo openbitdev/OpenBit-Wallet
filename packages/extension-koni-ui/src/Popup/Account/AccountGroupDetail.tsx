@@ -1,18 +1,18 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { CloseIcon, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AddressQrSelectorModal, CloseIcon, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { useDefaultNavigate, useDeleteAccount, useGetAccountGroupByGroupId, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
 import { deriveAccountGroup, editAccountGroup, forgetAccountGroup } from '@subwallet/extension-koni-ui/messaging';
-import { FormCallbacks, FormFieldData, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, FormFieldData, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject } from '@subwallet/extension-koni-ui/utils';
-import { BackgroundIcon, Button, Form, Icon, Input } from '@subwallet/react-ui';
+import { BackgroundIcon, Button, Form, Icon, Input, ModalContext, SettingItem } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { CircleNotch, Export, FloppyDiskBack, GitMerge, Trash, User } from 'phosphor-react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CaretRight, CircleNotch, Export, FloppyDiskBack, GitMerge, Trash, User, UserSquare } from 'phosphor-react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 
 type Props = ThemeProps;
 
@@ -30,6 +30,8 @@ interface DetailFormState {
   [FormFieldName.NAME]: string;
 }
 
+const addressQrSelectorModalId = 'account-group-detail-addressQrSelectorModalId';
+
 const Component: React.FC<Props> = (props: Props) => {
   const { className } = props;
 
@@ -38,6 +40,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const { goHome } = useDefaultNavigate();
   const notify = useNotification();
   const { accountGroupId } = useParams();
+  const { activeModal } = useContext(ModalContext);
 
   const [form] = Form.useForm<DetailFormState>();
 
@@ -51,9 +54,15 @@ const Component: React.FC<Props> = (props: Props) => {
   const [saving, setSaving] = useState(false);
   const checkUnlock = useUnlockChecker();
 
+  const { token } = useTheme() as Theme;
+
   const _canDerive = useMemo((): boolean => {
     return !!accountGroup?.isMaster;
   }, [accountGroup]);
+
+  const onViewAccountAddresses = useCallback(() => {
+    activeModal(addressQrSelectorModalId);
+  }, [activeModal]);
 
   const onDelete = useCallback(() => {
     if (accountGroup?.groupId) {
@@ -224,6 +233,30 @@ const Component: React.FC<Props> = (props: Props) => {
               />
             </Form.Item>
           </Form>
+
+          <div
+            className={'__setting-item-wrapper'}
+            onClick={onViewAccountAddresses}
+          >
+            <SettingItem
+              className={'__setting-item'}
+              leftItemIcon={(
+                <BackgroundIcon
+                  backgroundColor={token['green-7']}
+                  phosphorIcon={UserSquare}
+                  size='sm'
+                  weight='fill'
+                />
+              )}
+              name={t('Account Addresses')}
+              rightItem={(
+                <Icon
+                  customSize={'20px'}
+                  phosphorIcon={CaretRight}
+                />
+              )}
+            />
+          </div>
         </div>
 
         <div className={CN('account-detail___action-footer')}>
@@ -271,11 +304,16 @@ const Component: React.FC<Props> = (props: Props) => {
           </Button>
         </div>
       </Layout.WithSubHeaderOnly>
+
+      <AddressQrSelectorModal
+        accountGroupId={accountGroupId}
+        modalId={addressQrSelectorModalId}
+      />
     </PageWrapper>
   );
 };
 
-const AccountGroupDetail = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const AccountGroupDetail = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
   return {
     '.account-detail-form': {
       marginTop: token.margin
@@ -333,10 +371,6 @@ const AccountGroupDetail = styled(Component)<Props>(({ theme: { token } }: Props
           height: 'auto',
           marginRight: -(token.marginSM - 2)
         }
-      },
-
-      '.mb-lg': {
-        marginBottom: token.marginLG
       },
 
       '.account-button': {
@@ -404,6 +438,22 @@ const AccountGroupDetail = styled(Component)<Props>(({ theme: { token } }: Props
 
       'button:nth-child(1)': {
         flex: 1
+      }
+    },
+
+    '.__setting-item': {
+      '.ant-web3-block-right-item .anticon': {
+        minWidth: 40,
+        justifyContent: 'center',
+        color: token.colorTextLight4
+      },
+
+      '.ant-web3-block:hover': {
+        backgroundColor: extendToken.colorBgHover1,
+
+        '.ant-web3-block-right-item .anticon': {
+          color: token.colorTextLight1
+        }
       }
     }
   };

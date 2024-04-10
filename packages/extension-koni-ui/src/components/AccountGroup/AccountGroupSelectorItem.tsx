@@ -1,41 +1,63 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountGroup } from '@subwallet/extension-base/background/types';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
-import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, Icon } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import CN from 'classnames';
-import { CheckCircle, PencilSimpleLine, QrCode } from 'phosphor-react';
-import React, { Context, useCallback, useContext } from 'react';
+import { CheckCircle, GitMerge, PencilSimpleLine, QrCode } from 'phosphor-react';
+import { IconWeight } from 'phosphor-react/src/lib';
+import React, { Context, useContext, useMemo } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
 type Props = ThemeProps & {
   className?: string;
-  onClickMoreButton?: () => void;
+  onClickMoreButton?: VoidFunction;
   isSelected?: boolean;
-  onClickQrButton?: (address: string) => void;
-  accountName?: string;
+  onClickQrButton?: VoidFunction;
+  accountGroup: AccountGroup;
+}
+
+type AccountGroupTypeIcon = {
+  type: 'icon' | 'node',
+  value: PhosphorIcon | React.ReactNode,
+  weight?: IconWeight
 }
 
 function Component (props: Props): React.ReactElement<Props> {
-  const { accountName,
+  const { accountGroup,
     isSelected,
-    onClickMoreButton } = props;
+    onClickMoreButton,
+    onClickQrButton } = props;
 
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
   const { t } = useTranslation();
+
+  const accountGroupTypeIcon = useMemo<AccountGroupTypeIcon | undefined>(() => {
+    if (!accountGroup.isMaster) {
+      return {
+        type: 'icon',
+        value: GitMerge,
+        weight: 'fill'
+      };
+    }
+
+    return undefined;
+  }, [accountGroup.isMaster]);
 
   const _onClickMore: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> = React.useCallback((event) => {
     event.stopPropagation();
     onClickMoreButton && onClickMoreButton();
   }, [onClickMoreButton]);
 
-  const _onClickQrBtn = useCallback(() => {
-    //
-  }, []);
+  const _onClickQrButton: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> = React.useCallback((event) => {
+    event.stopPropagation();
+    onClickQrButton && onClickQrButton();
+  }, [onClickQrButton]);
 
   return (
     <>
@@ -48,8 +70,8 @@ function Component (props: Props): React.ReactElement<Props> {
           />
         </div>
         <div className='__item-center-part'>
-          <div className='__item-name'>{accountName}</div>
-          <div className='__item-address'>{accountName}</div>
+          <div className='__item-name'>{accountGroup.name}</div>
+          <div className='__item-address'>{accountGroup.name}</div>
         </div>
         <div className='__item-right-part'>
           <div className='__item-actions'>
@@ -61,7 +83,7 @@ function Component (props: Props): React.ReactElement<Props> {
                   size='sm'
                 />
               }
-              onClick={_onClickQrBtn}
+              onClick={_onClickQrButton}
               size='xs'
               tooltip={t('Show QR code')}
               type='ghost'
@@ -89,6 +111,23 @@ function Component (props: Props): React.ReactElement<Props> {
                     size='sm'
                     weight='fill'
                   />
+                }
+                size='xs'
+                type='ghost'
+              />
+            )}
+            {accountGroupTypeIcon && (
+              <Button
+                icon={
+                  accountGroupTypeIcon.type === 'icon'
+                    ? (
+                      <Icon
+                        phosphorIcon={accountGroupTypeIcon.value as PhosphorIcon}
+                        size='sm'
+                        weight={accountGroupTypeIcon.weight}
+                      />
+                    )
+                    : accountGroupTypeIcon.value as React.ReactNode
                 }
                 size='xs'
                 type='ghost'

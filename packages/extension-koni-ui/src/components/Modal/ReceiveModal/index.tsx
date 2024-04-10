@@ -3,5 +3,6 @@
 
 export { default as ReceiveQrModal } from './ReceiveQrModal';
 export { default as SimpleQrModal } from './SimpleQrModal';
+export { default as AddressQrSelectorModal } from './AddressQrSelectorModal';
 
 export * from './TokensSelectorModal';
