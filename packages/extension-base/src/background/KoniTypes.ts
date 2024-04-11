@@ -2228,7 +2228,7 @@ export interface RequestCampaignBannerComplete {
 }
 
 export interface RequestSubscribeHistory {
-  address: string;
+  accountGroupId: string;
   chain: string;
 }
 

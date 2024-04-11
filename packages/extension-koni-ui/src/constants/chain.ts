@@ -3,6 +3,6 @@
 
 export const SUPPORT_CHAINS: string[] = [
   'bitcoin',
-  'bitcoinTestnet',
-  'ethereum'
+  'bitcoinTestnet'
+  // 'ethereum'
 ];

@@ -7,7 +7,7 @@ import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountExternalError, AccountExternalErrorCode, AccountGroupsWithCurrentGroup, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountGroupCreateSuri, RequestAccountGroupEdit, RequestAccountMeta, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountGroupMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeBitcoinHistory, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransfer, RequestTransferBitcoin, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountExternalError, AccountExternalErrorCode, AccountGroupsWithCurrentGroup, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountGroupCreateSuri, RequestAccountGroupEdit, RequestAccountMeta, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountGroupMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransfer, RequestTransferBitcoin, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AccountGroup, AccountJson, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountGroup, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, SUPPORT_KEYPAIR_TYPES, XCM_FEE_RATIO, XCM_MIN_AMOUNT_RATIO } from '@subwallet/extension-base/constants';
@@ -1779,17 +1779,10 @@ export default class KoniExtension {
   }
 
   // todo: will update in future, not now
-  private subscribeHistoryByChainAndAddress ({ address, chain }: RequestSubscribeHistory, id: string, port: chrome.runtime.Port): ResponseSubscribeHistory {
-    return {
-      id,
-      items: []
-    };
-  }
-
-  private subscribeBitcoinHistory ({ address }: RequestSubscribeBitcoinHistory, id: string, port: chrome.runtime.Port): ResponseSubscribeHistory {
+  private subscribeHistoryByChainAndAccountGroup ({ accountGroupId, chain }: RequestSubscribeHistory, id: string, port: chrome.runtime.Port): ResponseSubscribeHistory {
     const cb = createSubscription<'pri(transaction.history.subscribe)'>(id, port);
 
-    const subscribeHistoriesResponse = this.#koniState.historyService.subscribeBitcoinHistories(address, cb);
+    const subscribeHistoriesResponse = this.#koniState.historyService.subscribeHistories(accountGroupId, chain, cb);
 
     this.createUnsubscriptionHandle(id, subscribeHistoriesResponse.unsubscribe);
 
@@ -1799,7 +1792,7 @@ export default class KoniExtension {
 
     return {
       id,
-      items: subscribeHistoriesResponse.value
+      items: []
     };
   }
 
@@ -1816,9 +1809,11 @@ export default class KoniExtension {
 
   private validateTransfer (tokenSlug: string, from: string, to: string, value: string | undefined, transferAll: boolean | undefined): [TransactionError[], KeyringPair | undefined, BN | undefined, _ChainAsset] {
     const errors: TransactionError[] = [];
-    console.log('errors1677', errors)
+
+    console.log('errors1677', errors);
     const keypair = keyring.getPair(from);
-    console.log('keypair1678', keypair)
+
+    console.log('keypair1678', keypair);
     let transferValue;
 
     if (!transferAll) {
@@ -1832,12 +1827,12 @@ export default class KoniExtension {
     }
 
     const tokenInfo = this.#koniState.getAssetBySlug(tokenSlug);
-    console.log('tokenInfo1693', tokenInfo)
+
+    console.log('tokenInfo1693', tokenInfo);
 
     if (!tokenInfo) {
       errors.push(new TransactionError(BasicTxErrorType.INVALID_PARAMS, t('Not found token from registry')));
     }
-
 
     if (isEthereumAddress(from) && isEthereumAddress(to) && _isTokenEvmSmartContract(tokenInfo) && _getContractAddressOfToken(tokenInfo).length === 0) {
       errors.push(new TransactionError(BasicTxErrorType.INVALID_PARAMS, t('Not found ERC20 address for this token')));
@@ -1959,9 +1954,9 @@ export default class KoniExtension {
   private async makeTransferBitcoin (inputData: RequestTransferBitcoin): Promise<SWTransactionResponse> {
     const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
-    console.log('errors1815', errors)
-    console.log('chainType', tokenInfo)
 
+    console.log('errors1815', errors);
+    console.log('chainType', tokenInfo);
 
     const warnings: TransactionWarning[] = [];
     const bitcoinApiMap = this.#koniState.getBitcoinApiMap(); // Get Bitcoin API map
@@ -1969,7 +1964,8 @@ export default class KoniExtension {
     // const chainInfo = this.#koniState.getChainInfo(networkKey);
 
     let chainType = ChainType.BITCOIN;
-    console.log('chainType', chainType)
+
+    console.log('chainType', chainType);
 
     const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
     const transferAmount: AmountData = { ...tokenBaseAmount };
@@ -1977,7 +1973,9 @@ export default class KoniExtension {
     let transaction: ValidateTransactionResponseInput['transaction'];
 
     const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
-    console.log('freeBalance', freeBalance)
+
+    console.log('freeBalance', freeBalance);
+
     try {
       chainType = ChainType.BITCOIN;
 
@@ -1989,7 +1987,7 @@ export default class KoniExtension {
         transaction,
         transferAmount.value
       ] = await getBitcoinTransactionObject(from, to, txVal.toString(), !!transferAll, bitcoinApiMap);
-      console.log('getBitcoinTransactionObject', transaction)
+      console.log('getBitcoinTransactionObject', transaction);
     } catch (e) {
       const error = e as Error;
 
@@ -2013,7 +2011,8 @@ export default class KoniExtension {
         inputTransaction.errors.push(new TransactionError(TransferTxErrorType.RECEIVER_NOT_ENOUGH_EXISTENTIAL_DEPOSIT, t('You must transfer at least {{amount}} {{symbol}} to keep the destination account alive', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
       }
     };
-    console.log('additionalValidator', additionalValidator)
+
+    console.log('additionalValidator', additionalValidator);
     console.log('Return from makeTransferBitcoin 1870:', {
       errors,
       warnings,
@@ -4811,9 +4810,7 @@ export default class KoniExtension {
       case 'pri(transaction.history.getSubscription)':
         return await this.subscribeHistory(id, port);
       case 'pri(transaction.history.subscribe)':
-        return this.subscribeHistoryByChainAndAddress(request as RequestSubscribeHistory, id, port);
-      case 'pri(transaction.history.bitcoin.subscribe)':
-        return this.subscribeBitcoinHistory(request as RequestSubscribeBitcoinHistory, id, port);
+        return this.subscribeHistoryByChainAndAccountGroup(request as RequestSubscribeHistory, id, port);
 
         /* Earning */
 

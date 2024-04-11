@@ -49,17 +49,23 @@ export const updateAccountsContext = (data: AccountsContext) => {
 };
 
 export const updateAccountGroupData = (data: AccountGroupsWithCurrentGroup) => {
-  let currentAccountGroup: AccountGroup = data.accountGroups[0];
-  const accountGroups = data.accountGroups;
+  addLazy(
+    'updateAccountGroupData',
+    () => {
+      let currentAccountGroup: AccountGroup = data.accountGroups[0];
+      const accountGroups = data.accountGroups;
 
-  accountGroups.forEach((accountGroup) => {
-    if (accountGroup.groupId === data.currentAccountGroupId) {
-      currentAccountGroup = accountGroup;
-    }
-  });
+      accountGroups.forEach((accountGroup) => {
+        if (accountGroup.groupId === data.currentAccountGroupId) {
+          currentAccountGroup = accountGroup;
+        }
+      });
 
-  updateCurrentAccountGroup(currentAccountGroup);
-  updateAccountGroups(accountGroups);
+      updateCurrentAccountGroup(currentAccountGroup);
+      updateAccountGroups(accountGroups);
+    },
+    50
+  );
 };
 
 export const updateCurrentAccountGroup = (accountGroup: AccountGroup) => {
