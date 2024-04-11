@@ -70,9 +70,9 @@ function Component (): React.ReactElement {
 
   const { accountSelectorItems,
     onOpenReceive,
-    openSelectAccount,
-    openSelectToken,
-    selectedAccount,
+    onSelectAccountGroup,
+    onSelectToken,
+    selectedAccountGroupAddress,
     selectedNetwork,
     tokenSelectorItems } = useReceiveQR(tokenGroupSlug);
 
@@ -355,17 +355,16 @@ function Component (): React.ReactElement {
 
       <AccountSelectorModal
         items={accountSelectorItems}
-        onSelectItem={openSelectAccount}
+        onSelectItem={onSelectAccountGroup}
       />
 
       <TokensSelectorModal
-        address={selectedAccount}
         items={tokenSelectorItems}
-        onSelectItem={openSelectToken}
+        onSelectItem={onSelectToken}
       />
 
       <ReceiveQrModal
-        address={selectedAccount}
+        address={selectedAccountGroupAddress}
         selectedNetwork={selectedNetwork}
       />
     </div>

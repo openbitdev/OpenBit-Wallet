@@ -8,6 +8,7 @@ import { Icon as _PhosphorIcon, IconProps } from 'phosphor-react';
 import React from 'react';
 
 import { Theme as _Theme } from '../themes';
+import {_ChainAsset} from '@subwallet/chain-list/types';
 
 export type Theme = _Theme;
 export type PhosphorIcon = _PhosphorIcon;
@@ -46,73 +47,19 @@ export interface Recoded {
   isEthereum: boolean;
 }
 
-export interface AddressFlags {
-  accountOffset: number;
-  addressOffset: number;
-  hardwareType?: string;
-  isHardware: boolean;
-  isMultisig: boolean;
-  isProxied: boolean;
-  isQr: boolean;
-  isUnlockable: boolean;
-  threshold: number;
-  who: string[];
-}
-
-export interface AddressProxy {
-  isUnlockCached: boolean;
-  signAddress: string | null;
-  signPassword: string;
-}
-
-export interface TxHandler {
-  onTxStart?: () => void;
-  onTxUpdate?: (result: any) => void; // TODO: change any type when add logic
-  onTxSuccess?: (result: any, extrinsicHash?: string) => void; // TODO: change any type when add logic
-  onTxFail?: (result: any | null, error: Error | null, extrinsicHash?: string) => void; // TODO: change any type when add logic
-}
-
-export interface TxResult {
-  isShowTxResult: boolean;
-  isTxSuccess: boolean;
-  txError?: Error | null;
-  extrinsicHash?: string;
-}
-
-export interface TransferResultType {
-  isShowTxResult: boolean;
-  isTxSuccess: boolean;
-  txError?: string[];
-  extrinsicHash?: string;
-}
-
-export interface QrState {
-  isQrHashed: boolean;
-  qrAddress: string;
-  qrPayload: Uint8Array;
-  qrResolve?: (result: any) => void; // TODO: change any type when add logic
-  qrReject?: (error: Error) => void;
-}
-
 export interface Signed {
   data: Uint8Array;
   message: Uint8Array;
   signature: Uint8Array;
 }
 
-export interface ModalQrProps {
-  network: {
-    networkKey: string;
-  };
-  account: {
-    address: string;
-  };
-  showExportButton: boolean;
-}
-
 export interface SigData {
   signature: `0x${string}`;
 }
+
+export type ReceiveTokenItemType = _ChainAsset & {
+  address: string;
+};
 
 export * from './account';
 export * from './balance';

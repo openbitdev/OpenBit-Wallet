@@ -104,8 +104,8 @@ const Component: React.FC<Props> = ({ className }: Props) => {
     return (
       <div key={accountGroup.groupId}>
         <AccountGroupItem
+          accountGroup={accountGroup}
           className={CN('account-group-item', { '-disabled': disabled && !isSelected }) }
-          name={accountGroup.name}
           onClick={disabled ? undefined : onSelectAccountGroup(accountGroup)}
           renderRightPart={isSelected ? renderLoaderIcon : undefined}
         />

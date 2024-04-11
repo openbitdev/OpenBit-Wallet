@@ -1,8 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountJson } from '@subwallet/extension-base/background/types';
-import AccountItemWithName from '@subwallet/extension-koni-ui/components/Account/Item/AccountItemWithName';
+import { AccountGroup } from '@subwallet/extension-base/background/types';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ModalContext, SwList, SwModal } from '@subwallet/react-ui';
@@ -10,12 +9,13 @@ import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
+import AccountGroupItem from '../AccountGroup/AccountGroupItem';
 import { GeneralEmptyList } from '../EmptyList';
 
 interface Props extends ThemeProps {
   id?: string,
-  onSelectItem: (item: AccountJson) => void,
-  items: AccountJson[]
+  onSelectItem: (item: AccountGroup) => void,
+  items: AccountGroup[]
 }
 
 export const AccountSelectorModalId = 'accountSelectorModalId';
@@ -32,23 +32,32 @@ function Component ({ className = '', id = AccountSelectorModalId, items, onSele
     inactiveModal(id);
   }, [id, inactiveModal]);
 
-  const searchFunction = useCallback((item: AccountJson, searchText: string) => {
+  const searchFunction = useCallback((item: AccountGroup, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
 
     return (
-      item.address.toLowerCase().includes(searchTextLowerCase) ||
       (item.name
         ? item.name.toLowerCase().includes(searchTextLowerCase)
         : false)
     );
   }, []);
 
-  const _onSelectItem = useCallback((item: AccountJson) => {
+  const _onSelectItem = useCallback((item: AccountGroup) => {
     return () => {
       onSelectItem && onSelectItem(item);
       sectionRef.current?.setSearchValue('');
     };
   }, [onSelectItem]);
+
+  const renderItem = useCallback((item: AccountGroup) => {
+    return (
+      <AccountGroupItem
+        accountGroup={item}
+        className={'account-item'}
+        onClick={_onSelectItem(item)}
+      />
+    );
+  }, [_onSelectItem]);
 
   useEffect(() => {
     if (!isActive) {
@@ -57,18 +66,6 @@ function Component ({ className = '', id = AccountSelectorModalId, items, onSele
       }, 100);
     }
   }, [isActive]);
-
-  const renderItem = useCallback((item: AccountJson) => {
-    return (
-      <AccountItemWithName
-        accountName={item.name}
-        address={item.address}
-        avatarSize={24}
-        key={item.address}
-        onClick={_onSelectItem(item)}
-      />
-    );
-  }, [_onSelectItem]);
 
   return (
     <SwModal
@@ -84,7 +81,7 @@ function Component ({ className = '', id = AccountSelectorModalId, items, onSele
         renderItem={renderItem}
         renderWhenEmpty={renderEmpty}
         searchFunction={searchFunction}
-        searchMinCharactersCount={2}
+        searchMinCharactersCount={1}
         searchPlaceholder={t<string>('Search account')}
       />
     </SwModal>
@@ -117,7 +114,7 @@ export const AccountSelectorModal = styled(Component)<Props>(({ theme: { token }
       paddingBottom: 0
     },
 
-    '.account-item-with-name + .account-item-with-name': {
+    '.account-item + .account-item': {
       marginTop: token.marginXS
     }
   });

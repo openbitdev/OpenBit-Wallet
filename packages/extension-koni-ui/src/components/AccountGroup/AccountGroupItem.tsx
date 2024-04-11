@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountGroup } from '@subwallet/extension-base/background/types';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Icon } from '@subwallet/react-ui';
@@ -10,14 +11,14 @@ import React, { Context, useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
 
 type Props = ThemeProps & {
-  name?: string;
+  accountGroup: AccountGroup;
   isSelected?: boolean;
   renderRightPart?: (existNode: React.ReactNode) => React.ReactNode;
   onClick?: VoidFunction;
 };
 
 function Component (props: Props): React.ReactElement<Props> {
-  const { className, isSelected, name, onClick, renderRightPart } = props;
+  const { accountGroup, className, isSelected, onClick, renderRightPart } = props;
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
   const checkedIconNode = (isSelected && (
@@ -37,7 +38,7 @@ function Component (props: Props): React.ReactElement<Props> {
       onClick={onClick}
     >
       <div className='__item-left-part'>
-        {name}
+        {accountGroup.name}
       </div>
       <div className='__item-right-part'>
         {renderRightPart ? renderRightPart(checkedIconNode) : checkedIconNode}
