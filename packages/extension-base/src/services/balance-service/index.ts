@@ -209,7 +209,7 @@ export class BalanceService implements StoppableServiceInterface {
     }
 
     try {
-      const accountSummaryInfo = await this.state.bitcoinService.getAddressSummaryInfo(bitcoinApi.apiUrl, address);
+      const accountSummaryInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
 
       return new BigN(accountSummaryInfo.chain_stats.funded_txo_sum).minus(accountSummaryInfo.chain_stats.spent_txo_sum).toString();
     } catch (error) {

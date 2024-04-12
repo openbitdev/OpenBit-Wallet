@@ -6604,14 +6604,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@subwallet/keyring@file:./local-libs/keyring::locator=root-workspace-0b6124%40workspace%3A.":
+"@subwallet/keyring@file:../Subwallet-Base/packages/keyring/build/::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.1.4
-  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=ed63d9&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/keyring@file:../Subwallet-Base/packages/keyring/build/#../Subwallet-Base/packages/keyring/build/::hash=2fab2f&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
     "@polkadot/util-crypto": ^12.2.1
     bcryptjs: ^2.4.3
+    bitcoin-address-validation: ^2.2.3
     bitcoinjs-lib: ^6.1.5
     bitcoinjs-message: ^2.2.0
     ecpair: ^2.1.0
@@ -6620,7 +6621,7 @@ __metadata:
     rxjs: ^7.5.6
     tiny-secp256k1: ^2.2.3
     tslib: ^2.6.2
-  checksum: f5f0a4e9e7be89e8c06503d63bceacedbaf18bf47b9ec32c5e7c9b5c7fff9c679c38fdf79ceb45e9e995785eefa2678940f22c2411e0367a656e8048c7a8f700
+  checksum: dd9f1c3c5e702a9f027321f1bac09672c938103bd5617eb25c263ced087ad3b4570241ab186d1f2e82af4af743ba4a3ff847ea444ad0d4060795e73b8f8eb942
   languageName: node
   linkType: hard
 
@@ -10337,6 +10338,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"base58-js@npm:^1.0.0":
+  version: 1.0.5
+  resolution: "base58-js@npm:1.0.5"
+  checksum: 46c1b39d3a70bca0a47d56069c74a25d547680afd0f28609c90f280f5d614f5de36db5df993fa334db24008a68ab784a72fcdaa13eb40078e03c8999915a1100
+  languageName: node
+  linkType: hard
+
 "base64-js@npm:^1.3.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
@@ -10477,6 +10485,17 @@ __metadata:
   dependencies:
     safe-buffer: ^5.0.1
   checksum: 956cff6e51d7206571ef8ce875bc5fa61b5c181589790b9155799b7edcae4b20dbb3eed43b188ff3eec27cdbe98e0b7e0ec9f1cb2e4f5370c119028b248ad859
+  languageName: node
+  linkType: hard
+
+"bitcoin-address-validation@npm:^2.2.3":
+  version: 2.2.3
+  resolution: "bitcoin-address-validation@npm:2.2.3"
+  dependencies:
+    base58-js: ^1.0.0
+    bech32: ^2.0.0
+    sha256-uint8array: ^0.10.3
+  checksum: 71ff67397275ef52a9e5e1f614fb57e9142d2a4d2f140c266051dc71f8b698930516133a2e1261def457ad4ecbe650535d4360367ece2d389001ec2a5a3d60f6
   languageName: node
   linkType: hard
 
@@ -24592,6 +24611,13 @@ __metadata:
   bin:
     sha.js: ./bin.js
   checksum: ebd3f59d4b799000699097dadb831c8e3da3eb579144fd7eb7a19484cbcbb7aca3c68ba2bb362242eb09e33217de3b4ea56e4678184c334323eca24a58e3ad07
+  languageName: node
+  linkType: hard
+
+"sha256-uint8array@npm:^0.10.3":
+  version: 0.10.7
+  resolution: "sha256-uint8array@npm:0.10.7"
+  checksum: ff735efd42664ab3d663cbc71a2e5f58a02637e9d57e072c509b5765f5368a2dc34fafefa390e065ef24415946b780ac72fd4582eeeb745ece42256de5b85e94
   languageName: node
   linkType: hard
 

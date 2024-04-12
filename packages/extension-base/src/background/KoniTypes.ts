@@ -615,9 +615,6 @@ export interface AmountData extends BasicTokenInfo {
 
 export interface FeeData extends AmountData {
   tooHigh?: boolean;
-  fast: number;
-  medium: number;
-  slow: number;
 }
 
 export interface AmountDataWithId extends AmountData {

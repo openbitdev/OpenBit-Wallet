@@ -4,7 +4,6 @@
 import { ExtrinsicStatus, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { CRON_RECOVER_HISTORY_INTERVAL } from '@subwallet/extension-base/constants';
 import { PersistDataServiceInterface, ServiceStatus, StoppableServiceInterface } from '@subwallet/extension-base/services/base/types';
-import { BitcoinService } from '@subwallet/extension-base/services/bitcoin-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { parseBitcoinTransferData } from '@subwallet/extension-base/services/history-service/bitcoin-history';
@@ -30,8 +29,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     private dbService: DatabaseService,
     private chainService: ChainService,
     private eventService: EventService,
-    private keyringService: KeyringService,
-    private bitcoinService: BitcoinService
+    private keyringService: KeyringService
   ) {
     this.init().catch(console.error);
   }
@@ -98,7 +96,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
 
     const bitcoinApi = this.chainService.getBitcoinApi(chain);
 
-    const transferItems = await this.bitcoinService.getAddressTransaction(bitcoinApi.apiUrl, address);
+    const transferItems = await bitcoinApi.api.getAddressTransaction(address);
 
     const parsedItems = Object.values(transferItems).map((i) => {
       return parseBitcoinTransferData(address, i, chainInfo);

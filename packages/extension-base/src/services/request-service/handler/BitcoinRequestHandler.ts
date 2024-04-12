@@ -37,7 +37,7 @@ export default class BitcoinRequestHandler {
     url: string,
     type: CT,
     payload: ConfirmationDefinitionsBitcoin[CT][0]['payload'],
-    options: ConfirmationsQueueItemOptions = {} ,
+    options: ConfirmationsQueueItemOptions = {},
     validator?: (input: ConfirmationDefinitionsBitcoin[CT][1]) => Error | undefined
   ): Promise<ConfirmationDefinitionsBitcoin[CT][1]> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
@@ -52,7 +52,6 @@ export default class BitcoinRequestHandler {
         this.#requestService.keyringService.lock();
       }
     }
-
 
     // Check duplicate request
     const duplicated = Object.values(confirmationType).find((c) => (c.url === url) && (c.payloadJson === payloadJson));
@@ -79,7 +78,8 @@ export default class BitcoinRequestHandler {
         }
       };
     });
-    console.log('promise71', promise)
+
+    console.log('promise71', promise);
 
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
 
@@ -125,7 +125,7 @@ export default class BitcoinRequestHandler {
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
   }
 
-  private async signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): Promise<string> {
+  signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): string {
     const { account, payload } = confirmation.payload;
     const address = account.address;
     const pair = keyring.getPair(address);
@@ -133,30 +133,30 @@ export default class BitcoinRequestHandler {
     if (pair.isLocked) {
       keyring.unlockPair(pair.address);
     }
-    console.log('sigMessage124')
+
+    console.log('sigMessage124');
+
     // Check if payload is a string
     if (typeof payload === 'string') {
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-      return await pair.bitcoin.signMessage(payload, false); // Assuming compressed = false
-    }
-    // Check if payload is a byte array (Uint8Array)
-    else if (payload instanceof Uint8Array) {
+      return pair.bitcoin.signMessage(payload, false); // Assuming compressed = false
+    } else if (payload instanceof Uint8Array) { // Check if payload is a byte array (Uint8Array)
       // Convert Uint8Array to string
       const payloadString = Buffer.from(payload).toString('hex');
 
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-      return await pair.bitcoin.signMessage(payloadString, false); // Assuming compressed = false
+      return pair.bitcoin.signMessage(payloadString, false); // Assuming compressed = false
     } else {
       // Handle the case where payload is invalid
       throw new Error('Invalid payload type');
     }
   }
 
-  private async signTransactionBitcoin (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): Promise<string> {
+  private signTransactionBitcoin (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): string {
     // Extract necessary information from the BitcoinSendTransactionRequest
     const { account, inputs, outputs } = request.payload;
 
-    console.log('signTransactionBitcoin147')
+    console.log('signTransactionBitcoin147');
     const address = account.address;
     const pair = keyring.getPair(address);
 
@@ -197,19 +197,22 @@ export default class BitcoinRequestHandler {
     psbt.finalizeAllInputs();
 
     // Sign the Psbt using the pair's bitcoin object
-    const signedTransaction = await pair.bitcoin.signTransaction(psbt);
-    console.log('sigTransaction189')
+    const signedTransaction = pair.bitcoin.signTransaction(psbt, [0]);
+
+    console.log('sigTransaction189');
 
     return signedTransaction;
   }
 
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
-    if (result.payload === '') {
+    if (!result.payload) {
+      console.log('decorateResultBitcoin');
+
       if (t === 'bitcoinSignatureRequest') {
-        result.payload = await this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
+        result.payload = this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
       } else if (t === 'bitcoinSendTransactionRequest') {
-        console.log('decorateResultBitcoin')
-        result.payload = await this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
+        console.log('decorateResultBitcoin');
+        result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
       }
 
       if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest') {
@@ -224,17 +227,21 @@ export default class BitcoinRequestHandler {
 
   public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
-    console.log('confirmations', confirmations)
+
+    console.log('confirmations', confirmations);
 
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;
-      console.log('type229',type)
+
+      console.log('type229', type);
       const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
-      console.log('result',result)
+
+      console.log('result', result);
 
       const { id } = result;
-      console.log('checkid232',id);
-      const { resolver , validator } = this.confirmationsPromiseMap[id];
+
+      console.log('checkid232', id);
+      const { resolver, validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
 
       if (!resolver || !confirmation) {
@@ -242,9 +249,11 @@ export default class BitcoinRequestHandler {
         throw new Error('Unable to proceed. Please try again');
       }
 
+      console.log(type, confirmation, result);
       // Fill signature for some special type
       await this.decorateResultBitcoin(type, confirmation, result);
       const error = validator && validator(result);
+
       if (error) {
         resolver.reject(error);
       }
@@ -261,57 +270,56 @@ export default class BitcoinRequestHandler {
 
     return true;
   }
-//   public async completeConfirmationBitcoin(request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
-//     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
+  //   public async completeConfirmationBitcoin(request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
+  //     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
 
-//     try {
-//         for (const ct in request) {
-//             const type = ct as ConfirmationTypeBitcoin;
-//             const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
-//             const { id } = result;
+  //     try {
+  //         for (const ct in request) {
+  //             const type = ct as ConfirmationTypeBitcoin;
+  //             const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
+  //             const { id } = result;
 
-//             const { resolver } = this.confirmationsPromiseMap[id];
-//             const confirmation = confirmations[type][id];
+  //             const { resolver } = this.confirmationsPromiseMap[id];
+  //             const confirmation = confirmations[type][id];
 
-//             if (!resolver || !confirmation) {
-//                 throw new Error(`Unable to proceed. Resolver or confirmation not found for type ${type} with id ${id}`);
-//             }
+  //             if (!resolver || !confirmation) {
+  //                 throw new Error(`Unable to proceed. Resolver or confirmation not found for type ${type} with id ${id}`);
+  //             }
 
-//             // Fill signature for some special type
-//             await this.decorateResultBitcoin(type, confirmation, result);
+  //             // Fill signature for some special type
+  //             await this.decorateResultBitcoin(type, confirmation, result);
 
-//             // Delete confirmations from queue
-//             delete this.confirmationsPromiseMap[id];
-//             delete confirmations[type][id];
+  //             // Delete confirmations from queue
+  //             delete this.confirmationsPromiseMap[id];
+  //             delete confirmations[type][id];
 
-//             // Resolve the promise
-//             resolver.resolve(result);
-//         }
+  //             // Resolve the promise
+  //             resolver.resolve(result);
+  //         }
 
-//         // Update icon, and close queue
-//         this.#requestService.updateIconV2(this.#requestService.numAllRequests === 0);
-//         this.confirmationsQueueSubjectBitcoin.next(confirmations);
+  //         // Update icon, and close queue
+  //         this.#requestService.updateIconV2(this.#requestService.numAllRequests === 0);
+  //         this.confirmationsQueueSubjectBitcoin.next(confirmations);
 
-//         return true;
-//     } catch (error) {
-//         console.error('Error completing confirmation:', error);
+  //         return true;
+  //     } catch (error) {
+  //         console.error('Error completing confirmation:', error);
 
-//         // Reject all promises and rethrow error
-//         for (const ct in request) {
-//             const type = ct as ConfirmationTypeBitcoin;
-//             const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
-//             const { id } = result;
-//             const { resolver } = this.confirmationsPromiseMap[id];
+  //         // Reject all promises and rethrow error
+  //         for (const ct in request) {
+  //             const type = ct as ConfirmationTypeBitcoin;
+  //             const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
+  //             const { id } = result;
+  //             const { resolver } = this.confirmationsPromiseMap[id];
 
-//             if (resolver) {
-//                 resolver.reject(error as Error);
-//             }
-//         }
+  //             if (resolver) {
+  //                 resolver.reject(error as Error);
+  //             }
+  //         }
 
-//         throw error;
-//     }
-// }
-
+  //         throw error;
+  //     }
+  // }
 
   public resetWallet () {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
