@@ -54,7 +54,7 @@ export interface AccountJson extends AbstractAddressJson {
   parentAddress?: string;
   source?: string;
   suri?: string;
-  groupId?: string;
+  proxyId?: string;
 }
 
 export interface AddressJson extends AbstractAddressJson {
@@ -62,8 +62,8 @@ export interface AddressJson extends AbstractAddressJson {
   recentChainSlugs?: string[];
 }
 
-export interface AccountGroup {
-  groupId: string,
+export interface AccountProxy {
+  proxyId: string,
   name?: string,
   isMaster?: boolean,
   accounts: AccountJson[]
@@ -223,8 +223,8 @@ export interface RequestCurrentAccountAddress {
   address: string;
 }
 
-export interface RequestAccountGroup {
-  groupId: string;
+export interface RequestAccountProxy {
+  proxyId: string;
 }
 
 export interface RequestMetadataReject {

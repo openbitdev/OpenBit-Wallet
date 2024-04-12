@@ -4,7 +4,7 @@
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
-import { AccountAuthType, AccountGroup, AccountJson, AddressJson, AuthorizeRequest, ConfirmationRequestBase, RequestAccountGroup, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeCancel, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestCurrentAccountAddress, ResponseAuthorizeList, ResponseJsonGetAccountInfo, SeedLengths } from '@subwallet/extension-base/background/types';
+import { AccountAuthType, AccountJson, AccountProxy, AddressJson, AuthorizeRequest, ConfirmationRequestBase, RequestAccountList, RequestAccountProxy, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeCancel, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestCurrentAccountAddress, ResponseAuthorizeList, ResponseJsonGetAccountInfo, SeedLengths } from '@subwallet/extension-base/background/types';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
@@ -380,9 +380,9 @@ export interface AccountsWithCurrentAddress {
   allAccountLogo?: string; // Deprecated and move to setting
 }
 
-export interface AccountGroupsWithCurrentGroup {
-  accountGroups: AccountGroup[];
-  currentAccountGroupId?: string;
+export interface AccountProxiesWithCurrentProxy {
+  accountProxies: AccountProxy[];
+  currentAccountProxyId?: string;
 }
 
 export interface OptionInputAddress {
@@ -395,8 +395,8 @@ export interface CurrentAccountInfo {
   allGenesisHash?: string;
 }
 
-export interface CurrentAccountGroupInfo {
-  groupId: string;
+export interface CurrentAccountProxyInfo {
+  proxyId: string;
 }
 
 export type LanguageType = 'en'
@@ -676,10 +676,10 @@ export interface TransactionHistoryItem<ET extends ExtrinsicType = ExtrinsicType
   type: ExtrinsicType,
   from: string,
   fromName?: string,
-  fromGroupId?: string,
+  fromProxyId?: string,
   to: string,
   toName?: string,
-  toGroupId?: string,
+  toProxyId?: string,
   address: string,
   status: ExtrinsicStatus,
   transactionId?: string, // Available for transaction history
@@ -1933,8 +1933,8 @@ export interface RequestKeyringExportMnemonic {
   password: string;
 }
 
-export interface RequestKeyringExportAccountGroupMnemonic {
-  groupId: string;
+export interface RequestKeyringExportAccountProxyMnemonic {
+  proxyId: string;
   password: string;
 }
 
@@ -2230,7 +2230,7 @@ export interface RequestCampaignBannerComplete {
 }
 
 export interface RequestSubscribeHistory {
-  accountGroupId: string;
+  accountProxyId: string;
   chain: string;
 }
 
@@ -2243,12 +2243,12 @@ export interface ResponseSubscribeHistory {
   items: TransactionHistoryItem[]
 }
 
-export interface RequestAccountGroupEdit {
-  groupId: string;
+export interface RequestAccountProxyEdit {
+  proxyId: string;
   name: string;
 }
 
-export interface RequestAccountGroupCreateSuri {
+export interface RequestAccountProxyCreateSuri {
   name: string;
   suri: string;
 }
@@ -2394,12 +2394,12 @@ export interface KoniRequestSignatures {
   // For input UI
   'pri(accounts.subscribeAccountsInputAddress)': [RequestAccountSubscribe, string, OptionInputAddress];
 
-  // Account group
-  'pri(accountGroups.subscribeWithCurrentGroup)': [null, AccountGroupsWithCurrentGroup, AccountGroupsWithCurrentGroup];
-  'pri(accountGroups.saveCurrentGroup)': [RequestAccountGroup, boolean];
-  'pri(accountGroups.edit)': [RequestAccountGroupEdit, boolean];
-  'pri(accountGroups.forget)': [RequestAccountGroup, boolean];
-  'pri(accountGroups.create.suri)': [RequestAccountGroupCreateSuri, ResponseAccountCreateSuriV2];
+  // Account proxy
+  'pri(accountProxies.subscribeWithCurrentProxy)': [null, AccountProxiesWithCurrentProxy, AccountProxiesWithCurrentProxy];
+  'pri(accountProxies.saveCurrentProxy)': [RequestAccountProxy, boolean];
+  'pri(accountProxies.edit)': [RequestAccountProxyEdit, boolean];
+  'pri(accountProxies.forget)': [RequestAccountProxy, boolean];
+  'pri(accountProxies.create.suri)': [RequestAccountProxyCreateSuri, ResponseAccountCreateSuriV2];
 
   /* Account management */
 
@@ -2531,7 +2531,7 @@ export interface KoniRequestSignatures {
   'pri(keyring.unlock)': [RequestUnlockKeyring, ResponseUnlockKeyring];
   'pri(keyring.lock)': [null, void];
   'pri(keyring.export.mnemonic)': [RequestKeyringExportMnemonic, ResponseKeyringExportMnemonic];
-  'pri(keyring.export.accountGroup.mnemonic)': [RequestKeyringExportAccountGroupMnemonic, ResponseKeyringExportMnemonic];
+  'pri(keyring.export.accountProxy.mnemonic)': [RequestKeyringExportAccountProxyMnemonic, ResponseKeyringExportMnemonic];
   'pri(keyring.reset)': [RequestResetWallet, ResponseResetWallet];
 
   // Signing
@@ -2542,7 +2542,7 @@ export interface KoniRequestSignatures {
   'pri(derivation.getList)': [RequestGetDeriveAccounts, ResponseGetDeriveAccounts];
   'pri(derivation.create.multiple)': [RequestDeriveCreateMultiple, boolean];
   'pri(derivation.createV3)': [RequestDeriveCreateV3, boolean];
-  'pri(derivation.accountGroup.create)': [RequestAccountGroup, boolean];
+  'pri(derivation.accountProxy.create)': [RequestAccountProxy, boolean];
 
   // Transaction
   // Get Transaction

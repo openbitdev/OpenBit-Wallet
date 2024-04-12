@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { CurrentAccountGroupInfo, CurrentAccountInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { CurrentAccountInfo, CurrentAccountProxyInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { SWTransaction } from '@subwallet/extension-base/services/transaction-service/types';
 
 export interface EventRegistry {
@@ -29,16 +29,16 @@ export interface EventRegistry {
   /** Remove multiple accounts  */
   'accounts.remove': [string[]]; // addresses
 
-  /** Update current account group */
-  'accountGroup.updateCurrent': [CurrentAccountGroupInfo];
-  /** Account group list loaded  */
-  'accountGroup.ready': [boolean];
-  /** Add a new account group */
-  'accountGroup.add': [string]; // group id
-  /** Update account group */
-  'accountGroup.update': [string]; // group id
-  /** Remove an account group */
-  'accountGroup.remove': [string]; // group id
+  /** Update current account proxy */
+  'accountProxy.updateCurrent': [CurrentAccountProxyInfo];
+  /** Account proxy list loaded  */
+  'accountProxy.ready': [boolean];
+  /** Add a new account proxy */
+  'accountProxy.add': [string]; // proxy id
+  /** Update account proxy */
+  'accountProxy.update': [string]; // proxy id
+  /** Remove an account proxy */
+  'accountProxy.remove': [string]; // proxy id
 
   /* Keyring */
 
@@ -73,9 +73,9 @@ export interface EventRegistry {
 export type EventType = keyof EventRegistry;
 
 export const COMMON_RELOAD_EVENTS: EventType[] = [
-  'accountGroup.updateCurrent',
-  'accountGroup.add',
-  'accountGroup.remove',
+  'accountProxy.updateCurrent',
+  'accountProxy.add',
+  'accountProxy.remove',
   'asset.updateState',
   'chain.updateState',
   'chain.add',

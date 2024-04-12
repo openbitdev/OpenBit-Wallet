@@ -1,10 +1,10 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { CurrentAccountGroupInfo, CurrentAccountInfo, KeyringState } from '@subwallet/extension-base/background/KoniTypes';
+import { CurrentAccountInfo, CurrentAccountProxyInfo, KeyringState } from '@subwallet/extension-base/background/KoniTypes';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { EventService } from '@subwallet/extension-base/services/event-service';
-import { CurrentAccountGroupStore, CurrentAccountStore } from '@subwallet/extension-base/stores';
+import { CurrentAccountProxyStore, CurrentAccountStore } from '@subwallet/extension-base/stores';
 import { InjectedAccountWithMeta } from '@subwallet/extension-inject/types';
 import { keyring } from '@subwallet/ui-keyring';
 import { SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -16,8 +16,8 @@ export class KeyringService {
   private readonly currentAccountStore = new CurrentAccountStore();
   readonly currentAccountSubject = new BehaviorSubject<CurrentAccountInfo>({ address: '', currentGenesisHash: null });
 
-  private readonly currentAccountGroupStore = new CurrentAccountGroupStore();
-  readonly currentAccountGroupSubject = new BehaviorSubject<CurrentAccountGroupInfo>({ groupId: '' });
+  private readonly currentAccountProxyStore = new CurrentAccountProxyStore();
+  readonly currentAccountProxySubject = new BehaviorSubject<CurrentAccountProxyInfo>({ proxyId: '' });
 
   readonly addressesSubject = keyring.addresses.subject;
   public readonly accountSubject = keyring.accounts.subject;
@@ -33,8 +33,8 @@ export class KeyringService {
   constructor (private eventService: EventService) {
     this.injected = false;
     this.eventService.waitCryptoReady.then(() => {
-      this.currentAccountGroupStore.get('CurrentAccountGroupInfo', (rs) => {
-        rs && this.currentAccountGroupSubject.next(rs);
+      this.currentAccountProxyStore.get('CurrentAccountProxyInfo', (rs) => {
+        rs && this.currentAccountProxySubject.next(rs);
       });
       this.subscribeAccounts().catch(console.error);
     }).catch(console.error);
@@ -58,32 +58,32 @@ export class KeyringService {
         this.eventService.emit('accounts.remove', removedAddresses);
       }
 
-      const beforeAccountGroupIdsSet = new Set(beforeAccounts.map((item) => (item.json.meta.groupId || '') as string));
-      const afterAccountGroupIdsSet = new Set(afterAccounts.map((item) => (item.json.meta.groupId || '') as string));
+      const beforeAccountProxyIdsSet = new Set(beforeAccounts.map((item) => (item.json.meta.proxyId || '') as string));
+      const afterAccountProxyIdsSet = new Set(afterAccounts.map((item) => (item.json.meta.proxyId || '') as string));
 
-      const groupIdsNotInBefore: string[] = [];
-      const groupIdsNotInAfter: string[] = [];
+      const proxyIdsNotInBefore: string[] = [];
+      const proxyIdsNotInAfter: string[] = [];
 
-      beforeAccountGroupIdsSet.forEach((groupId) => {
-        if (!afterAccountGroupIdsSet.has(groupId)) {
-          groupIdsNotInAfter.push(groupId); // groupId not in afterItems
+      beforeAccountProxyIdsSet.forEach((proxyId) => {
+        if (!afterAccountProxyIdsSet.has(proxyId)) {
+          proxyIdsNotInAfter.push(proxyId); // proxyId not in afterItems
         }
       });
-      afterAccountGroupIdsSet.forEach((groupId) => {
-        if (!beforeAccountGroupIdsSet.has(groupId)) {
-          groupIdsNotInBefore.push(groupId); // groupId not in beforeItems
+      afterAccountProxyIdsSet.forEach((proxyId) => {
+        if (!beforeAccountProxyIdsSet.has(proxyId)) {
+          proxyIdsNotInBefore.push(proxyId); // proxyId not in beforeItems
         }
       });
 
-      if (groupIdsNotInAfter.length) {
-        // Remove account group
-        groupIdsNotInAfter.forEach((groupId) => {
-          this.eventService.emit('accountGroup.remove', groupId);
+      if (proxyIdsNotInAfter.length) {
+        // Remove account proxy
+        proxyIdsNotInAfter.forEach((proxyId) => {
+          this.eventService.emit('accountProxy.remove', proxyId);
         });
-      } else if (groupIdsNotInBefore.length) {
-        // Add account group
-        groupIdsNotInBefore.forEach((groupId) => {
-          this.eventService.emit('accountGroup.add', groupId);
+      } else if (proxyIdsNotInBefore.length) {
+        // Add account proxy
+        proxyIdsNotInBefore.forEach((proxyId) => {
+          this.eventService.emit('accountProxy.add', proxyId);
         });
       }
 
@@ -99,7 +99,7 @@ export class KeyringService {
     if (!this.keyringState.isReady && isReady) {
       this.eventService.waitCryptoReady.then(() => {
         this.eventService.emit('keyring.ready', true);
-        this.eventService.emit('accountGroup.ready', true);
+        this.eventService.emit('accountProxy.ready', true);
       }).catch(console.error);
     }
 
@@ -114,13 +114,13 @@ export class KeyringService {
     return this.accountSubject.value;
   }
 
-  get accountGroupIds (): string[] {
-    const groupIdsSet: Set<string> = new Set(
+  get accountProxyIds (): string[] {
+    const proxyIdsSet: Set<string> = new Set(
       keyring.getAccounts()
-        .map((item) => (item.meta.groupId || '') as string)
+        .map((item) => (item.meta.proxyId || '') as string)
     );
 
-    return Array.from(groupIdsSet);
+    return Array.from(proxyIdsSet);
   }
 
   get addresses (): SubjectInfo {
@@ -132,8 +132,8 @@ export class KeyringService {
     return this.currentAccountSubject.value;
   }
 
-  get currentAccountGroup (): CurrentAccountGroupInfo {
-    return this.currentAccountGroupSubject.value;
+  get currentAccountProxy (): CurrentAccountProxyInfo {
+    return this.currentAccountProxySubject.value;
   }
 
   // deprecated
@@ -143,10 +143,10 @@ export class KeyringService {
     this.currentAccountStore.set('CurrentAccountInfo', currentAccountData);
   }
 
-  setCurrentAccountGroup (currentAccountGroup: CurrentAccountGroupInfo) {
-    this.currentAccountGroupSubject.next(currentAccountGroup);
-    this.eventService.emit('accountGroup.updateCurrent', currentAccountGroup);
-    this.currentAccountGroupStore.set('CurrentAccountGroupInfo', currentAccountGroup);
+  setCurrentAccountProxy (currentAccountProxy: CurrentAccountProxyInfo) {
+    this.currentAccountProxySubject.next(currentAccountProxy);
+    this.eventService.emit('accountProxy.updateCurrent', currentAccountProxy);
+    this.currentAccountProxyStore.set('CurrentAccountProxyInfo', currentAccountProxy);
   }
 
   public lock () {
@@ -226,6 +226,6 @@ export class KeyringService {
       }, 1500);
     });
     this.updateKeyringState();
-    this.currentAccountGroupSubject.next({ groupId: '' });
+    this.currentAccountProxySubject.next({ proxyId: '' });
   }
 }

@@ -113,11 +113,11 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     }
   }
 
-  subscribeHistories (accountGroupId: string, chain: string, cb: (items: TransactionHistoryItem[]) => void) {
+  subscribeHistories (accountProxyId: string, chain: string, cb: (items: TransactionHistoryItem[]) => void) {
     const addresses: string[] = [];
 
     Object.entries(this.keyringService.accounts).forEach(([, a]) => {
-      if (a.json.meta.groupId === accountGroupId) {
+      if (a.json.meta.proxyId === accountProxyId) {
         addresses.push(a.json.address);
       }
     });

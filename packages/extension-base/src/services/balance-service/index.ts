@@ -137,10 +137,10 @@ export class BalanceService implements StoppableServiceInterface {
     let lazyTime = 2000;
 
     // Account changed or chain changed (active or inactive)
-    if (eventTypes.includes('accountGroup.updateCurrent') || eventTypes.includes('accountGroup.add') || eventTypes.includes('chain.updateState') || eventTypes.includes('asset.updateState')) {
+    if (eventTypes.includes('accountProxy.updateCurrent') || eventTypes.includes('accountProxy.add') || eventTypes.includes('chain.updateState') || eventTypes.includes('asset.updateState')) {
       needReload = true;
 
-      if (eventTypes.includes('accountGroup.updateCurrent')) {
+      if (eventTypes.includes('accountProxy.updateCurrent')) {
         lazyTime = 1000;
       }
     }
@@ -381,7 +381,7 @@ export class BalanceService implements StoppableServiceInterface {
     await Promise.all([this.state.eventService.waitKeyringReady, this.state.eventService.waitChainReady]);
     this.runUnsubscribeBalances();
 
-    const addresses = this.state.getAccountGroupAddresses();
+    const addresses = this.state.getAccountProxyAddresses();
 
     if (!addresses.length) {
       return;

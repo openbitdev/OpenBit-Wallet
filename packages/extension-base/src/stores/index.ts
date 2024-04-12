@@ -4,4 +4,4 @@
 export { default as AccountsStore } from './Accounts';
 export { default as MetadataStore } from './Metadata';
 export { default as CurrentAccountStore } from './CurrentAccountStore';
-export { default as CurrentAccountGroupStore } from './CurrentAccountGroupStore';
+export { default as CurrentAccountProxyStore } from './CurrentAccountProxyStore';
