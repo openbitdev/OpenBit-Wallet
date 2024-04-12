@@ -3,7 +3,7 @@
 
 import { _MultiChainAsset } from '@subwallet/chain-list/types';
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { _getAssetDecimals, _getAssetOriginChain, _getAssetPriceId, _getChainName, _getMultiChainAssetPriceId, _isAssetValuable } from '@subwallet/extension-base/services/chain-service/utils';
 import { isAccountAll } from '@subwallet/extension-base/utils';
 import { getBalanceValue, getConvertedBalanceValue, getDefaultTokenBalance, getDefaultTokenGroupBalance } from '@subwallet/extension-koni-ui/hooks/screen/home/useAccountBalance';
@@ -15,15 +15,15 @@ import BigN from 'bignumber.js';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-function getAddresses (currentGroup: AccountGroup | null, accountGroups: AccountGroup[]): string[] {
+function getAddresses (currentGroup: AccountProxy | null, accountProxies: AccountProxy[]): string[] {
   if (!currentGroup) {
     return [];
   }
 
-  if (isAccountAll(currentGroup.groupId)) {
+  if (isAccountAll(currentGroup.proxyId)) {
     const result: string[] = [];
 
-    accountGroups.forEach((ag) => {
+    accountProxies.forEach((ag) => {
       ag.accounts.forEach((a) => result.push(a.address));
     });
 
@@ -33,9 +33,9 @@ function getAddresses (currentGroup: AccountGroup | null, accountGroups: Account
   return currentGroup.accounts.map((a) => a.address);
 }
 
-function getAccountGroupBalance (
-  currentAccountGroup: AccountGroup | null,
-  accountGroups: AccountGroup[],
+function getAccountProxyBalance (
+  currentAccountProxy: AccountProxy | null,
+  accountProxies: AccountProxy[],
   tokenGroupMap: Record<string, string[]>,
   balanceMap: BalanceStore['balanceMap'],
   priceMap: PriceStore['priceMap'],
@@ -56,7 +56,7 @@ function getAccountGroupBalance (
   const tokenBalanceMap: Record<string, TokenBalanceItemType> = {};
   const tokenGroupBalanceMap: Record<string, TokenBalanceItemType> = {};
 
-  const addresses = getAddresses(currentAccountGroup, accountGroups);
+  const addresses = getAddresses(currentAccountProxy, accountProxies);
 
   if (!addresses.length) {
     return {
@@ -254,7 +254,7 @@ function getAccountGroupBalance (
   };
 }
 
-export default function useAccountGroupBalance (tokenGroupMap: Record<string, string[]>, showZeroBalance?: boolean): AccountBalanceHookType {
+export default function useAccountProxyBalance (tokenGroupMap: Record<string, string[]>, showZeroBalance?: boolean): AccountBalanceHookType {
   const balanceMap = useSelector((state: RootState) => state.balance.balanceMap);
   const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
   const priceMap = useSelector((state: RootState) => state.price.priceMap);
@@ -262,16 +262,16 @@ export default function useAccountGroupBalance (tokenGroupMap: Record<string, st
   const assetRegistryMap = useSelector((state: RootState) => state.assetRegistry.assetRegistry);
   const multiChainAssetMap = useSelector((state: RootState) => state.assetRegistry.multiChainAssetMap);
   const isShowZeroBalanceSetting = useSelector((state: RootState) => state.settings.isShowZeroBalance);
-  const currentAccountGroup = useSelector((state: RootState) => state.accountState.currentAccountGroup);
-  const accountGroups = useSelector((state: RootState) => state.accountState.accountGroups);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
 
   const isShowZeroBalance = useMemo(() => {
     return showZeroBalance || isShowZeroBalanceSetting;
   }, [isShowZeroBalanceSetting, showZeroBalance]);
 
-  return getAccountGroupBalance(
-    currentAccountGroup,
-    accountGroups,
+  return getAccountProxyBalance(
+    currentAccountProxy,
+    accountProxies,
     tokenGroupMap,
     balanceMap,
     priceMap,

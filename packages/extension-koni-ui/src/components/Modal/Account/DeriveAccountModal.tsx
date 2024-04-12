@@ -1,8 +1,8 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
-import { AccountGroupItem } from '@subwallet/extension-koni-ui/components';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountProxyItem } from '@subwallet/extension-koni-ui/components';
 import BackIcon from '@subwallet/extension-koni-ui/components/Icon/BackIcon';
 import { CREATE_ACCOUNT_MODAL, DERIVE_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
@@ -10,7 +10,7 @@ import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTransla
 import useUnlockChecker from '@subwallet/extension-koni-ui/hooks/common/useUnlockChecker';
 import useClickOutSide from '@subwallet/extension-koni-ui/hooks/dom/useClickOutSide';
 import useSwitchModal from '@subwallet/extension-koni-ui/hooks/modal/useSwitchModal';
-import { deriveAccountGroup } from '@subwallet/extension-koni-ui/messaging';
+import { deriveAccountProxy } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { searchAccountFunction } from '@subwallet/extension-koni-ui/utils/account/account';
@@ -49,16 +49,16 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const { checkActive, inactiveModal } = useContext(ModalContext);
   const checkUnlock = useUnlockChecker();
 
-  const { accountGroups } = useSelector((state: RootState) => state.accountState);
+  const { accountProxies } = useSelector((state: RootState) => state.accountState);
 
   const isActive = checkActive(modalId);
 
   const [selected, setSelected] = useState('');
 
   const filteredItems = useMemo(
-    () => accountGroups
+    () => accountProxies
       .filter((ag) => ag.isMaster),
-    [accountGroups]
+    [accountProxies]
   );
 
   const clearSearch = useCallback(() => {
@@ -72,13 +72,13 @@ const Component: React.FC<Props> = ({ className }: Props) => {
 
   useClickOutSide(isActive || !!selected, renderModalSelector(className), onCancel);
 
-  const onSelectAccountGroup = useCallback((accountGroup: AccountGroup): () => void => {
+  const onSelectAccountProxy = useCallback((accountProxy: AccountProxy): () => void => {
     return () => {
       checkUnlock().then(() => {
-        setSelected(accountGroup.groupId);
+        setSelected(accountProxy.proxyId);
         setTimeout(() => {
-          deriveAccountGroup({
-            groupId: accountGroup.groupId
+          deriveAccountProxy({
+            proxyId: accountProxy.proxyId
           }).then(() => {
             inactiveModal(modalId);
             clearSearch();
@@ -97,21 +97,21 @@ const Component: React.FC<Props> = ({ className }: Props) => {
     };
   }, [checkUnlock, clearSearch, inactiveModal, notify]);
 
-  const renderItem = useCallback((accountGroup: AccountGroup): React.ReactNode => {
+  const renderItem = useCallback((accountProxy: AccountProxy): React.ReactNode => {
     const disabled = !!selected;
-    const isSelected = accountGroup.groupId === selected;
+    const isSelected = accountProxy.proxyId === selected;
 
     return (
-      <div key={accountGroup.groupId}>
-        <AccountGroupItem
-          accountGroup={accountGroup}
+      <div key={accountProxy.proxyId}>
+        <AccountProxyItem
+          accountProxy={accountProxy}
           className={CN('account-group-item', { '-disabled': disabled && !isSelected }) }
-          onClick={disabled ? undefined : onSelectAccountGroup(accountGroup)}
+          onClick={disabled ? undefined : onSelectAccountProxy(accountProxy)}
           renderRightPart={isSelected ? renderLoaderIcon : undefined}
         />
       </div>
     );
-  }, [onSelectAccountGroup, selected]);
+  }, [onSelectAccountProxy, selected]);
 
   const onBack = useSwitchModal(modalId, CREATE_ACCOUNT_MODAL, clearSearch);
 

@@ -1,52 +1,52 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
 import { useEffect, useRef, useState } from 'react';
 
-function getSelectedAddress (accountGroups: AccountGroup[], currentAccountGroupId: string | undefined): string {
-  if (!currentAccountGroupId || !accountGroups.length) {
+function getSelectedAddress (accountProxies: AccountProxy[], currentAccountProxyId: string | undefined): string {
+  if (!currentAccountProxyId || !accountProxies.length) {
     return '';
   }
 
-  if (!isAccountAll(currentAccountGroupId)) {
-    return currentAccountGroupId;
+  if (!isAccountAll(currentAccountProxyId)) {
+    return currentAccountProxyId;
   }
 
-  return accountGroups.find((ag) => !isAccountAll(ag.groupId))?.groupId || '';
+  return accountProxies.find((ag) => !isAccountAll(ag.proxyId))?.proxyId || '';
 }
 
 export default function useHistorySelection () {
-  const { accountGroups, currentAccountGroup } = useSelector((root) => root.accountState);
-  const preservedCurrentAccountGroupId = useRef<string>(currentAccountGroup ? currentAccountGroup.groupId : '');
-  const [selectedAccountGroupId, setSelectedAccountGroupId] = useState<string>(getSelectedAddress(accountGroups, currentAccountGroup?.groupId));
+  const { accountProxies, currentAccountProxy } = useSelector((root) => root.accountState);
+  const preservedCurrentAccountProxyId = useRef<string>(currentAccountProxy ? currentAccountProxy.proxyId : '');
+  const [selectedAccountProxyId, setSelectedAccountProxyId] = useState<string>(getSelectedAddress(accountProxies, currentAccountProxy?.proxyId));
   const [selectedChain, setSelectedChain] = useState<string>('bitcoin');
 
   useEffect(() => {
-    if (currentAccountGroup?.groupId) {
-      if (preservedCurrentAccountGroupId.current !== currentAccountGroup.groupId) {
-        preservedCurrentAccountGroupId.current = currentAccountGroup.groupId;
-        setSelectedAccountGroupId(getSelectedAddress(accountGroups, currentAccountGroup.groupId));
+    if (currentAccountProxy?.proxyId) {
+      if (preservedCurrentAccountProxyId.current !== currentAccountProxy.proxyId) {
+        preservedCurrentAccountProxyId.current = currentAccountProxy.proxyId;
+        setSelectedAccountProxyId(getSelectedAddress(accountProxies, currentAccountProxy.proxyId));
       }
     } else {
-      preservedCurrentAccountGroupId.current = '';
-      setSelectedAccountGroupId('');
+      preservedCurrentAccountProxyId.current = '';
+      setSelectedAccountProxyId('');
     }
-  }, [accountGroups, currentAccountGroup?.groupId]);
+  }, [accountProxies, currentAccountProxy?.proxyId]);
 
   useEffect(() => {
-    const isSelectedAccountExist = accountGroups.some((ag) => ag.groupId === selectedAccountGroupId);
+    const isSelectedAccountExist = accountProxies.some((ag) => ag.proxyId === selectedAccountProxyId);
 
     if (!isSelectedAccountExist) {
-      setSelectedAccountGroupId((accountGroups.find((ag) => !isAccountAll(ag.groupId)))?.groupId || '');
+      setSelectedAccountProxyId((accountProxies.find((ag) => !isAccountAll(ag.proxyId)))?.proxyId || '');
     }
-  }, [accountGroups, selectedAccountGroupId]);
+  }, [accountProxies, selectedAccountProxyId]);
 
   return {
-    selectedAccountGroupId,
-    setSelectedAccountGroupId,
+    selectedAccountProxyId,
+    setSelectedAccountProxyId,
     selectedChain,
     setSelectedChain
   };

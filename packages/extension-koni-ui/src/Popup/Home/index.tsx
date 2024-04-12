@@ -7,7 +7,7 @@ import { GlobalSearchTokenModal } from '@subwallet/extension-koni-ui/components/
 import { GeneralTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/GeneralTermModal';
 import { CONFIRM_GENERAL_TERM, EARNING_MIGRATION_ANNOUNCEMENT, EARNING_MIGRATION_MODAL, GENERAL_TERM_AND_CONDITION_MODAL, HOME_CAMPAIGN_BANNER_MODAL, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
-import { useAccountGroupBalance, useGetBannerByScreen, useGetMantaPayConfig, useHandleMantaPaySync, useTokenGroup } from '@subwallet/extension-koni-ui/hooks';
+import { useAccountProxyBalance, useGetBannerByScreen, useGetMantaPayConfig, useHandleMantaPaySync, useTokenGroup } from '@subwallet/extension-koni-ui/hooks';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ModalContext } from '@subwallet/react-ui';
@@ -24,7 +24,7 @@ export const GlobalSearchTokenModalId = 'globalSearchToken';
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const tokenGroupStructure = useTokenGroup(SUPPORT_CHAINS);
-  const accountBalance = useAccountGroupBalance(tokenGroupStructure.tokenGroupMap);
+  const accountBalance = useAccountProxyBalance(tokenGroupStructure.tokenGroupMap);
   const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
   const [isConfirmedTermGeneral, setIsConfirmedTermGeneral] = useLocalStorage(CONFIRM_GENERAL_TERM, 'nonConfirmed');
   const [isReadEarningMigrationAnnouncement] = useLocalStorage<boolean>(EARNING_MIGRATION_ANNOUNCEMENT, false);

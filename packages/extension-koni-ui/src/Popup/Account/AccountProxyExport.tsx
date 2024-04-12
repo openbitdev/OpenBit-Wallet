@@ -6,11 +6,11 @@ import AlertBox from '@subwallet/extension-koni-ui/components/Alert';
 import CloseIcon from '@subwallet/extension-koni-ui/components/Icon/CloseIcon';
 import WordPhrase from '@subwallet/extension-koni-ui/components/WordPhrase';
 import { DEFAULT_ROUTER_PATH } from '@subwallet/extension-koni-ui/constants/router';
-import { useGetAccountGroupByGroupId } from '@subwallet/extension-koni-ui/hooks';
+import { useGetAccountProxyByProxyId } from '@subwallet/extension-koni-ui/hooks';
 import useCopy from '@subwallet/extension-koni-ui/hooks/common/useCopy';
 import useFocusFormItem from '@subwallet/extension-koni-ui/hooks/form/useFocusFormItem';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
-import { keyringExportAccountGroupMnemonic } from '@subwallet/extension-koni-ui/messaging';
+import { keyringExportAccountProxyMnemonic } from '@subwallet/extension-koni-ui/messaging';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { FormCallbacks, FormFieldData } from '@subwallet/extension-koni-ui/types/form';
 import { KeyringPair$Json } from '@subwallet/keyring/types';
@@ -64,9 +64,9 @@ const Component: React.FC<Props> = (props: Props) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { goHome } = useDefaultNavigate();
-  const { accountGroupId } = useParams();
+  const { accountProxyId } = useParams();
 
-  const accountGroup = useGetAccountGroupByGroupId(accountGroupId);
+  const accountProxy = useGetAccountProxyByProxyId(accountProxyId);
 
   const [form] = Form.useForm<ExportFormState>();
 
@@ -113,13 +113,13 @@ const Component: React.FC<Props> = (props: Props) => {
       return;
     }
 
-    if (!accountGroup) {
+    if (!accountProxy) {
       return;
     }
 
-    const groupId = accountGroup.groupId;
+    const proxyId = accountProxy.proxyId;
 
-    if (!groupId) {
+    if (!proxyId) {
       return;
     }
 
@@ -139,8 +139,8 @@ const Component: React.FC<Props> = (props: Props) => {
           }
         };
 
-        if (exportTypes.includes(ExportType.SEED_PHRASE) && accountGroup?.isMaster) {
-          keyringExportAccountGroupMnemonic({ groupId, password })
+        if (exportTypes.includes(ExportType.SEED_PHRASE) && accountProxy?.isMaster) {
+          keyringExportAccountProxyMnemonic({ proxyId: proxyId, password })
             .then((res) => {
               setSeedPhrase(res.result);
               result.seedPhrase = true;
@@ -171,7 +171,7 @@ const Component: React.FC<Props> = (props: Props) => {
           setLoading(false);
         });
     }, 500);
-  }, [accountGroup, form, t]);
+  }, [accountProxy, form, t]);
 
   const onPressType = useCallback((value: ExportType) => {
     return () => {
@@ -194,7 +194,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const items = useMemo((): ExportItem[] => {
     return [
       {
-        disable: !accountGroup || !accountGroup.isMaster,
+        disable: !accountProxy || !accountProxy.isMaster,
         hidden: false,
         icon: Leaf,
         label: t('Export seed phrase'),
@@ -222,31 +222,31 @@ const Component: React.FC<Props> = (props: Props) => {
         type: ExportType.QR_CODE
       }
     ];
-  }, [accountGroup, t]);
+  }, [accountProxy, t]);
 
   const onBack = useCallback(() => {
-    if (accountGroup?.groupId) {
-      navigate(`/accounts/detail/${accountGroup?.groupId}`);
+    if (accountProxy?.proxyId) {
+      navigate(`/accounts/detail/${accountProxy?.proxyId}`);
     } else {
       navigate(DEFAULT_ROUTER_PATH);
     }
-  }, [accountGroup?.groupId, navigate]);
+  }, [accountProxy?.proxyId, navigate]);
 
   useEffect(() => {
-    if (!accountGroup) {
+    if (!accountProxy) {
       goHome();
     }
-  }, [accountGroup, goHome, navigate]);
+  }, [accountProxy, goHome, navigate]);
 
   useEffect(() => {
-    if (accountGroup?.groupId) {
+    if (accountProxy?.proxyId) {
       form.resetFields();
     }
-  }, [accountGroup?.groupId, form]);
+  }, [accountProxy?.proxyId, form]);
 
   useFocusFormItem(form, FormFieldName.PASSWORD);
 
-  if (!accountGroup) {
+  if (!accountProxy) {
     return null;
   }
 

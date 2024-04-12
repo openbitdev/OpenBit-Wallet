@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import AvatarGroup from '@subwallet/extension-koni-ui/components/Account/Info/AvatarGroup';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -11,12 +11,12 @@ import React, { useMemo } from 'react';
 import styled from 'styled-components';
 
 interface Props extends ThemeProps {
-  accountGroup: AccountGroup;
+  accountProxy: AccountProxy;
 }
 
-const Component: React.FC<Props> = ({ accountGroup, className }: Props) => {
+const Component: React.FC<Props> = ({ accountProxy, className }: Props) => {
   const { t } = useTranslation();
-  const isAll = useMemo((): boolean => isAccountAll(accountGroup.groupId), [accountGroup.groupId]);
+  const isAll = useMemo((): boolean => isAccountAll(accountProxy.proxyId), [accountProxy.proxyId]);
 
   return (
     <div className={className}>
@@ -25,13 +25,13 @@ const Component: React.FC<Props> = ({ accountGroup, className }: Props) => {
         className='account-name'
         ellipsis={true}
       >
-        { isAll ? t('All accounts') : accountGroup.name}
+        { isAll ? t('All accounts') : accountProxy.name}
       </Typography.Text>
     </div>
   );
 };
 
-const AccountGroupBriefInfo = styled(Component)<Props>(({ theme: { token } }: Props) => {
+const AccountProxyBriefInfo = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return {
     display: 'flex',
     flexDirection: 'row',
@@ -59,4 +59,4 @@ const AccountGroupBriefInfo = styled(Component)<Props>(({ theme: { token } }: Pr
   };
 });
 
-export default AccountGroupBriefInfo;
+export default AccountProxyBriefInfo;

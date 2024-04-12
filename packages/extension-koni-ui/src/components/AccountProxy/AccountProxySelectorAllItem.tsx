@@ -41,7 +41,7 @@ function Component (props: Props): React.ReactElement<Props> {
   );
 }
 
-const AccountGroupSelectorAllItem = styled(Component)<Props>(({ theme }) => {
+const AccountProxySelectorAllItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
@@ -76,4 +76,4 @@ const AccountGroupSelectorAllItem = styled(Component)<Props>(({ theme }) => {
   };
 });
 
-export default AccountGroupSelectorAllItem;
+export default AccountProxySelectorAllItem;

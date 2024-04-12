@@ -3,8 +3,8 @@
 
 import { CloseIcon, Layout, PageWrapper, PhraseNumberSelector, SeedPhraseInput } from '@subwallet/extension-koni-ui/components';
 import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
-import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useFocusFormItem, useGetDefaultAccountGroupName, useGoBackFromCreateAccount, useNotification, useTranslation, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { createAccountGroupSuri, validateSeedV2 } from '@subwallet/extension-koni-ui/messaging';
+import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useFocusFormItem, useGetDefaultAccountProxyName, useGoBackFromCreateAccount, useNotification, useTranslation, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
+import { createAccountProxySuri, validateSeedV2 } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, FormRule, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject, noop, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
 import { Button, Form, Icon, Input } from '@subwallet/react-ui';
@@ -43,7 +43,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const onComplete = useCompleteCreateAccount();
   const onBack = useGoBackFromCreateAccount(SELECT_ACCOUNT_MODAL);
 
-  const accountName = useGetDefaultAccountGroupName();
+  const accountName = useGetDefaultAccountProxyName();
 
   const [form] = Form.useForm<FormState>();
 
@@ -104,7 +104,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
           setSubmitting(true);
           validateSeedV2(seed, [])
             .then(() => {
-              return createAccountGroupSuri({
+              return createAccountProxySuri({
                 name: accountName,
                 suri: seed
               });

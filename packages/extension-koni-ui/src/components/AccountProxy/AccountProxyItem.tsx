@@ -1,7 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Icon } from '@subwallet/react-ui';
@@ -9,17 +10,16 @@ import CN from 'classnames';
 import { CheckCircle } from 'phosphor-react';
 import React, { Context, useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
-import {AccountGroupAvatar} from '@subwallet/extension-koni-ui/components';
 
 type Props = ThemeProps & {
-  accountGroup: AccountGroup;
+  accountProxy: AccountProxy;
   isSelected?: boolean;
   renderRightPart?: (existNode: React.ReactNode) => React.ReactNode;
   onClick?: VoidFunction;
 };
 
 function Component (props: Props): React.ReactElement<Props> {
-  const { accountGroup, className, isSelected, onClick, renderRightPart } = props;
+  const { accountProxy, className, isSelected, onClick, renderRightPart } = props;
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
   const checkedIconNode = (isSelected && (
@@ -39,13 +39,13 @@ function Component (props: Props): React.ReactElement<Props> {
       onClick={onClick}
     >
       <div className='__item-left-part'>
-        <AccountGroupAvatar
+        <AccountProxyAvatar
           size={24}
-          value={accountGroup.groupId}
+          value={accountProxy.proxyId}
         />
       </div>
       <div className='__item-middle-part'>
-        {accountGroup.name}
+        {accountProxy.name}
       </div>
       <div className='__item-right-part'>
         {renderRightPart ? renderRightPart(checkedIconNode) : checkedIconNode}
@@ -54,7 +54,7 @@ function Component (props: Props): React.ReactElement<Props> {
   );
 }
 
-const AccountGroupItem = styled(Component)<Props>(({ theme }) => {
+const AccountProxyItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
@@ -94,4 +94,4 @@ const AccountGroupItem = styled(Component)<Props>(({ theme }) => {
   };
 });
 
-export default AccountGroupItem;
+export default AccountProxyItem;

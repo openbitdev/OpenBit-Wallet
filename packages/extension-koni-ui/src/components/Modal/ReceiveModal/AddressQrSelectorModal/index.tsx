@@ -3,7 +3,7 @@
 
 import { GeneralEmptyList } from '@subwallet/extension-koni-ui/components';
 import { AddressQrSelectorItem } from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/AddressQrSelectorModal/AddressQrSelectorItem';
-import { useGetAccountGroupByGroupId, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useGetAccountProxyByProxyId, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import { Icon, ModalContext, SwList, SwModal } from '@subwallet/react-ui';
@@ -16,7 +16,7 @@ import SimpleQrModal from '../SimpleQrModal';
 
 type Props = ThemeProps & {
   modalId: string;
-  accountGroupId: string | undefined;
+  accountProxyId: string | undefined;
   onBack?: VoidFunction;
 }
 
@@ -83,10 +83,10 @@ function getItemInfo (address: string): ItemInfo {
 
 const renderEmpty = () => <GeneralEmptyList />;
 
-function Component ({ accountGroupId, className = '', modalId, onBack }: Props): React.ReactElement<Props> {
+function Component ({ accountProxyId, className = '', modalId, onBack }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
-  const accountGroup = useGetAccountGroupByGroupId(accountGroupId);
+  const accountProxy = useGetAccountProxyByProxyId(accountProxyId);
   const [selectedAddress, setSelectedAddress] = useState<string | undefined>(undefined);
 
   const isActive = checkActive(modalId);
@@ -94,12 +94,12 @@ function Component ({ accountGroupId, className = '', modalId, onBack }: Props):
   const sectionRef = useRef<SwListSectionRef>(null);
 
   const items = useMemo(() => {
-    if (!accountGroup) {
+    if (!accountProxy) {
       return [];
     }
 
-    return accountGroup.accounts.map((a) => getItemInfo(a.address)).sort((a, b) => a.order - b.order);
-  }, [accountGroup]);
+    return accountProxy.accounts.map((a) => getItemInfo(a.address)).sort((a, b) => a.order - b.order);
+  }, [accountProxy]);
 
   const searchFunction = useCallback((item: ItemInfo, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();

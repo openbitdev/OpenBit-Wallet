@@ -8,11 +8,11 @@ export { default as useCompleteCreateAccount } from './useCompleteCreateAccount'
 export { default as useDeleteAccount } from './useDeleteAccount';
 export { default as useFormatAddress } from './useFormatAddress';
 export { default as useGetAccountByAddress } from './useGetAccountByAddress';
-export { default as useGetAccountGroupByGroupId } from './useGetAccountGroupByGroupId';
+export { default as useGetAccountProxyByProxyId } from './useGetAccountProxyByProxyId';
 export { default as useGetAccountSignModeByAddress } from './useGetAccountSignModeByAddress';
 export { default as useGetAccountTitleByAddress } from './useGetAccountTitleByAddress';
 export { default as useGetDefaultAccountName } from './useGetDefaultAccountName';
-export { default as useGetDefaultAccountGroupName } from './useGetDefaultAccountGroupName';
+export { default as useGetDefaultAccountProxyName } from './useGetDefaultAccountProxyName';
 export { default as useGoBackFromCreateAccount } from './useGoBackFromCreateAccount';
 export { default as useHandleMantaPaySync } from './useHandleMantaPaySync';
 export { default as useIsReadOnlyAccount } from './useIsReadOnlyAccount';

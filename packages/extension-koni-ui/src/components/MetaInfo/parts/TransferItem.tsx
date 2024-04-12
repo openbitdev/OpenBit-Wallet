@@ -18,10 +18,10 @@ export interface TransferInfoItem extends Omit<InfoItemBase, 'label'> {
   senderAddress: string;
   senderName?: string;
   senderLabel?: string;
-  senderGroupId?: string;
+  senderProxyId?: string;
   recipientAddress: string;
   recipientName?: string;
-  recipientGroupId?: string;
+  recipientProxyId?: string;
   recipientLabel?: string;
   originChain?: ChainInfo;
   destinationChain?: ChainInfo;

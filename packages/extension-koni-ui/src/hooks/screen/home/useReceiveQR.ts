@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { _getMultiChainAsset, _isAssetFungibleToken, _isNativeToken } from '@subwallet/extension-base/services/chain-service/utils';
 import { AccountSelectorModalId } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
 import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
@@ -17,17 +17,17 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 type ReceiveSelectedResult = {
-  selectedAccountGroupId?: string;
-  selectedAccountGroupAddress?: string;
+  selectedAccountProxyId?: string;
+  selectedAccountProxyAddress?: string;
   selectedNetwork?: string;
 };
 
-function getTokenSelectorItem (asset: _ChainAsset, accountGroup: AccountGroup): ReceiveTokenItemType | null {
+function getTokenSelectorItem (asset: _ChainAsset, accountProxy: AccountProxy): ReceiveTokenItemType | null {
   if (!_isAssetFungibleToken(asset) || !SUPPORT_CHAINS.includes(asset.originChain)) {
     return null;
   }
 
-  const targetAccount = accountGroup.accounts.find((a) => {
+  const targetAccount = accountProxy.accounts.find((a) => {
     const accountType = getKeypairTypeByAddress(a.address);
 
     if (accountType === 'ethereum' && asset.originChain === 'ethereum' && _isNativeToken(asset)) {
@@ -58,26 +58,26 @@ function getTokenSelectorItem (asset: _ChainAsset, accountGroup: AccountGroup): 
 export default function useReceiveQR (tokenGroupSlug?: string) {
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const isAllAccount = useSelector((state: RootState) => state.accountState.isAllAccount);
-  const accountGroups = useSelector((state: RootState) => state.accountState.accountGroups);
-  const currentAccountGroup = useSelector((state: RootState) => state.accountState.currentAccountGroup);
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const assetRegistryMap = useChainAssets().chainAssetRegistry;
   const [tokenSelectorItems, setTokenSelectorItems] = useState<ReceiveTokenItemType[]>([]);
-  const [{ selectedAccountGroupAddress, selectedAccountGroupId, selectedNetwork }, setReceiveSelectedResult] = useState<ReceiveSelectedResult>(
-    { selectedAccountGroupId: isAllAccount ? undefined : currentAccountGroup?.groupId }
+  const [{ selectedAccountProxyAddress, selectedAccountProxyId, selectedNetwork }, setReceiveSelectedResult] = useState<ReceiveSelectedResult>(
+    { selectedAccountProxyId: isAllAccount ? undefined : currentAccountProxy?.proxyId }
   );
 
-  const accountSelectorItems = useMemo<AccountGroup[]>(() => {
+  const accountSelectorItems = useMemo<AccountProxy[]>(() => {
     if (!isAllAccount) {
       return [];
     }
 
-    return accountGroups.filter((ag) => !checkIsAccountAll(ag.groupId));
-  }, [isAllAccount, accountGroups]);
+    return accountProxies.filter((ag) => !checkIsAccountAll(ag.proxyId));
+  }, [isAllAccount, accountProxies]);
 
-  const getTokenSelectorItems = useCallback((accountGroup: AccountGroup) => {
+  const getTokenSelectorItems = useCallback((accountProxy: AccountProxy) => {
     // if tokenGroupSlug is token slug
     if (tokenGroupSlug && assetRegistryMap[tokenGroupSlug]) {
-      const tokenItem = getTokenSelectorItem(assetRegistryMap[tokenGroupSlug], accountGroup);
+      const tokenItem = getTokenSelectorItem(assetRegistryMap[tokenGroupSlug], accountProxy);
 
       if (tokenItem) {
         return [tokenItem];
@@ -93,7 +93,7 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
         return;
       }
 
-      const tokenItem = getTokenSelectorItem(asset, accountGroup);
+      const tokenItem = getTokenSelectorItem(asset, accountProxy);
 
       if (tokenItem) {
         result.push(tokenItem);
@@ -104,20 +104,20 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
   }, [tokenGroupSlug, assetRegistryMap]);
 
   const onOpenReceive = useCallback(() => {
-    if (!currentAccountGroup) {
+    if (!currentAccountProxy) {
       return;
     }
 
-    if (checkIsAccountAll(currentAccountGroup.groupId)) {
+    if (checkIsAccountAll(currentAccountProxy.proxyId)) {
       activeModal(AccountSelectorModalId);
     } else {
-      const _tokenSelectorItems = getTokenSelectorItems(currentAccountGroup);
+      const _tokenSelectorItems = getTokenSelectorItems(currentAccountProxy);
 
       setTokenSelectorItems(_tokenSelectorItems);
 
       if (tokenGroupSlug) {
         if (_tokenSelectorItems.length === 1) {
-          setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain, selectedAccountGroupAddress: _tokenSelectorItems[0].address }));
+          setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain, selectedAccountProxyAddress: _tokenSelectorItems[0].address }));
           activeModal(RECEIVE_QR_MODAL);
 
           return;
@@ -126,17 +126,17 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
 
       activeModal(RECEIVE_TOKEN_SELECTOR_MODAL);
     }
-  }, [activeModal, currentAccountGroup, getTokenSelectorItems, tokenGroupSlug]);
+  }, [activeModal, currentAccountProxy, getTokenSelectorItems, tokenGroupSlug]);
 
-  const onSelectAccountGroup = useCallback((accountGroup: AccountGroup) => {
-    setReceiveSelectedResult({ selectedAccountGroupId: accountGroup.groupId });
-    const _tokenSelectorItems = getTokenSelectorItems(accountGroup);
+  const onSelectAccountProxy = useCallback((accountProxy: AccountProxy) => {
+    setReceiveSelectedResult({ selectedAccountProxyId: accountProxy.proxyId });
+    const _tokenSelectorItems = getTokenSelectorItems(accountProxy);
 
     setTokenSelectorItems(_tokenSelectorItems);
 
     if (tokenGroupSlug) {
       if (_tokenSelectorItems.length === 1) {
-        setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain, selectedAccountGroupAddress: _tokenSelectorItems[0].address }));
+        setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain, selectedAccountProxyAddress: _tokenSelectorItems[0].address }));
         activeModal(RECEIVE_QR_MODAL);
         inactiveModal(AccountSelectorModalId);
 
@@ -149,24 +149,24 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
   }, [activeModal, getTokenSelectorItems, inactiveModal, tokenGroupSlug]);
 
   const onSelectToken = useCallback((item: ReceiveTokenItemType) => {
-    setReceiveSelectedResult((prevState) => ({ ...prevState, selectedNetwork: item.originChain, selectedAccountGroupAddress: item.address }));
+    setReceiveSelectedResult((prevState) => ({ ...prevState, selectedNetwork: item.originChain, selectedAccountProxyAddress: item.address }));
   }, []);
 
   useEffect(() => {
     setReceiveSelectedResult((prev) => ({
       ...prev,
-      selectedAccountGroupId: currentAccountGroup?.groupId
+      selectedAccountProxyId: currentAccountProxy?.proxyId
     }));
-  }, [currentAccountGroup?.groupId]);
+  }, [currentAccountProxy?.proxyId]);
 
   return {
     onOpenReceive,
-    onSelectAccountGroup,
+    onSelectAccountProxy,
     onSelectToken,
     accountSelectorItems,
     tokenSelectorItems,
-    selectedAccountGroupId,
-    selectedAccountGroupAddress,
+    selectedAccountProxyId,
+    selectedAccountProxyAddress,
     selectedNetwork
   };
 }

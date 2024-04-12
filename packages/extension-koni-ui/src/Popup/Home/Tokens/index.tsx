@@ -41,9 +41,9 @@ const Component = (): React.ReactElement => {
   const notify = useNotification();
   const { accountSelectorItems,
     onOpenReceive,
-    onSelectAccountGroup,
+    onSelectAccountProxy,
     onSelectToken,
-    selectedAccountGroupAddress,
+    selectedAccountProxyAddress,
     selectedNetwork,
     tokenSelectorItems } = useReceiveQR();
 
@@ -256,7 +256,7 @@ const Component = (): React.ReactElement => {
 
       <AccountSelectorModal
         items={accountSelectorItems}
-        onSelectItem={onSelectAccountGroup}
+        onSelectItem={onSelectAccountProxy}
       />
 
       <TokensSelectorModal
@@ -265,7 +265,7 @@ const Component = (): React.ReactElement => {
       />
 
       <ReceiveQrModal
-        address={selectedAccountGroupAddress}
+        address={selectedAccountProxyAddress}
         selectedNetwork={selectedNetwork}
       />
     </div>

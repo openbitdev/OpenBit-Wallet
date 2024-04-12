@@ -1,9 +1,9 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { isAccountAll } from '@subwallet/extension-base/utils';
-import { AccountGroupAvatar, AccountGroupItem } from '@subwallet/extension-koni-ui/components';
+import { AccountProxyAvatar, AccountProxyItem } from '@subwallet/extension-koni-ui/components';
 import { BasicInputWrapper } from '@subwallet/extension-koni-ui/components/Field/Base';
 import { useSelectModalInputHelper, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -15,35 +15,35 @@ import styled from 'styled-components';
 import { GeneralEmptyList } from '../EmptyList';
 
 interface Props extends ThemeProps, BasicInputWrapper {
-  externalAccountGroups?: AccountGroup[];
-  filter?: (accountGroup: AccountGroup) => boolean;
+  externalAccountProxies?: AccountProxy[];
+  filter?: (accountProxy: AccountProxy) => boolean;
   doFilter?: boolean;
 }
 
 const renderEmpty = () => <GeneralEmptyList />;
 
-function defaultFiler (accountGroup: AccountGroup): boolean {
-  return !isAccountAll(accountGroup.groupId);
+function defaultFiler (accountProxy: AccountProxy): boolean {
+  return !isAccountAll(accountProxy.proxyId);
 }
 
 const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> => {
-  const { className = '', disabled, doFilter = true, externalAccountGroups, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
-  const accountGroups = useSelector((state) => state.accountState.accountGroups);
+  const { className = '', disabled, doFilter = true, externalAccountProxies, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
+  const accountProxies = useSelector((state) => state.accountState.accountProxies);
 
   const items = useMemo(() => {
-    let _items = (externalAccountGroups || accountGroups);
+    let _items = (externalAccountProxies || accountProxies);
 
     if (doFilter) {
       _items = _items.filter(filter || defaultFiler);
     }
 
     return _items.sort(groupFuncSortByName);
-  }, [accountGroups, doFilter, externalAccountGroups, filter]);
+  }, [accountProxies, doFilter, externalAccountProxies, filter]);
 
   const { t } = useTranslation();
   const { onSelect } = useSelectModalInputHelper(props, ref);
 
-  const renderSelected = useCallback((item: AccountGroup) => {
+  const renderSelected = useCallback((item: AccountProxy) => {
     return (
       <div className={'__selected-item'}>
         <div className={'__selected-item-name common-text'}>
@@ -53,7 +53,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
     );
   }, []);
 
-  const searchFunction = useCallback((item: AccountGroup, searchText: string) => {
+  const searchFunction = useCallback((item: AccountProxy, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
 
     return (
@@ -63,10 +63,10 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
     );
   }, []);
 
-  const renderItem = useCallback((item: AccountGroup, selected: boolean) => {
+  const renderItem = useCallback((item: AccountProxy, selected: boolean) => {
     return (
-      <AccountGroupItem
-        accountGroup={item}
+      <AccountProxyItem
+        accountProxy={item}
         isSelected={selected}
       />
     );
@@ -79,13 +79,13 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         disabled={disabled || readOnly}
         id={id}
         inputClassName={`${className} account-selector-input`}
-        itemKey={'groupId'}
+        itemKey={'proxyId'}
         items={items}
         label={label}
         onSelect={onSelect}
         placeholder={placeholder || t('Select account')}
         prefix={
-          <AccountGroupAvatar
+          <AccountProxyAvatar
             size={24}
             value={value}
           />
@@ -104,7 +104,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
   );
 };
 
-export const AccountGroupSelector = styled(forwardRef(Component))<Props>(({ theme: { token } }: Props) => {
+export const AccountProxySelector = styled(forwardRef(Component))<Props>(({ theme: { token } }: Props) => {
   return ({
     '&.account-selector-input': {
       '.__selected-item': {

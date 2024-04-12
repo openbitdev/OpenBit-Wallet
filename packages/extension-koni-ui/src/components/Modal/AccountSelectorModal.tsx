@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ModalContext, SwList, SwModal } from '@subwallet/react-ui';
@@ -9,13 +9,13 @@ import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-import AccountGroupItem from '../AccountGroup/AccountGroupItem';
+import AccountProxyItem from '../AccountProxy/AccountProxyItem';
 import { GeneralEmptyList } from '../EmptyList';
 
 interface Props extends ThemeProps {
   id?: string,
-  onSelectItem: (item: AccountGroup) => void,
-  items: AccountGroup[]
+  onSelectItem: (item: AccountProxy) => void,
+  items: AccountProxy[]
 }
 
 export const AccountSelectorModalId = 'accountSelectorModalId';
@@ -32,7 +32,7 @@ function Component ({ className = '', id = AccountSelectorModalId, items, onSele
     inactiveModal(id);
   }, [id, inactiveModal]);
 
-  const searchFunction = useCallback((item: AccountGroup, searchText: string) => {
+  const searchFunction = useCallback((item: AccountProxy, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
 
     return (
@@ -42,17 +42,17 @@ function Component ({ className = '', id = AccountSelectorModalId, items, onSele
     );
   }, []);
 
-  const _onSelectItem = useCallback((item: AccountGroup) => {
+  const _onSelectItem = useCallback((item: AccountProxy) => {
     return () => {
       onSelectItem && onSelectItem(item);
       sectionRef.current?.setSearchValue('');
     };
   }, [onSelectItem]);
 
-  const renderItem = useCallback((item: AccountGroup) => {
+  const renderItem = useCallback((item: AccountProxy) => {
     return (
-      <AccountGroupItem
-        accountGroup={item}
+      <AccountProxyItem
+        accountProxy={item}
         className={'account-item'}
         onClick={_onSelectItem(item)}
       />

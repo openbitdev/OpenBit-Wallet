@@ -1,8 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
-import { AccountGroupAvatar } from '@subwallet/extension-koni-ui/components';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -18,17 +18,17 @@ type Props = ThemeProps & {
   onClickMoreButton?: VoidFunction;
   isSelected?: boolean;
   onClickQrButton?: VoidFunction;
-  accountGroup: AccountGroup;
+  accountProxy: AccountProxy;
 }
 
-type AccountGroupTypeIcon = {
+type AccountProxyTypeIcon = {
   type: 'icon' | 'node',
   value: PhosphorIcon | React.ReactNode,
   weight?: IconWeight
 }
 
 function Component (props: Props): React.ReactElement<Props> {
-  const { accountGroup,
+  const { accountProxy,
     isSelected,
     onClickMoreButton,
     onClickQrButton } = props;
@@ -37,8 +37,8 @@ function Component (props: Props): React.ReactElement<Props> {
 
   const { t } = useTranslation();
 
-  const accountGroupTypeIcon = useMemo<AccountGroupTypeIcon | undefined>(() => {
-    if (!accountGroup.isMaster) {
+  const accountProxyTypeIcon = useMemo<AccountProxyTypeIcon | undefined>(() => {
+    if (!accountProxy.isMaster) {
       return {
         type: 'icon',
         value: GitMerge,
@@ -47,7 +47,7 @@ function Component (props: Props): React.ReactElement<Props> {
     }
 
     return undefined;
-  }, [accountGroup.isMaster]);
+  }, [accountProxy.isMaster]);
 
   const _onClickMore: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> = React.useCallback((event) => {
     event.stopPropagation();
@@ -63,14 +63,14 @@ function Component (props: Props): React.ReactElement<Props> {
     <>
       <div className={CN(props.className)}>
         <div className='__item-left-part'>
-          <AccountGroupAvatar
+          <AccountProxyAvatar
             size={40}
-            value={accountGroup.groupId}
+            value={accountProxy.proxyId}
           />
         </div>
         <div className='__item-center-part'>
-          <div className='__item-name'>{accountGroup.name}</div>
-          <div className='__item-address'>{accountGroup.name}</div>
+          <div className='__item-name'>{accountProxy.name}</div>
+          <div className='__item-address'>{accountProxy.name}</div>
         </div>
         <div className='__item-right-part'>
           <div className='__item-actions'>
@@ -115,18 +115,18 @@ function Component (props: Props): React.ReactElement<Props> {
                 type='ghost'
               />
             )}
-            {accountGroupTypeIcon && (
+            {accountProxyTypeIcon && (
               <Button
                 icon={
-                  accountGroupTypeIcon.type === 'icon'
+                  accountProxyTypeIcon.type === 'icon'
                     ? (
                       <Icon
-                        phosphorIcon={accountGroupTypeIcon.value as PhosphorIcon}
+                        phosphorIcon={accountProxyTypeIcon.value as PhosphorIcon}
                         size='sm'
-                        weight={accountGroupTypeIcon.weight}
+                        weight={accountProxyTypeIcon.weight}
                       />
                     )
-                    : accountGroupTypeIcon.value as React.ReactNode
+                    : accountProxyTypeIcon.value as React.ReactNode
                 }
                 size='xs'
                 type='ghost'
@@ -139,7 +139,7 @@ function Component (props: Props): React.ReactElement<Props> {
   );
 }
 
-const AccountGroupSelectorItem = styled(Component)<Props>(({ theme }) => {
+const AccountProxySelectorItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
@@ -214,4 +214,4 @@ const AccountGroupSelectorItem = styled(Component)<Props>(({ theme }) => {
   };
 });
 
-export default AccountGroupSelectorItem;
+export default AccountProxySelectorItem;

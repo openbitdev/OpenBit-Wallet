@@ -5,7 +5,7 @@ import { ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistor
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
-import { AccountGroupSelector, BasicInputEvent, ChainSelector, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountProxySelector, BasicInputEvent, ChainSelector, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useChainInfoWithState, useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, subscribeTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
@@ -349,12 +349,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     rawHistoryList.forEach((item: TransactionHistoryItem) => {
       // Format display name for account by address
       const fromName = accountMap[item.from]?.name;
-      const fromGroupId = accountMap[item.from]?.groupId;
+      const fromProxyId = accountMap[item.from]?.proxyId;
       const toName = accountMap[item.to]?.name;
-      const toGroupId = accountMap[item.to]?.groupId;
+      const toProxyId = accountMap[item.to]?.proxyId;
       const key = getHistoryItemKey(item);
 
-      finalHistoryMap[key] = { ...item, fromName, fromGroupId, toName, toGroupId, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
+      finalHistoryMap[key] = { ...item, fromName, fromProxyId, toName, toProxyId, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
     });
 
     return finalHistoryMap;
@@ -424,7 +424,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }
   }, [curAdr, currentAccount?.address, inactiveModal]);
 
-  const { selectedAccountGroupId, selectedChain, setSelectedAccountGroupId, setSelectedChain } = useHistorySelection();
+  const { selectedAccountProxyId, selectedChain, setSelectedAccountProxyId, setSelectedChain } = useHistorySelection();
 
   const emptyList = useCallback(() => {
     return (
@@ -472,9 +472,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return result;
   }, [chainInfoList]);
 
-  const onSelectAccountGroup = useCallback((event: BasicInputEvent) => {
-    setSelectedAccountGroupId(event.target.value);
-  }, [setSelectedAccountGroupId]);
+  const onSelectAccountProxy = useCallback((event: BasicInputEvent) => {
+    setSelectedAccountProxyId(event.target.value);
+  }, [setSelectedAccountProxyId]);
 
   const onSelectChain = useCallback((event: BasicInputEvent) => {
     setSelectedChain(event.target.value);
@@ -483,21 +483,21 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const isChainSelectorEmpty = !chainItems.length;
 
   const chainSelectorDisabled = useMemo(() => {
-    if (!selectedAccountGroupId || isChainSelectorEmpty) {
+    if (!selectedAccountProxyId || isChainSelectorEmpty) {
       return true;
     }
 
     return false;
-  }, [selectedAccountGroupId, isChainSelectorEmpty]);
+  }, [selectedAccountProxyId, isChainSelectorEmpty]);
 
   const historySelectorsNode = (
     <>
       {
         isAllAccount && (
-          <AccountGroupSelector
+          <AccountProxySelector
             className={'__history-address-selector'}
-            onChange={onSelectAccountGroup}
-            value={selectedAccountGroupId}
+            onChange={onSelectAccountProxy}
+            value={selectedAccountProxyId}
           />
         )
       }
@@ -582,7 +582,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     setCurrentItemDisplayCount(DEFAULT_ITEMS_COUNT);
 
     subscribeTransactionHistory(
-      selectedAccountGroupId,
+      selectedAccountProxyId,
       selectedChain,
       (items: TransactionHistoryItem[]) => {
         if (isSubscribed) {
@@ -609,7 +609,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         cancelSubscription(id).catch(console.log);
       }
     };
-  }, [isSelectedChainEvm, selectedAccountGroupId, selectedChain]);
+  }, [isSelectedChainEvm, selectedAccountProxyId, selectedChain]);
 
   useEffect(() => {
     setHistoryItems(getHistoryItems(currentItemDisplayCount));

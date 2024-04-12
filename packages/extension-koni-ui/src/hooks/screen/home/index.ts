@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export { default as useAccountBalance } from './useAccountBalance';
-export { default as useAccountGroupBalance } from './useAccountGroupBalance';
+export { default as useAccountProxyBalance } from './useAccountProxyBalance';
 export { default as useGetTokensBySettings } from './useGetTokensBySettings';
 export { default as useReceiveQR } from './useReceiveQR';
 export { default as useTokenGroup } from './useTokenGroup';

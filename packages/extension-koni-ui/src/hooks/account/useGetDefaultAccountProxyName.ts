@@ -6,14 +6,14 @@ import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
-const useGetDefaultAccountGroupName = () => {
-  const accountGroups = useSelector((state: RootState) => state.accountState.accountGroups);
+const useGetDefaultAccountProxyName = () => {
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
 
   return useMemo(() => {
-    const filtered = accountGroups.filter((ag) => !isAccountAll(ag.groupId));
+    const filtered = accountProxies.filter((ag) => !isAccountAll(ag.proxyId));
 
     return `Account ${filtered.length + 1}`;
-  }, [accountGroups]);
+  }, [accountProxies]);
 };
 
-export default useGetDefaultAccountGroupName;
+export default useGetDefaultAccountProxyName;
