@@ -545,7 +545,7 @@ const BuyTokens = styled(Component)<Props>(({ theme: { token } }: Props) => {
 
       '&:before': {
         content: '""',
-        backgroundColor: token.colorSuccess,
+        backgroundColor: token.colorPrimary,
         inset: 0,
         position: 'absolute',
         display: 'block',
@@ -556,7 +556,7 @@ const BuyTokens = styled(Component)<Props>(({ theme: { token } }: Props) => {
 
     '.__buy-icon': {
       fontSize: 64,
-      color: token.colorSuccess
+      color: token.colorPrimary
     },
 
     '.__note': {

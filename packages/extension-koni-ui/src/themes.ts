@@ -17,6 +17,8 @@ export type ThemeConfig = _ThemeConfig;
 export type AliasToken = _AliasToken;
 export type GlobalToken = _GlobalToken;
 
+type ColorPalette = [string, string, string, string, string, string, string, string, string, string];
+
 export interface ExtraToken {
   bodyBackgroundColor: string,
   logo: string,
@@ -25,7 +27,11 @@ export interface ExtraToken {
   tokensScreenDangerBackgroundColor: string,
   tokensScreenInfoBackgroundColor: string,
   colorBgHover1: string,
-  colorBgHover2: string
+  colorBgHover2: string,
+  heatherColorPalette: ColorPalette;
+  manateeColorPalette: ColorPalette;
+  colorPriceUp: string;
+  colorPriceDown: string;
 }
 
 export type Theme = {
@@ -51,9 +57,13 @@ function genDefaultExtraTokens (token: AliasToken): ExtraToken {
     defaultImagePlaceholder,
     tokensScreenSuccessBackgroundColor: 'linear-gradient(180deg, rgba(76, 234, 172, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
     tokensScreenDangerBackgroundColor: 'linear-gradient(180deg, rgba(234, 76, 76, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
-    tokensScreenInfoBackgroundColor: 'linear-gradient(180deg, rgba(0, 75, 255, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)'.trim(),
+    tokensScreenInfoBackgroundColor: 'linear-gradient(180deg, rgba(0, 75, 255, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
     colorBgHover1: '#2A2E3C',
-    colorBgHover2: '#3C4153'
+    colorBgHover2: '#3C4153',
+    heatherColorPalette: ['#202329', '#33373f', '#464b53', '#606771', '#838c98', '#c0cdde', '#c9ced6', '#dee5ec', '#e9f1f8', '#ecf3fa'],
+    manateeColorPalette: ['#191a21', '#272831', '#373842', '#494b57', '#616473', '#8c8fa5', '#999aa3', '#acaeb7', '#bbbdc7', '#c8cbd5'],
+    colorPriceUp: '#4CEAAC',
+    colorPriceDown: '#F9003C'
   };
 }
 
@@ -80,11 +90,18 @@ export const SW_THEME_CONFIGS: Record<ThemeNames, SwThemeConfig> = {
     algorithm: SwReactUI.darkAlgorithm,
     token: derivative({
       ...seedToken,
-      colorPrimary: '#D9C500'
+      colorPrimary: '#ECD033',
+      colorBgBase: '#121317',
+      colorError: '#FF2655',
+      colorWarning: '#E3D358',
+      colorSuccess: '#7EE76C',
+      colorInfo: '#3084F2'
     }) as GlobalToken,
     customTokens: (token) => ({
       ...token,
-      colorLink: token.colorPrimary
+      colorLink: token.colorPrimary,
+      colorBgDefault: token.colorBgBase,
+      colorBgSecondary: '#1B1D24'
     }),
     generateExtraTokens: (token) => {
       return { ...genDefaultExtraTokens(token) };
@@ -97,7 +114,7 @@ export const SW_THEME_CONFIGS: Record<ThemeNames, SwThemeConfig> = {
     algorithm: SwReactUI.darkAlgorithm,
     token: derivative({
       ...seedToken,
-      colorPrimary: '#D9C500'
+      colorPrimary: '#ECD033'
     }) as GlobalToken,
     customTokens: (token) => ({
       ...token,

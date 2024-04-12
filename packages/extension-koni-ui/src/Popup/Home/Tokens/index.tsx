@@ -286,7 +286,7 @@ const WrapperComponent = ({ className = '' }: ThemeProps): React.ReactElement<Pr
   );
 };
 
-const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, token } }: ThemeProps) => {
+const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { token } }: ThemeProps) => {
   return ({
     overflow: 'hidden',
 
@@ -323,7 +323,6 @@ const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, tok
       width: '100%',
       display: 'flex',
       alignItems: 'center',
-      backgroundImage: extendToken.tokensScreenSuccessBackgroundColor,
       transition: 'opacity, padding-top 0.27s ease',
 
       '&.-is-shrink': {
@@ -331,7 +330,7 @@ const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, tok
       },
 
       '&.-decrease': {
-        backgroundImage: extendToken.tokensScreenDangerBackgroundColor
+
       }
     },
 

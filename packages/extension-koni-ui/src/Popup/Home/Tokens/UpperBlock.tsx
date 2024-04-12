@@ -163,7 +163,7 @@ function Component (
   );
 }
 
-export const UpperBlock = styled(Component)<Props>(({ theme: { token } }: Props) => {
+export const UpperBlock = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
   return ({
     padding: '0px 8px 24px 8px',
     display: 'flex',
@@ -213,14 +213,14 @@ export const UpperBlock = styled(Component)<Props>(({ theme: { token } }: Props)
     },
 
     '.__balance-change-percent': {
-      backgroundColor: token['cyan-6'],
+      backgroundColor: extendToken.colorPriceUp,
       color: token['green-1'],
       marginInlineEnd: 0,
       display: 'flex',
 
       '&.-decrease': {
-        backgroundColor: token.colorError,
-        color: token.colorTextLight1
+        backgroundColor: extendToken.colorPriceDown,
+        color: token.colorTextLight2
       },
 
       '.ant-number': {

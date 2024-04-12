@@ -371,7 +371,7 @@ function Component (): React.ReactElement {
   );
 }
 
-const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, token } }: ThemeProps) => {
+const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { token } }: ThemeProps) => {
   return ({
     overflow: 'hidden',
 
@@ -403,7 +403,6 @@ const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, tok
       right: 0,
       display: 'flex',
       alignItems: 'center',
-      backgroundImage: extendToken.tokensScreenInfoBackgroundColor,
       transition: 'opacity, padding-top 0.27s ease',
 
       '&.-is-shrink': {

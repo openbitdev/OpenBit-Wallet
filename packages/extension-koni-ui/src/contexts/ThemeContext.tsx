@@ -24,6 +24,8 @@ const { useToken } = reactUiTheme;
 const GlobalStyle = createGlobalStyle<ThemeProps>(({ theme }) => {
   const { extendToken, token } = theme as Theme;
 
+  console.log('token', token);
+
   applyPreloadStyle(extendToken.bodyBackgroundColor);
 
   return ({
