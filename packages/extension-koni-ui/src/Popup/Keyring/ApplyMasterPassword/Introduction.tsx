@@ -45,7 +45,7 @@ const IntroductionMigratePassword = styled(Component)<Props>(({ theme: { token }
       display: 'flex',
       justifyContent: 'center',
       marginTop: token.margin,
-      '--page-icon-color': token.colorSecondary
+      '--page-icon-color': token.colorSuccess
     },
 
     '.title': {

@@ -245,7 +245,7 @@ const AmountInput = styled(forwardRef(Component))<Props>(({ theme: { token } }: 
     '.ant-btn': {
       '&:disabled, &.-disalbed': {
         '.max-btn-text': {
-          color: token['colorSecondary-4']
+          color: token['colorSuccess-4']
         }
       }
     }

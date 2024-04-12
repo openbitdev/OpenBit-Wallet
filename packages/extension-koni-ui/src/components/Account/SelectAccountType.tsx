@@ -129,7 +129,7 @@ const SelectAccountType = styled(Component)<SelectAccountTypeProps>(({ theme: { 
       textAlign: 'start',
 
       '&.selected': {
-        '--icon-color': token.colorSecondary
+        '--icon-color': token.colorSuccess
       }
     },
 

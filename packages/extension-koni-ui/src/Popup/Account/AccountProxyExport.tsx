@@ -466,7 +466,7 @@ const AccountExport = styled(Component)<Props>(({ theme: { token } }: Props) => 
       textAlign: 'start',
 
       '&.selected': {
-        '--selected-icon-color': token.colorSecondary
+        '--selected-icon-color': token.colorSuccess
       },
 
       '&.disabled': {
@@ -557,7 +557,7 @@ const AccountExport = styled(Component)<Props>(({ theme: { token } }: Props) => 
     '.page-icon': {
       display: 'flex',
       justifyContent: 'center',
-      '--page-icon-color': token.colorSecondary
+      '--page-icon-color': token.colorSuccess
     },
 
     '.json-done-tile': {

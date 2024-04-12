@@ -27,7 +27,7 @@ function _SettingItemSelection (props: SettingItemSelectionProps): React.ReactEl
       onPressItem={onClickItem}
       rightItem={isSelected && <Icon
         className={'__selected-icon'}
-        iconColor={token.colorSecondary}
+        iconColor={token.colorSuccess}
         phosphorIcon={CheckCircle}
         size='sm'
         weight='fill'
