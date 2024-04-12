@@ -6421,7 +6421,7 @@ __metadata:
     "@walletconnect/types": ^2.11.0
     "@wojtekmaj/enzyme-adapter-react-17": ^0.8.0
     bip39: ^3.1.0
-    boring-avatars: ^1.7.0
+    boring-avatars: ^1.10.2
     bowser: ^2.11.0
     classnames: ^2.3.2
     copy-to-clipboard: ^3.3.3
@@ -10590,6 +10590,13 @@ __metadata:
   version: 1.0.0
   resolution: "boolbase@npm:1.0.0"
   checksum: 3e25c80ef626c3a3487c73dbfc70ac322ec830666c9ad915d11b701142fab25ec1e63eff2c450c74347acfd2de854ccde865cd79ef4db1683f7c7b046ea43bb0
+  languageName: node
+  linkType: hard
+
+"boring-avatars@npm:^1.10.2":
+  version: 1.10.2
+  resolution: "boring-avatars@npm:1.10.2"
+  checksum: 887ac33237feb79f53681749439a5c3182727cc8953ff5a77d8301afcc4dc20e8f6fdd0b8bc631e55c5f5f623b2984a5c02002b44b65fa276131075a25531c6b
   languageName: node
   linkType: hard
 

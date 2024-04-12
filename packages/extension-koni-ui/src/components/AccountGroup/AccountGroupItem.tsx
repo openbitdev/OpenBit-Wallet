@@ -9,6 +9,7 @@ import CN from 'classnames';
 import { CheckCircle } from 'phosphor-react';
 import React, { Context, useContext } from 'react';
 import styled, { ThemeContext } from 'styled-components';
+import {AccountGroupAvatar} from '@subwallet/extension-koni-ui/components';
 
 type Props = ThemeProps & {
   accountGroup: AccountGroup;
@@ -38,6 +39,12 @@ function Component (props: Props): React.ReactElement<Props> {
       onClick={onClick}
     >
       <div className='__item-left-part'>
+        <AccountGroupAvatar
+          size={24}
+          value={accountGroup.groupId}
+        />
+      </div>
+      <div className='__item-middle-part'>
         {accountGroup.name}
       </div>
       <div className='__item-right-part'>
@@ -59,8 +66,9 @@ const AccountGroupItem = styled(Component)<Props>(({ theme }) => {
     display: 'flex',
     cursor: 'pointer',
     transition: `background ${token.motionDurationMid} ease-in-out`,
+    gap: token.sizeSM,
 
-    '.__item-left-part': {
+    '.__item-middle-part': {
       flex: 1
     },
 

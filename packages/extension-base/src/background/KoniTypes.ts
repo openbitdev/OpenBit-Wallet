@@ -676,8 +676,10 @@ export interface TransactionHistoryItem<ET extends ExtrinsicType = ExtrinsicType
   type: ExtrinsicType,
   from: string,
   fromName?: string,
+  fromGroupId?: string,
   to: string,
   toName?: string,
+  toGroupId?: string,
   address: string,
   status: ExtrinsicStatus,
   transactionId?: string, // Available for transaction history

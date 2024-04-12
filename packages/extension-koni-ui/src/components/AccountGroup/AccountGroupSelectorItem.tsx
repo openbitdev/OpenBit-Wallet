@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountGroup } from '@subwallet/extension-base/background/types';
+import { AccountGroupAvatar } from '@subwallet/extension-koni-ui/components';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, Icon } from '@subwallet/react-ui';
-import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import CN from 'classnames';
-import { CheckCircle, GitMerge, PencilSimpleLine, QrCode } from 'phosphor-react';
+import { CheckCircle, Copy, GitMerge, PencilSimpleLine } from 'phosphor-react';
 import { IconWeight } from 'phosphor-react/src/lib';
 import React, { Context, useContext, useMemo } from 'react';
 import styled, { ThemeContext } from 'styled-components';
@@ -63,10 +63,9 @@ function Component (props: Props): React.ReactElement<Props> {
     <>
       <div className={CN(props.className)}>
         <div className='__item-left-part'>
-          <SwAvatar
-            isShowSubIcon={true}
+          <AccountGroupAvatar
             size={40}
-            value={''}
+            value={accountGroup.groupId}
           />
         </div>
         <div className='__item-center-part'>
@@ -79,13 +78,13 @@ function Component (props: Props): React.ReactElement<Props> {
               className='-show-on-hover'
               icon={
                 <Icon
-                  phosphorIcon={QrCode}
+                  phosphorIcon={Copy}
                   size='sm'
                 />
               }
               onClick={_onClickQrButton}
               size='xs'
-              tooltip={t('Show QR code')}
+              tooltip={t('Copy address')}
               type='ghost'
             />
             <Button

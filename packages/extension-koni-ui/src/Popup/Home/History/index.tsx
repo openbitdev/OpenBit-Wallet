@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountJson } from '@subwallet/extension-base/background/types';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
-import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils';
 import { AccountGroupSelector, BasicInputEvent, ChainSelector, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useChainInfoWithState, useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
@@ -247,10 +247,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const accountMap = useMemo(() => {
     return accounts.reduce((accMap, cur) => {
-      accMap[cur.address.toLowerCase()] = cur.name || '';
+      accMap[cur.address.toLowerCase()] = cur;
 
       return accMap;
-    }, {} as Record<string, string>);
+    }, {} as Record<string, AccountJson>);
   }, [accounts]);
 
   const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'submitting' | 'processing' | 'timeout' | 'send' | 'received', string> => ({
@@ -348,11 +348,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     rawHistoryList.forEach((item: TransactionHistoryItem) => {
       // Format display name for account by address
-      const fromName = accountMap[quickFormatAddressToCompare(item.from) || ''];
-      const toName = accountMap[quickFormatAddressToCompare(item.to) || ''];
+      const fromName = accountMap[item.from]?.name;
+      const fromGroupId = accountMap[item.from]?.groupId;
+      const toName = accountMap[item.to]?.name;
+      const toGroupId = accountMap[item.to]?.groupId;
       const key = getHistoryItemKey(item);
 
-      finalHistoryMap[key] = { ...item, fromName, toName, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
+      finalHistoryMap[key] = { ...item, fromName, fromGroupId, toName, toGroupId, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
     });
 
     return finalHistoryMap;

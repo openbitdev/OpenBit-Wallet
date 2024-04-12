@@ -93,6 +93,7 @@ export const SW_THEME_CONFIGS: Record<ThemeNames, SwThemeConfig> = {
       colorPrimary: '#ECD033',
       colorBgBase: '#121317',
       colorError: '#FF2655',
+      colorSecondary: '#3084F2',
       colorWarning: '#E3D358',
       colorSuccess: '#7EE76C',
       colorInfo: '#3084F2'
