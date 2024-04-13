@@ -131,8 +131,8 @@ export class KoniSubscription {
     };
   }
 
-  subscribeNft (address: string, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi>, smartContractNfts: _ChainAsset[], chainInfoMap: Record<string, _ChainInfo>) {
-    const addresses = this.state.getDecodedAddresses(address);
+  subscribeNft (accountProxyId: string, substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi>, smartContractNfts: _ChainAsset[], chainInfoMap: Record<string, _ChainInfo>) {
+    const addresses = this.state.getAccountProxyAddresses(accountProxyId);
 
     if (!addresses.length) {
       return;
