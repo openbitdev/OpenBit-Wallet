@@ -39,15 +39,15 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const navigate = useNavigate();
 
   const { token } = useTheme() as Theme;
-  const { accountGroups } = useSelector((state: RootState) => state.accountState);
+  const { accountProxies } = useSelector((state: RootState) => state.accountState);
   const isActive = checkActive(modalId);
 
   const onBack = useGoBackSelectAccount(modalId);
 
   const disableDerive = useMemo(
-    () => !accountGroups
+    () => !accountProxies
       .filter((ag) => ag.isMaster).length,
-    [accountGroups]
+    [accountProxies]
   );
 
   const onCancel = useCallback(() => {

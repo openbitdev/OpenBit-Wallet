@@ -2,202 +2,122 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { MantaPayConfig } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountJson } from '@subwallet/extension-base/background/types';
-import { _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
-import { _getMultiChainAsset, _isAssetFungibleToken, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { _getMultiChainAsset, _isAssetFungibleToken, _isNativeToken } from '@subwallet/extension-base/services/chain-service/utils';
 import { AccountSelectorModalId } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
+import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { RECEIVE_QR_MODAL, RECEIVE_TOKEN_SELECTOR_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import { useChainAssets } from '@subwallet/extension-koni-ui/hooks/assets';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { findAccountByAddress, isAccountAll as checkIsAccountAll } from '@subwallet/extension-koni-ui/utils';
-import { findNetworkJsonByGenesisHash } from '@subwallet/extension-koni-ui/utils/chain/getNetworkJsonByGenesisHash';
+import { ReceiveTokenItemType } from '@subwallet/extension-koni-ui/types';
+import { isAccountAll as checkIsAccountAll } from '@subwallet/extension-koni-ui/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import { ModalContext } from '@subwallet/react-ui';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { isEthereumAddress } from '@polkadot/util-crypto';
-
 type ReceiveSelectedResult = {
-  selectedAccount?: string;
+  selectedAccountProxyId?: string;
+  selectedAccountProxyAddress?: string;
   selectedNetwork?: string;
 };
 
-// Return array of chain which have token in multi chain asset
-const getChainsByTokenGroup = (
-  tokenGroupSlug: string,
-  assetRegistryMap: Record<string, _ChainAsset>
-): string[] => {
-  // case tokenGroupSlug is token slug
-  if (assetRegistryMap[tokenGroupSlug]) {
-    return [assetRegistryMap[tokenGroupSlug].originChain];
+function getTokenSelectorItem (asset: _ChainAsset, accountProxy: AccountProxy): ReceiveTokenItemType | null {
+  if (!_isAssetFungibleToken(asset) || !SUPPORT_CHAINS.includes(asset.originChain)) {
+    return null;
   }
 
-  // case tokenGroupSlug is multiChainAsset slug
+  const targetAccount = accountProxy.accounts.find((a) => {
+    const accountType = getKeypairTypeByAddress(a.address);
 
-  const assetRegistryItems: _ChainAsset[] = Object.values(assetRegistryMap)
-    .filter((assetItem) => {
-      return _isAssetFungibleToken(assetItem) &&
-        _getMultiChainAsset(assetItem) === tokenGroupSlug;
-    });
-
-  const map: Record<string, boolean> = {};
-
-  for (const assetItem of assetRegistryItems) {
-    const chainSlug = assetRegistryMap[assetItem.slug].originChain;
-
-    map[chainSlug] = true;
-  }
-
-  return Object.keys(map);
-};
-
-function isMantaPayEnabled (account: AccountJson | null, configs: MantaPayConfig[]) {
-  for (const config of configs) {
-    if (config.address === account?.address) {
+    if (accountType === 'ethereum' && asset.originChain === 'ethereum' && _isNativeToken(asset)) {
       return true;
     }
+
+    if (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') {
+      return true;
+    }
+
+    if (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet') {
+      return true;
+    }
+
+    return false;
+  });
+
+  if (!targetAccount) {
+    return null;
   }
 
-  return false;
+  return {
+    ...asset,
+    address: targetAccount.address
+  };
 }
 
 export default function useReceiveQR (tokenGroupSlug?: string) {
   const { activeModal, inactiveModal } = useContext(ModalContext);
-  const { accounts, currentAccount, isAllAccount } = useSelector((state: RootState) => state.accountState);
+  const isAllAccount = useSelector((state: RootState) => state.accountState.isAllAccount);
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const assetRegistryMap = useChainAssets().chainAssetRegistry;
-  const { chainInfoMap } = useSelector((state: RootState) => state.chainStore);
-  const [tokenSelectorItems, setTokenSelectorItems] = useState<_ChainAsset[]>([]);
-  const [{ selectedAccount, selectedNetwork }, setReceiveSelectedResult] = useState<ReceiveSelectedResult>(
-    { selectedAccount: isAllAccount ? undefined : currentAccount?.address }
+  const [tokenSelectorItems, setTokenSelectorItems] = useState<ReceiveTokenItemType[]>([]);
+  const [{ selectedAccountProxyAddress, selectedAccountProxyId, selectedNetwork }, setReceiveSelectedResult] = useState<ReceiveSelectedResult>(
+    { selectedAccountProxyId: isAllAccount ? undefined : currentAccountProxy?.proxyId }
   );
-  const mantaPayConfigs = useSelector((state: RootState) => state.mantaPay.configs);
 
-  const accountSelectorItems = useMemo<AccountJson[]>(() => {
+  const accountSelectorItems = useMemo<AccountProxy[]>(() => {
     if (!isAllAccount) {
       return [];
     }
 
-    if (tokenGroupSlug) {
-      const chains = getChainsByTokenGroup(tokenGroupSlug, assetRegistryMap);
+    return accountProxies.filter((ag) => !checkIsAccountAll(ag.proxyId));
+  }, [isAllAccount, accountProxies]);
 
-      return accounts.filter((account) => {
-        const isEvm = isEthereumAddress(account.address);
-        const isAll = checkIsAccountAll(account.address);
+  const getTokenSelectorItems = useCallback((accountProxy: AccountProxy) => {
+    // if tokenGroupSlug is token slug
+    if (tokenGroupSlug && assetRegistryMap[tokenGroupSlug]) {
+      const tokenItem = getTokenSelectorItem(assetRegistryMap[tokenGroupSlug], accountProxy);
 
-        if (isAll) {
-          return false;
-        }
+      if (tokenItem) {
+        return [tokenItem];
+      }
 
-        if (account.isHardware) {
-          if (!isEvm) {
-            const availableGen: string[] = account.availableGenesisHashes || [];
-            const networks = availableGen
-              .map((gen) => findNetworkJsonByGenesisHash(chainInfoMap, gen)?.slug)
-              .filter((slug) => slug) as string[];
-
-            return networks.some((n) => chains.includes(n));
-          } else {
-            return chains.some((chain) => {
-              const info = chainInfoMap[chain];
-
-              if (info) {
-                return _isChainEvmCompatible(info);
-              } else {
-                return false;
-              }
-            });
-          }
-        } else {
-          for (const chain of chains) {
-            const info = chainInfoMap[chain];
-
-            if (info) {
-              if (isEvm === _isChainEvmCompatible(info)) {
-                return true;
-              }
-            }
-          }
-
-          return false;
-        }
-      });
-    }
-
-    return accounts.filter((a) => !checkIsAccountAll(a.address));
-  }, [isAllAccount, tokenGroupSlug, accounts, assetRegistryMap, chainInfoMap]);
-
-  const getTokenSelectorItems = useCallback((_selectedAccount: string) => {
-    // if selectedAccount is not available or is ethereum type
-    if (!_selectedAccount) {
       return [];
     }
 
-    // if tokenGroupSlug is token slug
-    if (tokenGroupSlug && assetRegistryMap[tokenGroupSlug]) {
-      return [assetRegistryMap[tokenGroupSlug]];
-    }
+    const result: ReceiveTokenItemType[] = [];
 
-    const isEvmAddress = isEthereumAddress(_selectedAccount);
-    const acc = findAccountByAddress(accounts, _selectedAccount);
-
-    return Object.values(assetRegistryMap).filter((asset) => {
-      const availableGen: string[] = acc?.availableGenesisHashes || [];
-
-      if (acc?.isHardware && !isEvmAddress && !availableGen.includes(chainInfoMap[asset.originChain].substrateInfo?.genesisHash || '')) {
-        return false;
+    Object.values(assetRegistryMap).forEach((asset) => {
+      if (tokenGroupSlug && (_getMultiChainAsset(asset) !== tokenGroupSlug)) {
+        return;
       }
 
-      if (_MANTA_ZK_CHAIN_GROUP.includes(asset.originChain) && asset.symbol.startsWith(_ZK_ASSET_PREFIX)) {
-        return isMantaPayEnabled(acc, mantaPayConfigs);
+      const tokenItem = getTokenSelectorItem(asset, accountProxy);
+
+      if (tokenItem) {
+        result.push(tokenItem);
       }
-
-      if (_isAssetFungibleToken(asset)) {
-        if (_isChainEvmCompatible(chainInfoMap[asset.originChain]) === isEvmAddress) {
-          if (tokenGroupSlug) {
-            return _getMultiChainAsset(asset) === tokenGroupSlug;
-          }
-
-          return true;
-        }
-      }
-
-      return false;
     });
-  }, [tokenGroupSlug, assetRegistryMap, accounts, chainInfoMap, mantaPayConfigs]);
+
+    return result;
+  }, [tokenGroupSlug, assetRegistryMap]);
 
   const onOpenReceive = useCallback(() => {
-    if (!currentAccount) {
+    if (!currentAccountProxy) {
       return;
     }
 
-    if (checkIsAccountAll(currentAccount.address)) {
+    if (checkIsAccountAll(currentAccountProxy.proxyId)) {
       activeModal(AccountSelectorModalId);
     } else {
-      // if currentAccount is ledger type
-      if (currentAccount.isHardware) {
-        if (!isEthereumAddress(currentAccount.address)) {
-          const availableGen: string[] = currentAccount.availableGenesisHashes || [];
-          const networks = availableGen
-            .map((gen) => findNetworkJsonByGenesisHash(chainInfoMap, gen)?.slug)
-            .filter((slug) => slug) as string[];
-
-          if (networks.length === 1) {
-            setReceiveSelectedResult((prevState) => ({ ...prevState, selectedNetwork: networks[0] }));
-            activeModal(RECEIVE_QR_MODAL);
-
-            return;
-          }
-        }
-      }
-
-      const _tokenSelectorItems = getTokenSelectorItems(currentAccount.address);
+      const _tokenSelectorItems = getTokenSelectorItems(currentAccountProxy);
 
       setTokenSelectorItems(_tokenSelectorItems);
 
       if (tokenGroupSlug) {
         if (_tokenSelectorItems.length === 1) {
-          setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain }));
+          setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain, selectedAccountProxyAddress: _tokenSelectorItems[0].address }));
           activeModal(RECEIVE_QR_MODAL);
 
           return;
@@ -206,17 +126,17 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
 
       activeModal(RECEIVE_TOKEN_SELECTOR_MODAL);
     }
-  }, [activeModal, chainInfoMap, currentAccount, getTokenSelectorItems, tokenGroupSlug]);
+  }, [activeModal, currentAccountProxy, getTokenSelectorItems, tokenGroupSlug]);
 
-  const openSelectAccount = useCallback((account: AccountJson) => {
-    setReceiveSelectedResult({ selectedAccount: account.address });
-    const _tokenSelectorItems = getTokenSelectorItems(account.address);
+  const onSelectAccountProxy = useCallback((accountProxy: AccountProxy) => {
+    setReceiveSelectedResult({ selectedAccountProxyId: accountProxy.proxyId });
+    const _tokenSelectorItems = getTokenSelectorItems(accountProxy);
 
     setTokenSelectorItems(_tokenSelectorItems);
 
     if (tokenGroupSlug) {
       if (_tokenSelectorItems.length === 1) {
-        setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain }));
+        setReceiveSelectedResult((prev) => ({ ...prev, selectedNetwork: _tokenSelectorItems[0].originChain, selectedAccountProxyAddress: _tokenSelectorItems[0].address }));
         activeModal(RECEIVE_QR_MODAL);
         inactiveModal(AccountSelectorModalId);
 
@@ -228,24 +148,25 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
     inactiveModal(AccountSelectorModalId);
   }, [activeModal, getTokenSelectorItems, inactiveModal, tokenGroupSlug]);
 
-  const openSelectToken = useCallback((item: _ChainAsset) => {
-    setReceiveSelectedResult((prevState) => ({ ...prevState, selectedNetwork: item.originChain }));
+  const onSelectToken = useCallback((item: ReceiveTokenItemType) => {
+    setReceiveSelectedResult((prevState) => ({ ...prevState, selectedNetwork: item.originChain, selectedAccountProxyAddress: item.address }));
   }, []);
 
   useEffect(() => {
     setReceiveSelectedResult((prev) => ({
       ...prev,
-      selectedAccount: currentAccount?.address
+      selectedAccountProxyId: currentAccountProxy?.proxyId
     }));
-  }, [currentAccount?.address]);
+  }, [currentAccountProxy?.proxyId]);
 
   return {
     onOpenReceive,
-    openSelectAccount,
-    openSelectToken,
-    selectedAccount,
+    onSelectAccountProxy,
+    onSelectToken,
     accountSelectorItems,
     tokenSelectorItems,
+    selectedAccountProxyId,
+    selectedAccountProxyAddress,
     selectedNetwork
   };
 }

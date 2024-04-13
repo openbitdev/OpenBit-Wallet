@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { KeyringState, RequestChangeMasterPassword, RequestKeyringExportAccountGroupMnemonic, RequestKeyringExportMnemonic, RequestMigratePassword, RequestResetWallet, RequestUnlockKeyring, ResponseChangeMasterPassword, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseResetWallet, ResponseUnlockKeyring } from '@subwallet/extension-base/background/KoniTypes';
+import { KeyringState, RequestChangeMasterPassword, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMigratePassword, RequestResetWallet, RequestUnlockKeyring, ResponseChangeMasterPassword, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseResetWallet, ResponseUnlockKeyring } from '@subwallet/extension-base/background/KoniTypes';
 
 import { sendMessage } from '../base';
 
@@ -30,8 +30,8 @@ export async function keyringExportMnemonic (request: RequestKeyringExportMnemon
   return sendMessage('pri(keyring.export.mnemonic)', request);
 }
 
-export async function keyringExportAccountGroupMnemonic (request: RequestKeyringExportAccountGroupMnemonic): Promise<ResponseKeyringExportMnemonic> {
-  return sendMessage('pri(keyring.export.accountGroup.mnemonic)', request);
+export async function keyringExportAccountProxyMnemonic (request: RequestKeyringExportAccountProxyMnemonic): Promise<ResponseKeyringExportMnemonic> {
+  return sendMessage('pri(keyring.export.accountProxy.mnemonic)', request);
 }
 
 export async function resetWallet (request: RequestResetWallet): Promise<ResponseResetWallet> {

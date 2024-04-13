@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AddressQrSelectorModal, CloseIcon, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { useDefaultNavigate, useDeleteAccount, useGetAccountGroupByGroupId, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { deriveAccountGroup, editAccountGroup, forgetAccountGroup } from '@subwallet/extension-koni-ui/messaging';
+import { useDefaultNavigate, useDeleteAccount, useGetAccountProxyByProxyId, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
+import { deriveAccountProxy, editAccountProxy, forgetAccountProxy } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToObject } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, Button, Form, Icon, Input, ModalContext, SettingItem } from '@subwallet/react-ui';
@@ -39,12 +39,12 @@ const Component: React.FC<Props> = (props: Props) => {
   const navigate = useNavigate();
   const { goHome } = useDefaultNavigate();
   const notify = useNotification();
-  const { accountGroupId } = useParams();
+  const { accountProxyId } = useParams();
   const { activeModal } = useContext(ModalContext);
 
   const [form] = Form.useForm<DetailFormState>();
 
-  const accountGroup = useGetAccountGroupByGroupId(accountGroupId);
+  const accountProxy = useGetAccountProxyByProxyId(accountProxyId);
   const deleteAccountAction = useDeleteAccount();
 
   const saveTimeOutRef = useRef<NodeJS.Timer>();
@@ -57,19 +57,19 @@ const Component: React.FC<Props> = (props: Props) => {
   const { token } = useTheme() as Theme;
 
   const _canDerive = useMemo((): boolean => {
-    return !!accountGroup?.isMaster;
-  }, [accountGroup]);
+    return !!accountProxy?.isMaster;
+  }, [accountProxy]);
 
   const onViewAccountAddresses = useCallback(() => {
     activeModal(addressQrSelectorModalId);
   }, [activeModal]);
 
   const onDelete = useCallback(() => {
-    if (accountGroup?.groupId) {
+    if (accountProxy?.proxyId) {
       deleteAccountAction()
         .then(() => {
           setDeleting(true);
-          forgetAccountGroup(accountGroup.groupId)
+          forgetAccountProxy(accountProxy.proxyId)
             .then(() => {
               goHome();
             })
@@ -92,10 +92,10 @@ const Component: React.FC<Props> = (props: Props) => {
           }
         });
     }
-  }, [accountGroup?.groupId, deleteAccountAction, goHome, notify]);
+  }, [accountProxy?.proxyId, deleteAccountAction, goHome, notify]);
 
   const onDerive = useCallback(() => {
-    if (!accountGroup?.groupId) {
+    if (!accountProxy?.proxyId) {
       return;
     }
 
@@ -103,8 +103,8 @@ const Component: React.FC<Props> = (props: Props) => {
       setDeriving(true);
 
       setTimeout(() => {
-        deriveAccountGroup({
-          groupId: accountGroup.groupId
+        deriveAccountProxy({
+          proxyId: accountProxy.proxyId
         }).then(() => {
           goHome();
         }).catch((e: Error) => {
@@ -119,11 +119,13 @@ const Component: React.FC<Props> = (props: Props) => {
     }).catch(() => {
       // User cancel unlock
     });
-  }, [accountGroup?.groupId, checkUnlock, goHome, notify]);
+  }, [accountProxy?.proxyId, checkUnlock, goHome, notify]);
 
   const onExport = useCallback(() => {
-    //
-  }, []);
+    if (accountProxy?.proxyId) {
+      navigate(`/accounts/export/${accountProxy?.proxyId}`);
+    }
+  }, [accountProxy?.proxyId, navigate]);
 
   const onUpdate: FormCallbacks<DetailFormState>['onFieldsChange'] = useCallback((changedFields: FormFieldData[], allFields: FormFieldData[]) => {
     const changeMap = convertFieldToObject<DetailFormState>(changedFields);
@@ -141,32 +143,32 @@ const Component: React.FC<Props> = (props: Props) => {
     clearTimeout(saveTimeOutRef.current);
     const name = values[FormFieldName.NAME];
 
-    if (!accountGroup || name === accountGroup.name) {
+    if (!accountProxy || name === accountProxy.name) {
       setSaving(false);
 
       return;
     }
 
-    if (!accountGroup.groupId) {
+    if (!accountProxy.proxyId) {
       setSaving(false);
 
       return;
     }
 
-    editAccountGroup(accountGroup.groupId, name.trim())
+    editAccountProxy(accountProxy.proxyId, name.trim())
       .catch(console.error)
       .finally(() => {
         setSaving(false);
       });
-  }, [accountGroup]);
+  }, [accountProxy]);
 
   useEffect(() => {
-    if (!accountGroup) {
+    if (!accountProxy) {
       goHome();
     }
-  }, [accountGroup, goHome, navigate]);
+  }, [accountProxy, goHome, navigate]);
 
-  if (!accountGroup) {
+  if (!accountProxy) {
     return null;
   }
 
@@ -191,7 +193,7 @@ const Component: React.FC<Props> = (props: Props) => {
             className={'account-detail-form'}
             form={form}
             initialValues={{
-              [FormFieldName.NAME]: accountGroup.name || ''
+              [FormFieldName.NAME]: accountProxy.name || ''
             }}
             name='account-detail-form'
             onFieldsChange={onUpdate}
@@ -290,7 +292,7 @@ const Component: React.FC<Props> = (props: Props) => {
           </Button>
           <Button
             className={CN('account-button')}
-            disabled={deriving}
+            disabled={deriving || !accountProxy.isMaster}
             icon={(
               <Icon
                 phosphorIcon={Export}
@@ -306,14 +308,14 @@ const Component: React.FC<Props> = (props: Props) => {
       </Layout.WithSubHeaderOnly>
 
       <AddressQrSelectorModal
-        accountGroupId={accountGroupId}
+        accountProxyId={accountProxyId}
         modalId={addressQrSelectorModalId}
       />
     </PageWrapper>
   );
 };
 
-const AccountGroupDetail = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
+const AccountProxyDetail = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
   return {
     '.account-detail-form': {
       marginTop: token.margin
@@ -459,4 +461,4 @@ const AccountGroupDetail = styled(Component)<Props>(({ theme: { extendToken, tok
   };
 });
 
-export default AccountGroupDetail;
+export default AccountProxyDetail;

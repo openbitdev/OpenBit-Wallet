@@ -1,26 +1,22 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
-import { quickFormatAddressToCompare } from '@subwallet/extension-base/utils';
-import { AccountSelector, BasicInputEvent, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountProxySelector, BasicInputEvent, ChainSelector, EmptyList, FilterModal, HistoryItem, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useChainInfoWithState, useFilterModal, useHistorySelection, useSelector, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
-import { cancelSubscription, subscribeBitcoinTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
+import { cancelSubscription, subscribeTransactionHistory } from '@subwallet/extension-koni-ui/messaging';
 import { ChainItemType, ThemeProps, TransactionHistoryDisplayData, TransactionHistoryDisplayItem } from '@subwallet/extension-koni-ui/types';
-import { customFormatDate, findAccountByAddress, findNetworkJsonByGenesisHash, formatHistoryDate, isTypeStaking, isTypeTransfer } from '@subwallet/extension-koni-ui/utils';
-import { ActivityIndicator, ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
+import { customFormatDate, formatHistoryDate, isTypeStaking, isTypeTransfer } from '@subwallet/extension-koni-ui/utils';
+import { ButtonProps, Icon, ModalContext, SwIconProps, SwList, SwSubHeader } from '@subwallet/react-ui';
 import { Aperture, ArrowDownLeft, ArrowUpRight, Clock, ClockCounterClockwise, Database, FadersHorizontal, Rocket, Spinner } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { HistoryDetailModal } from './Detail';
 
@@ -140,37 +136,6 @@ function getHistoryItemKey (item: Pick<TransactionHistoryItem, 'chain' | 'addres
   return `${item.chain}-${item.address}-${item.transactionId || item.extrinsicHash}`;
 }
 
-function findLedgerChainOfSelectedAccount (
-  address: string,
-  accounts: AccountJson[],
-  chainInfoMap: Record<string, _ChainInfo>
-): string | undefined {
-  if (!address) {
-    return undefined;
-  }
-
-  const isAccountEthereum = isEthereumAddress(address);
-
-  const account = findAccountByAddress(accounts, address);
-
-  if (isAccountEthereum && account?.isHardware) {
-    return 'ethereum';
-  }
-
-  if (!account || !account.isHardware) {
-    return undefined;
-  }
-
-  const validGen: string[] = account.availableGenesisHashes || [];
-  const validLedgerNetworks = validGen.map((genesisHash) => findNetworkJsonByGenesisHash(chainInfoMap, genesisHash)?.slug).filter((i) => !!i);
-
-  if (validLedgerNetworks.length) {
-    return validLedgerNetworks[0];
-  }
-
-  return undefined;
-}
-
 function filterDuplicateItems (items: TransactionHistoryItem[]): TransactionHistoryItem[] {
   const result: TransactionHistoryItem[] = [];
 
@@ -282,10 +247,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const accountMap = useMemo(() => {
     return accounts.reduce((accMap, cur) => {
-      accMap[cur.address.toLowerCase()] = cur.name || '';
+      accMap[cur.address.toLowerCase()] = cur;
 
       return accMap;
-    }, {} as Record<string, string>);
+    }, {} as Record<string, AccountJson>);
   }, [accounts]);
 
   const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'submitting' | 'processing' | 'timeout' | 'send' | 'received', string> => ({
@@ -383,11 +348,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     rawHistoryList.forEach((item: TransactionHistoryItem) => {
       // Format display name for account by address
-      const fromName = accountMap[quickFormatAddressToCompare(item.from) || ''];
-      const toName = accountMap[quickFormatAddressToCompare(item.to) || ''];
+      const fromName = accountMap[item.from]?.name;
+      const fromProxyId = accountMap[item.from]?.proxyId;
+      const toName = accountMap[item.to]?.name;
+      const toProxyId = accountMap[item.to]?.proxyId;
       const key = getHistoryItemKey(item);
 
-      finalHistoryMap[key] = { ...item, fromName, toName, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
+      finalHistoryMap[key] = { ...item, fromName, fromProxyId, toName, toProxyId, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
     });
 
     return finalHistoryMap;
@@ -457,7 +424,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }
   }, [curAdr, currentAccount?.address, inactiveModal]);
 
-  const { selectedAddress, selectedChain, setSelectedAddress, setSelectedChain } = useHistorySelection();
+  const { selectedAccountProxyId, selectedChain, setSelectedAccountProxyId, setSelectedChain } = useHistorySelection();
 
   const emptyList = useCallback(() => {
     return (
@@ -493,45 +460,57 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, []);
 
   const chainItems = useMemo<ChainItemType[]>(() => {
-    if (!selectedAddress) {
-      return [];
-    }
-
     const result: ChainItemType[] = [];
 
     chainInfoList.forEach((c) => {
-      if (_isChainEvmCompatible(c) === isEthereumAddress(selectedAddress)) {
-        result.push({
-          name: c.name,
-          slug: c.slug
-        });
-      }
+      result.push({
+        name: c.name,
+        slug: c.slug
+      });
     });
 
     return result;
-  }, [chainInfoList, selectedAddress]);
+  }, [chainInfoList]);
 
-  const onSelectAccount = useCallback((event: BasicInputEvent) => {
-    setSelectedAddress(event.target.value);
-  }, [setSelectedAddress]);
+  const onSelectAccountProxy = useCallback((event: BasicInputEvent) => {
+    setSelectedAccountProxyId(event.target.value);
+  }, [setSelectedAccountProxyId]);
 
-  const currentLedgerChainOfSelectedAccount = useMemo(() => {
-    return findLedgerChainOfSelectedAccount(selectedAddress,
-      accounts,
-      chainInfoMap);
-  }, [accounts, chainInfoMap, selectedAddress]);
+  const onSelectChain = useCallback((event: BasicInputEvent) => {
+    setSelectedChain(event.target.value);
+  }, [setSelectedChain]);
+
+  const isChainSelectorEmpty = !chainItems.length;
+
+  const chainSelectorDisabled = useMemo(() => {
+    if (!selectedAccountProxyId || isChainSelectorEmpty) {
+      return true;
+    }
+
+    return false;
+  }, [selectedAccountProxyId, isChainSelectorEmpty]);
 
   const historySelectorsNode = (
     <>
       {
         isAllAccount && (
-          <AccountSelector
+          <AccountProxySelector
             className={'__history-address-selector'}
-            onChange={onSelectAccount}
-            value={selectedAddress}
+            onChange={onSelectAccountProxy}
+            value={selectedAccountProxyId}
           />
         )
       }
+
+      <ChainSelector
+        className={'__history-chain-selector'}
+        disabled={chainSelectorDisabled}
+        items={chainItems}
+        loading={loading}
+        onChange={onSelectChain}
+        title={t('Select chain')}
+        value={selectedChain}
+      />
     </>
   );
 
@@ -602,8 +581,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     setCurrentItemDisplayCount(DEFAULT_ITEMS_COUNT);
 
-    subscribeBitcoinTransactionHistory(
-      selectedAddress,
+    subscribeTransactionHistory(
+      selectedAccountProxyId,
+      selectedChain,
       (items: TransactionHistoryItem[]) => {
         if (isSubscribed) {
           setRawHistoryList(isSelectedChainEvm ? filterDuplicateItems(items) : items);
@@ -629,35 +609,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         cancelSubscription(id).catch(console.log);
       }
     };
-  }, [isSelectedChainEvm, selectedAddress, selectedChain]);
-
-  useEffect(() => {
-    if (chainItems.length) {
-      setSelectedChain((prevChain) => {
-        const _isEthereumAddress = isEthereumAddress(selectedAddress);
-
-        if (currentLedgerChainOfSelectedAccount) {
-          if (!_isEthereumAddress) {
-            return currentLedgerChainOfSelectedAccount;
-          }
-        }
-
-        if (prevChain && chainInfoMap[prevChain]) {
-          const _isPrevChainEvm = _isChainEvmCompatible(chainInfoMap[prevChain]);
-
-          if (_isEthereumAddress && !_isPrevChainEvm && currentLedgerChainOfSelectedAccount) {
-            return currentLedgerChainOfSelectedAccount;
-          }
-
-          if (_isPrevChainEvm === _isEthereumAddress) {
-            return prevChain;
-          }
-        }
-
-        return chainItems[0].slug;
-      });
-    }
-  }, [chainInfoMap, chainItems, currentLedgerChainOfSelectedAccount, selectedAddress, setSelectedChain]);
+  }, [isSelectedChainEvm, selectedAccountProxyId, selectedChain]);
 
   useEffect(() => {
     setHistoryItems(getHistoryItems(currentItemDisplayCount));
@@ -676,26 +628,14 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             paddingVertical
             rightButtons={headerIcons}
             showBackButton={false}
-            title={(
-              <>
-                <div className={'ant-sw-sub-header-title-content'}>
-                  {t('History')}
-                </div>
-
-                {loading && <ActivityIndicator size={20} />}
-              </>
-            )}
+            title={t('History')}
           />
 
           <div className={'__page-background'}></div>
 
-          {
-            isAllAccount && (
-              <div className={'__page-tool-area'}>
-                {historySelectorsNode}
-              </div>
-            )
-          }
+          <div className={'__page-tool-area'}>
+            {historySelectorsNode}
+          </div>
 
           {listSection}
         </Layout.Base>
@@ -722,12 +662,6 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
     display: 'flex',
     flexDirection: 'column',
-
-    '.ant-sw-sub-header-title': {
-      display: 'flex',
-      alignItems: 'center',
-      gap: token.sizeXS
-    },
 
     '.__page-background': {
       position: 'relative',

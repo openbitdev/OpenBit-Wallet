@@ -95,7 +95,7 @@ function Component (
   );
 }
 
-export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { token } }: Props) => {
+export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { extendToken, token } }: Props) => {
   return ({
     '.ant-web3-block': {
       padding: 12
@@ -103,6 +103,7 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { token 
 
     '.ant-number .ant-typography': {
       fontSize: 'inherit !important',
+      color: 'inherit !important',
       lineHeight: 'inherit'
     },
 
@@ -119,13 +120,14 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { token 
     '.ant-web3-block-middle-item': {
       '.ant-number': {
         fontSize: token.fontSizeSM,
-        lineHeight: token.lineHeightSM
+        lineHeight: token.lineHeightSM,
+        color: extendToken.colorPriceUp
       }
     },
 
     '&.-price-decrease .ant-web3-block-middle-item': {
-      '.ant-number .ant-typography': {
-        color: `${token.colorError} !important`
+      '.ant-number': {
+        color: extendToken.colorPriceDown
       }
     },
 

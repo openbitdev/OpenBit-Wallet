@@ -82,7 +82,7 @@ const TransactionDone = styled(Component)<Props>(({ theme: { token } }: Props) =
       justifyContent: 'center',
       marginTop: token.controlHeightLG,
       marginBottom: token.margin,
-      '--page-icon-color': token.colorSecondary
+      '--page-icon-color': token.colorSuccess
     },
 
     '.title': {

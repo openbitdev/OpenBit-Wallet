@@ -127,7 +127,7 @@ function Component ({ className, inputAsset, poolInfo, transactionChainValue, tr
               <div className={'__withdraw-time-label'}>{t('Waiting for withdrawal')}</div>
               {item.status === UnstakingStatus.CLAIMABLE && (
                 <Icon
-                  iconColor={token.colorSecondary}
+                  iconColor={token.colorSuccess}
                   phosphorIcon={CheckCircle}
                   size='sm'
                   weight='fill'
@@ -141,7 +141,7 @@ function Component ({ className, inputAsset, poolInfo, transactionChainValue, tr
               <div className={'__withdraw-time-label'}>{getWaitingTime(t, currentTimestampMs, item.targetTimestampMs, item.waitingTime)}</div>
               {item.status === UnstakingStatus.CLAIMABLE && (
                 <Icon
-                  iconColor={token.colorSecondary}
+                  iconColor={token.colorSuccess}
                   phosphorIcon={CheckCircle}
                   size='sm'
                   weight='fill'
@@ -152,7 +152,7 @@ function Component ({ className, inputAsset, poolInfo, transactionChainValue, tr
         }
       }
     },
-    [currentTimestampMs, poolInfo.metadata.availableMethod.withdraw, t, token.colorSecondary]
+    [currentTimestampMs, poolInfo.metadata.availableMethod.withdraw, t, token.colorSuccess]
   );
 
   useEffect(() => {

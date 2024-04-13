@@ -3,8 +3,8 @@
 
 import { _AssetRef, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { AuthUrls } from '@subwallet/extension-base/background/handlers/State';
-import { AccountGroupsWithCurrentGroup, AccountsWithCurrentAddress, AddressBookInfo, AllLogoMap, AssetSetting, CampaignBanner, ChainStakingMetadata, ConfirmationsQueue, CrowdloanJson, KeyringState, MantaPayConfig, MantaPaySyncState, NftCollection, NftJson, NominatorMetadata, PriceJson, StakingJson, StakingRewardJson, TransactionHistoryItem, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountGroup, AccountJson, AccountsContext, AuthorizeRequest, ConfirmationRequestBase, MetadataRequest, SigningRequest } from '@subwallet/extension-base/background/types';
+import { AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AllLogoMap, AssetSetting, CampaignBanner, ChainStakingMetadata, ConfirmationsQueue, CrowdloanJson, KeyringState, MantaPayConfig, MantaPaySyncState, NftCollection, NftJson, NominatorMetadata, PriceJson, StakingJson, StakingRewardJson, TransactionHistoryItem, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountJson, AccountProxy, AccountsContext, AuthorizeRequest, ConfirmationRequestBase, MetadataRequest, SigningRequest } from '@subwallet/extension-base/background/types';
 import { _ChainApiStatus, _ChainState } from '@subwallet/extension-base/services/chain-service/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
@@ -48,30 +48,36 @@ export const updateAccountsContext = (data: AccountsContext) => {
   store.dispatch({ type: 'accountState/updateAccountsContext', payload: data });
 };
 
-export const updateAccountGroupData = (data: AccountGroupsWithCurrentGroup) => {
-  let currentAccountGroup: AccountGroup = data.accountGroups[0];
-  const accountGroups = data.accountGroups;
+export const updateAccountProxyData = (data: AccountProxiesWithCurrentProxy) => {
+  addLazy(
+    'updateAccountProxyData',
+    () => {
+      let currentAccountProxy: AccountProxy = data.accountProxies[0];
+      const accountProxies = data.accountProxies;
 
-  accountGroups.forEach((accountGroup) => {
-    if (accountGroup.groupId === data.currentAccountGroupId) {
-      currentAccountGroup = accountGroup;
-    }
-  });
+      accountProxies.forEach((accountProxy) => {
+        if (accountProxy.proxyId === data.currentAccountProxyId) {
+          currentAccountProxy = accountProxy;
+        }
+      });
 
-  updateCurrentAccountGroup(currentAccountGroup);
-  updateAccountGroups(accountGroups);
+      updateCurrentAccountProxy(currentAccountProxy);
+      updateAccountProxies(accountProxies);
+    },
+    50
+  );
 };
 
-export const updateCurrentAccountGroup = (accountGroup: AccountGroup) => {
-  store.dispatch({ type: 'accountState/updateCurrentAccountGroup', payload: accountGroup });
+export const updateCurrentAccountProxy = (accountProxy: AccountProxy) => {
+  store.dispatch({ type: 'accountState/updateCurrentAccountProxy', payload: accountProxy });
 };
 
-export const updateAccountGroups = (data: AccountGroup[]) => {
-  store.dispatch({ type: 'accountState/updateAccountGroups', payload: data });
+export const updateAccountProxies = (data: AccountProxy[]) => {
+  store.dispatch({ type: 'accountState/updateAccountProxies', payload: data });
 };
 
 export const subscribeAccountsData = lazySubscribeMessage('pri(accounts.subscribeWithCurrentAddress)', {}, updateAccountData, updateAccountData);
-export const subscribeAccountGroupsData = lazySubscribeMessage('pri(accountGroups.subscribeWithCurrentGroup)', null, updateAccountGroupData, updateAccountGroupData);
+export const subscribeAccountProxiesData = lazySubscribeMessage('pri(accountProxies.subscribeWithCurrentProxy)', null, updateAccountProxyData, updateAccountProxyData);
 
 export const updateKeyringState = (data: KeyringState) => {
   store.dispatch({ type: 'accountState/updateKeyringState', payload: data });

@@ -230,7 +230,7 @@ const ChangePassword = styled(Component)<Props>(({ theme: { token } }: Props) =>
         display: 'flex',
         justifyContent: 'center',
         marginTop: token.marginSM,
-        '--page-icon-color': token.colorSecondary
+        '--page-icon-color': token.colorSuccess
       },
 
       '.form-checkbox': {

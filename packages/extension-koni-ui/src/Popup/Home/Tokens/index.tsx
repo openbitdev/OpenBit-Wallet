@@ -1,7 +1,6 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { RequestTransferBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { EmptyList, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { AccountSelectorModal } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
 import ReceiveQrModal from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/ReceiveQrModal';
@@ -10,11 +9,9 @@ import { TokenGroupBalanceItem } from '@subwallet/extension-koni-ui/components/T
 import { DEFAULT_TRANSFER_PARAMS, TRANSFER_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
-import { useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
+import { useReceiveQR, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
-import useReceiveQR from '@subwallet/extension-koni-ui/hooks/screen/home/useReceiveQR';
-import { completeConfirmationBitcoin, keyringUnlock, makeTransferBitcoin } from '@subwallet/extension-koni-ui/messaging';
 import { UpperBlock } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/UpperBlock';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
@@ -31,50 +28,6 @@ import { useLocalStorage } from 'usehooks-ts';
 
 type Props = ThemeProps;
 
-function handleBitcoinTransaction() {
-  const fakeBitcoinTransactionData: RequestTransferBitcoin = {
-    from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
-    to: 'tb1qaqe355z3ghpm09s0g40hkxsw74ppurmvrregcl', 
-    // tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
-    //tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
-    // bc1qm5l5rgsznd8mfpjf0ukjzyacedts5g7l8782am
-    // tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7
-    // tb1qaqe355z3ghpm09s0g40hkxsw74ppurmvrregcl
-    tokenSlug: 'bitcoinTestnet-NATIVE-BTC', 
-    transferAll: false, 
-    // symbol:'BTC',
-    //
-    // chain:'bitcoin',
-    // name:'BTC' ,
-    
-    // decimals: 8,
-    value: '1000' ,
-    networkKey: 'bitcoinTestnet',
-    id: 'internal.1712319332794',
-  };
-
-  keyringUnlock({
-    password: 'Quanprox3' 
-  })
-  .then(() => {
-    makeTransferBitcoin(fakeBitcoinTransactionData)
-    .then((result) => {
-      console.log('Bitcoin transaction result:', result);
-    })
-    .catch((error) => {
-      console.error('Error mssaking Bitcoin transaction:', error);
-    });
-    setTimeout(() => {
-      console.log('signing');
-      completeConfirmationBitcoin('bitcoinSendTransactionRequest', { isApproved: true, id: 'internal.1712319332794', url: 'https://example.com' });
-    }, 3000);
-  })
-  .catch((error) => {
-    console.error('Error unlocking keyring:', error);
-  });
-}
-
-
 const Component = (): React.ReactElement => {
   useSetCurrentPage('/home/tokens');
   const { t } = useTranslation();
@@ -88,9 +41,9 @@ const Component = (): React.ReactElement => {
   const notify = useNotification();
   const { accountSelectorItems,
     onOpenReceive,
-    openSelectAccount,
-    openSelectToken,
-    selectedAccount,
+    onSelectAccountProxy,
+    onSelectToken,
+    selectedAccountProxyAddress,
     selectedNetwork,
     tokenSelectorItems } = useReceiveQR();
 
@@ -231,19 +184,11 @@ const Component = (): React.ReactElement => {
   }, [handleResize]);
 
   return (
-  
     <div
       className={'tokens-screen-container'}
       onScroll={handleScroll}
       ref={containerRef}
     >
-       <Button
-            icon={<Icon phosphorIcon={FadersHorizontal} />}
-            onClick={handleBitcoinTransaction}
-            
-          >
-            {t('Manage tokens')}
-          </Button>
       <div
         className={classNames('__upper-block-wrapper', {
           '-is-shrink': isShrink,
@@ -311,17 +256,16 @@ const Component = (): React.ReactElement => {
 
       <AccountSelectorModal
         items={accountSelectorItems}
-        onSelectItem={openSelectAccount}
+        onSelectItem={onSelectAccountProxy}
       />
 
       <TokensSelectorModal
-        address={selectedAccount}
         items={tokenSelectorItems}
-        onSelectItem={openSelectToken}
+        onSelectItem={onSelectToken}
       />
 
       <ReceiveQrModal
-        address={selectedAccount}
+        address={selectedAccountProxyAddress}
         selectedNetwork={selectedNetwork}
       />
     </div>
@@ -342,7 +286,7 @@ const WrapperComponent = ({ className = '' }: ThemeProps): React.ReactElement<Pr
   );
 };
 
-const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, token } }: ThemeProps) => {
+const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { token } }: ThemeProps) => {
   return ({
     overflow: 'hidden',
 
@@ -379,7 +323,6 @@ const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, tok
       width: '100%',
       display: 'flex',
       alignItems: 'center',
-      backgroundImage: extendToken.tokensScreenSuccessBackgroundColor,
       transition: 'opacity, padding-top 0.27s ease',
 
       '&.-is-shrink': {
@@ -387,7 +330,7 @@ const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, tok
       },
 
       '&.-decrease': {
-        backgroundImage: extendToken.tokensScreenDangerBackgroundColor
+
       }
     },
 

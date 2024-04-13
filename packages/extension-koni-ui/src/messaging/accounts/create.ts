@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountExternalError, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountGroupCreateSuri, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseSeedCreateV2 } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountExternalError, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountProxyCreateSuri, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseSeedCreateV2 } from '@subwallet/extension-base/background/KoniTypes';
 import { SeedLengths } from '@subwallet/extension-base/background/types';
 import { sendMessage } from '@subwallet/extension-koni-ui/messaging/base';
 import { KeypairType } from '@subwallet/keyring/types';
@@ -26,8 +26,8 @@ export async function createAccountSuriV2 (request: RequestAccountCreateSuriV2):
   return sendMessage('pri(accounts.create.suriV2)', request);
 }
 
-export async function createAccountGroupSuri (request: RequestAccountGroupCreateSuri): Promise<ResponseAccountCreateSuriV2> {
-  return sendMessage('pri(accountGroups.create.suri)', request);
+export async function createAccountProxySuri (request: RequestAccountProxyCreateSuri): Promise<ResponseAccountCreateSuriV2> {
+  return sendMessage('pri(accountProxies.create.suri)', request);
 }
 
 // Private key for substrate

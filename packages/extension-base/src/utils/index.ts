@@ -450,8 +450,8 @@ export function getBitcoinChainByAddress (address: string): string | null {
   return getChainSlugByBitcoinNetwork(isBitcoinAddress(address));
 }
 
-export function generateAccountGroupId () {
-  return `AccountGroupId_${Date.now()}`;
+export function generateAccountProxyId () {
+  return `AccountProxyId_${Date.now()}`;
 }
 
 export * from './account';

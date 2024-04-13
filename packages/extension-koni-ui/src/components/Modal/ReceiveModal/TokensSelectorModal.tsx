@@ -1,34 +1,29 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _ChainAsset } from '@subwallet/chain-list/types';
-import { _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
+import { GeneralEmptyList } from '@subwallet/extension-koni-ui/components';
 import { RECEIVE_QR_MODAL, RECEIVE_TOKEN_SELECTOR_MODAL } from '@subwallet/extension-koni-ui/constants';
-import { useGetZkAddress, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
-import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { ReceiveTokenItemType, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ModalContext, SwList, SwModal } from '@subwallet/react-ui';
 import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-import { TokenEmptyList } from '../../EmptyList';
 import { TokenSelectionItem } from '../../TokenItem';
 
 interface Props extends ThemeProps {
-  onSelectItem?: (item: _ChainAsset) => void,
-  address?: string,
-  items: _ChainAsset[]
+  onSelectItem?: (item: ReceiveTokenItemType) => void,
+  items: ReceiveTokenItemType[]
 }
 
 const modalId = RECEIVE_TOKEN_SELECTOR_MODAL;
 
-const renderEmpty = () => <TokenEmptyList modalId={modalId} />;
+const renderEmpty = () => <GeneralEmptyList />;
 
-function Component ({ address, className = '', items, onSelectItem }: Props): React.ReactElement<Props> {
+function Component ({ className = '', items, onSelectItem }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
   const { activeModal, checkActive, inactiveModal } = useContext(ModalContext);
-
-  const zkAddress = useGetZkAddress(address);
 
   const { chainInfoMap } = useSelector((state) => state.chainStore);
 
@@ -36,7 +31,7 @@ function Component ({ address, className = '', items, onSelectItem }: Props): Re
 
   const sectionRef = useRef<SwListSectionRef>(null);
 
-  const searchFunction = useCallback((item: _ChainAsset, searchText: string) => {
+  const searchFunction = useCallback((item: ReceiveTokenItemType, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
     const chainName = chainInfoMap[item.originChain]?.name?.toLowerCase();
     const symbol = item.symbol.toLowerCase();
@@ -51,10 +46,9 @@ function Component ({ address, className = '', items, onSelectItem }: Props): Re
     inactiveModal(modalId);
   }, [inactiveModal]);
 
-  const onClickQrBtn = useCallback((item: _ChainAsset) => {
+  const onClickQrBtn = useCallback((item: ReceiveTokenItemType) => {
     return () => {
       onSelectItem && onSelectItem(item);
-      // checkAsset(item.slug);
       inactiveModal(modalId);
       activeModal(RECEIVE_QR_MODAL);
     };
@@ -68,12 +62,10 @@ function Component ({ address, className = '', items, onSelectItem }: Props): Re
     }
   }, [isActive]);
 
-  const renderItem = useCallback((item: _ChainAsset) => {
-    const isMantaZkAsset = _MANTA_ZK_CHAIN_GROUP.includes(item.originChain) && item.symbol.startsWith(_ZK_ASSET_PREFIX);
-
+  const renderItem = useCallback((item: ReceiveTokenItemType) => {
     return (
       <TokenSelectionItem
-        address={isMantaZkAsset ? zkAddress : address}
+        address={item.address}
         className={'token-selector-item'}
         item={item}
         key={item.slug}
@@ -81,7 +73,7 @@ function Component ({ address, className = '', items, onSelectItem }: Props): Re
         onPressItem={onClickQrBtn(item)}
       />
     );
-  }, [address, onClickQrBtn, zkAddress]);
+  }, [onClickQrBtn]);
 
   return (
     <SwModal

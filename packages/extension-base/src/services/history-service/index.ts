@@ -10,14 +10,14 @@ import { parseBitcoinTransferData } from '@subwallet/extension-base/services/his
 import { historyRecover, HistoryRecoverStatus } from '@subwallet/extension-base/services/history-service/helpers/recoverHistoryStatus';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
-import { getBitcoinChainByAddress } from '@subwallet/extension-base/utils';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import { keyring } from '@subwallet/ui-keyring';
 import { BehaviorSubject } from 'rxjs';
 
-function filterHistoryItemByAddressAndChain (chain: string, address: string) {
+function filterHistoryItemByAddressAndChain (addresses: string[], chain: string) {
   return (item: TransactionHistoryItem) => {
-    return item.chain === chain && item.address === address;
+    return item.chain === chain && addresses.includes(item.address);
   };
 }
 
@@ -86,7 +86,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
     return this.historySubject;
   }
 
-  private async fetchBitcoinTransactionHistory (address: string, chain: string) {
+  private async fetchBitcoinTransactionHistory (addresses: string[], chain: string) {
     const chainInfo = this.chainService.getChainInfoByKey(chain);
     const chainState = this.chainService.getChainStateByKey(chain);
 
@@ -96,31 +96,45 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
 
     const bitcoinApi = this.chainService.getBitcoinApi(chain);
 
-    const transferItems = await bitcoinApi.api.getAddressTransaction(address);
+    for (const address of addresses) {
+      const addressType = getKeypairTypeByAddress(address);
 
-    const parsedItems = Object.values(transferItems).map((i) => {
-      return parseBitcoinTransferData(address, i, chainInfo);
-    });
+      if (!((addressType === 'bitcoin-84' && chain === 'bitcoin') || (addressType === 'bittest-84' && chain === 'bitcoinTestnet'))) {
+        continue;
+      }
 
-    await this.addHistoryItems(parsedItems);
+      const transferItems = await bitcoinApi.api.getAddressTransaction(address);
+
+      const parsedItems = Object.values(transferItems).map((i) => {
+        return parseBitcoinTransferData(address, i, chainInfo);
+      });
+
+      await this.addHistoryItems(parsedItems);
+    }
   }
 
-  subscribeBitcoinHistories (address: string, cb: (items: TransactionHistoryItem[]) => void) {
-    const bitcoinChainSlug = getBitcoinChainByAddress(address);
+  subscribeHistories (accountProxyId: string, chain: string, cb: (items: TransactionHistoryItem[]) => void) {
+    const addresses: string[] = [];
 
-    const subscription = this.historySubject.subscribe((items) => {
-      cb(bitcoinChainSlug ? items.filter(filterHistoryItemByAddressAndChain(bitcoinChainSlug, address)) : []);
+    Object.entries(this.keyringService.accounts).forEach(([, a]) => {
+      if (a.json.meta.proxyId === accountProxyId) {
+        addresses.push(a.json.address);
+      }
     });
 
-    if (bitcoinChainSlug) {
-      this.fetchBitcoinTransactionHistory(address, bitcoinChainSlug).catch((e) => {
+    const subscription = this.historySubject.subscribe((items) => {
+      cb(items.filter(filterHistoryItemByAddressAndChain(addresses, chain)));
+    });
+
+    if (['bitcoin', 'bitcoinTestnet'].includes(chain)) {
+      this.fetchBitcoinTransactionHistory(addresses, chain).catch((e) => {
         console.log('fetchBitcoinTransactionHistory Error', e);
       });
     }
 
     return {
       unsubscribe: subscription.unsubscribe,
-      value: bitcoinChainSlug ? this.historySubject.getValue().filter(filterHistoryItemByAddressAndChain(bitcoinChainSlug, address)) : []
+      value: this.historySubject.getValue().filter(filterHistoryItemByAddressAndChain(addresses, chain))
     };
   }
 

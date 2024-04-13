@@ -70,9 +70,9 @@ function Component (): React.ReactElement {
 
   const { accountSelectorItems,
     onOpenReceive,
-    openSelectAccount,
-    openSelectToken,
-    selectedAccount,
+    onSelectAccountProxy,
+    onSelectToken,
+    selectedAccountProxyAddress,
     selectedNetwork,
     tokenSelectorItems } = useReceiveQR(tokenGroupSlug);
 
@@ -355,24 +355,23 @@ function Component (): React.ReactElement {
 
       <AccountSelectorModal
         items={accountSelectorItems}
-        onSelectItem={openSelectAccount}
+        onSelectItem={onSelectAccountProxy}
       />
 
       <TokensSelectorModal
-        address={selectedAccount}
         items={tokenSelectorItems}
-        onSelectItem={openSelectToken}
+        onSelectItem={onSelectToken}
       />
 
       <ReceiveQrModal
-        address={selectedAccount}
+        address={selectedAccountProxyAddress}
         selectedNetwork={selectedNetwork}
       />
     </div>
   );
 }
 
-const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, token } }: ThemeProps) => {
+const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { token } }: ThemeProps) => {
   return ({
     overflow: 'hidden',
 
@@ -404,7 +403,6 @@ const Tokens = styled(WrapperComponent)<ThemeProps>(({ theme: { extendToken, tok
       right: 0,
       display: 'flex',
       alignItems: 'center',
-      backgroundImage: extendToken.tokensScreenInfoBackgroundColor,
       transition: 'opacity, padding-top 0.27s ease',
 
       '&.-is-shrink': {

@@ -12,6 +12,7 @@ export { default as PrivateKeyInput } from './PrivateKeyInput';
 export { default as SeedPhraseInput } from './SeedPhraseInput';
 
 export * from './AccountSelector';
+export * from './AccountProxySelector';
 export * from './AddressInput';
 export * from './BuyTokens/ServiceSelector';
 export * from './ChainSelector';

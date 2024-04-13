@@ -1,15 +1,15 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountGroup } from '@subwallet/extension-base/background/types';
-import { AccountGroupBriefInfo, AccountGroupSelectorAllItem, AccountGroupSelectorItem, AddressQrSelectorModal } from '@subwallet/extension-koni-ui/components';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountProxyBriefInfo, AccountProxySelectorAllItem, AccountProxySelectorItem, AddressQrSelectorModal } from '@subwallet/extension-koni-ui/components';
 import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useDefaultNavigate, useGetCurrentAuth, useGetCurrentTab, useGoBackSelectAccount, useIsPopup, useTranslation } from '@subwallet/extension-koni-ui/hooks';
-import { saveCurrentAccountGroup } from '@subwallet/extension-koni-ui/messaging';
+import { saveCurrentAccountProxy } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { groupFuncSortByName, isAccountAll, searchAccountGroupFunction } from '@subwallet/extension-koni-ui/utils';
+import { groupFuncSortByName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Plug, Plugs, PlugsConnected } from 'phosphor-react';
@@ -54,7 +54,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const location = useLocation();
   const { goHome } = useDefaultNavigate();
 
-  const { accountGroups: _accountGroups, currentAccountGroup, isAllAccount } = useSelector((state: RootState) => state.accountState);
+  const { accountProxies: _accountProxies, currentAccountProxy, isAllAccount } = useSelector((state: RootState) => state.accountState);
 
   const [connected] = useState(0);
   const [canConnect] = useState(0);
@@ -63,11 +63,11 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const isCurrentTabFetched = !!currentTab;
   const currentAuth = useGetCurrentAuth();
   const isPopup = useIsPopup();
-  const [selectedQrAccountGroupId, setSelectedQrAccountGroupId] = useState<string | undefined>();
+  const [selectedQrAccountProxyId, setSelectedQrAccountProxyId] = useState<string | undefined>();
 
-  const accountGroups = useMemo((): AccountGroup[] => {
-    const result = [..._accountGroups].sort(groupFuncSortByName);
-    const all = result.find((ag) => isAccountAll(ag.groupId));
+  const accountProxies = useMemo((): AccountProxy[] => {
+    const result = [..._accountProxies].sort(groupFuncSortByName);
+    const all = result.find((ag) => isAccountAll(ag.proxyId));
 
     if (all) {
       const index = result.indexOf(all);
@@ -76,36 +76,36 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       result.unshift(all);
     }
 
-    if (!!currentAccountGroup?.groupId && (currentAccountGroup?.groupId !== (all && all.groupId))) {
-      const currentAccountGroupIndex = result.findIndex((item) => {
-        return item.groupId === currentAccountGroup?.groupId;
+    if (!!currentAccountProxy?.proxyId && (currentAccountProxy?.proxyId !== (all && all.proxyId))) {
+      const currentAccountProxyIndex = result.findIndex((item) => {
+        return item.proxyId === currentAccountProxy?.proxyId;
       });
 
-      if (currentAccountGroupIndex > -1) {
-        const _currentAccountGroup = result[currentAccountGroupIndex];
+      if (currentAccountProxyIndex > -1) {
+        const _currentAccountProxy = result[currentAccountProxyIndex];
 
-        result.splice(currentAccountGroupIndex, 1);
-        result.splice(1, 0, _currentAccountGroup);
+        result.splice(currentAccountProxyIndex, 1);
+        result.splice(1, 0, _currentAccountProxy);
       }
     }
 
     return result;
-  }, [_accountGroups, currentAccountGroup?.groupId]);
+  }, [_accountProxies, currentAccountProxy?.proxyId]);
 
-  const noAllAccountGroups = useMemo(() => {
-    return accountGroups.filter(({ groupId }) => !isAccountAll(groupId));
-  }, [accountGroups]);
+  const noAllAccountProxies = useMemo(() => {
+    return accountProxies.filter(({ proxyId }) => !isAccountAll(proxyId));
+  }, [accountProxies]);
 
   const showAllAccount = useMemo(() => {
-    return noAllAccountGroups.length > 1;
-  }, [noAllAccountGroups]);
+    return noAllAccountProxies.length > 1;
+  }, [noAllAccountProxies]);
 
-  const _onSelect = useCallback((groupId: string) => {
-    if (groupId) {
-      const accountGroup = accountGroups.find((ag) => ag.groupId === groupId);
+  const _onSelect = useCallback((proxyId: string) => {
+    if (proxyId) {
+      const accountProxy = accountProxies.find((ag) => ag.proxyId === proxyId);
 
-      if (accountGroup) {
-        saveCurrentAccountGroup({ groupId }).then(() => {
+      if (accountProxy) {
+        saveCurrentAccountProxy({ proxyId: proxyId }).then(() => {
           const pathName = location.pathname;
           const locationPaths = location.pathname.split('/');
 
@@ -131,31 +131,31 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         console.error('Failed to switch account');
       }
     }
-  }, [accountGroups, location.pathname, navigate, goHome]);
+  }, [accountProxies, location.pathname, navigate, goHome]);
 
-  const onClickAccountGroupDetail = useCallback((groupId: string) => {
+  const onClickAccountProxyDetail = useCallback((proxyId: string) => {
     return () => {
       inactiveModal(modalId);
       setTimeout(() => {
-        navigate(`/accounts/detail/${groupId}`);
+        navigate(`/accounts/detail/${proxyId}`);
       }, 100);
     };
   }, [navigate, inactiveModal]);
 
-  const onClickItemQrButton = useCallback((groupId: string) => {
+  const onClickItemQrButton = useCallback((proxyId: string) => {
     return () => {
-      setSelectedQrAccountGroupId(groupId);
+      setSelectedQrAccountProxyId(proxyId);
       activeModal(addressQrSelectorModalId);
     };
   }, [activeModal]);
 
   const onAddressQrSelectorModalBack = useGoBackSelectAccount(addressQrSelectorModalId);
 
-  const renderItem = useCallback((item: AccountGroup, _selected: boolean): React.ReactNode => {
-    if (isAccountAll(item.groupId)) {
+  const renderItem = useCallback((item: AccountProxy, _selected: boolean): React.ReactNode => {
+    if (isAccountAll(item.proxyId)) {
       if (showAllAccount) {
         return (
-          <AccountGroupSelectorAllItem
+          <AccountProxySelectorAllItem
             className='all-account-selection'
             isSelected={_selected}
           />
@@ -166,20 +166,20 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     }
 
     return (
-      <AccountGroupSelectorItem
-        accountGroup={item}
+      <AccountProxySelectorItem
+        accountProxy={item}
         className={className}
         isSelected={_selected}
-        onClickMoreButton={onClickAccountGroupDetail(item.groupId)}
-        onClickQrButton={onClickItemQrButton(item.groupId)}
+        onClickMoreButton={onClickAccountProxyDetail(item.proxyId)}
+        onClickQrButton={onClickItemQrButton(item.proxyId)}
       />
     );
-  }, [className, onClickAccountGroupDetail, onClickItemQrButton, showAllAccount]);
+  }, [className, onClickAccountProxyDetail, onClickItemQrButton, showAllAccount]);
 
-  const renderSelectedItem = useCallback((item: AccountGroup): React.ReactNode => {
+  const renderSelectedItem = useCallback((item: AccountProxy): React.ReactNode => {
     return (
       <div className='selected-account'>
-        <AccountGroupBriefInfo accountGroup={item} />
+        <AccountProxyBriefInfo accountProxy={item} />
       </div>
     );
   }, []);
@@ -247,16 +247,16 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         id={modalId}
         ignoreScrollbarMethod='padding'
         inputWidth={'100%'}
-        itemKey='groupId'
-        items={accountGroups}
+        itemKey='proxyId'
+        items={accountProxies}
         onSelect={_onSelect}
         renderItem={renderItem}
         renderSelected={renderSelectedItem}
         renderWhenEmpty={renderEmpty}
-        searchFunction={searchAccountGroupFunction}
+        searchFunction={searchAccountProxyFunction}
         searchMinCharactersCount={2}
         searchPlaceholder={t<string>('Account name')}
-        selected={currentAccountGroup?.groupId || ''}
+        selected={currentAccountProxy?.proxyId || ''}
         shape='round'
         size='small'
         title={t('Select account')}
@@ -272,7 +272,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       />
 
       <AddressQrSelectorModal
-        accountGroupId={selectedQrAccountGroupId}
+        accountProxyId={selectedQrAccountProxyId}
         modalId={addressQrSelectorModalId}
         onBack={onAddressQrSelectorModalBack}
       />

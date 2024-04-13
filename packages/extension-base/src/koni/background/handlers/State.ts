@@ -5,7 +5,7 @@ import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountGroupInfo, CurrentAccountInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
@@ -669,19 +669,19 @@ export default class KoniState {
     callback && callback();
   }
 
-  public setCurrentAccountGroup (data: CurrentAccountGroupInfo, callback?: () => void): void {
-    const { groupId } = data;
-    const result: CurrentAccountGroupInfo = { ...data };
+  public setCurrentAccountProxy (data: CurrentAccountProxyInfo, callback?: () => void): void {
+    const { proxyId } = data;
+    const result: CurrentAccountProxyInfo = { ...data };
 
-    if (groupId === ALL_ACCOUNT_KEY) {
-      const groupIds = this.keyringService.accountGroupIds;
+    if (proxyId === ALL_ACCOUNT_KEY) {
+      const proxyIds = this.keyringService.accountProxyIds;
 
-      if (groupIds.length === 1 && !!groupIds[0]) {
-        result.groupId = groupIds[0];
+      if (proxyIds.length === 1 && !!proxyIds[0]) {
+        result.proxyId = proxyIds[0];
       }
     }
 
-    this.keyringService.setCurrentAccountGroup(result);
+    this.keyringService.setCurrentAccountProxy(result);
     callback && callback();
   }
 
@@ -872,22 +872,22 @@ export default class KoniState {
     return [checkingAddress];
   }
 
-  public getAccountGroupAddresses (groupId?: string): string[] {
-    let _groupId: string | null | undefined = groupId;
+  public getAccountProxyAddresses (proxyId?: string): string[] {
+    let _proxyId: string | null | undefined = proxyId;
 
-    if (!_groupId) {
-      _groupId = this.keyringService.currentAccountGroup?.groupId;
+    if (!_proxyId) {
+      _proxyId = this.keyringService.currentAccountProxy?.proxyId;
     }
 
-    if (!_groupId) {
+    if (!_proxyId) {
       return [];
     }
 
-    if (_groupId === ALL_ACCOUNT_KEY) {
+    if (_proxyId === ALL_ACCOUNT_KEY) {
       return this.getAllAddresses();
     }
 
-    return keyring.getAccounts().filter((a) => a.meta.groupId === _groupId).map((a) => a.address);
+    return keyring.getAccounts().filter((a) => a.meta.proxyId === _proxyId).map((a) => a.address);
   }
 
   public getAllAddresses (): string[] {

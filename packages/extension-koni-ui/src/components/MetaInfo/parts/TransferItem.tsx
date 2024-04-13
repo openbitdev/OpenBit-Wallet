@@ -18,8 +18,10 @@ export interface TransferInfoItem extends Omit<InfoItemBase, 'label'> {
   senderAddress: string;
   senderName?: string;
   senderLabel?: string;
+  senderProxyId?: string;
   recipientAddress: string;
   recipientName?: string;
+  recipientProxyId?: string;
   recipientLabel?: string;
   originChain?: ChainInfo;
   destinationChain?: ChainInfo;
@@ -33,8 +35,7 @@ const Component: React.FC<TransferInfoItem> = (props: TransferInfoItem) => {
     recipientLabel,
     recipientName,
     senderAddress,
-    senderLabel,
-    senderName,
+    senderLabel, senderName,
     valueColorSchema = 'default' } = props;
 
   const { t } = useTranslation();

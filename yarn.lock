@@ -6224,12 +6224,12 @@ __metadata:
 
 "@subwallet/chain-list@file:./local-libs/chain-list::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.53-beta.1
-  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=d3d74b&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=1a5de3&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: 8e7ee16a1451693057da8b6dc6a63d60d3d41978d5d1d0243a703b902928aef3378c97ecf347571a4035dd2681295a9fa421f260c28ec5b01c98b3113402fe88
+  checksum: ede4e6ab43e060d1017a4295e28e461589d3e5c1a34135d8d3c664a8250bdbc28614454cba5d0b937c21e2143cd282cca8eb2408b57c39ca1cb39f5d4bc083dc
   languageName: node
   linkType: hard
 
@@ -6421,7 +6421,7 @@ __metadata:
     "@walletconnect/types": ^2.11.0
     "@wojtekmaj/enzyme-adapter-react-17": ^0.8.0
     bip39: ^3.1.0
-    boring-avatars: ^1.7.0
+    boring-avatars: ^1.10.2
     bowser: ^2.11.0
     classnames: ^2.3.2
     copy-to-clipboard: ^3.3.3
@@ -10609,6 +10609,13 @@ __metadata:
   version: 1.0.0
   resolution: "boolbase@npm:1.0.0"
   checksum: 3e25c80ef626c3a3487c73dbfc70ac322ec830666c9ad915d11b701142fab25ec1e63eff2c450c74347acfd2de854ccde865cd79ef4db1683f7c7b046ea43bb0
+  languageName: node
+  linkType: hard
+
+"boring-avatars@npm:^1.10.2":
+  version: 1.10.2
+  resolution: "boring-avatars@npm:1.10.2"
+  checksum: 887ac33237feb79f53681749439a5c3182727cc8953ff5a77d8301afcc4dc20e8f6fdd0b8bc631e55c5f5f623b2984a5c02002b44b65fa276131075a25531c6b
   languageName: node
   linkType: hard
 

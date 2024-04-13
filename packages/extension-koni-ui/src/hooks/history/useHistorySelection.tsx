@@ -1,46 +1,52 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountJson } from '@subwallet/extension-base/background/types';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
-function getSelectedAddress (accounts: AccountJson[], currentAddress: string | undefined): string {
-  if (!currentAddress || !accounts.length) {
+function getSelectedAddress (accountProxies: AccountProxy[], currentAccountProxyId: string | undefined): string {
+  if (!currentAccountProxyId || !accountProxies.length) {
     return '';
   }
 
-  if (!isAccountAll(currentAddress)) {
-    return currentAddress;
+  if (!isAccountAll(currentAccountProxyId)) {
+    return currentAccountProxyId;
   }
 
-  return (accounts.find((a) => !isAccountAll(a.address)))?.address || '';
+  return accountProxies.find((ag) => !isAccountAll(ag.proxyId))?.proxyId || '';
 }
 
 export default function useHistorySelection () {
-  const { address: propAddress, chain: propChain } = useParams<{address: string, chain: string}>();
-  const { accounts, currentAccount } = useSelector((root) => root.accountState);
-  const preservedCurrentAddress = useRef<string>(currentAccount ? currentAccount.address : '');
-  const [selectedAddress, setSelectedAddress] = useState<string>(propAddress || getSelectedAddress(accounts, currentAccount?.address));
-  const [selectedChain, setSelectedChain] = useState<string>(propChain || 'polkadot');
+  const { accountProxies, currentAccountProxy } = useSelector((root) => root.accountState);
+  const preservedCurrentAccountProxyId = useRef<string>(currentAccountProxy ? currentAccountProxy.proxyId : '');
+  const [selectedAccountProxyId, setSelectedAccountProxyId] = useState<string>(getSelectedAddress(accountProxies, currentAccountProxy?.proxyId));
+  const [selectedChain, setSelectedChain] = useState<string>('bitcoin');
 
   useEffect(() => {
-    if (currentAccount?.address) {
-      if (preservedCurrentAddress.current !== currentAccount.address) {
-        preservedCurrentAddress.current = currentAccount.address;
-        setSelectedAddress(getSelectedAddress(accounts, currentAccount.address));
+    if (currentAccountProxy?.proxyId) {
+      if (preservedCurrentAccountProxyId.current !== currentAccountProxy.proxyId) {
+        preservedCurrentAccountProxyId.current = currentAccountProxy.proxyId;
+        setSelectedAccountProxyId(getSelectedAddress(accountProxies, currentAccountProxy.proxyId));
       }
     } else {
-      preservedCurrentAddress.current = '';
-      setSelectedAddress('');
+      preservedCurrentAccountProxyId.current = '';
+      setSelectedAccountProxyId('');
     }
-  }, [accounts, currentAccount?.address]);
+  }, [accountProxies, currentAccountProxy?.proxyId]);
+
+  useEffect(() => {
+    const isSelectedAccountExist = accountProxies.some((ag) => ag.proxyId === selectedAccountProxyId);
+
+    if (!isSelectedAccountExist) {
+      setSelectedAccountProxyId((accountProxies.find((ag) => !isAccountAll(ag.proxyId)))?.proxyId || '');
+    }
+  }, [accountProxies, selectedAccountProxyId]);
 
   return {
-    selectedAddress,
-    setSelectedAddress,
+    selectedAccountProxyId,
+    setSelectedAccountProxyId,
     selectedChain,
     setSelectedChain
   };

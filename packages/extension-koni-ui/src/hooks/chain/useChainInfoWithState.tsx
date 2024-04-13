@@ -3,6 +3,7 @@
 
 import { _ChainInfo, _ChainStatus } from '@subwallet/chain-list/types';
 import { _ChainState } from '@subwallet/extension-base/services/chain-service/types';
+import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -16,7 +17,7 @@ export default function useChainInfoWithState ({ filterStatus = true } = {} as {
   return useMemo(() => {
     const rs: ChainInfoWithState[] = [];
 
-    ['bitcoin', 'bitcoinTestnet'].forEach((chainSlug) => {
+    SUPPORT_CHAINS.forEach((chainSlug) => {
       const item = chainInfoMap[chainSlug];
 
       if (item) {

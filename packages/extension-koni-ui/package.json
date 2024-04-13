@@ -44,7 +44,7 @@
     "@subwallet/ui-keyring": "0.1.5-beta.0",
     "@walletconnect/types": "^2.11.0",
     "bip39": "^3.1.0",
-    "boring-avatars": "^1.7.0",
+    "boring-avatars": "^1.10.2",
     "bowser": "^2.11.0",
     "classnames": "^2.3.2",
     "copy-to-clipboard": "^3.3.3",

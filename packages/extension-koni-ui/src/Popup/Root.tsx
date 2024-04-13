@@ -12,10 +12,10 @@ import { usePredefinedModal, WalletModalContext } from '@subwallet/extension-kon
 import { useGetCurrentPage, useSubscribeLanguage } from '@subwallet/extension-koni-ui/hooks';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useUILock from '@subwallet/extension-koni-ui/hooks/common/useUILock';
-import { completeConfirmation, completeConfirmationBitcoin, keyringUnlock, makeTransfer, makeTransferBitcoin, subscribeNotifications } from '@subwallet/extension-koni-ui/messaging';
+import { subscribeNotifications } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { isNoAccountGroup, removeStorage } from '@subwallet/extension-koni-ui/utils';
+import { isNoAccountProxy, removeStorage } from '@subwallet/extension-koni-ui/utils';
 import { changeHeaderLogo } from '@subwallet/react-ui';
 import { NotificationProps } from '@subwallet/react-ui/es/notification/NotificationProvider';
 import CN from 'classnames';
@@ -93,9 +93,9 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
 
   const { unlockType } = useSelector((state: RootState) => state.settings);
   const { hasConfirmations, hasInternalConfirmations } = useSelector((state: RootState) => state.requestState);
-  const { accountGroups, currentAccount, hasMasterPassword, isLocked } = useSelector((state: RootState) => state.accountState);
+  const { accountProxies, currentAccount, hasMasterPassword, isLocked } = useSelector((state: RootState) => state.accountState);
   const [initAccount, setInitAccount] = useState(currentAccount);
-  const noAccountGroup = useMemo(() => isNoAccountGroup(accountGroups), [accountGroups]);
+  const noAccountProxy = useMemo(() => isNoAccountProxy(accountProxies), [accountProxies]);
   const { isUILocked } = useUILock();
   const needUnlock = isUILocked || (isLocked && unlockType === WalletUnlockType.ALWAYS_REQUIRED);
 
@@ -165,14 +165,14 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
     } else if (hasMasterPassword && pathName === createPasswordUrl) {
       redirectTarget = DEFAULT_ROUTER_PATH;
     } else if (!hasMasterPassword) {
-      if (noAccountGroup) {
+      if (noAccountProxy) {
         if (![...allowImportAccountUrls, welcomeUrl, createPasswordUrl, securityUrl].includes(pathName)) {
           redirectTarget = welcomeUrl;
         }
       } else if (pathName !== createDoneUrl) {
         redirectTarget = createPasswordUrl;
       }
-    } else if (noAccountGroup) {
+    } else if (noAccountProxy) {
       if (![...allowImportAccountUrls, welcomeUrl, createPasswordUrl, securityUrl].includes(pathName)) {
         redirectTarget = welcomeUrl;
       }
@@ -186,10 +186,10 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
       }
     } else if (pathName === loginUrl && !needUnlock) {
       redirectTarget = DEFAULT_ROUTER_PATH;
-    } else if (pathName === welcomeUrl && !noAccountGroup) {
+    } else if (pathName === welcomeUrl && !noAccountProxy) {
       redirectTarget = DEFAULT_ROUTER_PATH;
     } else if (pathName === migratePasswordUrl && !needMigrate) {
-      if (noAccountGroup) {
+      if (noAccountProxy) {
         redirectTarget = welcomeUrl;
       } else {
         redirectTarget = DEFAULT_ROUTER_PATH;
@@ -215,7 +215,7 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
     } else {
       return null;
     }
-  }, [location.pathname, dataLoaded, needMigrate, hasMasterPassword, needUnlock, noAccountGroup, hasInternalConfirmations, isOpenPModal, hasConfirmations, currentPage, openPModal]);
+  }, [location.pathname, dataLoaded, needMigrate, hasMasterPassword, needUnlock, noAccountProxy, hasInternalConfirmations, isOpenPModal, hasConfirmations, currentPage, openPModal]);
 
   // Remove transaction persist state
   useEffect(() => {
@@ -255,15 +255,13 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
 //       })
 //     }, 3000)
 
-
-
 // useEffect(() => {
 
 //   const fakeBitcoinTransactionData = {
-//     from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7', 
-//     to: 'bc1q022xryhl23nzc4uxpr8fgx4uj5jynk67mfstyc', 
-//     tokenSlug: 'BTC', 
-//     transferAll: false, 
+//     from: 'tb1qwc9tj3nvh3c83jwtx2aqwgcu3a60mu5fyeygc7',
+//     to: 'bc1q022xryhl23nzc4uxpr8fgx4uj5jynk67mfstyc',
+//     tokenSlug: 'BTC',
+//     transferAll: false,
 //     value: '0.00001' ,
 //     networkKey: 'bitcoin',
 //     id: '123456789'
@@ -271,7 +269,7 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
 
 //   // Mở khóa keyring
 //   keyringUnlock({
-//     password: 'Quanprox3' 
+//     password: 'Quanprox3'
 //   })
 //   .then(() => {
 //     makeTransferBitcoin(fakeBitcoinTransactionData)
@@ -291,11 +289,9 @@ function DefaultRoute ({ children }: { children: React.ReactNode }): React.React
 //   });
 // // }, [])
 
-
 // useEffect(() => {
 //   handleBitcoinTransaction();
 // }, []);
-
 
 export function Root (): React.ReactElement {
   // Implement WalletModalContext in Root component to make it available for all children and can use react-router-dom and ModalContextProvider

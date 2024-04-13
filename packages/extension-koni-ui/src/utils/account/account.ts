@@ -3,7 +3,7 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
-import { AbstractAddressJson, AccountAuthType, AccountGroup, AccountJson } from '@subwallet/extension-base/background/types';
+import { AbstractAddressJson, AccountAuthType, AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { _getChainSubstrateAddressPrefix, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { isAccountAll, uniqueStringArray } from '@subwallet/extension-base/utils';
@@ -55,13 +55,13 @@ export const findAccountByAddress = (accounts: AccountJson[], address?: string):
   }
 };
 
-export const findAccountGroupByGroupId = (accountGroups: AccountGroup[], groupId?: string): AccountGroup | null => {
+export const findAccountProxyByProxyId = (accountProxies: AccountProxy[], proxyId?: string): AccountProxy | null => {
   try {
-    if (!groupId) {
+    if (!proxyId) {
       return null;
     }
 
-    const result = accountGroups.find((ag) => ag.groupId === groupId);
+    const result = accountProxies.find((ag) => ag.proxyId === proxyId);
 
     return result || null;
   } catch (e) {
@@ -109,15 +109,15 @@ export const isNoAccount = (accounts: AccountJson[] | null): boolean => {
   return accounts ? !accounts.filter((acc) => acc.address !== ALL_ACCOUNT_KEY).length : false;
 };
 
-export const isNoAccountGroup = (accountGroups: AccountGroup[] | null): boolean => {
-  return accountGroups ? !accountGroups.filter((ag) => ag.groupId !== ALL_ACCOUNT_KEY).length : false;
+export const isNoAccountProxy = (accountProxies: AccountProxy[] | null): boolean => {
+  return accountProxies ? !accountProxies.filter((ag) => ag.proxyId !== ALL_ACCOUNT_KEY).length : false;
 };
 
 export const searchAccountFunction = (item: AbstractAddressJson, searchText: string): boolean => {
   return item.address.toLowerCase().includes(searchText.toLowerCase()) || (item.name || '').toLowerCase().includes(searchText.toLowerCase());
 };
 
-export const searchAccountGroupFunction = (item: AccountGroup, searchText: string): boolean => {
+export const searchAccountProxyFunction = (item: AccountProxy, searchText: string): boolean => {
   return (item.name || '').toLowerCase().includes(searchText.toLowerCase());
 };
 
@@ -158,8 +158,8 @@ export const funcSortByName = (a: AbstractAddressJson, b: AbstractAddressJson) =
   return ((a?.name || '').toLowerCase() > (b?.name || '').toLowerCase()) ? 1 : -1;
 };
 
-export const groupFuncSortByName = (a: AccountGroup, b: AccountGroup) => {
-  if (isAccountAll(b.groupId)) {
+export const groupFuncSortByName = (a: AccountProxy, b: AccountProxy) => {
+  if (isAccountAll(b.proxyId)) {
     return 3;
   }
 
