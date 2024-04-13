@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
-import { HIRO_API } from '@subwallet/extension-base/koni/api/nft/inscription/constants/api';
 import { TEST_ADDRESS } from '@subwallet/extension-base/koni/api/nft/inscription/constants/accounts';
+import { HIRO_API } from '@subwallet/extension-base/koni/api/nft/inscription/constants/api';
 import { InscriptionResponseItem } from '@subwallet/extension-base/koni/api/nft/inscription/types/interface';
 import { BaseNftApi, HandleNftParams } from '@subwallet/extension-base/koni/api/nft/nft';
 import fetch from 'cross-fetch';
@@ -129,8 +129,6 @@ export class InscriptionApi extends BaseNftApi {
     try {
       const balances = await this.getBalances(TEST_ADDRESS.add5);
 
-      console.log('balances', balances);
-
       if (balances.length > 0) {
         const collectionMap: Record <string, NftCollection> = {};
 
@@ -155,8 +153,6 @@ export class InscriptionApi extends BaseNftApi {
             properties: propertiesMap
           };
 
-          console.log('parsedNft', parsedNft);
-
           params.updateItem(this.chain, parsedNft, FAKE_ADDRESS); // todo: ins.address
 
           if (!collectionMap[ORDINAL_COLLECTION_INFO.collectionId]) {
@@ -169,7 +165,6 @@ export class InscriptionApi extends BaseNftApi {
 
             collectionMap[ORDINAL_COLLECTION_INFO.collectionId] = parsedCollection;
             params.updateCollection(this.chain, parsedCollection);
-            console.log('parsedCollection', parsedCollection);
           }
         }
       }

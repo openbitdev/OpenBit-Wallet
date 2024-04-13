@@ -54,10 +54,6 @@ export function subscribeERC20Interval ({ addresses, assetMap, callback, chainIn
     });
   };
 
-  Object.entries(tokenList).forEach(([slug, tokenInfo]) => {
-    erc20ContractMap[slug] = getERC20Contract(_getContractAddressOfToken(tokenInfo), evmApi);
-  });
-
   getTokenBalances();
 
   const interval = setInterval(getTokenBalances, SUB_TOKEN_REFRESH_BALANCE_INTERVAL);

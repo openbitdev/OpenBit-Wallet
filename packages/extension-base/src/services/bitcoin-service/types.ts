@@ -28,6 +28,30 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
+export interface RunesResponse {
+  statusCode: number;
+  data: RunesFetchedData
+}
+
+interface RunesFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  runes: Rune[]
+}
+
+export interface Rune {
+  amount: string,
+  amount_decimal: string,
+  address: string,
+  rune: {
+    rune_id: string,
+    rune: string,
+    divisibility: number,
+    symbol: string
+  }
+}
+
 export interface BitcoinTransferItem {
   txid: string;
   version: number;

@@ -5,12 +5,13 @@ import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
-import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenSlug, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
+import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
+import BigN from 'bignumber.js';
 
 import { subscribeEVMBalance } from './evm';
 import { subscribeSubstrateBalance } from './substrate';
@@ -74,11 +75,80 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
 
 export type BitcoinBalanceFunction = (addresses: string[], chain: string) => Promise<string[]>;
 
-function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, getAddressesBitcoinBalance: BitcoinBalanceFunction, callback: (rs: BalanceItem[]) => void): () => void {
+// todo: update bitcoin params
+function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
+  const chain = chainInfo.slug;
+  // todo: check tokenList
+  // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
+  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
+
+  const getRunesBalance = () => {
+    Object.values(tokenList).map(async (tokenInfo) => {
+      try {
+        const runeId = _getRuneId(tokenInfo);
+        const balances = await Promise.all(addresses.map(async (address) => {
+          try {
+            const runes = await bitcoinApi.api.getRunes(address);
+
+            for (const rune of runes) {
+              if (rune.rune.rune_id === runeId) {
+                return rune.amount;
+              }
+            }
+
+            return '0';
+          } catch (error) {
+            console.log(`Error on get balance of account ${address} for token ${tokenInfo.slug}`, error);
+
+            return '0';
+          }
+        }));
+
+        const items: BalanceItem[] = balances.map((balance, index): BalanceItem => {
+          return {
+            address: addresses[index],
+            tokenSlug: tokenInfo.slug,
+            free: balance,
+            locked: '0',
+            state: APIItemState.READY
+          };
+        });
+
+        callback(items);
+      } catch (error) {
+        console.error(`Error on fetching balance of ${tokenInfo.slug}`, error);
+      }
+    });
+  };
+
+  getRunesBalance();
+  const interval = setInterval(getRunesBalance, COMMON_REFRESH_BALANCE_INTERVAL);
+
+  return () => {
+    clearInterval(interval);
+  };
+}
+
+async function getAddressesSummaryInfo (bitcoinApi: _BitcoinApi, addresses: string[]) {
+  return await Promise.all(addresses.map(async (address) => {
+    try {
+      const accountSummaryInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
+
+      // todo: update balance interface
+      return new BigN(accountSummaryInfo.chain_stats.funded_txo_sum).minus(accountSummaryInfo.chain_stats.spent_txo_sum).toString();
+    } catch (error) {
+      console.log('Error while fetching Bitcoin balances', error);
+
+      return '0';
+    }
+  }));
+}
+
+function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, assetMap: Record<string, _ChainAsset>, bitcoinApi: _BitcoinApi, callback: (rs: BalanceItem[]) => void): () => void {
   const nativeSlug = _getChainNativeTokenSlug(chainInfo);
 
   const getBalance = () => {
-    getAddressesBitcoinBalance(addresses, chainInfo.slug)
+    getAddressesSummaryInfo(bitcoinApi, addresses)
       .then((balances) => {
         return balances.map((balance, index): BalanceItem => {
           return {
@@ -111,9 +181,11 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, ge
 
   getBalance();
   const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
+  const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
 
   return () => {
     clearInterval(interval);
+    unsub && unsub();
   };
 }
 
@@ -126,7 +198,7 @@ export function subscribeBalance (
   _chainInfoMap: Record<string, _ChainInfo>,
   substrateApiMap: Record<string, _SubstrateApi>,
   evmApiMap: Record<string, _EvmApi>,
-  bitcoinBalanceFunction: BitcoinBalanceFunction,
+  bitcoinApiMap: Record<string, _BitcoinApi>,
   callback: (rs: BalanceItem[]) => void) {
   // Filter chain and token
   const chainAssetMap: Record<string, _ChainAsset> = Object.fromEntries(Object.entries(_chainAssetMap).filter(([token]) => tokens.includes(token)));
@@ -168,11 +240,14 @@ export function subscribeBalance (
       });
     }
 
+    const bitcoinApi = bitcoinApiMap[chainSlug];
+
     if (_isPureBitcoinChain(chainInfo)) {
       return subscribeBitcoinBalance(
         useAddresses,
         chainInfo,
-        bitcoinBalanceFunction,
+        chainAssetMap,
+        bitcoinApi,
         callback
       );
     }

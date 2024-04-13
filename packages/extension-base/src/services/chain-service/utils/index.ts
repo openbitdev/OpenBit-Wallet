@@ -88,6 +88,10 @@ export function _getOriginChainOfAsset (assetSlug: string) {
   return assetSlug.split('-')[0];
 }
 
+export function _getRuneId (tokenInfo: _ChainAsset) {
+  return tokenInfo.metadata?.runeId as string || '';
+}
+
 export function _getContractAddressOfToken (tokenInfo: _ChainAsset) {
   return tokenInfo.metadata?.contractAddress as string || '';
 }
