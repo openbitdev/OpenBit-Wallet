@@ -225,6 +225,45 @@ export class BalanceService implements StoppableServiceInterface {
     }));
   }
 
+  // private async getRunesBalance (address: string, chain: string) {
+  //   const runesFullList: Rune[] = [];
+  //   const pageSize = 10;
+  //   let offset = 0;
+  //
+  //   const runeService = RunesService.getInstance();
+  //
+  //   try {
+  //     while (true) {
+  //       const response = await runeService.getAddressRunesInfo(FAKE_ADDRESS, {
+  //         limit: String(pageSize),
+  //         offset: String(offset)
+  //       }) as unknown as RunesResponse;
+  //
+  //       const runes = response.data.runes;
+  //
+  //       if (runes.length !== 0) {
+  //         runesFullList.push(...runes);
+  //         offset += pageSize;
+  //       } else {
+  //         break;
+  //       }
+  //     }
+  //
+  //     console.log('runesFullList', runesFullList);
+  //
+  //     return runesFullList;
+  //   } catch (error) {
+  //     console.error(`Failed to get ${address} balances`, error);
+  //     throw error;
+  //   }
+  // }
+  //
+  // private async getAddressesRunesBalance (addresses: string[], chain: string): Promise<Rune[][]>{
+  //   return await Promise.all(addresses.map((address) => {
+  //     return this.getRunesBalance(address, chain);
+  //   }));
+  // }
+
   /** Subscribe token free balance of a address on chain */
   public async subscribeTokenFreeBalance (address: string, chain: string, tokenSlug: string | undefined, callback?: (rs: AmountData) => void): Promise<[() => void, AmountData]> {
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);

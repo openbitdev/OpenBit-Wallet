@@ -8327,5 +8327,19 @@
     "multiChainAsset": null,
     "hasValue": false,
     "icon": "https://dev.sw-chain-list-assets.pages.dev/assets/multi-chain-assets/wbtc-wrappedbtc.png"
+  },
+  "bitcoinTestnet-LOCAL-COOK": {
+    "originChain": "bitcoinTestnet",
+    "slug": "bitcoinTestnet-LOCAL-COOK",
+    "name": "Bitcoin Testnet",
+    "symbol": "COOK",
+    "decimals": 1,
+    "priceId": null,
+    "minAmount": "0",
+    "assetType": "LOCAL",
+    "metadata": null,
+    "multiChainAsset": null,
+    "hasValue": false,
+    "icon": "https://dev.sw-chain-list-assets.pages.dev/assets/multi-chain-assets/wbtc-wrappedbtc.png"
   }
 }
