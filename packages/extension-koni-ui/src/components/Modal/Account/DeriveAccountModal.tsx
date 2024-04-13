@@ -57,7 +57,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
 
   const filteredItems = useMemo(
     () => accountProxies
-      .filter((ag) => ag.isMaster),
+      .filter((ap) => ap.isMaster),
     [accountProxies]
   );
 

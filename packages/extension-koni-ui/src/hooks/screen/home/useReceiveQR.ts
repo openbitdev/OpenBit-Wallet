@@ -71,7 +71,7 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
       return [];
     }
 
-    return accountProxies.filter((ag) => !checkIsAccountAll(ag.proxyId));
+    return accountProxies.filter((ap) => !checkIsAccountAll(ap.proxyId));
   }, [isAllAccount, accountProxies]);
 
   const getTokenSelectorItems = useCallback((accountProxy: AccountProxy) => {

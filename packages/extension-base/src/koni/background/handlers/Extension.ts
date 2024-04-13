@@ -85,9 +85,11 @@ function transformAccountProxies (accounts: SubjectInfo): AccountProxy[] {
 
   for (const address in accounts) {
     const singleAddress = accounts[address];
+
+    // todo: will solve the case account does not have proxy id
     const proxyId = (singleAddress.json.meta.proxyId || '') as string;
 
-    if (proxyId && !(proxyId in proxyMap)) {
+    if (!(proxyId in proxyMap)) {
       proxyMap[proxyId] = {
         proxyId: proxyId,
         accounts: []

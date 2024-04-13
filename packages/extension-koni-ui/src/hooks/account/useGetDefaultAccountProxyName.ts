@@ -10,7 +10,7 @@ const useGetDefaultAccountProxyName = () => {
   const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
 
   return useMemo(() => {
-    const filtered = accountProxies.filter((ag) => !isAccountAll(ag.proxyId));
+    const filtered = accountProxies.filter((ap) => !isAccountAll(ap.proxyId));
 
     return `Account ${filtered.length + 1}`;
   }, [accountProxies]);

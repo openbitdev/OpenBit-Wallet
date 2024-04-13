@@ -7,7 +7,7 @@ import { AccountProxyAvatar, AccountProxyItem } from '@subwallet/extension-koni-
 import { BasicInputWrapper } from '@subwallet/extension-koni-ui/components/Field/Base';
 import { useSelectModalInputHelper, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { groupFuncSortByName } from '@subwallet/extension-koni-ui/utils';
+import { funcSortByProxyName } from '@subwallet/extension-koni-ui/utils';
 import { InputRef, SelectModal } from '@subwallet/react-ui';
 import React, { ForwardedRef, forwardRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
@@ -37,7 +37,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
       _items = _items.filter(filter || defaultFiler);
     }
 
-    return _items.sort(groupFuncSortByName);
+    return _items.sort(funcSortByProxyName);
   }, [accountProxies, doFilter, externalAccountProxies, filter]);
 
   const { t } = useTranslation();

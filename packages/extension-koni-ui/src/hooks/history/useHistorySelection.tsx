@@ -15,7 +15,7 @@ function getSelectedAddress (accountProxies: AccountProxy[], currentAccountProxy
     return currentAccountProxyId;
   }
 
-  return accountProxies.find((ag) => !isAccountAll(ag.proxyId))?.proxyId || '';
+  return accountProxies.find((ap) => !isAccountAll(ap.proxyId))?.proxyId || '';
 }
 
 export default function useHistorySelection () {
@@ -37,10 +37,10 @@ export default function useHistorySelection () {
   }, [accountProxies, currentAccountProxy?.proxyId]);
 
   useEffect(() => {
-    const isSelectedAccountExist = accountProxies.some((ag) => ag.proxyId === selectedAccountProxyId);
+    const isSelectedAccountExist = accountProxies.some((ap) => ap.proxyId === selectedAccountProxyId);
 
     if (!isSelectedAccountExist) {
-      setSelectedAccountProxyId((accountProxies.find((ag) => !isAccountAll(ag.proxyId)))?.proxyId || '');
+      setSelectedAccountProxyId((accountProxies.find((ap) => !isAccountAll(ap.proxyId)))?.proxyId || '');
     }
   }, [accountProxies, selectedAccountProxyId]);
 

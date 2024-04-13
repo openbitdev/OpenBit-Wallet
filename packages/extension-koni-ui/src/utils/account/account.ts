@@ -61,7 +61,7 @@ export const findAccountProxyByProxyId = (accountProxies: AccountProxy[], proxyI
       return null;
     }
 
-    const result = accountProxies.find((ag) => ag.proxyId === proxyId);
+    const result = accountProxies.find((ap) => ap.proxyId === proxyId);
 
     return result || null;
   } catch (e) {
@@ -110,7 +110,7 @@ export const isNoAccount = (accounts: AccountJson[] | null): boolean => {
 };
 
 export const isNoAccountProxy = (accountProxies: AccountProxy[] | null): boolean => {
-  return accountProxies ? !accountProxies.filter((ag) => ag.proxyId !== ALL_ACCOUNT_KEY).length : false;
+  return accountProxies ? !accountProxies.filter((ap) => ap.proxyId !== ALL_ACCOUNT_KEY).length : false;
 };
 
 export const searchAccountFunction = (item: AbstractAddressJson, searchText: string): boolean => {
@@ -158,7 +158,7 @@ export const funcSortByName = (a: AbstractAddressJson, b: AbstractAddressJson) =
   return ((a?.name || '').toLowerCase() > (b?.name || '').toLowerCase()) ? 1 : -1;
 };
 
-export const groupFuncSortByName = (a: AccountProxy, b: AccountProxy) => {
+export const funcSortByProxyName = (a: AccountProxy, b: AccountProxy) => {
   if (isAccountAll(b.proxyId)) {
     return 3;
   }

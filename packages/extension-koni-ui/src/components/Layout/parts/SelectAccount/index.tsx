@@ -9,7 +9,7 @@ import { saveCurrentAccountProxy } from '@subwallet/extension-koni-ui/messaging'
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { groupFuncSortByName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
+import { funcSortByProxyName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Plug, Plugs, PlugsConnected } from 'phosphor-react';
@@ -66,8 +66,8 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const [selectedQrAccountProxyId, setSelectedQrAccountProxyId] = useState<string | undefined>();
 
   const accountProxies = useMemo((): AccountProxy[] => {
-    const result = [..._accountProxies].sort(groupFuncSortByName);
-    const all = result.find((ag) => isAccountAll(ag.proxyId));
+    const result = [..._accountProxies].sort(funcSortByProxyName);
+    const all = result.find((ap) => isAccountAll(ap.proxyId));
 
     if (all) {
       const index = result.indexOf(all);
@@ -102,7 +102,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
 
   const _onSelect = useCallback((proxyId: string) => {
     if (proxyId) {
-      const accountProxy = accountProxies.find((ag) => ag.proxyId === proxyId);
+      const accountProxy = accountProxies.find((ap) => ap.proxyId === proxyId);
 
       if (accountProxy) {
         saveCurrentAccountProxy({ proxyId: proxyId }).then(() => {

@@ -77,7 +77,7 @@ const accountStateSlice = createSlice({
 
       return {
         ...state,
-        accounts: payload.reduce((accounts, ag) => [...accounts, ...ag.accounts], [] as AccountJson[]),
+        accounts: payload.reduce((accounts, ap) => [...accounts, ...ap.accounts], [] as AccountJson[]),
         accountProxies: payload,
         reduxStatus: ReduxStatus.READY
       };
