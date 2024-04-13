@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { Avatar } from '@subwallet/extension-koni-ui/components/Avatar';
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import ChainItem from '@subwallet/extension-koni-ui/components/MetaInfo/parts/ChainItem';
 import { ChainInfo } from '@subwallet/extension-koni-ui/types/chain';
 import { toShort } from '@subwallet/extension-koni-ui/utils';
@@ -34,19 +34,19 @@ const Component: React.FC<TransferInfoItem> = (props: TransferInfoItem) => {
     recipientAddress,
     recipientLabel,
     recipientName,
-    senderAddress,
-    senderLabel, senderName,
+    recipientProxyId,
+    senderAddress, senderLabel, senderName, senderProxyId,
     valueColorSchema = 'default' } = props;
 
   const { t } = useTranslation();
 
-  const genAccountBlock = (address: string, name?: string) => {
+  const genAccountBlock = (address: string, proxyId?: string, name?: string) => {
     return (
       <div className={`__account-item __value -is-wrapper -schema-${valueColorSchema}`}>
-        <Avatar
+        <AccountProxyAvatar
           className={'__account-avatar'}
           size={24}
-          value={address}
+          value={proxyId}
         />
         <div className={'__account-name ml-xs'}>
           {name || toShort(address)}
@@ -102,13 +102,13 @@ const Component: React.FC<TransferInfoItem> = (props: TransferInfoItem) => {
       <div className={'__col __label-col'}>
         <div className={'__label'}>{senderLabel || t('Sender')}</div>
 
-        {genAccountBlock(senderAddress, senderName)}
+        {genAccountBlock(senderAddress, senderProxyId, senderName)}
         {!!originChain && genChainBlock(originChain)}
       </div>
       <div className={'__col __value-col'}>
         <div className={'__label'}>{recipientLabel || t('Recipient')}</div>
 
-        {genAccountBlock(recipientAddress, recipientName)}
+        {genAccountBlock(recipientAddress, recipientProxyId, recipientName)}
         {!!destinationChain && genChainBlock(destinationChain)}
       </div>
     </div>

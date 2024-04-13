@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AccountProxy } from '@subwallet/extension-base/background/types';
-import AvatarGroup from '@subwallet/extension-koni-ui/components/Account/Info/AvatarGroup';
+import { AccountProxyAvatar, AccountProxyAvatarGroup } from '@subwallet/extension-koni-ui/components';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
@@ -20,7 +20,13 @@ const Component: React.FC<Props> = ({ accountProxy, className }: Props) => {
 
   return (
     <div className={className}>
-      {isAll && <AvatarGroup />}
+      {isAll && <AccountProxyAvatarGroup />}
+      {!isAll && (
+        <AccountProxyAvatar
+          size={24}
+          value={accountProxy.proxyId}
+        />
+      )}
       <Typography.Text
         className='account-name'
         ellipsis={true}
