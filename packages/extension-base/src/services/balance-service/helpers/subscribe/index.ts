@@ -83,40 +83,28 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
   const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
 
   const getRunesBalance = () => {
-    Object.values(tokenList).map(async (tokenInfo) => {
+    const runeIdToSlugMap: Record<string, string> = {};
+
+    Object.values(tokenList).map((token) => {
+      return runeIdToSlugMap[_getRuneId(token)] = token.slug;
+    });
+
+    addresses.map(async (address) => {
       try {
-        const runeId = _getRuneId(tokenInfo);
-        const balances = await Promise.all(addresses.map(async (address) => {
-          try {
-            const runes = await bitcoinApi.api.getRunes(address);
-
-            for (const rune of runes) {
-              if (rune.rune.rune_id === runeId) {
-                return rune.amount;
-              }
-            }
-
-            return '0';
-          } catch (error) {
-            console.log(`Error on get balance of account ${address} for token ${tokenInfo.slug}`, error);
-
-            return '0';
-          }
-        }));
-
-        const items: BalanceItem[] = balances.map((balance, index): BalanceItem => {
+        const runes = await bitcoinApi.api.getRunes(address);
+        const items = runes.map((rune) => {
           return {
-            address: addresses[index],
-            tokenSlug: tokenInfo.slug,
-            free: balance,
+            address: address,
+            tokenSlug: runeIdToSlugMap[rune.rune_id],
+            free: rune.amount,
             locked: '0',
             state: APIItemState.READY
-          };
+          } as BalanceItem;
         });
 
         callback(items);
       } catch (error) {
-        console.error(`Error on fetching balance of ${tokenInfo.slug}`, error);
+        console.log(`Error on get runes balance of account ${address}`);
       }
     });
   };

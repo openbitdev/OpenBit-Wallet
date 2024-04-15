@@ -4,7 +4,7 @@
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { BitcoinAddressSummaryInfo, BitcoinTransferItem, Rune, RunesResponse } from '@subwallet/extension-base/services/bitcoin-service/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
-import { RunesService } from '@subwallet/extension-base/services/rune-service/index.tx';
+import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';

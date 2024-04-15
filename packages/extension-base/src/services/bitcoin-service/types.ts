@@ -44,6 +44,7 @@ export interface Rune {
   amount: string,
   amount_decimal: string,
   address: string,
+  rune_id: string,
   rune: {
     rune_id: string,
     rune: string,
