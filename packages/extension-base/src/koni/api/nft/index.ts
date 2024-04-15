@@ -19,6 +19,7 @@ import { _NFT_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-servi
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _isChainSupportEvmNft, _isChainSupportNativeNft, _isChainSupportWasmNft, _isPureBitcoinChain, _isSupportOrdinal } from '@subwallet/extension-base/services/chain-service/utils';
 import { categoryAddresses } from '@subwallet/extension-base/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 
 import StatemintNftApi from './statemint_nft';
 
@@ -47,11 +48,12 @@ function createSubstrateNftApi (chain: string, substrateApi: _SubstrateApi | nul
 }
 
 function createBitcoinInscriptionApi (chain: string, addresses: string[]) {
-  // todo: recheck bitcoin address
-  const [bitcoinAddresses] = categoryAddresses(addresses);
+  const filteredAddresses = addresses.filter((a) => {
+    return getKeypairTypeByAddress(a) === 'bitcoin-86';
+  });
 
   if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
-    return new InscriptionApi(chain, bitcoinAddresses);
+    return new InscriptionApi(chain, filteredAddresses);
   } else {
     return null;
   }
@@ -137,8 +139,7 @@ export class NftHandler {
     try {
       if (this.needSetupApi) { // setup connections for first time use
         this.handlers = [];
-        // todo: recheck bitcoin address
-        const [bitcoinAddresses, substrateAddresses, evmAddresses] = categoryAddresses(this.addresses);
+        const [substrateAddresses, evmAddresses] = categoryAddresses(this.addresses);
 
         Object.entries(this.chainInfoMap).forEach(([chain, chainInfo]) => {
           if (_isChainSupportNativeNft(chainInfo)) {
@@ -152,7 +153,7 @@ export class NftHandler {
           }
 
           if (_isPureBitcoinChain(chainInfo)) {
-            const handler = createBitcoinInscriptionApi(chain, bitcoinAddresses);
+            const handler = createBitcoinInscriptionApi(chain, this.addresses);
 
             if (handler) {
               this.handlers.push(handler);
