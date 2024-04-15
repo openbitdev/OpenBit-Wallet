@@ -13,11 +13,18 @@ var _exportNames = {
   isBitcoinAddress: true,
   getKeypairTypeByAddress: true,
   getDerivePath: true,
+  BtcSizeFeeEstimator: true,
   createPair: true,
   packageInfo: true,
   createTestKeyring: true,
   createTestPairs: true
 };
+Object.defineProperty(exports, "BtcSizeFeeEstimator", {
+  enumerable: true,
+  get: function () {
+    return _utils.BtcSizeFeeEstimator;
+  }
+});
 Object.defineProperty(exports, "Keyring", {
   enumerable: true,
   get: function () {

@@ -3,7 +3,7 @@
 
 import * as bitcoin from 'bitcoinjs-lib';
 import { encodeAddress as polkadotEncodeAddress } from '@polkadot/util-crypto';
-import { decodeAddress } from "./decodeAddress.js";
+import { decodeAddress } from "./decode.js";
 export const encodeAddress = (key, ss58Format = 42, type) => {
   // decode it, this means we can re-encode an address
   const u8a = decodeAddress(key);

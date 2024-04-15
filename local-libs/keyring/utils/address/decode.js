@@ -4,7 +4,7 @@
 import * as bitcoin from 'bitcoinjs-lib';
 import { hexToU8a, isHex, isU8a, u8aToU8a } from '@polkadot/util';
 import { decodeAddress as polkadotDecodeAddress } from '@polkadot/util-crypto';
-import { validateP2PKHAddress, validateP2TRAddress, validateP2WPKHAddress } from "./validateAddess.js";
+import { validateP2PKHAddress, validateP2TRAddress, validateP2WPKHAddress } from "./validate.js";
 export const decodeAddress = (encoded, ignoreChecksum, ss58Format = -1) => {
   if (!encoded) {
     throw new Error('Invalid empty address passed');

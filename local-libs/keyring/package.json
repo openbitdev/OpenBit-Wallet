@@ -128,50 +128,75 @@
       "require": "./cjs/utils/index.js",
       "default": "./utils/index.js"
     },
-    "./utils/decodeAddress": {
-      "types": "./utils/decodeAddress.d.ts",
-      "require": "./cjs/utils/decodeAddress.js",
-      "default": "./utils/decodeAddress.js"
+    "./utils/address": {
+      "types": "./utils/address/index.d.ts",
+      "require": "./cjs/utils/address/index.js",
+      "default": "./utils/address/index.js"
     },
-    "./utils/derivePath": {
-      "types": "./utils/derivePath.d.ts",
-      "require": "./cjs/utils/derivePath.js",
-      "default": "./utils/derivePath.js"
+    "./utils/address/decode": {
+      "types": "./utils/address/decode.d.ts",
+      "require": "./cjs/utils/address/decode.js",
+      "default": "./utils/address/decode.js"
     },
-    "./utils/encodeAddress": {
-      "types": "./utils/encodeAddress.d.ts",
-      "require": "./cjs/utils/encodeAddress.js",
-      "default": "./utils/encodeAddress.js"
+    "./utils/address/encode": {
+      "types": "./utils/address/encode.d.ts",
+      "require": "./cjs/utils/address/encode.js",
+      "default": "./utils/address/encode.js"
     },
-    "./utils/fromPath": {
-      "types": "./utils/fromPath.d.ts",
-      "require": "./cjs/utils/fromPath.js",
-      "default": "./utils/fromPath.js"
+    "./utils/address/validate": {
+      "types": "./utils/address/validate.d.ts",
+      "require": "./cjs/utils/address/validate.js",
+      "default": "./utils/address/validate.js"
     },
-    "./utils/fromSeed": {
-      "types": "./utils/fromSeed.d.ts",
-      "require": "./cjs/utils/fromSeed.js",
-      "default": "./utils/fromSeed.js"
+    "./utils/derive-path": {
+      "types": "./utils/derive-path.d.ts",
+      "require": "./cjs/utils/derive-path.js",
+      "default": "./utils/derive-path.js"
     },
-    "./utils/typeAddress": {
-      "types": "./utils/typeAddress.d.ts",
-      "require": "./cjs/utils/typeAddress.js",
-      "default": "./utils/typeAddress.js"
+    "./utils/estimate-fee": {
+      "types": "./utils/estimate-fee.d.ts",
+      "require": "./cjs/utils/estimate-fee.js",
+      "default": "./utils/estimate-fee.js"
     },
-    "./utils/typePrefix": {
-      "types": "./utils/typePrefix.d.ts",
-      "require": "./cjs/utils/typePrefix.js",
-      "default": "./utils/typePrefix.js"
+    "./utils/legacy": {
+      "types": "./utils/legacy/index.d.ts",
+      "require": "./cjs/utils/legacy/index.js",
+      "default": "./utils/legacy/index.js"
     },
-    "./utils/typeSignature": {
-      "types": "./utils/typeSignature.d.ts",
-      "require": "./cjs/utils/typeSignature.js",
-      "default": "./utils/typeSignature.js"
+    "./utils/legacy/from": {
+      "types": "./utils/legacy/from/index.d.ts",
+      "require": "./cjs/utils/legacy/from/index.js",
+      "default": "./utils/legacy/from/index.js"
     },
-    "./utils/validateAddess": {
-      "types": "./utils/validateAddess.d.ts",
-      "require": "./cjs/utils/validateAddess.js",
-      "default": "./utils/validateAddess.js"
+    "./utils/legacy/from/path": {
+      "types": "./utils/legacy/from/path.d.ts",
+      "require": "./cjs/utils/legacy/from/path.js",
+      "default": "./utils/legacy/from/path.js"
+    },
+    "./utils/legacy/from/seed": {
+      "types": "./utils/legacy/from/seed.d.ts",
+      "require": "./cjs/utils/legacy/from/seed.js",
+      "default": "./utils/legacy/from/seed.js"
+    },
+    "./utils/legacy/type": {
+      "types": "./utils/legacy/type/index.d.ts",
+      "require": "./cjs/utils/legacy/type/index.js",
+      "default": "./utils/legacy/type/index.js"
+    },
+    "./utils/legacy/type/address": {
+      "types": "./utils/legacy/type/address.d.ts",
+      "require": "./cjs/utils/legacy/type/address.js",
+      "default": "./utils/legacy/type/address.js"
+    },
+    "./utils/legacy/type/prefix": {
+      "types": "./utils/legacy/type/prefix.d.ts",
+      "require": "./cjs/utils/legacy/type/prefix.js",
+      "default": "./utils/legacy/type/prefix.js"
+    },
+    "./utils/legacy/type/signature": {
+      "types": "./utils/legacy/type/signature.d.ts",
+      "require": "./cjs/utils/legacy/type/signature.js",
+      "default": "./utils/legacy/type/signature.js"
     }
   },
   "dependencies": {
@@ -179,6 +204,7 @@
     "@polkadot/util": "^12.2.1",
     "@polkadot/util-crypto": "^12.2.1",
     "bcryptjs": "^2.4.3",
+    "bignumber.js": "^9.1.2",
     "bitcoinjs-lib": "^6.1.5",
     "bitcoinjs-message": "^2.2.0",
     "ecpair": "^2.1.0",
