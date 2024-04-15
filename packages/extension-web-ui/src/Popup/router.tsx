@@ -64,7 +64,7 @@ const NftCollectionDetail = new LazyLoader('NftCollectionDetail', () => import('
 const NftImport = new LazyLoader('NftImport', () => import('@subwallet/extension-web-ui/Popup/Home/Nfts/NftImport'));
 
 const InscriptionItems = new LazyLoader('InscriptionItems', () => import('@subwallet/extension-web-ui/Popup/Home/Inscriptions/InscriptionItemList'));
-const InscriptionItemDetail = new LazyLoader('InscriptionItemDetail', () => import('@subwallet/extension-web-ui/Popup/Home/Inscriptions/InscriptionItemDetail'));
+const InscriptionItemDetail = new LazyLoader('InscriptionItemDetail', () => import('@subwallet/extension-web-ui/Popup/Home/Nfts/component/'));
 
 const History = new LazyLoader('History', () => import('@subwallet/extension-web-ui/Popup/Home/History'));
 const Crowdloans = new LazyLoader('Crowdloans', () => import('@subwallet/extension-web-ui/Popup/Home/Crowdloans'));
