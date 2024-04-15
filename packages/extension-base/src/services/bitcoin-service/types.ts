@@ -28,11 +28,6 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
-interface A {
-  freeBalance: string;
-  address: string;
-}
-
 export interface RunesResponse {
   statusCode: number;
   data: RunesFetchedData

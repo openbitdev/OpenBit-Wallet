@@ -184,6 +184,9 @@ export class BalanceService implements StoppableServiceInterface {
     });
   }
 
+  /*
+  Deprecated
+   */
   // todo: will update logic for this function for more clear
   private async getBitcoinBalance (address: string, chain: string): Promise<string> {
     const bitcoinChainSlug = getBitcoinChainByAddress(address);
@@ -219,52 +222,16 @@ export class BalanceService implements StoppableServiceInterface {
     }
   }
 
+  /*
+  Deprecated
+  */
   private async getAddressesBitcoinBalance (addresses: string[], chain: string): Promise<string[]> {
     return await Promise.all(addresses.map((address) => {
       return this.getBitcoinBalance(address, chain);
     }));
   }
 
-  // private async getRunesBalance (address: string, chain: string) {
-  //   const runesFullList: Rune[] = [];
-  //   const pageSize = 10;
-  //   let offset = 0;
-  //
-  //   const runeService = RunesService.getInstance();
-  //
-  //   try {
-  //     while (true) {
-  //       const response = await runeService.getAddressRunesInfo(FAKE_ADDRESS, {
-  //         limit: String(pageSize),
-  //         offset: String(offset)
-  //       }) as unknown as RunesResponse;
-  //
-  //       const runes = response.data.runes;
-  //
-  //       if (runes.length !== 0) {
-  //         runesFullList.push(...runes);
-  //         offset += pageSize;
-  //       } else {
-  //         break;
-  //       }
-  //     }
-  //
-  //     console.log('runesFullList', runesFullList);
-  //
-  //     return runesFullList;
-  //   } catch (error) {
-  //     console.error(`Failed to get ${address} balances`, error);
-  //     throw error;
-  //   }
-  // }
-  //
-  // private async getAddressesRunesBalance (addresses: string[], chain: string): Promise<Rune[][]>{
-  //   return await Promise.all(addresses.map((address) => {
-  //     return this.getRunesBalance(address, chain);
-  //   }));
-  // }
-
-  /** Subscribe token free balance of a address on chain */
+  /** Subscribe token free balance of an address on chain */
   public async subscribeTokenFreeBalance (address: string, chain: string, tokenSlug: string | undefined, callback?: (rs: AmountData) => void): Promise<[() => void, AmountData]> {
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
     const chainState = this.state.chainService.getChainStateByKey(chain);
@@ -287,8 +254,9 @@ export class BalanceService implements StoppableServiceInterface {
       const chainInfoMap = this.state.chainService.getChainInfoMap();
       const evmApiMap = this.state.chainService.getEvmApiMap();
       const substrateApiMap = this.state.chainService.getSubstrateApiMap();
+      const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
 
-      const unsub = subscribeBalance([address], [chain], [tSlug], assetMap, chainInfoMap, substrateApiMap, evmApiMap, this.getAddressesBitcoinBalance.bind(this), (result) => {
+      const unsub = subscribeBalance([address], [chain], [tSlug], assetMap, chainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap, (result) => {
         const rs = result[0];
 
         if (rs.tokenSlug === tSlug) {
@@ -434,6 +402,7 @@ export class BalanceService implements StoppableServiceInterface {
     const chainInfoMap = this.state.chainService.getChainInfoMap();
     const evmApiMap = this.state.chainService.getEvmApiMap();
     const substrateApiMap = this.state.chainService.getSubstrateApiMap();
+    const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
 
     const activeChainSlugs = Object.keys(this.state.getActiveChainInfoMap());
     const assetState = this.state.chainService.subscribeAssetSettings().value;
@@ -443,7 +412,7 @@ export class BalanceService implements StoppableServiceInterface {
       })
       .map((asset) => asset.slug);
 
-    const unsub = subscribeBalance(addresses, activeChainSlugs, assets, assetMap, chainInfoMap, substrateApiMap, evmApiMap, this.getAddressesBitcoinBalance.bind(this), (result) => {
+    const unsub = subscribeBalance(addresses, activeChainSlugs, assets, assetMap, chainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap, (result) => {
       !cancel && this.setBalanceItem(result);
     });
 

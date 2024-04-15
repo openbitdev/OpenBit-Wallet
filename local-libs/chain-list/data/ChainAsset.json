@@ -8333,11 +8333,29 @@
     "slug": "bitcoinTestnet-LOCAL-COOK",
     "name": "Bitcoin Testnet",
     "symbol": "COOK",
-    "decimals": 1,
+    "decimals": 0,
     "priceId": null,
     "minAmount": "0",
     "assetType": "LOCAL",
-    "metadata": null,
+    "metadata": {
+      "runeId": "c82970852"
+    },
+    "multiChainAsset": null,
+    "hasValue": false,
+    "icon": "https://dev.sw-chain-list-assets.pages.dev/assets/multi-chain-assets/wbtc-wrappedbtc.png"
+  },
+  "bitcoinTestnet-LOCAL-RUNES": {
+    "originChain": "bitcoinTestnet",
+    "slug": "bitcoinTestnet-LOCAL-RUNES",
+    "name": "Bitcoin Testnet",
+    "symbol": "RUNES",
+    "decimals": 0,
+    "priceId": null,
+    "minAmount": "0",
+    "assetType": "LOCAL",
+    "metadata": {
+      "runeId": "c829f0b53"
+    },
     "multiChainAsset": null,
     "hasValue": false,
     "icon": "https://dev.sw-chain-list-assets.pages.dev/assets/multi-chain-assets/wbtc-wrappedbtc.png"

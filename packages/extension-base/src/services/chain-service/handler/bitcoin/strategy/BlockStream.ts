@@ -10,9 +10,6 @@ import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-re
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 import EventEmitter from 'eventemitter3';
 
-// todo: remove FAKE_ADDRESS
-const FAKE_ADDRESS = 'bc1p4ajta58ucfnzje6n4uw6y0q2rg228u7d6z4qtr7gruwm4t0308kqnw82x7';
-
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
 
@@ -73,12 +70,19 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
     try {
       while (true) {
-        const response = await runeService.getAddressRunesInfo(FAKE_ADDRESS, {
+        const response = await runeService.getAddressRunesInfo(address, {
           limit: String(pageSize),
           offset: String(offset)
         }) as unknown as RunesResponse;
 
-        const runes = response.data.runes;
+        let runes: Rune[] = [];
+
+        if (response.statusCode === 200) {
+          runes = response.data.runes;
+        } else {
+          console.log(`Error on request runes data for address ${address}`);
+          break;
+        }
 
         if (runes.length !== 0) {
           runesFullList.push(...runes);
