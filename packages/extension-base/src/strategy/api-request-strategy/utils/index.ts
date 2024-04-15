@@ -3,14 +3,13 @@
 
 import fetch from 'cross-fetch';
 
-export const postRequest = (url: string, body: any, headers?: Record<string, string>) => {
+export const postRequest = (url: string, body: any, headers?: Record<string, string>, jsonBody = true) => {
   return fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers
+    headers: headers || {
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body)
+    body: jsonBody ? JSON.stringify(body) : (body as string)
   });
 };
 

@@ -93,7 +93,7 @@
     "@polkadot/util-crypto": "^12.6.2",
     "@subwallet/chain-list": "file:./local-libs/chain-list",
     "@subwallet/keyring": "file:../Subwallet-Base/packages/keyring/build/",
-    "@subwallet/ui-keyring": "0.1.5-beta.0",
+    "@subwallet/ui-keyring": "file:../Subwallet-Base/packages/ui-keyring/build/",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^29.3.1",
     "bitcoinjs-lib": "6.1.5",

@@ -3,7 +3,7 @@
 
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
-import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSendTransactionRequest, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, FeeData, NotificationType, TransactionAdditionalInfo, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSignatureRequest, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, FeeData, NotificationType, TransactionAdditionalInfo, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
@@ -20,8 +20,8 @@ import { SWTransaction, SWTransactionInput, SWTransactionResponse, TransactionEm
 import { getExplorerLink, parseTransactionData } from '@subwallet/extension-base/services/transaction-service/utils';
 import { isWalletConnectRequest } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { Web3Transaction } from '@subwallet/extension-base/signers/types';
-import { EvmEIP1995FeeOption, EvmFeeInfo, LeavePoolAdditionalData, RequestStakePoolingBonding, RequestYieldStepSubmit, SpecialYieldPoolInfo, YieldPoolType } from '@subwallet/extension-base/types';
-import { anyNumberToBN, combineEthFee, getId, reformatAddress } from '@subwallet/extension-base/utils';
+import { BitcoinFeeInfo, BitcoinFeeRate, EvmEIP1995FeeOption, EvmFeeInfo, LeavePoolAdditionalData, RequestStakePoolingBonding, RequestYieldStepSubmit, SpecialYieldPoolInfo, YieldPoolType } from '@subwallet/extension-base/types';
+import { anyNumberToBN, combineBitcoinFee, combineEthFee, getId, getSizeInfo, reformatAddress } from '@subwallet/extension-base/utils';
 import { mergeTransactionAndSignature } from '@subwallet/extension-base/utils/eth/mergeTransactionAndSignature';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { BN_ZERO } from '@subwallet/extension-base/utils/number';
@@ -145,16 +145,23 @@ export default class TransactionService {
       estimateFee.decimals = decimals;
       estimateFee.symbol = symbol;
 
+      const id = getId();
+
       if (transaction) {
         try {
           if (isSubstrateTransaction(transaction)) {
             estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
           } else if (isBitcoinTransaction(transaction)) {
-            const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
-            const feeEstimates = bitcoinApi.api.getFeeRate();
+            const feeInfo = await this.state.feeService.subscribeChainFee(id, chain, 'bitcoin') as BitcoinFeeInfo;
+            const feeCombine = combineBitcoinFee(feeInfo, feeOption, feeCustom as BitcoinFeeRate);
+            // TODO: Need review
+            const sizeInfo = getSizeInfo({
+              inputLength: transaction.inputCount,
+              outputLength: transaction.txOutputs.length,
+              recipient: address
+            });
 
-            console.log('feeEstimates143', feeEstimates);
-            estimateFee.value = feeEstimates.medium.toString();
+            estimateFee.value = (feeCombine.feeRate * sizeInfo.txVBytes).toString();
           } else {
             const web3 = this.state.chainService.getEvmApi(chain);
 
@@ -163,7 +170,6 @@ export default class TransactionService {
             } else {
               const gasLimit = await web3.api.eth.estimateGas(transaction);
 
-              const id = getId();
               const feeInfo = await this.state.feeService.subscribeChainFee(id, chain, 'evm') as EvmFeeInfo;
               const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom as EvmEIP1995FeeOption);
 
@@ -957,6 +963,7 @@ export default class TransactionService {
     return ethers.Transaction.from(txObject).unsignedSerialized as HexString;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async signAndSendBitcoinTransaction ({ address, chain, id, transaction, url }: SWTransaction): Promise<TransactionEmitter> {
     const tx = transaction as Psbt;
     const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
@@ -965,16 +972,16 @@ export default class TransactionService {
     const accountPair = keyring.getPair(address);
     const account: AccountJson = { address, ...accountPair.meta };
 
-    if (!payload.account) {
-      payload.account = account;
-    }
-
-    // Allow sign transaction
-    payload.canSign = true;
+    const payload: BitcoinSignatureRequest = {
+      payload: undefined,
+      payloadJson: undefined,
+      account,
+      canSign: true,
+      hashPayload: tx.toHex(),
+      id
+    };
 
     const emitter = new EventEmitter<TransactionEventMap>();
-
-    console.log('emitter1165', emitter);
 
     const eventData: TransactionEventResponse = {
       id,
@@ -982,8 +989,6 @@ export default class TransactionService {
       warnings: [],
       extrinsicHash: id
     };
-
-    console.log('eventData1174', eventData);
 
     const isInjected = !!account.isInjected;
     const isExternal = !!account.isExternal;
@@ -1031,7 +1036,7 @@ export default class TransactionService {
       //   });
     } else {
       this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinSendTransactionRequest', payload, {})
-        .then(async ({ isApproved, payload }) => {
+        .then(({ isApproved, payload }) => {
           if (isApproved) {
             if (!payload) {
               throw new Error('Bad signature');
@@ -1039,7 +1044,6 @@ export default class TransactionService {
 
             // Emit signed event
             emitter.emit('signed', eventData);
-
             // Add start info
             emitter.emit('send', eventData);
             const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
