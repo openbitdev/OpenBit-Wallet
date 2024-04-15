@@ -152,7 +152,7 @@ export default class KoniState {
     this.keyringService = new KeyringService(this.eventService);
 
     this.notificationService = new NotificationService();
-    this.chainService = new ChainService(this.dbService, this.eventService);
+    this.chainService = new ChainService(this.dbService, this.eventService, this.keyringService);
     this.subscanService = SubscanService.getInstance();
     this.settingService = new SettingService();
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);

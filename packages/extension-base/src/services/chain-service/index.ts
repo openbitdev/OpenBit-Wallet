@@ -5,7 +5,7 @@ import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, M
 import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { RunesCollectionInfo, RunesCollectionInfoResponse } from '@subwallet/extension-base/services/bitcoin-service/types';
-import { _ALWAYS_ACTIVE_CHAINS, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
+import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/BitcoinChainHandler';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
@@ -14,11 +14,13 @@ import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chai
 import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
+import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storage-service/databases';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
 import { addLazy, fetchStaticData, filterAssetsByChainAndType, MODULE_SUPPORT } from '@subwallet/extension-base/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import { BehaviorSubject, Subject } from 'rxjs';
 import Web3 from 'web3';
 
@@ -35,6 +37,7 @@ export class ChainService {
 
   private dbService: DatabaseService; // to save chain, token settings from user
   private eventService: EventService;
+  private keyringService: KeyringService;
 
   private lockChainInfoMap = false; // prevent unwanted changes (edit, enable, disable) to chainInfoMap
 
@@ -67,9 +70,10 @@ export class ChainService {
 
   private logger: Logger;
 
-  constructor (dbService: DatabaseService, eventService: EventService) {
+  constructor (dbService: DatabaseService, eventService: EventService, keyringService: KeyringService) {
     this.dbService = dbService;
     this.eventService = eventService;
+    this.keyringService = keyringService;
 
     this.chainInfoMapSubject.next(this.dataMap.chainInfoMap);
     this.chainStateMapSubject.next(this.dataMap.chainStateMap);
@@ -537,7 +541,7 @@ export class ChainService {
     const tokenSlugList: string[] = [];
     const assetRegistry = this.getAssetRegistry();
 
-    tokens.map((token) => {
+    tokens.forEach((token) => {
       if (token.slug.length === 0) {
         if (token.assetType === _AssetType.NATIVE) {
           const defaultSlug = this.generateSlugForNativeToken(token.originChain, token.assetType, token.symbol);
@@ -560,12 +564,8 @@ export class ChainService {
 
     this.dataMap.assetRegistry = assetRegistry;
 
-    console.log(assetRegistry);
-    console.log(this.getAssetRegistry());
-
     this.assetRegistrySubject.next(this.getAssetRegistry());
     this.dbService.updateBatchAssetStore(tokens).catch((e) => this.logger.error(e));
-    this.eventService.emit('asset.updateState', '');
 
     return tokenSlugList;
   }
@@ -767,6 +767,44 @@ export class ChainService {
     }
   }
 
+  async autoEnableRuneTokens () {
+    const bitcoinApi = this.getBitcoinApi(_BITCOIN_CHAIN_SLUG);
+    const chainState = this.getChainStateByKey(_BITCOIN_CHAIN_SLUG);
+
+    if (!chainState || !chainState.manualTurnOff) {
+      return;
+    }
+
+    const assetSetting = await this.getAssetSettings();
+    const assetSettingValue = this.assetSettingSubject.value;
+
+    const updateAssetSetting: Record<string, AssetSetting> = {};
+    const allAddresses = this.keyringService.accounts;
+
+    await Promise.all(Object.keys(allAddresses).map(async (address) => {
+      const keyPairType = getKeypairTypeByAddress(address);
+
+      if (keyPairType === 'bitcoin-86') {
+        const runes = await bitcoinApi.api.getRunes(address);
+
+        runes.forEach((rune) => {
+          const amount = rune.amount;
+          const runeName = rune.rune.rune;
+          const runeId = rune.rune_id;
+
+          const assetSlug = `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${runeName}-${runeId}`;
+          const assetState = assetSettingValue[assetSlug];
+
+          if (!!amount && !assetState) {
+            updateAssetSetting[assetSlug] = { visible: true };
+          }
+        });
+      }
+    }));
+
+    this.setAssetSettings({ ...assetSetting, ...updateAssetSetting });
+  }
+
   handleLatestData () {
     this.fetchLatestAssetData().then(([latestAssetInfo, latestAssetLogoMap]) => {
       this.eventService.waitAssetReady
@@ -780,6 +818,12 @@ export class ChainService {
       this.eventService.waitAssetReady
         .then(() => {
           this.upsertBatchCustomToken(Object.values(runesAssetMap));
+
+          this.autoEnableRuneTokens()
+            .then(() => {
+              this.eventService.emit('asset.updateState', '');
+            })
+            .catch(console.error);
         })
         .catch(console.error);
     }).catch(console.error);
@@ -1035,9 +1079,6 @@ export class ChainService {
   }
 
   private async fetchLatestRuneData () {
-    //todo: move this constants
-    const BITCOIN_CHAIN_SLUG = 'bitcoin';
-    const BITCOIN_NAME = 'Bitcoin';
     const chainAssetMap: Record<string, _ChainAsset> = {};
     const pageSize = 2000;
     let offset = 0;
@@ -1055,11 +1096,11 @@ export class ChainService {
 
         if (response.statusCode === 200) {
           runes = response.data.runes;
-          runes.map((rune) => {
+          runes.forEach((rune) => {
             const chainAssetItem = {
-              originChain: `${BITCOIN_CHAIN_SLUG}`,
-              slug: `${BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune}-${rune.rune_id}`,
-              name: `${BITCOIN_NAME}`,
+              originChain: `${_BITCOIN_CHAIN_SLUG}`,
+              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune}-${rune.rune_id}`,
+              name: `${_BITCOIN_NAME}`,
               symbol: rune.rune,
               decimals: 0,
               priceId: null,
