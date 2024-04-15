@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountProxyAvatarGroup } from '@subwallet/extension-koni-ui/components';
 import { useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -23,7 +24,10 @@ function Component (props: Props): React.ReactElement<Props> {
   return (
     <div className={CN(className)}>
       <div className='__item-left-part'>
-        {t('All account')}
+        <AccountProxyAvatarGroup />
+      </div>
+      <div className='__item-middle-part'>
+        {t('All accounts')}
       </div>
       <div className='__item-right-part'>
         {isSelected && (
@@ -53,9 +57,20 @@ const AccountProxySelectorAllItem = styled(Component)<Props>(({ theme }) => {
     display: 'flex',
     cursor: 'pointer',
     transition: `background ${token.motionDurationMid} ease-in-out`,
+    gap: token.sizeXS,
 
     '.__item-left-part': {
-      flex: 1
+
+    },
+
+    '.__item-middle-part': {
+      flex: 1,
+      fontSize: token.fontSizeLG,
+      color: token.colorTextLight1,
+      lineHeight: token.lineHeightLG,
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      'white-space': 'nowrap'
     },
 
     '.__checked-icon-wrapper': {

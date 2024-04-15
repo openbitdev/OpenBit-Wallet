@@ -46,7 +46,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
 
   const disableDerive = useMemo(
     () => !accountProxies
-      .filter((ag) => ag.isMaster).length,
+      .filter((ap) => ap.isMaster).length,
     [accountProxies]
   );
 

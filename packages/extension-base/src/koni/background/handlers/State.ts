@@ -513,13 +513,13 @@ export default class KoniState {
     return this.dbService.stores.nftCollection.subscribeNftCollection(getChains);
   }
 
-  resetNft (newAddress: string): void {
+  resetNft (accountProxyId: string): void {
     this.getNft().then((data) => this.nftSubject.next(data || {
       nftList: [],
       total: 0
     })).catch((e) => this.logger.warn(e));
 
-    const addresses = this.getDecodedAddresses(newAddress);
+    const addresses = this.getAccountProxyAddresses(accountProxyId);
 
     this.dbService.subscribeNft(addresses, this.activeChainSlugs, (nfts) => {
       this.nftSubject.next({
@@ -544,7 +544,7 @@ export default class KoniState {
   }
 
   public async getNft (): Promise<NftJson | undefined> {
-    const addresses = this.getDecodedAddresses();
+    const addresses = this.getAccountProxyAddresses();
 
     if (!addresses.length) {
       return;
@@ -1173,6 +1173,7 @@ export default class KoniState {
       chainInfoMap: this.chainService.getChainInfoMap(),
       chainApiMap: this.getApiMap(),
       currentAccountInfo: this.keyringService.currentAccount,
+      currentAccountProxyInfo: this.keyringService.currentAccountProxy,
       assetRegistry: this.chainService.getAssetRegistry(),
       chainStateMap: this.chainService.getChainStateMap()
     };

@@ -6224,12 +6224,12 @@ __metadata:
 
 "@subwallet/chain-list@file:./local-libs/chain-list::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.53-beta.1
-  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=1a5de3&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=267d76&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: ede4e6ab43e060d1017a4295e28e461589d3e5c1a34135d8d3c664a8250bdbc28614454cba5d0b937c21e2143cd282cca8eb2408b57c39ca1cb39f5d4bc083dc
+  checksum: 2d72bc6b7e84b0838a579e132e9120c4798fcaaa402c5db5ac1ae4b737181a2e0d87853b85347e17d7c27be19009928546aab3dfaeac034e9809ab1ece125aef
   languageName: node
   linkType: hard
 

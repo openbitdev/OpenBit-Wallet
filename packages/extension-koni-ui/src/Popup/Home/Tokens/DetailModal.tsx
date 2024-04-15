@@ -3,7 +3,6 @@
 
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { isSameAddress } from '@subwallet/extension-base/utils';
 import { AccountTokenBalanceItem, EmptyList, RadioGroup } from '@subwallet/extension-koni-ui/components';
 import { useSelector } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
@@ -55,7 +54,7 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
 
   const isActive = checkActive(id);
 
-  const { currentAccount, isAllAccount } = useSelector((state) => state.accountState);
+  const { currentAccountProxy, isAllAccount } = useSelector((state) => state.accountState);
   const { balanceMap } = useSelector((state) => state.balance);
 
   const [form] = Form.useForm<FormState>();
@@ -113,7 +112,7 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
       if (isAllAccount) {
         return !isAccountAll(address);
       } else {
-        return isSameAddress(address, currentAccount?.address || '');
+        return currentAccountProxy?.accounts.some((a) => a.address === address) || false;
       }
     };
 
@@ -133,7 +132,7 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
 
       return bTotal.minus(aTotal).toNumber();
     });
-  }, [balanceMap, currentAccount?.address, currentTokenInfo?.slug, isAllAccount]);
+  }, [balanceMap, currentAccountProxy?.accounts, currentTokenInfo?.slug, isAllAccount]);
 
   const symbol = currentTokenInfo?.symbol || '';
 
@@ -162,7 +161,6 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
         name='token-detail-form'
       >
         <Form.Item
-          hidden={!isAllAccount}
           name='view'
         >
           <RadioGroup

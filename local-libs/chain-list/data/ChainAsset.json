@@ -8306,7 +8306,7 @@
     "name": "Bitcoin",
     "symbol": "BTC",
     "decimals": 8,
-    "priceId": null,
+    "priceId": "bitcoin",
     "minAmount": "0",
     "assetType": "NATIVE",
     "metadata": null,

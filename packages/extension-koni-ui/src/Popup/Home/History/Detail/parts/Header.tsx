@@ -45,8 +45,10 @@ const Component: React.FC<Props> = (props: Props) => {
         }}
         recipientAddress={data.to}
         recipientName={data.toName}
+        recipientProxyId={data.toProxyId}
         senderAddress={data.from}
         senderName={data.fromName}
+        senderProxyId={data.fromProxyId}
       />
     );
   }
@@ -72,8 +74,10 @@ const Component: React.FC<Props> = (props: Props) => {
             <MetaInfo.Transfer
               recipientAddress={data.to}
               recipientName={data.toName}
+              recipientProxyId={data.toProxyId}
               senderAddress={data.from}
               senderName={data.fromName}
+              senderProxyId={data.fromProxyId}
             />
           )
       }

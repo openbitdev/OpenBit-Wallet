@@ -6,19 +6,20 @@ import { NftCollection, NftItem } from '@subwallet/extension-base/background/Kon
 import { AcalaNftApi } from '@subwallet/extension-base/koni/api/nft/acala_nft';
 import { BitCountryNftApi } from '@subwallet/extension-base/koni/api/nft/bit.country';
 import { EvmNftApi } from '@subwallet/extension-base/koni/api/nft/evm_nft';
+import { InscriptionApi } from '@subwallet/extension-base/koni/api/nft/inscription';
 import { KaruraNftApi } from '@subwallet/extension-base/koni/api/nft/karura_nft';
 import { BaseNftApi } from '@subwallet/extension-base/koni/api/nft/nft';
 import OrdinalNftApi from '@subwallet/extension-base/koni/api/nft/ordinal_nft';
 import { RmrkNftApi } from '@subwallet/extension-base/koni/api/nft/rmrk_nft';
 import StatemineNftApi from '@subwallet/extension-base/koni/api/nft/statemine_nft';
 import { UniqueNftApi } from '@subwallet/extension-base/koni/api/nft/unique_network_nft';
-// import UniqueNftApi from '@subwallet/extension-base/koni/api/nft/unique_nft';
 import { VaraNftApi } from '@subwallet/extension-base/koni/api/nft/vara_nft';
 import { WasmNftApi } from '@subwallet/extension-base/koni/api/nft/wasm_nft';
 import { _NFT_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _isChainSupportEvmNft, _isChainSupportNativeNft, _isChainSupportWasmNft, _isSupportOrdinal } from '@subwallet/extension-base/services/chain-service/utils';
-import { categoryAddresses, targetIsWeb } from '@subwallet/extension-base/utils';
+import { _isChainSupportEvmNft, _isChainSupportNativeNft, _isChainSupportWasmNft, _isPureBitcoinChain, _isSupportOrdinal } from '@subwallet/extension-base/services/chain-service/utils';
+import { categoryAddresses } from '@subwallet/extension-base/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 
 import StatemintNftApi from './statemint_nft';
 
@@ -44,6 +45,18 @@ function createSubstrateNftApi (chain: string, substrateApi: _SubstrateApi | nul
   }
 
   return null;
+}
+
+function createBitcoinInscriptionApi (chain: string, addresses: string[]) {
+  const filteredAddresses = addresses.filter((a) => {
+    return getKeypairTypeByAddress(a) === 'bitcoin-86';
+  });
+
+  if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
+    return new InscriptionApi(chain, filteredAddresses);
+  } else {
+    return null;
+  }
 }
 
 function createWasmNftApi (chain: string, apiProps: _SubstrateApi | null, addresses: string[]): BaseNftApi | null {
@@ -139,6 +152,14 @@ export class NftHandler {
             }
           }
 
+          if (_isPureBitcoinChain(chainInfo)) {
+            const handler = createBitcoinInscriptionApi(chain, this.addresses);
+
+            if (handler) {
+              this.handlers.push(handler);
+            }
+          }
+
           if (_isChainSupportEvmNft(chainInfo)) {
             if (this.evmApiMap[chain]) {
               const handler = createWeb3NftApi(chain, this.evmApiMap[chain], evmAddresses);
@@ -159,7 +180,7 @@ export class NftHandler {
             }
           }
 
-          if (_isSupportOrdinal(chain) && targetIsWeb) {
+          if (_isSupportOrdinal(chain)) {
             const subscanChain = chainInfo.extraInfo?.subscanSlug;
 
             if (subscanChain) {

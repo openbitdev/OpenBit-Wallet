@@ -54,7 +54,8 @@ export interface ServiceInfo {
   chainInfoMap: Record<string, _ChainInfo>;
   chainStateMap: Record<string, _ChainState>;
   chainApiMap: ApiMap;
-  currentAccountInfo: CurrentAccountInfo;
+  currentAccountInfo: CurrentAccountInfo; // deprecate
+  currentAccountProxyInfo: CurrentAccountProxyInfo;
   assetRegistry: Record<string, _ChainAsset>;
 }
 

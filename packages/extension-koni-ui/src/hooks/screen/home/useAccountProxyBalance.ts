@@ -23,8 +23,8 @@ function getAddresses (currentGroup: AccountProxy | null, accountProxies: Accoun
   if (isAccountAll(currentGroup.proxyId)) {
     const result: string[] = [];
 
-    accountProxies.forEach((ag) => {
-      ag.accounts.forEach((a) => result.push(a.address));
+    accountProxies.forEach((ap) => {
+      ap.accounts.forEach((a) => result.push(a.address));
     });
 
     return result;

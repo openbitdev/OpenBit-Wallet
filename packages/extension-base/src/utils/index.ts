@@ -80,16 +80,20 @@ export function categoryAddresses (addresses: string[]) {
   addresses.forEach((address) => {
     if (isEthereumAddress(address)) {
       evmAddresses.push(address);
-    } else if (isBitcoinAddress(address)) {
+    } else {
       const network = isBitcoinAddress(address);
+
+      if (network === 'unknown') {
+        substrateAddresses.push(address);
+
+        return;
+      }
 
       if (network === 'mainnet') {
         mainnetBitcoinAddresses.push(address);
       } else if (network === 'testnet') {
         testnetBitcoinAddresses.push(address);
       }
-    } else {
-      substrateAddresses.push(address);
     }
   });
 

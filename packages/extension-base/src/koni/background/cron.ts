@@ -78,12 +78,13 @@ export class KoniCron {
 
     await Promise.all([this.state.eventService.waitKeyringReady, this.state.eventService.waitAssetReady]);
 
-    const currentAccountInfo = this.state.keyringService.currentAccount;
-
     const commonReloadEvents: EventType[] = [
-      'account.add',
-      'account.remove',
-      'account.updateCurrent',
+      'account.add', // deprecate, will remove
+      'account.remove', // deprecate, will remove
+      'account.updateCurrent', // deprecate, will remove
+      'accountProxy.add',
+      'accountProxy.remove',
+      'accountProxy.updateCurrent',
       'chain.add',
       'asset.updateState'
     ];
@@ -110,9 +111,9 @@ export class KoniCron {
         return;
       }
 
-      const address = serviceInfo.currentAccountInfo?.address;
+      const accountProxyId = serviceInfo.currentAccountProxyInfo?.proxyId;
 
-      if (!address) {
+      if (!accountProxyId) {
         return;
       }
 
@@ -125,26 +126,28 @@ export class KoniCron {
       commonReload && this.removeCron('refreshPoolingStakingReward');
 
       // NFT
-      (commonReload || needUpdateNft) && this.resetNft(address);
+      (commonReload || needUpdateNft) && this.resetNft(accountProxyId);
       (commonReload || needUpdateNft) && this.removeCron('refreshNft');
       commonReload && this.removeCron('refreshPoolingStakingReward');
 
       // Chains
       if (this.checkNetworkAvailable(serviceInfo)) { // only add cron jobs if there's at least 1 active network
-        (commonReload || needUpdateNft) && this.addCron('refreshNft', this.refreshNft(address, serviceInfo.chainApiMap, this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap()), CRON_REFRESH_NFT_INTERVAL);
+        (commonReload || needUpdateNft) && this.addCron('refreshNft', this.refreshNft(accountProxyId, serviceInfo.chainApiMap, this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap()), CRON_REFRESH_NFT_INTERVAL);
         // reloadMantaPay && this.addCron('syncMantaPay', this.syncMantaPay, CRON_SYNC_MANTA_PAY);
       }
     };
 
     this.state.eventService.onLazy(this.eventHandler);
 
-    if (!currentAccountInfo?.address) {
+    const currentAccountProxyInfo = this.state.keyringService.currentAccountProxy;
+
+    if (!currentAccountProxyInfo?.proxyId) {
       return;
     }
 
     if (Object.keys(this.state.getSubstrateApiMap()).length !== 0 || Object.keys(this.state.getEvmApiMap()).length !== 0) {
-      this.resetNft(currentAccountInfo.address);
-      this.addCron('refreshNft', this.refreshNft(currentAccountInfo.address, this.state.getApiMap(), this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap()), CRON_REFRESH_NFT_INTERVAL);
+      this.resetNft(currentAccountProxyInfo.proxyId);
+      this.addCron('refreshNft', this.refreshNft(currentAccountProxyInfo.proxyId, this.state.getApiMap(), this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap()), CRON_REFRESH_NFT_INTERVAL);
       // this.addCron('refreshStakingReward', this.refreshStakingReward(currentAccountInfo.address), CRON_REFRESH_STAKING_REWARD_INTERVAL);
       // this.addCron('syncMantaPay', this.syncMantaPay, CRON_SYNC_MANTA_PAY);
     }
@@ -181,14 +184,14 @@ export class KoniCron {
     }
   };
 
-  refreshNft = (address: string, apiMap: ApiMap, smartContractNfts: _ChainAsset[], chainInfoMap: Record<string, _ChainInfo>) => {
+  refreshNft = (accountProxyId: string, apiMap: ApiMap, smartContractNfts: _ChainAsset[], chainInfoMap: Record<string, _ChainInfo>) => {
     return () => {
-      this.subscriptions.subscribeNft(address, apiMap.substrate, apiMap.evm, smartContractNfts, chainInfoMap);
+      this.subscriptions.subscribeNft(accountProxyId, apiMap.substrate, apiMap.evm, smartContractNfts, chainInfoMap);
     };
   };
 
-  resetNft = (newAddress: string) => {
-    this.state.resetNft(newAddress);
+  resetNft = (accountProxyId: string) => {
+    this.state.resetNft(accountProxyId);
   };
 
   checkNetworkAvailable = (serviceInfo: ServiceInfo): boolean => {
@@ -196,12 +199,17 @@ export class KoniCron {
   };
 
   public async reloadNft () {
-    const address = this.state.keyringService.currentAccount.address;
+    const accountProxyId = this.state.keyringService.currentAccountProxy.proxyId;
+
+    if (!accountProxyId) {
+      return false;
+    }
+
     const serviceInfo = this.state.getServiceInfo();
 
-    this.resetNft(address);
+    this.resetNft(accountProxyId);
     this.removeCron('refreshNft');
-    this.addCron('refreshNft', this.refreshNft(address, serviceInfo.chainApiMap, this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap()), CRON_REFRESH_NFT_INTERVAL);
+    this.addCron('refreshNft', this.refreshNft(accountProxyId, serviceInfo.chainApiMap, this.state.getSmartContractNfts(), this.state.getActiveChainInfoMap()), CRON_REFRESH_NFT_INTERVAL);
 
     await waitTimeout(1800);
 

@@ -3,7 +3,7 @@
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { Avatar } from '@subwallet/extension-koni-ui/components';
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import { useGetAccountByAddress, useGetChainPrefixBySlug, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { reformatAddress, toShort } from '@subwallet/extension-koni-ui/utils';
@@ -52,9 +52,9 @@ const Component: React.FC<Props> = (props: Props) => {
         decimals={decimals}
         label={(
           <div className='account-info'>
-            <Avatar
+            <AccountProxyAvatar
               size={24}
-              value={address}
+              value={account?.proxyId}
             />
             <div className='account-name-address ml-xs'>
               {
