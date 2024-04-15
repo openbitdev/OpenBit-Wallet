@@ -9,7 +9,8 @@ module.exports = {
     ...base.ignorePatterns,
     "i18next-scanner.config.js",
     "koni-*.mjs",
-    "*.spec.ts"
+    "*.spec.ts",
+    "local-libs/*",
   ],
   parserOptions: {
     ...base.parserOptions,

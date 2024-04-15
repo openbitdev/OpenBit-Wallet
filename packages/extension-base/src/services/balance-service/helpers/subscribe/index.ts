@@ -9,7 +9,7 @@ import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain
 import { _getChainNativeTokenSlug, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
-import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 
 import { subscribeEVMBalance } from './evm';
@@ -56,13 +56,13 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
       getKeypairTypeByAddress(a) === 'ethereum' ? useAddresses.push(a) : notSupportAddresses.push(a);
     });
   } else if (isBitcoinChain) {
-    addresses.forEach((a) => {
-      const addressType = getKeypairTypeByAddress(a);
+    addresses.forEach((address) => {
+      const bitcoinAddressNetwork = isBitcoinAddress(address);
 
-      if ((addressType === 'bitcoin-84' && chainInfo.slug === 'bitcoin') || (addressType === 'bittest-84' && chainInfo.slug === 'bitcoinTestnet')) {
-        useAddresses.push(a);
+      if ((bitcoinAddressNetwork === 'mainnet' && chainInfo.slug === 'bitcoin') || (bitcoinAddressNetwork === 'testnet' && chainInfo.slug === 'bitcoinTestnet')) {
+        useAddresses.push(address);
       } else {
-        notSupportAddresses.push(a);
+        notSupportAddresses.push(address);
       }
     });
   } else {

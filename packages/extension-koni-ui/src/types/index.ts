@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ChainAsset } from '@subwallet/chain-list/types';
 import { NotificationType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { ButtonSchema } from '@subwallet/react-ui/es/button/button';
@@ -8,7 +9,6 @@ import { Icon as _PhosphorIcon, IconProps } from 'phosphor-react';
 import React from 'react';
 
 import { Theme as _Theme } from '../themes';
-import {_ChainAsset} from '@subwallet/chain-list/types';
 
 export type Theme = _Theme;
 export type PhosphorIcon = _PhosphorIcon;

@@ -201,7 +201,9 @@ export default class BitcoinRequestHandler {
 
     console.log('sigTransaction189');
 
-    return signedTransaction;
+    signedTransaction.finalizeAllInputs();
+
+    return signedTransaction.extractTransaction().toHex();
   }
 
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {

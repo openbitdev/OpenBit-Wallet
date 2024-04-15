@@ -13,6 +13,7 @@ export interface Message extends MessageEvent {
 }
 
 export * from './balance';
+export * from './bitcoin';
 export * from './buy';
 export * from './campaigns';
 export * from './fee';

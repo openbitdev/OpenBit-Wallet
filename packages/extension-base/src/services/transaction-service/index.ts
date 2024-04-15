@@ -7,7 +7,6 @@ import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSendTransactio
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
-import { getFeeEstimatesFromBlockcypherApi } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { _getAssetDecimals, _getAssetSymbol, _getChainNativeTokenBasicInfo, _getEvmChainId, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
@@ -21,13 +20,14 @@ import { SWTransaction, SWTransactionInput, SWTransactionResponse, TransactionEm
 import { getExplorerLink, parseTransactionData } from '@subwallet/extension-base/services/transaction-service/utils';
 import { isWalletConnectRequest } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { Web3Transaction } from '@subwallet/extension-base/signers/types';
-import { LeavePoolAdditionalData, RequestStakePoolingBonding, RequestYieldStepSubmit, SpecialYieldPoolInfo, YieldPoolType } from '@subwallet/extension-base/types';
-import { anyNumberToBN, reformatAddress } from '@subwallet/extension-base/utils';
+import { EvmEIP1995FeeOption, EvmFeeInfo, LeavePoolAdditionalData, RequestStakePoolingBonding, RequestYieldStepSubmit, SpecialYieldPoolInfo, YieldPoolType } from '@subwallet/extension-base/types';
+import { anyNumberToBN, combineEthFee, getId, reformatAddress } from '@subwallet/extension-base/utils';
 import { mergeTransactionAndSignature } from '@subwallet/extension-base/utils/eth/mergeTransactionAndSignature';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { BN_ZERO } from '@subwallet/extension-base/utils/number';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
+import { Psbt } from 'bitcoinjs-lib';
 import { addHexPrefix } from 'ethereumjs-util';
 import { ethers, TransactionLike } from 'ethers';
 import EventEmitter from 'eventemitter3';
@@ -93,152 +93,6 @@ export default class TransactionService {
     return [];
   }
 
-  // public async generalValidate (validationInput: SWTransactionInput): Promise<SWTransactionResponse> {
-  //   const validation = {
-  //     ...validationInput,
-  //     errors: validationInput.errors || [],
-  //     warnings: validationInput.warnings || []
-  //   };
-  //   console.log('validation103', validation)
-  //   const { additionalValidator, address, chain, edAsWarning, extrinsicType, isTransferAll, transaction } = validation;
-  //   console.log('transaction105', transaction)
-  //   // Check duplicate transaction
-  //   validation.errors.push(...this.checkDuplicate(validationInput));
-
-  //   // Return unsupported error if not found transaction
-  //   if (!transaction) {
-  //     if (extrinsicType === ExtrinsicType.SEND_NFT) {
-  //       validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED, t('This feature is not yet available for this NFT')));
-  //     } else {
-  //       validation.errors.push(new TransactionError(BasicTxErrorType.UNSUPPORTED));
-  //     }
-  //   }
-
-  //   const validationResponse: SWTransactionResponse = {
-  //     status: undefined,
-  //     ...validation
-  //   };
-
-  //   // Estimate fee
-  //   const estimateFee: FeeData = {
-  //     symbol: '',
-  //     decimals: 0,
-  //     value: '',
-  //     tooHigh: false,
-  //     fast: 0,
-  //     medium: 0,
-  //     slow: 0
-  //   };
-  //   console.log('estimateFee124', estimateFee)
-  //   const chainInfo = this.state.chainService.getChainInfoByKey(chain);
-  //   console.log('chainInfo135', chainInfo)
-  //   if (transaction) {
-  //     try {
-  //       if (isSubstrateTransaction(transaction)) {
-  //         estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
-  //       }
-  //        else if (isBitcoinTransaction(transaction)) {
-  //         const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
-  //         console.log('feeEstimates143', feeEstimates)
-
-  //         estimateFee.value = feeEstimates.medium.toString();
-  //       }
-
-  //       else {
-  //         const web3 = this.state.chainService.getEvmApi(chain);
-  //         console.log('web3153' , web3)
-  //         if (!web3) {
-  //           validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
-  //         }  {
-  //           const gasLimit = await web3.api.eth.estimateGas(transaction);
-  //           console.log('gasLimit158',gasLimit)
-  //           const priority = await calculateGasFeeParams(web3, chainInfo.slug);
-
-  //           if (priority.baseGasFee) {
-  //             const maxFee = priority.maxFeePerGas; // TODO: Need review
-
-  //             estimateFee.value = maxFee.multipliedBy(gasLimit).toFixed(0);
-  //           } else {
-  //             estimateFee.value = new BigN(priority.gasPrice).multipliedBy(gasLimit).toFixed(0);
-  //           }
-
-  //           estimateFee.tooHigh = priority.busyNetwork;
-  //         }
-  //       }
-  //     } catch (e) {
-  //       const error = e as Error;
-
-  //       if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
-  //         validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-  //       }
-
-  //       estimateFee.value = '0';
-  //     }
-  //   }
-
-  //   validationResponse.estimateFee = estimateFee;
-
-  //   // Read-only account
-  //   const pair = keyring.getPair(address);
-
-  //   if (!pair) {
-  //     validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('Unable to find account')));
-  //   } else {
-  //     if (pair.meta?.isReadOnly) {
-  //       validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('This account is watch-only')));
-  //     }
-  //   }
-
-  //   // Balance
-  //   const transferNative = validationResponse.transferNativeAmount || '0';
-  //   const nativeTokenInfo = this.state.chainService.getNativeTokenInfo(chain);
-
-  //   const balance = await this.state.balanceService.getTokenFreeBalance(address, chain, nativeTokenInfo.slug);
-
-  //   const existentialDeposit = nativeTokenInfo.minAmount || '0';
-
-  //   const feeNum = parseInt(estimateFee.value);
-  //   const balanceNum = parseInt(balance.value);
-  //   const edNum = parseInt(existentialDeposit);
-  //   const transferNativeNum = parseInt(transferNative);
-
-  //   if (!validationInput.skipFeeValidation) {
-  //     // TODO
-  //     if (!new BigN(balance.value).gt(0)) {
-  //       validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-  //     }
-
-  //     if (transferNativeNum + feeNum > balanceNum) {
-  //       if (!isTransferAll) {
-  //         validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-  //       } else {
-  //         if ([
-  //           ..._TRANSFER_CHAIN_GROUP.acala,
-  //           ..._TRANSFER_CHAIN_GROUP.genshiro,
-  //           ..._TRANSFER_CHAIN_GROUP.bitcountry,
-  //           ..._TRANSFER_CHAIN_GROUP.statemine
-  //         ].includes(chain)) { // Chain not have transfer all function
-  //           validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-  //         }
-  //       }
-  //     }
-
-  //     if (!isTransferAll) {
-  //       if (balanceNum - (transferNativeNum + feeNum) < edNum) {
-  //         if (edAsWarning) {
-  //           validationResponse.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
-  //         } else {
-  //           validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   // Validate transaction with additionalValidator method
-  //   additionalValidator && await additionalValidator(validationResponse);
-
-  //   return validationResponse;
-  // }
   public async generalValidate (validationInput: SWTransactionInput): Promise<SWTransactionResponse> {
     const validation = {
       ...validationInput,
@@ -246,10 +100,16 @@ export default class TransactionService {
       warnings: validationInput.warnings || []
     };
 
-    console.log('validation103', validation);
-    const { additionalValidator, address, chain, edAsWarning, extrinsicType, isTransferAll, transaction } = validation;
+    const { additionalValidator,
+      address,
+      chain,
+      edAsWarning,
+      extrinsicType,
+      feeCustom,
+      feeOption,
+      isTransferAll,
+      transaction } = validation;
 
-    console.log('transaction105', transaction);
     // Check duplicate transaction
     validation.errors.push(...this.checkDuplicate(validationInput));
 
@@ -266,40 +126,70 @@ export default class TransactionService {
       status: undefined,
       ...validation
     };
+
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
+
     // Estimate fee
     const estimateFee: FeeData = {
       symbol: '',
       decimals: 0,
       value: '',
-      tooHigh: false,
-      fast: 0,
-      medium: 0,
-      slow: 0
+      tooHigh: false
     };
 
-    if (transaction) {
-      try {
-        if (isSubstrateTransaction(transaction)) {
-          estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
-        } else if (isBitcoinTransaction(transaction)) {
-          const feeEstimates = await getFeeEstimatesFromBlockcypherApi('test3');
+    if (!chainInfo) {
+      validationResponse.errors.push(new TransactionError(BasicTxErrorType.INTERNAL_ERROR, t('Cannot find network')));
+    } else {
+      const { decimals, symbol } = _getChainNativeTokenBasicInfo(chainInfo);
 
-          console.log('feeEstimates143', feeEstimates);
-          estimateFee.value = feeEstimates.medium.toString();
+      estimateFee.decimals = decimals;
+      estimateFee.symbol = symbol;
+
+      if (transaction) {
+        try {
+          if (isSubstrateTransaction(transaction)) {
+            estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
+          } else if (isBitcoinTransaction(transaction)) {
+            const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
+            const feeEstimates = bitcoinApi.api.getFeeRate();
+
+            console.log('feeEstimates143', feeEstimates);
+            estimateFee.value = feeEstimates.medium.toString();
+          } else {
+            const web3 = this.state.chainService.getEvmApi(chain);
+
+            if (!web3) {
+              validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
+            } else {
+              const gasLimit = await web3.api.eth.estimateGas(transaction);
+
+              const id = getId();
+              const feeInfo = await this.state.feeService.subscribeChainFee(id, chain, 'evm') as EvmFeeInfo;
+              const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom as EvmEIP1995FeeOption);
+
+              if (feeCombine.maxFeePerGas) {
+                const maxFee = new BigN(feeCombine.maxFeePerGas); // TODO: Need review
+
+                estimateFee.value = maxFee.multipliedBy(gasLimit).toFixed(0);
+              } else {
+                estimateFee.value = new BigN(feeCombine.gasPrice || '0').multipliedBy(gasLimit).toFixed(0);
+              }
+
+              estimateFee.tooHigh = feeInfo.busyNetwork;
+            }
+          }
+        } catch (e) {
+          const error = e as Error;
+
+          if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
+            validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
+          }
+
+          estimateFee.value = '0';
         }
-      } catch (e) {
-        const error = e as Error;
-
-        if (error.message.includes('gas required exceeds allowance') && error.message.includes('insufficient funds')) {
-          validationResponse.errors.push(new TransactionError(BasicTxErrorType.NOT_ENOUGH_BALANCE));
-        }
-
-        estimateFee.value = '0';
       }
     }
 
-    console.log('transaction', transaction);
     validationResponse.estimateFee = estimateFee;
 
     // Read-only account
@@ -371,7 +261,9 @@ export default class TransactionService {
 
   private fillTransactionDefaultInfo (transaction: SWTransactionInput): SWTransaction {
     const isInternal = true;
-    const transactionId = getTransactionId(transaction.chainType, transaction.chain, isInternal, isWalletConnectRequest(transaction.id));
+    const transactionId = transaction.id || getTransactionId(transaction.chainType, transaction.chain, isInternal, isWalletConnectRequest(transaction.id));
+
+    console.log(transactionId);
 
     return {
       ...transaction,
@@ -382,8 +274,8 @@ export default class TransactionService {
       url: transaction.url || EXTENSION_REQUEST_URL,
       status: ExtrinsicStatus.QUEUED,
       isInternal: false,
-      id: 'internal.1712319332794',
-      extrinsicHash: 'internal.1712319332794'
+      id: transactionId,
+      extrinsicHash: ''
     } as SWTransaction;
   }
 
@@ -1066,7 +958,7 @@ export default class TransactionService {
   }
 
   private async signAndSendBitcoinTransaction ({ address, chain, id, transaction, url }: SWTransaction): Promise<TransactionEmitter> {
-    const payload = transaction as BitcoinSendTransactionRequest;
+    const tx = transaction as Psbt;
     const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
 
@@ -1097,7 +989,48 @@ export default class TransactionService {
     const isExternal = !!account.isExternal;
 
     if (isInjected) {
-      this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinWatchTransactionRequest', payload, {})
+      throw new TransactionError(BasicTxErrorType.UNSUPPORTED);
+      // this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinWatchTransactionRequest', payload, {})
+      //   .then(async ({ isApproved, payload }) => {
+      //     if (isApproved) {
+      //       if (!payload) {
+      //         throw new Error('Bad signature');
+      //       }
+      //
+      //       // Emit signed event
+      //       emitter.emit('signed', eventData);
+      //
+      //       // Add start info
+      //       emitter.emit('send', eventData);
+      //       const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
+      //
+      //       event.on('extrinsicHash', (txHash) => {
+      //         eventData.extrinsicHash = txHash;
+      //         emitter.emit('extrinsicHash', eventData);
+      //       });
+      //
+      //       event.on('success', () => {
+      //         emitter.emit('success', eventData);
+      //       });
+      //
+      //       event.on('error', (error) => {
+      //         eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, error));
+      //         emitter.emit('error', eventData);
+      //       });
+      //       // Your logic to watch for transaction confirmation using the Bitcoin API URL (bitcoinApiUrl)
+      //     } else {
+      //       this.removeTransaction(id);
+      //       eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
+      //       emitter.emit('error', eventData);
+      //     }
+      //   })
+      //   .catch((e: Error) => {
+      //     this.removeTransaction(id);
+      //     eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SIGN, e.message));
+      //     emitter.emit('error', eventData);
+      //   });
+    } else {
+      this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinSendTransactionRequest', payload, {})
         .then(async ({ isApproved, payload }) => {
           if (isApproved) {
             if (!payload) {
@@ -1109,73 +1042,21 @@ export default class TransactionService {
 
             // Add start info
             emitter.emit('send', eventData);
-            this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
+            const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
 
-            const txHash = payload;
+            event.on('extrinsicHash', (txHash) => {
+              eventData.extrinsicHash = txHash;
+              emitter.emit('extrinsicHash', eventData);
+            });
 
-            eventData.extrinsicHash = txHash;
-            emitter.emit('extrinsicHash', eventData);
+            event.on('success', () => {
+              emitter.emit('success', eventData);
+            });
 
-            emitter.emit('success', eventData);
-
-            emitter.emit('error', eventData);
-
-            // Your logic to watch for transaction confirmation using the Bitcoin API URL (bitcoinApiUrl)
-          } else {
-            this.removeTransaction(id);
-            eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
-            emitter.emit('error', eventData);
-          }
-        })
-        .catch((e: Error) => {
-          this.removeTransaction(id);
-          eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SIGN, e.message));
-          emitter.emit('error', eventData);
-        });
-    } else {
-      this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinSendTransactionRequest', payload, {})
-        .then(async ({ isApproved, payload }) => {
-          if (isApproved) {
-            let signedTransaction: string | undefined;
-
-            // if (!payload) {
-            //     throw new Error('Failed to sign');
-            // }
-
-            const bitcoinApiUrl = this.state.chainService.getBitcoinApi(chain).apiUrl;
-
-            if (!isExternal) {
-              signedTransaction = payload;
-            } else {
-              // Logic to sign the transaction for external accounts (if needed)
-              // For Bitcoin, you might need to use a library like bitcoinjs-lib to sign the transaction
-              // You would need the private key associated with the sending address to sign the transaction
-              // Here is a general idea of how you could sign the transaction (this is simplified and might need adjustments):
-              // const keyPair = bitcoin.ECPair.fromWIF(privateKey, bitcoin.networks.bitcoin);
-              // const transaction = new bitcoin.TransactionBuilder(bitcoin.networks.bitcoin);
-              // transaction.addInput(...); // Add inputs
-              // transaction.addOutput(...); // Add outputs
-              // transaction.sign(0, keyPair); // Sign the transaction with the private key
-
-              // After signing, serialize the transaction to hex format
-              // signedTransaction = transaction.build().toHex();
-            }
-
-            // Emit signed event
-            emitter.emit('signed', eventData);
-            this.handleTransactionTimeout(emitter, eventData);
-
-            // Add start info
-            emitter.emit('send', eventData);
-
-            const txHash = payload;
-
-            eventData.extrinsicHash = txHash;
-            emitter.emit('extrinsicHash', eventData);
-
-            emitter.emit('success', eventData);
-
-            emitter.emit('error', eventData);
+            event.on('error', (error) => {
+              eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, error));
+              emitter.emit('error', eventData);
+            });
           } else {
             this.removeTransaction(id);
             eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));

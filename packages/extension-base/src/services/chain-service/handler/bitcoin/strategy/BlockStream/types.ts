@@ -67,6 +67,18 @@ export type RequestBlockRange = {
   to: number | null
 }
 
+export interface BlockStreamUtxo {
+  txid: string;
+  vout: number;
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash: string;
+    block_time?: number;
+  },
+  value: number;
+}
+
 export interface BlockStreamTransactionStatus {
   confirmed: boolean;
   block_height: number;

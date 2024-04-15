@@ -5,10 +5,11 @@ import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest, postRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
+import { BitcoinFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
 import EventEmitter from 'eventemitter3';
 
-import { BitcoinApiStrategy, BitcoinFeeInfo, BitcoinTransactionEventMap } from '../../strategy/types';
-import { BitcoinAddressSummaryInfo, BitcoinTransferItem, BlockStreamFeeEstimates, BlockStreamTransactionStatus } from './types';
+import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '../../strategy/types';
+import { BitcoinAddressSummaryInfo, BitcoinTransferItem, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo } from './types';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
@@ -70,7 +71,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
   }
 
   getFeeRate (): Promise<BitcoinFeeInfo> {
-    return this.addRequest(async () => {
+    return this.addRequest<BitcoinFeeInfo>(async (): Promise<BitcoinFeeInfo> => {
       const rs = await getRequest(this.getUrl('/fee-estimates'));
 
       if (rs.status !== 200) {
@@ -81,12 +82,26 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
       return {
         type: 'bitcoin',
+        busyNetwork: false,
         options: {
           slow: { feeRate: result['3'] },
           average: { feeRate: result['2'] },
-          fast: { feeRate: result['1'] }
+          fast: { feeRate: result['1'] },
+          default: 'slow'
         }
       };
+    }, 0);
+  }
+
+  getUtxos (address: string): Promise<UtxoResponseItem[]> {
+    return this.addRequest<UtxoResponseItem[]>(async (): Promise<UtxoResponseItem[]> => {
+      const rs = await getRequest(this.getUrl(`/address/${address}/utxo`));
+
+      if (rs.status !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getUtxos', await rs.text());
+      }
+
+      return (await rs.json()) as BlockStreamUtxo[];
     }, 0);
   }
 
