@@ -28,19 +28,19 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
-export interface RunesResponse {
+export interface RunesByAddressResponse {
   statusCode: number;
-  data: RunesFetchedData
+  data: RunesByAddressFetchedData
 }
 
-interface RunesFetchedData {
+interface RunesByAddressFetchedData {
   limit: number,
   offset: number,
   total: number,
-  runes: Rune[]
+  runes: RuneInfoByAddress[]
 }
 
-export interface Rune {
+export interface RuneInfoByAddress {
   amount: string,
   amount_decimal: string,
   address: string,
@@ -51,6 +51,23 @@ export interface Rune {
     divisibility: number,
     symbol: string
   }
+}
+
+export interface RunesCollectionInfoResponse {
+  statusCode: number;
+  data: RunesCollectionInfoFetchedData
+}
+
+interface RunesCollectionInfoFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  runes: RunesCollectionInfo[]
+}
+
+export interface RunesCollectionInfo {
+  rune_id: string,
+  rune: string,
 }
 
 export interface BitcoinTransferItem {
