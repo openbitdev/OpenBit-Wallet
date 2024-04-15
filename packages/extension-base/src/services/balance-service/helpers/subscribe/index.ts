@@ -73,8 +73,6 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
   return [useAddresses, notSupportAddresses];
 };
 
-export type BitcoinBalanceFunction = (addresses: string[], chain: string) => Promise<string[]>;
-
 // todo: update bitcoin params
 function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
   const chain = chainInfo.slug;
