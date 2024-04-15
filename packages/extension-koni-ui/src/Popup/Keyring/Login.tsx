@@ -84,7 +84,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
           <div className='logo-container'>
             <Image
               src='./images/openbit/openbit-logo.png'
-              width={80}
+              width={88}
             />
           </div>
           <div className='title'>
@@ -170,7 +170,7 @@ const Login = styled(Component)<Props>(({ theme }: Props) => {
       },
 
       '.title': {
-        marginTop: token.margin,
+        marginTop: token.marginXL,
         fontWeight: token.fontWeightStrong,
         fontSize: token.fontSizeHeading3,
         lineHeight: token.lineHeightHeading3,
@@ -185,7 +185,7 @@ const Login = styled(Component)<Props>(({ theme }: Props) => {
       },
 
       '.password-input': {
-        marginTop: 62
+        marginTop: 64
       },
 
       '.forgot-password': {

@@ -84,7 +84,8 @@ function Component ({ className }: Props): React.ReactElement<Props> {
           <Image
             shape={'square'}
             src={'./images/openbit/openbit-logo-and-text.png'}
-            width={100}
+            width={120}
+            height={140}
           />
         </div>
         <div className='sub-title'>
