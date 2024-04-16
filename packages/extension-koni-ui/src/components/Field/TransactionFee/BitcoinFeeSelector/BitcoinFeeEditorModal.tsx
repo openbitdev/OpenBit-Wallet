@@ -1,13 +1,13 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import {BitcoinFeeInfo, FeeDefaultOption} from '@subwallet/extension-base/types';
+import { BitcoinFeeInfo, FeeDefaultOption } from '@subwallet/extension-base/types';
 import { BasicInputEvent, RadioGroup } from '@subwallet/extension-koni-ui/components';
-import {FormCallbacks, PhosphorIcon, ThemeProps} from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
-import {Form, Icon, Input, ModalContext, SwIconProps, SwModal} from '@subwallet/react-ui';
+import { Form, Icon, Input, ModalContext, SwIconProps, SwModal } from '@subwallet/react-ui';
 import CN from 'classnames';
-import {CaretLeft, CheckCircle, Lightning, Wind, Tree} from 'phosphor-react';
+import { CaretLeft, CheckCircle, Lightning, Tree, Wind } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
@@ -140,44 +140,47 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
         onClick={_onSelectOption(o)}
       >
         <div className={'__left-part-wrapper'}>
-        <div className={'__left-part'} style={{backgroundColor: iconOption.color}}>
-          <Icon
+          <div
+            className={'__left-part'}
+            style={{ backgroundColor: iconOption.color }}
+          >
+            <Icon
               phosphorIcon={iconOption.icon}
               weight={iconOption.weight}
-          />
-        </div>
+            />
+          </div>
         </div>
         <div className={'__right-part-wrapper'}>
           <div className={'__right-part'}>
-          <div className={'__line-1'}>
-            <div className={'__label'}>{o.option}</div>
-            <div className={'__value'}>&nbsp;- {feeRate}&nbsp;sats/vB</div>
-          </div>
-          <div className={'__line-2'}>
-            <div className={'__label'}>Time</div>
-            <div className={'__value'}>&nbsp;~&nbsp;30 min&nbsp;</div>
-          </div>
-          <div className={'__line-3'}>
-            <div className={'__label'}>Max fee:</div>
-            <div className={'__value'}>&nbsp;0.000123 BTC&nbsp;</div>
-          </div>
+            <div className={'__line-1'}>
+              <div className={'__label'}>{o.option}</div>
+              <div className={'__value'}>&nbsp;- {feeRate}&nbsp;sats/vB</div>
+            </div>
+            <div className={'__line-2'}>
+              <div className={'__label'}>Time</div>
+              <div className={'__value'}>&nbsp;~&nbsp;30 min&nbsp;</div>
+            </div>
+            <div className={'__line-3'}>
+              <div className={'__label'}>Max fee:</div>
+              <div className={'__value'}>&nbsp;0.000123 BTC&nbsp;</div>
+            </div>
           </div>
           <div className={'__selection-item'}>
             {
-                selectedOption.option === o.option && (
-                    <div>
-                      <Icon
-                          phosphorIcon={CheckCircle}
-                          weight='fill'
-                          iconColor={'#7EE76C'}
-                          customSize={'20px'}
-                      />
-                    </div>
-                )
+              selectedOption.option === o.option && (
+                <div>
+                  <Icon
+                    customSize={'20px'}
+                    iconColor={'#7EE76C'}
+                    phosphorIcon={CheckCircle}
+                    weight='fill'
+                  />
+                </div>
+              )
             }
           </div>
         </div>
-        </div>
+      </div>
     );
   };
 
@@ -227,7 +230,7 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
                 name={'customValue'}
               >
                 <Input
-                    label={'sats/vB'}
+                  label={'sats/vB'}
                   min={0}
                   placeholder={'0.1 - 2'}
                   type={'number'}
@@ -242,7 +245,6 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
 };
 
 export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token } }: Props) => {
-  console.log('token', token);
   return ({
     '.__fee-option-item': {
       backgroundColor: token.colorBgSecondary,

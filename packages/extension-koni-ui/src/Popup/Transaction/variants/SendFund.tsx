@@ -6,9 +6,9 @@ import { ExtrinsicType, NotificationType } from '@subwallet/extension-base/backg
 import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { _getAssetDecimals, _getOriginChainOfAsset, _getTokenMinAmount, _isAssetFungibleToken, _isChainEvmCompatible, _isNativeToken, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
-import { ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
+import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
 import { detectTranslate } from '@subwallet/extension-base/utils';
-import { AccountProxySelector, AddressInput, AlertBox, AlertModal, AmountInput, ChainSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
+import { AccountProxySelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, ChainSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
 import { BITCOIN_CHAINS, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
@@ -65,11 +65,7 @@ function getTokenItems (
   Object.values(assetRegistry).forEach((chainAsset) => {
     const isTokenFungible = _isAssetFungibleToken(chainAsset);
 
-    if (!(isTokenFungible && SUPPORT_CHAINS.includes(chainAsset.originChain))) {
-      return;
-    }
-
-    if (!(BITCOIN_CHAINS.includes(chainAsset.originChain) || _isNativeToken(chainAsset))) {
+    if (!(isTokenFungible && _isNativeToken(chainAsset) && SUPPORT_CHAINS.includes(chainAsset.originChain))) {
       return;
     }
 
@@ -694,9 +690,19 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               tooltip={t('Amount')}
             />
           </Form.Item>
-          <Form.Item>
 
-          </Form.Item>
+          {
+            BITCOIN_CHAINS.includes(chain) && transferInfo && asset && (
+              <Form.Item>
+                <BitcoinFeeSelector
+                  feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
+                  isLoading={isFetchingInfo}
+                  onSelect={setTransactionFeeInfo}
+                  tokenSlug={asset}
+                />
+              </Form.Item>
+            )
+          }
         </Form>
 
         {/* <FreeBalance */}

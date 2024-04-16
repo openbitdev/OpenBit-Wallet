@@ -85,9 +85,9 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         type: 'bitcoin',
         busyNetwork: false,
         options: {
-          slow: { feeRate: result['25'] },
-          average: { feeRate: result['2'] },
-          fast: { feeRate: result['1'] },
+          slow: { feeRate: Math.ceil(result['25']) },
+          average: { feeRate: Math.ceil(result['10']) },
+          fast: { feeRate: Math.ceil(result['1']) },
           default: 'slow'
         }
       };
