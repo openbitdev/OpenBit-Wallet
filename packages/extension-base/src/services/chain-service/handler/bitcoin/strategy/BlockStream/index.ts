@@ -32,7 +32,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`/address/${address}`));
+      const rs = await getRequest(this.getUrl(`address/${address}`));
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getAddressSummaryInfo', await rs.text());
@@ -44,7 +44,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getAddressTransaction (address: string, limit = 100): Promise<BitcoinTransferItem[]> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`/address/${address}/txs`), {
+      const rs = await getRequest(this.getUrl(`address/${address}/txs`), {
         limit: `${limit}`
       });
 
@@ -58,7 +58,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getTransactionStatus (txHash: string): Promise<boolean> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`/tx/${txHash}/status`));
+      const rs = await getRequest(this.getUrl(`tx/${txHash}/status`));
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', await rs.text());
@@ -72,7 +72,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getFeeRate (): Promise<BitcoinFeeInfo> {
     return this.addRequest<BitcoinFeeInfo>(async (): Promise<BitcoinFeeInfo> => {
-      const rs = await getRequest(this.getUrl('/fee-estimates'));
+      const rs = await getRequest(this.getUrl('fee-estimates'));
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getFeeRate', await rs.text());
@@ -84,7 +84,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         type: 'bitcoin',
         busyNetwork: false,
         options: {
-          slow: { feeRate: result['3'] },
+          slow: { feeRate: result['25'] },
           average: { feeRate: result['2'] },
           fast: { feeRate: result['1'] },
           default: 'slow'
@@ -95,7 +95,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getUtxos (address: string): Promise<UtxoResponseItem[]> {
     return this.addRequest<UtxoResponseItem[]>(async (): Promise<UtxoResponseItem[]> => {
-      const rs = await getRequest(this.getUrl(`/address/${address}/utxo`));
+      const rs = await getRequest(this.getUrl(`address/${address}/utxo`));
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getUtxos', await rs.text());
@@ -109,10 +109,10 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     const eventEmitter = new EventEmitter<BitcoinTransactionEventMap>();
 
     this.addRequest<string>(async (): Promise<string> => {
-      const rs = await postRequest(this.getUrl('/tx'), rawTransaction, { 'Content-Type': 'text/plain' });
+      const rs = await postRequest(this.getUrl('tx'), rawTransaction, { 'Content-Type': 'text/plain' }, false);
 
       if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getAddressTransaction', await rs.text());
+        throw new SWError('BlockStreamRequestStrategy.sendRawTransaction', await rs.text());
       }
 
       return await rs.text();
@@ -130,7 +130,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
               }
             })
             .catch(console.error);
-        }, 1000);
+        }, 30000);
       })
       .catch((error: Error) => {
         eventEmitter.emit('error', error.message);

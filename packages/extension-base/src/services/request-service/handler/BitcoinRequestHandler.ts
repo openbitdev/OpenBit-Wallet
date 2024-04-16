@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, Input, Output, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
@@ -134,8 +134,6 @@ export default class BitcoinRequestHandler {
       keyring.unlockPair(pair.address);
     }
 
-    console.log('sigMessage124');
-
     // Check if payload is a string
     if (typeof payload === 'string') {
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
@@ -154,9 +152,8 @@ export default class BitcoinRequestHandler {
 
   private signTransactionBitcoin (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]): string {
     // Extract necessary information from the BitcoinSendTransactionRequest
-    const { account, inputs, outputs } = request.payload;
+    const { account, hashPayload } = request.payload;
 
-    console.log('signTransactionBitcoin147');
     const address = account.address;
     const pair = keyring.getPair(address);
 
@@ -166,40 +163,12 @@ export default class BitcoinRequestHandler {
     }
 
     // Create a new Psbt object
-    const psbt = new Psbt();
-
-    // Set inputs
-    inputs.forEach((input: Input) => {
-      const scriptBuffer = Buffer.from(input.script, 'hex'); // Convert hex string to Buffer
-
-      psbt.addInput({
-        hash: input.hash,
-        index: input.index,
-        sequence: input.sequence,
-        witnessUtxo: {
-          script: scriptBuffer, // Use the converted Buffer
-          value: input.value
-        }
-      });
-    });
-
-    // Set outputs
-    outputs.forEach((output: Output) => {
-      const scriptBuffer = Buffer.from(output.script, 'hex'); // Convert hex string to Buffer
-
-      psbt.addOutput({
-        script: scriptBuffer,
-        value: output.value
-      });
-    });
+    const psbt = Psbt.fromHex(hashPayload);
 
     // Finalize all inputs in the Psbt
-    psbt.finalizeAllInputs();
 
     // Sign the Psbt using the pair's bitcoin object
-    const signedTransaction = pair.bitcoin.signTransaction(psbt, [0]);
-
-    console.log('sigTransaction189');
+    const signedTransaction = pair.bitcoin.signTransaction(psbt, psbt.txInputs.map((v, i) => i));
 
     signedTransaction.finalizeAllInputs();
 
@@ -230,19 +199,10 @@ export default class BitcoinRequestHandler {
   public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
 
-    console.log('confirmations', confirmations);
-
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;
-
-      console.log('type229', type);
       const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
-
-      console.log('result', result);
-
       const { id } = result;
-
-      console.log('checkid232', id);
       const { resolver, validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
 
@@ -251,7 +211,6 @@ export default class BitcoinRequestHandler {
         throw new Error('Unable to proceed. Please try again');
       }
 
-      console.log(type, confirmation, result);
       // Fill signature for some special type
       await this.decorateResultBitcoin(type, confirmation, result);
       const error = validator && validator(result);

@@ -18,4 +18,6 @@ export interface BitcoinFeeInfo extends BaseFeeInfo {
   }
 }
 
-export type BitcoinFeeDetail = BitcoinFeeInfo & BaseFeeDetail;
+export interface BitcoinFeeDetail extends BitcoinFeeInfo, BaseFeeDetail {
+  vSize: number;
+}

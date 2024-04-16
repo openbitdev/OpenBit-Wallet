@@ -59,7 +59,7 @@ export function filterUneconomicalUtxos ({ address,
   });
 
   const addressInfo = validateBitcoinAddress(address) ? getBitcoinAddressInfo(address) : null;
-  const outputAddressTypeWithFallback = addressInfo ? addressInfo.type : 'p2wpkh';
+  const outputAddressTypeWithFallback = addressInfo ? addressInfo.type : BitcoinAddressType.p2wpkh;
 
   return utxos
     .filter((utxo) => utxo.value >= BTC_DUST_AMOUNT[outputAddressTypeWithFallback])
