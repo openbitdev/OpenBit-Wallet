@@ -4,7 +4,7 @@
 import { BitcoinFeeDetail, TransactionFee } from '@subwallet/extension-base/types';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
-import { Button, Field, Icon, ModalContext } from '@subwallet/react-ui';
+import {Button, Field, Icon, ModalContext, Number} from '@subwallet/react-ui';
 import { PencilSimpleLine } from 'phosphor-react';
 import React, { useCallback, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,15 +35,26 @@ const Component = ({ className, feeDetail }: Props): React.ReactElement<Props> =
         className={className}
         content={(
           <div>
-            ABCASCASC
+              <Number
+                  className={'__fee-token-value'}
+                  decimal={2}
+                  size={14}
+                  suffix={'DOT'}
+                  value={'0.2'}
+              />
           </div>
         )}
         label={'Transaction fee'}
         placeholder={t('Network name')}
         suffix={(
-          <div>
-            1.60
-
+          <div className={'__right-button'}>
+              <Number
+                  className={'__fee-value'}
+                  decimal={2}
+                  size={14}
+                  prefix={'$'}
+                  value={'1.60'}
+              />
             <Button
               icon={
                 <Icon
@@ -73,6 +84,61 @@ const Component = ({ className, feeDetail }: Props): React.ReactElement<Props> =
 
 const BitcoinFeeSelector = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
+      paddingBottom: 2,
+      '.__right-button': {
+          display: 'flex',
+          alignItems: 'center'
+      },
+      '.__right-button .ant-btn-ghost': {
+          width: 20,
+          height: 20,
+          alignItems: 'end',
+          marginRight: -10
+      },
+      '.ant-field-wrapper': {
+          paddingBottom: 12
+      },
+          '.__fee-value': {
+              fontSize: token.fontSizeHeading6,
+              lineHeight: token.lineHeightHeading6,
+              fontWeight: token.headingFontWeight,
+              color: token.colorTextTertiary,
+
+              '.ant-number-integer': {
+                  color: 'inherit !important',
+                  fontSize: 'inherit !important',
+                  fontWeight: 'inherit !important',
+                  lineHeight: 'inherit'
+              },
+
+              '.ant-number-decimal, .ant-number-prefix': {
+                  color: `${token.colorTextTertiary} !important`,
+                  fontSize: `${token.fontSizeHeading6}px !important`,
+                  fontWeight: 'inherit !important',
+                  lineHeight: token.lineHeightHeading6
+              }
+      },
+      '.__fee-token-value': {
+          fontSize: token.fontSizeHeading6,
+          lineHeight: token.lineHeightHeading6,
+          fontWeight: token.headingFontWeight,
+          color: token.colorWhite,
+
+          '.ant-number-integer': {
+              color: 'inherit !important',
+              fontSize: 'inherit !important',
+              fontWeight: 'inherit !important',
+              lineHeight: 'inherit'
+          },
+
+          '.ant-number-suffix': {
+              color: `${token.colorTextTertiary} !important`,
+              fontSize: `${token.fontSizeHeading6}px !important`,
+              fontWeight: 'inherit !important',
+              lineHeight: token.lineHeightHeading6
+          }
+      }
+
 
   });
 });
