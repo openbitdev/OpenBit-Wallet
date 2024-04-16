@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { RuneInfoByAddress, RunesCollectionInfo } from '@subwallet/extension-base/services/bitcoin-service/types';
+import { RuneInfoByAddress, RunesCollectionInfo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';

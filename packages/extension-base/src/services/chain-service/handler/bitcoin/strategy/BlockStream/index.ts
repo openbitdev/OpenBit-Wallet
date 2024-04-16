@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
+import { BitcoinAddressSummaryInfo, BitcoinTransferItem, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RuneInfoByAddress, RunesByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest, postRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 import { BitcoinFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
 import EventEmitter from 'eventemitter3';
-
-import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '../../strategy/types';
-import { BitcoinAddressSummaryInfo, BitcoinTransferItem, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RuneInfoByAddress, RunesByAddressResponse } from './types';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;

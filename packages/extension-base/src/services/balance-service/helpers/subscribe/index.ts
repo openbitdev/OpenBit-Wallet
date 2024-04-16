@@ -79,6 +79,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
   const chain = chainInfo.slug;
   const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
 
+  // todo: check await asset ready before subscribe
   if (Object.keys(tokenList).length === 0) {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     return () => {
@@ -94,7 +95,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
     });
 
     // get runeId -> BalanceItem[] mapping
-    await Promise.all(['bc1pw98myh924tpzpy5npxx6u599gnknf0fq5k4m76esz3w6xdh7ezcs2we5k0'].map(async (address) => {
+    await Promise.all(addresses.map(async (address) => {
       try {
         const runes = await bitcoinApi.api.getRunes(address);
 
@@ -102,7 +103,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
           const runeId = rune.rune_id;
 
           const item = {
-            address: 'bc1pesavjkzf9e87kzluptcdyh286mceu8xxymrz2uxmle7t726qhnfq09fcz9',
+            address: address,
             tokenSlug: runeIdToSlugMap[runeId],
             free: rune.amount,
             locked: '0',
