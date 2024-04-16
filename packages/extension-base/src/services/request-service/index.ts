@@ -49,7 +49,7 @@ export default class RequestService {
   }
 
   public get numAllRequests () {
-    return this.allSubstrateRequests.length + this.numEvmRequests;
+    return this.allSubstrateRequests.length + this.numEvmRequests + this.numBitcoinRequests;
   }
 
   public updateIconV2 (shouldClose?: boolean): void {
@@ -212,6 +212,10 @@ export default class RequestService {
   }
 
   // Bitcoin requests
+  public get numBitcoinRequests (): number {
+    return this.#bitcoinRequestHandler.numBitcoinRequests;
+  }
+
   public get confirmationsQueueSubjectBitcoin (): BehaviorSubject<ConfirmationsQueueBitcoin> {
     return this.#bitcoinRequestHandler.getConfirmationsQueueSubjectBitcoin();
   }
@@ -285,7 +289,7 @@ export default class RequestService {
 
   // General methods
   public get numRequests (): number {
-    return this.numMetaRequests + this.numAuthRequests + this.numSubstrateRequests + this.numEvmRequests + this.numConnectWCRequests + this.numNotSupportWCRequests;
+    return this.numMetaRequests + this.numAuthRequests + this.numSubstrateRequests + this.numEvmRequests + this.numConnectWCRequests + this.numNotSupportWCRequests + this.numBitcoinRequests;
   }
 
   public resetWallet (): void {

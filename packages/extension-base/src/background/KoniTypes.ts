@@ -2473,7 +2473,10 @@ export interface KoniRequestSignatures {
   // Confirmation Queues
   'pri(confirmations.subscribe)': [RequestConfirmationsSubscribe, ConfirmationsQueue, ConfirmationsQueue];
   'pri(confirmations.complete)': [RequestConfirmationComplete, boolean];
-  'pri(confirmationsBitcoin.complete)': [RequestConfirmationCompleteBitcoin, boolean];
+
+  // Confirmation Queues
+  'pri(confirmations.bitcoin.subscribe)': [RequestConfirmationsSubscribe, ConfirmationsQueueBitcoin, ConfirmationsQueueBitcoin];
+  'pri(confirmations.bitcoin.complete)': [RequestConfirmationCompleteBitcoin, boolean];
 
   'pub(utils.getRandom)': [RandomTestRequest, number];
   'pub(accounts.listV2)': [RequestAccountList, InjectedAccount[]];

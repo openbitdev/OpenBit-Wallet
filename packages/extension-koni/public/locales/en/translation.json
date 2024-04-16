@@ -344,7 +344,6 @@
   "Please try again later.": "",
   "Polkadot parachain": "",
   "Kusama parachain": "",
-  "Search project": "",
   "View on explorer": "",
   "Staking value": "",
   "Withdraw value": "",
@@ -1087,9 +1086,6 @@
   "Contract": "",
   "Spender contract": "",
   "Sender network": "",
-  "In auction": "",
-  "Your crowdloans will show up here": "",
-  "No crowdloans found": "",
   "Mainnet": "",
   "Testnet": "",
   "Enter Astar portal": "",
@@ -1195,5 +1191,10 @@
   "Learn more": "",
   "Update successful": "",
   "Your SubWallet extension is updated to Manifest V3!": "",
-  "This update is required by Google, and helps improve the privacy, security, and performance of SubWallet extension.\n You can learn more details on Chrome for Developers, or safely dismiss this message.": ""
+  "This update is required by Google, and helps improve the privacy, security, and performance of SubWallet extension.\n You can learn more details on Chrome for Developers, or safely dismiss this message.": "",
+  "You have to set up master password": "",
+  "Select address": "",
+  "Account type, address": "",
+  "Account Addresses": "",
+  "Transaction id": ""
 }

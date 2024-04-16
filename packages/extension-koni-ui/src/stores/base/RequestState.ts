@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ConfirmationsQueue } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationsQueue, ConfirmationsQueueBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { AuthorizeRequest, ConfirmationRequestBase, MetadataRequest, SigningRequest } from '@subwallet/extension-base/background/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
@@ -22,9 +22,14 @@ const initialState: RequestState = {
   addNetworkRequest: {},
   addTokenRequest: {},
   switchNetworkRequest: {},
+
   evmSignatureRequest: {},
   evmSendTransactionRequest: {},
   evmWatchTransactionRequest: {},
+
+  bitcoinSignatureRequest: {},
+  bitcoinSendTransactionRequest: {},
+  bitcoinWatchTransactionRequest: {},
 
   // Summary Info
   reduxStatus: ReduxStatus.INIT,
@@ -43,6 +48,9 @@ export const CONFIRMATIONS_FIELDS: Array<keyof RequestState> = [
   'evmSignatureRequest',
   'evmSendTransactionRequest',
   'evmWatchTransactionRequest',
+  'bitcoinSignatureRequest',
+  'bitcoinSendTransactionRequest',
+  'bitcoinWatchTransactionRequest',
   'connectWCRequest',
   'notSupportWCRequest'
 ];
@@ -59,6 +67,7 @@ const readyMap = {
   updateMetadataRequests: false,
   updateSigningRequests: false,
   updateConfirmationRequests: false,
+  updateBitcoinConfirmationRequests: false,
   updateConnectWalletConnect: false,
   updateNotSupportWalletConnect: false
 };
@@ -109,6 +118,11 @@ const requestStateSlice = createSlice({
       readyMap.updateConfirmationRequests = true;
       computeStateSummary(state);
     },
+    updateBitcoinConfirmationRequests (state, action: PayloadAction<Partial<ConfirmationsQueueBitcoin>>) {
+      Object.assign(state, action.payload);
+      readyMap.updateConfirmationRequests = true;
+      computeStateSummary(state);
+    },
     updateTransactionRequests (state, { payload }: PayloadAction<Record<string, SWTransactionResult>>) {
       state.transactionRequest = payload;
     },
@@ -126,5 +140,5 @@ const requestStateSlice = createSlice({
   }
 });
 
-export const { updateAuthorizeRequests, updateConfirmationRequests, updateMetadataRequests, updateSigningRequests } = requestStateSlice.actions;
+export const { updateAuthorizeRequests, updateBitcoinConfirmationRequests, updateConfirmationRequests, updateMetadataRequests, updateSigningRequests } = requestStateSlice.actions;
 export default requestStateSlice.reducer;

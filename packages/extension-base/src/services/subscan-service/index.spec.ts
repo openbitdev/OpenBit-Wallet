@@ -3,8 +3,6 @@
 
 // Test for index.ts
 
-import { SUBSCAN_API_CHAIN_MAP } from '@subwallet/extension-base/services/subscan-service/subscan-chain-map';
-
 import { SubscanService } from './index';
 
 jest.setTimeout(60000);
@@ -13,7 +11,7 @@ describe('SubscanService', () => {
   let subscanService: SubscanService;
 
   beforeAll(() => {
-    subscanService = new SubscanService(SUBSCAN_API_CHAIN_MAP);
+    subscanService = SubscanService.getInstance();
   });
 
   it('Get multi-chain balance', async () => {
