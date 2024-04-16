@@ -1080,6 +1080,7 @@
   "Transaction confirm": "",
   "Gas fees on {{networkName}} are high due to high demands, so gas estimates are less accurate.": "",
   "{{number}} selected collator": "",
+  "The rewards you are about to claim are ${\n          isRewardLtFee ? 'smaller than' : 'equal to'\n        } the transaction fee. This means that you won’t receive any rewards after claiming. Do you wish to continue?": "",
   "Your rewards will be staked back into the pool after claiming": "",
   "Unstake amount": "",
   "Contract": "",
@@ -1195,6 +1196,5 @@
   "Select address": "",
   "Account type, address": "",
   "Account Addresses": "",
-  "Transaction id": "",
-  "The rewards you are about to claim are ${\r\n          isRewardLtFee ? 'smaller than' : 'equal to'\r\n        } the transaction fee. This means that you won’t receive any rewards after claiming. Do you wish to continue?": ""
+  "Transaction id": ""
 }

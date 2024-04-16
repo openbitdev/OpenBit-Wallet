@@ -318,8 +318,6 @@ export default class TransactionService {
 
   public async handleTransaction (transaction: SWTransactionInput): Promise<SWTransactionResponse> {
     const validatedTransaction = await this.generalValidate(transaction);
-
-    console.log('validatedTransaction291', validatedTransaction);
     const stopByErrors = validatedTransaction.errors.length > 0;
     const stopByWarnings = validatedTransaction.warnings.length > 0 && !validatedTransaction.ignoreWarnings;
 
@@ -336,8 +334,6 @@ export default class TransactionService {
 
     const emitter = await this.addTransaction(validatedTransaction);
 
-    console.log('emitter311', emitter);
-
     await new Promise<void>((resolve, reject) => {
       // TODO
       if (transaction.resolveOnDone) {
@@ -346,7 +342,6 @@ export default class TransactionService {
           validatedTransaction.extrinsicHash = data.extrinsicHash;
           resolve();
         });
-        console.log('emmitteron');
       } else {
         emitter.on('signed', (data: TransactionEventResponse) => {
           validatedTransaction.id = data.id;
@@ -362,13 +357,11 @@ export default class TransactionService {
         }
       });
     });
-    console.log('handleTransaction478');
 
     // @ts-ignore
     'transaction' in validatedTransaction && delete validatedTransaction.transaction;
     'additionalValidator' in validatedTransaction && delete validatedTransaction.additionalValidator;
     'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
-    console.log('validatedTransaction482', validatedTransaction);
 
     return validatedTransaction;
   }

@@ -475,8 +475,8 @@ const _SendFund = ({ className = '', modalContent }: Props): React.ReactElement<
 
       // Transfer token or send fund
       sendPromise = makeTransfer({
-        chain,
         from,
+        chain,
         to: to,
         tokenSlug: asset,
         value: value,

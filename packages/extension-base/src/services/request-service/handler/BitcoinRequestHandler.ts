@@ -7,6 +7,7 @@ import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
 import keyring from '@subwallet/ui-keyring';
 import { Psbt } from 'bitcoinjs-lib';
+import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
 
 import { logger as createLogger } from '@polkadot/util';
@@ -88,8 +89,6 @@ export default class BitcoinRequestHandler {
         }
       };
     });
-
-    console.log('promise71', promise);
 
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
 
@@ -209,21 +208,23 @@ export default class BitcoinRequestHandler {
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;
       const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
-      const { id } = result;
+      const { id, isApproved } = result;
       const { resolver, validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
 
       if (!resolver || !confirmation) {
-        this.#logger.error('Unable to proceed. Please try again', type, id);
+        this.#logger.error(t('Unable to proceed. Please try again'), type, id);
         throw new Error('Unable to proceed. Please try again');
       }
 
-      // Fill signature for some special type
-      await this.decorateResultBitcoin(type, confirmation, result);
-      const error = validator && validator(result);
+      if (isApproved) {
+        // Fill signature for some special type
+        await this.decorateResultBitcoin(type, confirmation, result);
+        const error = validator && validator(result);
 
-      if (error) {
-        resolver.reject(error);
+        if (error) {
+          resolver.reject(error);
+        }
       }
 
       // Delete confirmations from queue
