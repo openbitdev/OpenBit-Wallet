@@ -239,11 +239,11 @@ export const DataContextProvider = ({ children }: DataContextProviderProps) => {
 
   // Earning
 
-  _DataContext.addHandler({ ...subscribeYieldPoolInfo, name: 'subscribeYieldPoolInfo', relatedStores: ['earning'] });
-  _DataContext.addHandler({ ...subscribeYieldPositionInfo, name: 'subscribeYieldPositionInfo', relatedStores: ['earning'] });
-  _DataContext.addHandler({ ...subscribeYieldReward, name: 'subscribeYieldReward', relatedStores: ['earning'] });
-  _DataContext.addHandler({ ...subscribeRewardHistory, name: 'subscribeRewardHistory', relatedStores: ['earning'] });
-  _DataContext.addHandler({ ...subscribeYieldMinAmountPercent, name: 'subscribeYieldMinAmountPercent', relatedStores: ['earning'] });
+  // _DataContext.addHandler({ ...subscribeYieldPoolInfo, name: 'subscribeYieldPoolInfo', relatedStores: ['earning'] });
+  // _DataContext.addHandler({ ...subscribeYieldPositionInfo, name: 'subscribeYieldPositionInfo', relatedStores: ['earning'] });
+  // _DataContext.addHandler({ ...subscribeYieldReward, name: 'subscribeYieldReward', relatedStores: ['earning'] });
+  // _DataContext.addHandler({ ...subscribeRewardHistory, name: 'subscribeRewardHistory', relatedStores: ['earning'] });
+  // _DataContext.addHandler({ ...subscribeYieldMinAmountPercent, name: 'subscribeYieldMinAmountPercent', relatedStores: ['earning'] });
 
   return <Provider store={store}>
     <PersistGate persistor={persistor}>
