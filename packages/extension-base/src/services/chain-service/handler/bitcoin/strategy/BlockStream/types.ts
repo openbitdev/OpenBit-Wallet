@@ -19,6 +19,48 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
+export interface RunesByAddressResponse {
+  statusCode: number;
+  data: RunesByAddressFetchedData
+}
+
+interface RunesByAddressFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  runes: RuneInfoByAddress[]
+}
+
+export interface RuneInfoByAddress {
+  amount: string,
+  amount_decimal: string,
+  address: string,
+  rune_id: string,
+  rune: {
+    rune_id: string,
+    rune: string,
+    divisibility: number,
+    symbol: string
+  }
+}
+
+export interface RunesCollectionInfoResponse {
+  statusCode: number;
+  data: RunesCollectionInfoFetchedData
+}
+
+interface RunesCollectionInfoFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  runes: RunesCollectionInfo[]
+}
+
+export interface RunesCollectionInfo {
+  rune_id: string,
+  rune: string,
+}
+
 export interface BitcoinTransferItem {
   txid: string;
   version: number;

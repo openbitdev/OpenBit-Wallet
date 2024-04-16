@@ -47,7 +47,8 @@ export const _BALANCE_CHAIN_GROUP = {
   statemine: ['statemine', 'astar', 'shiden', 'statemint', 'moonbeam', 'moonbase', 'moonriver', 'crabParachain', 'darwinia2', 'parallel', 'calamari', 'manta_network', 'rococo_assethub', 'liberlandTest', 'liberland', 'dentnet'],
   kusama: ['kusama', 'kintsugi', 'kintsugi_test', 'interlay', 'acala', 'statemint', 'karura', 'bifrost'], // perhaps there are some runtime updates
   centrifuge: ['centrifuge'],
-  supportBridged: ['rococo_assethub']
+  supportBridged: ['rococo_assethub'],
+  bitcoin: ['bitcoin', 'bitcoinTestnet']
 };
 
 export const _BALANCE_TOKEN_GROUP = {
@@ -276,3 +277,6 @@ export const _ASSET_REF_SRC = `https://raw.githubusercontent.com/Koniverse/SubWa
 export const _MULTI_CHAIN_ASSET_SRC = `https://raw.githubusercontent.com/Koniverse/SubWallet-Chain/${TARGET_BRANCH}/packages/chain-list/src/data/MultiChainAsset.json`;
 export const _CHAIN_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/SubWallet-Chain/${TARGET_BRANCH}/packages/chain-list/src/data/ChainLogoMap.json`;
 export const _ASSET_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/SubWallet-Chain/${TARGET_BRANCH}/packages/chain-list/src/data/AssetLogoMap.json`;
+
+export const _BITCOIN_CHAIN_SLUG = 'bitcoin';
+export const _BITCOIN_NAME = 'Bitcoin';

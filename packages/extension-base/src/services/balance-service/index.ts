@@ -10,9 +10,8 @@ import { _getChainNativeTokenSlug } from '@subwallet/extension-base/services/cha
 import { EventItem, EventType } from '@subwallet/extension-base/services/event-service/types';
 import DetectAccountBalanceStore from '@subwallet/extension-base/stores/DetectAccountBalance';
 import { BalanceItem, BalanceJson } from '@subwallet/extension-base/types';
-import { addLazy, createPromiseHandler, getBitcoinChainByAddress, isAccountAll, PromiseHandler, waitTimeout } from '@subwallet/extension-base/utils';
+import { addLazy, createPromiseHandler, isAccountAll, PromiseHandler, waitTimeout } from '@subwallet/extension-base/utils';
 import keyring from '@subwallet/ui-keyring';
-import BigN from 'bignumber.js';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
 
@@ -184,48 +183,7 @@ export class BalanceService implements StoppableServiceInterface {
     });
   }
 
-  // todo: will update logic for this function for more clear
-  private async getBitcoinBalance (address: string, chain: string): Promise<string> {
-    const bitcoinChainSlug = getBitcoinChainByAddress(address);
-
-    if (!bitcoinChainSlug) {
-      console.log(`Invalid address for getting bitcoin balance: ${address}`);
-
-      return '0';
-    }
-
-    if (bitcoinChainSlug !== chain) {
-      console.log(`Cannot get bitcoin balance of address ${address} with chain ${chain}`);
-
-      return '0';
-    }
-
-    const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
-
-    if (!bitcoinApi) {
-      console.log(`Api of ${chain} is not available to get bitcoin balance`);
-
-      return '0';
-    }
-
-    try {
-      const accountSummaryInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
-
-      return new BigN(accountSummaryInfo.chain_stats.funded_txo_sum).minus(accountSummaryInfo.chain_stats.spent_txo_sum).toString();
-    } catch (error) {
-      console.log('Error while fetching Bitcoin balances', error);
-
-      return '0';
-    }
-  }
-
-  private async getAddressesBitcoinBalance (addresses: string[], chain: string): Promise<string[]> {
-    return await Promise.all(addresses.map((address) => {
-      return this.getBitcoinBalance(address, chain);
-    }));
-  }
-
-  /** Subscribe token free balance of a address on chain */
+  /** Subscribe token free balance of an address on chain */
   public async subscribeTokenFreeBalance (address: string, chain: string, tokenSlug: string | undefined, callback?: (rs: AmountData) => void): Promise<[() => void, AmountData]> {
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
     const chainState = this.state.chainService.getChainStateByKey(chain);
@@ -248,8 +206,9 @@ export class BalanceService implements StoppableServiceInterface {
       const chainInfoMap = this.state.chainService.getChainInfoMap();
       const evmApiMap = this.state.chainService.getEvmApiMap();
       const substrateApiMap = this.state.chainService.getSubstrateApiMap();
+      const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
 
-      const unsub = subscribeBalance([address], [chain], [tSlug], assetMap, chainInfoMap, substrateApiMap, evmApiMap, this.getAddressesBitcoinBalance.bind(this), (result) => {
+      const unsub = subscribeBalance([address], [chain], [tSlug], assetMap, chainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap, (result) => {
         const rs = result[0];
 
         if (rs.tokenSlug === tSlug) {
@@ -395,6 +354,7 @@ export class BalanceService implements StoppableServiceInterface {
     const chainInfoMap = this.state.chainService.getChainInfoMap();
     const evmApiMap = this.state.chainService.getEvmApiMap();
     const substrateApiMap = this.state.chainService.getSubstrateApiMap();
+    const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
 
     const activeChainSlugs = Object.keys(this.state.getActiveChainInfoMap());
     const assetState = this.state.chainService.subscribeAssetSettings().value;
@@ -404,7 +364,7 @@ export class BalanceService implements StoppableServiceInterface {
       })
       .map((asset) => asset.slug);
 
-    const unsub = subscribeBalance(addresses, activeChainSlugs, assets, assetMap, chainInfoMap, substrateApiMap, evmApiMap, this.getAddressesBitcoinBalance.bind(this), (result) => {
+    const unsub = subscribeBalance(addresses, activeChainSlugs, assets, assetMap, chainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap, (result) => {
       !cancel && this.setBalanceItem(result);
     });
 

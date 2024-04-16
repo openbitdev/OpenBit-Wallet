@@ -88,6 +88,10 @@ export function _getOriginChainOfAsset (assetSlug: string) {
   return assetSlug.split('-')[0];
 }
 
+export function _getRuneId (tokenInfo: _ChainAsset) {
+  return tokenInfo.metadata?.runeId as string || '';
+}
+
 export function _getContractAddressOfToken (tokenInfo: _ChainAsset) {
   return tokenInfo.metadata?.contractAddress as string || '';
 }
@@ -189,6 +193,12 @@ export function _isChainSupportWasmNft (chainInfo: _ChainInfo) {
 
 export const _isSupportOrdinal = (chain: string) => {
   const chains = ['polkadot', 'astar', 'bifrost_dot', 'moonbeam'];
+
+  return chains.includes(chain);
+};
+
+export const _isSupportRuneChain = (chain: string) => {
+  const chains = ['bitcoin'];
 
   return chains.includes(chain);
 };

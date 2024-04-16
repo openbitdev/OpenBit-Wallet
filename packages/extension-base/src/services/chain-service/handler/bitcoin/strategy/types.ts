@@ -5,10 +5,11 @@ import { ApiRequestStrategy } from '@subwallet/extension-base/strategy/api-reque
 import { BitcoinFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
 import EventEmitter from 'eventemitter3';
 
-import { BitcoinAddressSummaryInfo, BitcoinTransferItem } from './BlockStream/types';
+import { BitcoinAddressSummaryInfo, BitcoinTransferItem, RuneInfoByAddress } from './BlockStream/types';
 
 export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest'> {
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo>;
+  getRunes (address: string): Promise<RuneInfoByAddress[]>;
   getAddressTransaction (address: string, limit?: number): Promise<BitcoinTransferItem[]>;
   getTransactionStatus (txHash: string): Promise<boolean>;
   getFeeRate (): Promise<BitcoinFeeInfo>;
