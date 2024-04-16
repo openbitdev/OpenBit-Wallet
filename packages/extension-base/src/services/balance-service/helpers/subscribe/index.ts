@@ -75,40 +75,57 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
 
 // todo: update bitcoin params
 function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
-  const chain = chainInfo.slug;
-  // todo: check tokenList
   // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
+  const chain = chainInfo.slug;
   const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
 
-  const getRunesBalance = () => {
+  const getRunesBalance = async () => {
     const runeIdToSlugMap: Record<string, string> = {};
+    const runeIdToAllItemsMap: Record<string, BalanceItem[]> = {};
 
-    Object.values(tokenList).map((token) => {
-      return runeIdToSlugMap[_getRuneId(token)] = token.slug;
+    Object.values(tokenList).forEach((token) => {
+      runeIdToSlugMap[_getRuneId(token)] = token.slug;
     });
 
-    addresses.map(async (address) => {
+    // get runeId -> BalanceItem[] mapping
+    await Promise.all(addresses.map(async (address) => {
       try {
         const runes = await bitcoinApi.api.getRunes(address);
-        const items = runes.map((rune) => {
-          return {
+
+        runes.forEach((rune) => {
+          const runeId = rune.rune_id;
+
+          const item = {
             address: address,
-            tokenSlug: runeIdToSlugMap[rune.rune_id],
+            tokenSlug: runeIdToSlugMap[runeId],
             free: rune.amount,
             locked: '0',
             state: APIItemState.READY
           } as BalanceItem;
-        });
 
-        callback(items);
+          if (!runeIdToAllItemsMap[runeId]) {
+            runeIdToAllItemsMap[runeId] = [];
+          }
+
+          runeIdToAllItemsMap[runeId].push(item);
+        });
       } catch (error) {
         console.log(`Error on get runes balance of account ${address}`);
       }
+    }));
+
+    // callback balance batch items by tokenList
+    Object.values(runeIdToAllItemsMap).forEach((balanceItems) => {
+      callback(balanceItems);
     });
   };
 
-  getRunesBalance();
-  const interval = setInterval(getRunesBalance, COMMON_REFRESH_BALANCE_INTERVAL);
+  const fetchRuneBalances = () => {
+    getRunesBalance().catch(console.error);
+  };
+
+  fetchRuneBalances();
+  const interval = setInterval(fetchRuneBalances, COMMON_REFRESH_BALANCE_INTERVAL);
 
   return () => {
     clearInterval(interval);
