@@ -139,14 +139,16 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
         key={o.option}
         onClick={_onSelectOption(o)}
       >
-        <div className={'__left-part'}>
+        <div className={'__left-part-wrapper'}>
+        <div className={'__left-part'} style={{backgroundColor: iconOption.color}}>
           <Icon
               phosphorIcon={iconOption.icon}
               weight={iconOption.weight}
-              iconColor={iconOption.color}
           />
         </div>
-        <div className={'__mid-part'}>
+        </div>
+        <div className={'__right-part-wrapper'}>
+          <div className={'__right-part'}>
           <div className={'__line-1'}>
             <div className={'__label'}>{o.option}</div>
             <div className={'__value'}>&nbsp;- {feeRate}&nbsp;sats/vB</div>
@@ -159,20 +161,21 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
             <div className={'__label'}>Max fee:</div>
             <div className={'__value'}>&nbsp;0.000123 BTC&nbsp;</div>
           </div>
-        </div>
-        <div className={'__right-part'}>
-        {
-            selectedOption.option === o.option && (
-                <div>
-                  <Icon
-                      phosphorIcon={CheckCircle}
-                      weight='fill'
-                      iconColor={'#7EE76C'}
-                      customSize={'20px'}
-                  />
-                </div>
-            )
-        }
+          </div>
+          <div className={'__selection-item'}>
+            {
+                selectedOption.option === o.option && (
+                    <div>
+                      <Icon
+                          phosphorIcon={CheckCircle}
+                          weight='fill'
+                          iconColor={'#7EE76C'}
+                          customSize={'20px'}
+                      />
+                    </div>
+                )
+            }
+          </div>
         </div>
         </div>
     );
@@ -259,11 +262,26 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       lineHeight: token.lineHeight,
       color: token.colorTextTertiary
     },
+    '.__right-part-wrapper': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      flex: 1
+    },
     '.__value': {
       color: token.colorTextLabel
     },
     '.__left-part': {
-      display: 'flex'
+      display: 'flex',
+      borderRadius: '50%',
+      width: 24,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    '.__left-part-wrapper': {
+      display: 'flex',
+      alignItems: 'center'
     },
     '.__option-item': {
       display: 'flex',
@@ -281,7 +299,7 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
     '.__custom-mode': {
       marginTop: 16
     },
-    '.__right-part': {
+    '.__selection-ite': {
       display: 'flex',
       alignItems: 'center'
     }
