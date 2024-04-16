@@ -15,6 +15,7 @@ interface Props extends ThemeProps {
 
 const Component: React.FC<Props> = (props: Props) => {
   const { alone, className, properties } = props;
+
   console.log('properties', properties);
   const { token } = useTheme() as Theme;
 

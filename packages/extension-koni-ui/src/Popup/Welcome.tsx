@@ -82,10 +82,10 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       <div className='body-container'>
         <div className='logo-container'>
           <Image
+            height={140}
             shape={'square'}
             src={'./images/openbit/openbit-logo-and-text.png'}
             width={120}
-            height={140}
           />
         </div>
         <div className='sub-title'>
@@ -111,8 +111,8 @@ function Component ({ className }: Props): React.ReactElement<Props> {
                 schema={item.schema}
               >
                 <div className='welcome-import-button-content'>
-                  <div className={CN(className, 'welcome-import-button-title', {isPrimarySch: item.schema === 'primary'})}>{item.title}</div>
-                  <div className={CN(className, 'welcome-import-button-description', {isPrimarySch: item.schema === 'primary'})}>{item.description}</div>
+                  <div className={CN(className, 'welcome-import-button-title', { isPrimarySch: item.schema === 'primary' })}>{item.title}</div>
+                  <div className={CN(className, 'welcome-import-button-description', { isPrimarySch: item.schema === 'primary' })}>{item.description}</div>
                 </div>
               </Button>
             ))
@@ -126,6 +126,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
 
 const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
   console.log('token', token);
+
   return {
     position: 'relative',
 
@@ -205,12 +206,12 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
           lineHeight: token.lineHeightHeading6,
           color: token.colorTextLabel
         },
-        '.welcome-import-button-title.isPrimarySch':  {
+        '.welcome-import-button-title.isPrimarySch': {
           color: token.colorTextDark1
         },
         '.welcome-import-button-description.isPrimarySch': {
           color: token.colorTextDark3
-        },
+        }
       }
     }
   };

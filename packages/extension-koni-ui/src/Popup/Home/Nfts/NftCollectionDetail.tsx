@@ -2,25 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftItem } from '@subwallet/extension-base/background/KoniTypes';
-import { _isCustomAsset, _isSmartContractToken } from '@subwallet/extension-base/services/chain-service/utils';
 import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import { EmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
-import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
-import useConfirmModal from '@subwallet/extension-koni-ui/hooks/modal/useConfirmModal';
-import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
-import useGetChainAssetInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useGetChainAssetInfo';
-import { deleteCustomAssets } from '@subwallet/extension-koni-ui/messaging';
 import { InscriptionGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionGalleryWrapper';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
 import { INftCollectionDetail, INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { ButtonProps, Icon, SwList } from '@subwallet/react-ui';
+import { SwList } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { Image, Trash } from 'phosphor-react';
+import { Image } from 'phosphor-react';
 import React, { useCallback, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -56,18 +50,18 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     if (nftItem.description) {
       const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
 
-        if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+      if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
         return (
-            <InscriptionGalleryWrapper
-              handleOnClick={handleOnClickNft}
-              key={`${nftItem.chain}_${nftItem.collectionId}_${nftItem.id}`}
-              name={nftItem.name as string}
-              properties={ordinalNftItem}
-              routingParams={routingParams}
-            />
-          );
-        }
+          <InscriptionGalleryWrapper
+            handleOnClick={handleOnClickNft}
+            key={`${nftItem.chain}_${nftItem.collectionId}_${nftItem.id}`}
+            name={nftItem.name as string}
+            properties={ordinalNftItem}
+            routingParams={routingParams}
+          />
+        );
       }
+    }
 
     return (
       <NftGalleryWrapper

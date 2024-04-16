@@ -1,40 +1,30 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import {getExplorerLink} from '@subwallet/extension-base/services/transaction-service/utils';
-import {Layout, PageWrapper} from '@subwallet/extension-koni-ui/components';
-import {
-  CAMERA_CONTROLS_MODEL_VIEWER_PROPS,
-  DEFAULT_MODEL_VIEWER_PROPS,
-  DEFAULT_NFT_PARAMS,
-  NFT_TRANSACTION,
-  SHOW_3D_MODELS_CHAIN
-} from '@subwallet/extension-koni-ui/constants';
-import {DataContext} from '@subwallet/extension-koni-ui/contexts/DataContext';
-import {useNavigateOnChangeAccount} from '@subwallet/extension-koni-ui/hooks';
-import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
+import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
+import { OrdinalRemarkData } from '@subwallet/extension-base/types';
+import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
+import { Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
+import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
+import { useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/screen/common/useGetAccountInfoByAddress';
-import {INftItemDetail} from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
-import {RootState} from '@subwallet/extension-koni-ui/stores';
-import {SendNftParams, Theme, ThemeProps} from '@subwallet/extension-koni-ui/types';
-import {BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal} from '@subwallet/react-ui';
-import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
-import {getAlphaColor} from '@subwallet/react-ui/lib/theme/themes/default/colorAlgorithm';
-import CN from 'classnames';
-import {CaretLeft, Info} from 'phosphor-react';
-import React, {useCallback, useContext, useMemo} from 'react';
-import {useSelector} from 'react-redux';
-import {useLocation, useNavigate} from 'react-router-dom';
-import styled, {useTheme} from 'styled-components';
-import {useLocalStorage} from 'usehooks-ts';
-
-import {isEthereumAddress} from '@polkadot/util-crypto';
-import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
-import {OrdinalRemarkData} from '@subwallet/extension-base/types';
 import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
+import { INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
+import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
+import { getAlphaColor } from '@subwallet/react-ui/lib/theme/themes/default/colorAlgorithm';
+import CN from 'classnames';
+import { CaretLeft, Info } from 'phosphor-react';
+import React, { useCallback, useContext, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
+import styled, { useTheme } from 'styled-components';
+
+import { isEthereumAddress } from '@polkadot/util-crypto';
 
 type Props = ThemeProps
 
@@ -52,21 +42,15 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { collectionInfo, nftItem } = location.state as INftItemDetail;
 
   const { t } = useTranslation();
-  const notify = useNotification();
-
-  const navigate = useNavigate();
   const { goBack } = useDefaultNavigate();
   const { token } = useTheme() as Theme;
 
   const dataContext = useContext(DataContext);
   const { activeModal, inactiveModal } = useContext(ModalContext);
 
-  const accounts = useSelector((root: RootState) => root.accountState.accounts);
-
   const originChainInfo = useGetChainInfo(nftItem.chain);
   const ownerAccountInfo = useGetAccountInfoByAddress(nftItem.owner || '');
   const accountExternalUrl = getExplorerLink(originChainInfo, nftItem.owner, 'account');
-  const [, setStorage] = useLocalStorage<SendNftParams>(NFT_TRANSACTION, DEFAULT_NFT_PARAMS);
 
   useNavigateOnChangeAccount('/home/nfts/collections');
 
