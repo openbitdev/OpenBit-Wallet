@@ -229,7 +229,7 @@ export const router = createHashRouter([
             children: [
               ManageTokens.generateRouterObject('manage'),
               // FungibleTokenImport.generateRouterObject('import-token'),
-              TokenDetail.generateRouterObject('detail'),
+              TokenDetail.generateRouterObject('detail')
               // NftImport.generateRouterObject('import-nft')
             ]
           }
