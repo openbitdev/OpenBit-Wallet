@@ -4,6 +4,7 @@
 import { StakingType } from '@subwallet/extension-base/background/KoniTypes';
 
 export interface TransactionFormBaseProps {
+  fromProxyId: string;
   from: string,
   chain: string
   asset: string

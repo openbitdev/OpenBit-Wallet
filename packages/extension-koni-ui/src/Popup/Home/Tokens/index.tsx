@@ -1,13 +1,17 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { RequestSubmitTransfer } from '@subwallet/extension-base/types';
-import { AccountSelectorModal, EmptyList, PageWrapper, ReceiveQrModal, TokenGroupBalanceItem, TokensSelectorModal } from '@subwallet/extension-koni-ui/components';
+import { EmptyList, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountSelectorModal } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
+import ReceiveQrModal from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/ReceiveQrModal';
+import { TokensSelectorModal } from '@subwallet/extension-koni-ui/components/Modal/ReceiveModal/TokensSelectorModal';
+import { TokenGroupBalanceItem } from '@subwallet/extension-koni-ui/components/TokenItem/TokenGroupBalanceItem';
 import { DEFAULT_TRANSFER_PARAMS, TRANSFER_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
-import { useNotification, useReceiveQR, useSetCurrentPage, useTranslation } from '@subwallet/extension-koni-ui/hooks';
-import { makeTransfer } from '@subwallet/extension-koni-ui/messaging';
+import { useReceiveQR, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
+import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
+import { UpperBlock } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/UpperBlock';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
@@ -21,32 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
 
-import { UpperBlock } from './UpperBlock';
-
 type Props = ThemeProps;
-
-function handleBitcoinTransaction () {
-  const fakeBitcoinTransactionData: RequestSubmitTransfer = {
-    from: 'tb1qh87zcmenn2faprewvn5uqgh7sz6p3y00ld93m5',
-    to: 'tb1p49c8gur49dvgjfku6c465n7ltefj0hslaf4th2q8eauc5npg3wtsa7np9e',
-    tokenSlug: 'bitcoinTestnet-NATIVE-BTC',
-    transferAll: false,
-    feeCustom: {
-      feeRate: 2
-    },
-    feeOption: 'custom',
-    value: '1000',
-    chain: 'bitcoinTestnet'
-  };
-
-  makeTransfer(fakeBitcoinTransactionData)
-    .then((result) => {
-      console.log('Bitcoin transaction result:', result);
-    })
-    .catch((error) => {
-      console.error('Error mssaking Bitcoin transaction:', error);
-    });
-}
 
 const Component = (): React.ReactElement => {
   useSetCurrentPage('/home/tokens');
@@ -57,8 +36,7 @@ const Component = (): React.ReactElement => {
   const topBlockRef = useRef<HTMLDivElement>(null);
   const { accountBalance: { tokenGroupBalanceMap,
     totalBalanceInfo }, tokenGroupStructure: { sortedTokenGroups } } = useContext(HomeContext);
-  const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
-  const notify = useNotification();
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const { accountSelectorItems,
     onOpenReceive,
     onSelectAccountProxy,
@@ -156,25 +134,15 @@ const Component = (): React.ReactElement => {
   }, [navigate]);
 
   const onOpenSendFund = useCallback(() => {
-    if (currentAccount && currentAccount.isReadOnly) {
-      notify({
-        message: t('The account you are using is watch-only, you cannot send assets with it'),
-        type: 'info',
-        duration: 3
-      });
-
-      return;
-    }
-
-    const address = currentAccount ? isAccountAll(currentAccount.address) ? '' : currentAccount.address : '';
+    const fromProxyId = currentAccountProxy ? isAccountAll(currentAccountProxy.proxyId) ? '' : currentAccountProxy.proxyId : '';
 
     setStorage({
       ...DEFAULT_TRANSFER_PARAMS,
-      from: address
+      fromProxyId
     });
     navigate('/transaction/send-fund');
   },
-  [currentAccount, navigate, notify, t, setStorage]
+  [currentAccountProxy, navigate, setStorage]
   );
 
   const onOpenBuyTokens = useCallback(() => {
@@ -209,12 +177,6 @@ const Component = (): React.ReactElement => {
       onScroll={handleScroll}
       ref={containerRef}
     >
-      <Button
-        icon={<Icon phosphorIcon={FadersHorizontal} />}
-        onClick={handleBitcoinTransaction}
-      >
-        {t('Manage tokens')}
-      </Button>
       <div
         className={classNames('__upper-block-wrapper', {
           '-is-shrink': isShrink,
