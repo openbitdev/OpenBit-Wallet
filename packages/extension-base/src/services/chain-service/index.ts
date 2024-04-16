@@ -558,8 +558,10 @@ export class ChainService {
         token.hasValue = !(this.getChainInfoByKey(token.originChain)?.isTestnet);
       }
 
-      assetRegistry[token.slug] = token;
-      tokenSlugList.push(token.slug);
+      if (!assetRegistry[token.slug]) {
+        assetRegistry[token.slug] = token;
+        tokenSlugList.push(token.slug);
+      }
     });
 
     this.dataMap.assetRegistry = assetRegistry;
@@ -771,7 +773,7 @@ export class ChainService {
     const bitcoinApi = this.getBitcoinApi(_BITCOIN_CHAIN_SLUG);
     const chainState = this.getChainStateByKey(_BITCOIN_CHAIN_SLUG);
 
-    if (!chainState || !chainState.manualTurnOff) {
+    if (chainState && chainState.manualTurnOff) {
       return;
     }
 
@@ -780,26 +782,23 @@ export class ChainService {
 
     const updateAssetSetting: Record<string, AssetSetting> = {};
     const allAddresses = this.keyringService.accounts;
+    const hasRuneAddresses = Object.keys(allAddresses).filter((address) => getKeypairTypeByAddress(address) === 'bitcoin-86');
 
-    await Promise.all(Object.keys(allAddresses).map(async (address) => {
-      const keyPairType = getKeypairTypeByAddress(address);
+    await Promise.all(Object.keys(hasRuneAddresses).map(async (address) => {
+      const runes = await bitcoinApi.api.getRunes(address);
 
-      if (keyPairType === 'bitcoin-86') {
-        const runes = await bitcoinApi.api.getRunes(address);
+      runes.forEach((rune) => {
+        const amount = rune.amount;
+        const runeName = rune.rune.rune;
+        const runeId = rune.rune_id;
 
-        runes.forEach((rune) => {
-          const amount = rune.amount;
-          const runeName = rune.rune.rune;
-          const runeId = rune.rune_id;
+        const assetSlug = `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${runeName}-${runeId}`;
+        const assetState = assetSettingValue[assetSlug];
 
-          const assetSlug = `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${runeName}-${runeId}`;
-          const assetState = assetSettingValue[assetSlug];
-
-          if (!!amount && !assetState) {
-            updateAssetSetting[assetSlug] = { visible: true };
-          }
-        });
-      }
+        if (parseInt(amount) > 0 && !assetState) {
+          updateAssetSetting[assetSlug] = { visible: true };
+        }
+      });
     }));
 
     this.setAssetSettings({ ...assetSetting, ...updateAssetSetting });
@@ -820,9 +819,9 @@ export class ChainService {
           this.upsertBatchCustomToken(Object.values(runesAssetMap));
 
           this.autoEnableRuneTokens()
-            .then(() => {
-              this.eventService.emit('asset.updateState', '');
-            })
+            // .then(() => {
+            //   this.eventService.emit('asset.updateState', '');
+            // })
             .catch(console.error);
         })
         .catch(console.error);
@@ -1107,7 +1106,7 @@ export class ChainService {
               minAmount: '0',
               assetType: _AssetType.LOCAL,
               metadata: {
-                rune_id: rune.rune_id
+                runeId: rune.rune_id
               },
               multiChainAsset: null,
               hasValue: true,
