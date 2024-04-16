@@ -36,7 +36,7 @@ export class RunesService extends BaseApiRequestStrategy {
 
       if (rs.status !== 200) {
         // todo: update error
-        throw new SWError('BTCScanService.getAddressSummaryInfo', await rs.text());
+        throw new SWError('RuneScanService.getAddressRunesInfo', await rs.text());
       }
 
       return (await rs.json()) as RuneInfoByAddress;
@@ -50,7 +50,7 @@ export class RunesService extends BaseApiRequestStrategy {
 
       if (rs.status !== 200) {
         // todo: update error
-        throw new SWError('BTCScanService.getAddressSummaryInfo', await rs.text());
+        throw new SWError('RuneScanService.getRuneCollectionsByBatch', await rs.text());
       }
 
       return (await rs.json()) as RunesCollectionInfo;

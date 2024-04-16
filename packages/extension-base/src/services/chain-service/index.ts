@@ -784,7 +784,7 @@ export class ChainService {
     const allAddresses = this.keyringService.accounts;
     const hasRuneAddresses = Object.keys(allAddresses).filter((address) => getKeypairTypeByAddress(address) === 'bitcoin-86');
 
-    await Promise.all(Object.keys(hasRuneAddresses).map(async (address) => {
+    await Promise.all(hasRuneAddresses.map(async (address) => {
       const runes = await bitcoinApi.api.getRunes(address);
 
       runes.forEach((rune) => {
@@ -819,9 +819,6 @@ export class ChainService {
           this.upsertBatchCustomToken(Object.values(runesAssetMap));
 
           this.autoEnableRuneTokens()
-            // .then(() => {
-            //   this.eventService.emit('asset.updateState', '');
-            // })
             .catch(console.error);
         })
         .catch(console.error);

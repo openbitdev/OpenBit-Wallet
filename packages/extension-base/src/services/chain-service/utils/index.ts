@@ -197,6 +197,12 @@ export const _isSupportOrdinal = (chain: string) => {
   return chains.includes(chain);
 };
 
+export const _isSupportRuneChain = (chain: string) => {
+  const chains = ['bitcoin'];
+
+  return chains.includes(chain);
+};
+
 export function _getNftTypesSupportedByChain (chainInfo: _ChainInfo): _AssetType[] {
   const result: _AssetType[] = [];
 

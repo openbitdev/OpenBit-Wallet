@@ -6,7 +6,7 @@ import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
@@ -79,6 +79,12 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
   const chain = chainInfo.slug;
   const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
 
+  if (Object.keys(tokenList).length === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    return () => {
+    };
+  }
+
   const getRunesBalance = async () => {
     const runeIdToSlugMap: Record<string, string> = {};
     const runeIdToAllItemsMap: Record<string, BalanceItem[]> = {};
@@ -88,7 +94,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
     });
 
     // get runeId -> BalanceItem[] mapping
-    await Promise.all(addresses.map(async (address) => {
+    await Promise.all(['bc1pw98myh924tpzpy5npxx6u599gnknf0fq5k4m76esz3w6xdh7ezcs2we5k0'].map(async (address) => {
       try {
         const runes = await bitcoinApi.api.getRunes(address);
 
@@ -96,7 +102,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
           const runeId = rune.rune_id;
 
           const item = {
-            address: address,
+            address: 'bc1pesavjkzf9e87kzluptcdyh286mceu8xxymrz2uxmle7t726qhnfq09fcz9',
             tokenSlug: runeIdToSlugMap[runeId],
             free: rune.amount,
             locked: '0',
@@ -184,12 +190,19 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, as
 
   getBalance();
   const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
-  const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
 
-  return () => {
-    clearInterval(interval);
-    unsub && unsub();
-  };
+  if (_isSupportRuneChain(chainInfo.slug)) {
+    const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
+
+    return () => {
+      clearInterval(interval);
+      unsub && unsub();
+    };
+  } else {
+    return () => {
+      clearInterval(interval);
+    };
+  }
 }
 
 // main subscription, use for multiple chains, multiple addresses and multiple tokens
