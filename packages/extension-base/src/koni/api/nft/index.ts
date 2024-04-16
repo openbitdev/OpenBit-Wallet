@@ -17,9 +17,8 @@ import { VaraNftApi } from '@subwallet/extension-base/koni/api/nft/vara_nft';
 import { WasmNftApi } from '@subwallet/extension-base/koni/api/nft/wasm_nft';
 import { _NFT_CHAIN_GROUP } from '@subwallet/extension-base/services/chain-service/constants';
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _isChainSupportEvmNft, _isChainSupportNativeNft, _isChainSupportWasmNft, _isPureBitcoinChain, _isSupportOrdinal } from '@subwallet/extension-base/services/chain-service/utils';
-import { categoryAddresses } from '@subwallet/extension-base/utils';
-import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { _isChainSupportEvmNft, _isChainSupportNativeNft, _isChainSupportWasmNft, _isSupportOrdinal } from '@subwallet/extension-base/services/chain-service/utils';
+import { categoryAddresses, targetIsWeb } from '@subwallet/extension-base/utils';
 
 import StatemintNftApi from './statemint_nft';
 
@@ -42,21 +41,11 @@ function createSubstrateNftApi (chain: string, substrateApi: _SubstrateApi | nul
     return new BitCountryNftApi(substrateApi, substrateAddresses, chain);
   } else if (_NFT_CHAIN_GROUP.vara.includes(chain)) {
     return new VaraNftApi(chain, substrateAddresses);
+  } else if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
+    return new InscriptionApi(chain, substrateAddresses);
   }
 
   return null;
-}
-
-function createBitcoinInscriptionApi (chain: string, addresses: string[]) {
-  const filteredAddresses = addresses.filter((a) => {
-    return getKeypairTypeByAddress(a) === 'bitcoin-86';
-  });
-
-  if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
-    return new InscriptionApi(chain, filteredAddresses);
-  } else {
-    return null;
-  }
 }
 
 function createWasmNftApi (chain: string, apiProps: _SubstrateApi | null, addresses: string[]): BaseNftApi | null {
@@ -142,21 +131,13 @@ export class NftHandler {
         const [substrateAddresses, evmAddresses] = categoryAddresses(this.addresses);
 
         Object.entries(this.chainInfoMap).forEach(([chain, chainInfo]) => {
-          if (_isChainSupportNativeNft(chainInfo)) {
-            if (this.substrateApiMap[chain]) {
+          if (_isChainSupportNativeNft(chainInfo) || chain === 'bitcoin') {
+            if (this.substrateApiMap[chain] || chain === 'bitcoin') {
               const handler = createSubstrateNftApi(chain, this.substrateApiMap[chain], substrateAddresses);
 
               if (handler) {
                 this.handlers.push(handler);
               }
-            }
-          }
-
-          if (_isPureBitcoinChain(chainInfo)) {
-            const handler = createBitcoinInscriptionApi(chain, this.addresses);
-
-            if (handler) {
-              this.handlers.push(handler);
             }
           }
 
@@ -180,7 +161,7 @@ export class NftHandler {
             }
           }
 
-          if (_isSupportOrdinal(chain)) {
+          if (_isSupportOrdinal(chain) && targetIsWeb) {
             const subscanChain = chainInfo.extraInfo?.subscanSlug;
 
             if (subscanChain) {
