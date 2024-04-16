@@ -1,13 +1,13 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { BitcoinFeeInfo } from '@subwallet/extension-base/types';
+import {BitcoinFeeInfo, FeeDefaultOption} from '@subwallet/extension-base/types';
 import { BasicInputEvent, RadioGroup } from '@subwallet/extension-koni-ui/components';
-import { FormCallbacks, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import {FormCallbacks, PhosphorIcon, ThemeProps} from '@subwallet/extension-koni-ui/types';
 import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
-import { Form, Icon, Input, ModalContext, SwModal } from '@subwallet/react-ui';
+import {Form, Icon, Input, ModalContext, SwIconProps, SwModal} from '@subwallet/react-ui';
 import CN from 'classnames';
-import { CaretLeft, CheckCircle } from 'phosphor-react';
+import {CaretLeft, CheckCircle, Lightning, Wind, Tree} from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
@@ -32,6 +32,30 @@ interface ViewOption {
 interface FormProps {
   customValue: number;
 }
+
+interface IconOption {
+  icon: PhosphorIcon;
+  color: string;
+  weight: SwIconProps['weight'];
+}
+
+const IconMap: Record<FeeDefaultOption, IconOption> = {
+  slow: {
+    icon: Tree,
+    color: 'green',
+    weight: 'bold'
+  },
+  average: {
+    icon: Wind,
+    color: 'blue',
+    weight: 'bold'
+  },
+  fast: {
+    icon: Lightning,
+    color: 'gold',
+    weight: 'bold'
+  }
+};
 
 const OPTIONS: BitcoinFeeOption[] = [
   {
@@ -107,6 +131,7 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
     }
 
     const feeRate = feeDetailOptions[o.option].feeRate;
+    const iconOption = IconMap[o.option];
 
     return (
       <div
@@ -114,20 +139,42 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
         key={o.option}
         onClick={_onSelectOption(o)}
       >
-        <div>
-          {o.option} - {feeRate}
+        <div className={'__left-part'}>
+          <Icon
+              phosphorIcon={iconOption.icon}
+              weight={iconOption.weight}
+              iconColor={iconOption.color}
+          />
         </div>
+        <div className={'__mid-part'}>
+          <div className={'__line-1'}>
+            <div className={'__label'}>{o.option}</div>
+            <div className={'__value'}>&nbsp;- {feeRate}&nbsp;sats/vB</div>
+          </div>
+          <div className={'__line-2'}>
+            <div className={'__label'}>Time</div>
+            <div className={'__value'}>&nbsp;~&nbsp;30 min&nbsp;</div>
+          </div>
+          <div className={'__line-3'}>
+            <div className={'__label'}>Max fee:</div>
+            <div className={'__value'}>&nbsp;0.000123 BTC&nbsp;</div>
+          </div>
+        </div>
+        <div className={'__right-part'}>
         {
-          selectedOption.option === o.option && (
-            <div>
-              <Icon
-                phosphorIcon={CheckCircle}
-                weight='fill'
-              />
-            </div>
-          )
+            selectedOption.option === o.option && (
+                <div>
+                  <Icon
+                      phosphorIcon={CheckCircle}
+                      weight='fill'
+                      iconColor={'#7EE76C'}
+                      customSize={'20px'}
+                  />
+                </div>
+            )
         }
-      </div>
+        </div>
+        </div>
     );
   };
 
@@ -159,7 +206,7 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
 
       {
         currentViewMode === ViewMode.RECOMMENDED && (
-          <div>
+          <div className={'__option-item'}>
             {OPTIONS.map(renderOption)}
           </div>
         )
@@ -167,7 +214,7 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
 
       {
         currentViewMode === ViewMode.CUSTOM && (
-          <div>
+          <div className={'__custom-mode'}>
             <Form
               form={form}
               initialValues={formDefault}
@@ -177,6 +224,7 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
                 name={'customValue'}
               >
                 <Input
+                    label={'sats/vB'}
                   min={0}
                   placeholder={'0.1 - 2'}
                   type={'number'}
@@ -191,14 +239,51 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
 };
 
 export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token } }: Props) => {
+  console.log('token', token);
   return ({
     '.__fee-option-item': {
       backgroundColor: token.colorBgSecondary,
-      cursor: 'pointer'
+      cursor: 'pointer',
+      display: 'flex',
+      gap: 12,
+      padding: 12,
+      borderRadius: 8
     },
-
+    '.__line-1': {
+      fontSize: 16,
+      fontWeight: token.fontWeightStrong,
+      lineHeight: token.lineHeightLG
+    },
+    '.__line-2 .__label, .__line-3 .__label': {
+      fontSize: 14,
+      lineHeight: token.lineHeight,
+      color: token.colorTextTertiary
+    },
+    '.__value': {
+      color: token.colorTextLabel
+    },
+    '.__left-part': {
+      display: 'flex'
+    },
+    '.__option-item': {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8,
+      marginTop: 16
+    },
     '.__fee-option-item + .__fee-option-item': {
       marginTop: token.marginXS
+    },
+    '.__line-1, .__line-2, .__line-3': {
+      display: 'flex',
+      gap: 8
+    },
+    '.__custom-mode': {
+      marginTop: 16
+    },
+    '.__right-part': {
+      display: 'flex',
+      alignItems: 'center'
     }
   });
 });
