@@ -199,9 +199,9 @@ function getAccountProxyBalance (
       tokenGroupBalance.isTestnet = tokenBalanceMap[tokenGroupKey].isTestnet;
     }
 
-    if (!isShowZeroBalance && (!isTokenGroupBalanceReady || tokenGroupBalance.total.value.eq(0))) {
-      return;
-    }
+    // if (!isShowZeroBalance && (!isTokenGroupBalanceReady || tokenGroupBalance.total.value.eq(0))) {
+    //   return;
+    // }
 
     const tokenGroupPriceId = multiChainAsset ? _getMultiChainAssetPriceId(multiChainAsset) : _getAssetPriceId(assetRegistryMap[tokenGroupKey]);
 

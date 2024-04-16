@@ -3,6 +3,7 @@
 
 import { NftItem } from '@subwallet/extension-base/background/KoniTypes';
 import { _isCustomAsset, _isSmartContractToken } from '@subwallet/extension-base/services/chain-service/utils';
+import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import { EmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
@@ -13,6 +14,7 @@ import useConfirmModal from '@subwallet/extension-koni-ui/hooks/modal/useConfirm
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import useGetChainAssetInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useGetChainAssetInfo';
 import { deleteCustomAssets } from '@subwallet/extension-koni-ui/messaging';
+import { InscriptionGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionGalleryWrapper';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
 import { INftCollectionDetail, INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -25,38 +27,15 @@ import styled from 'styled-components';
 
 type Props = ThemeProps
 
-const subHeaderRightButton = <Icon
-  customSize={'24px'}
-  phosphorIcon={Trash}
-  type='phosphor'
-  weight={'light'}
-/>;
-
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const location = useLocation();
   const { collectionInfo, nftList } = location.state as INftCollectionDetail;
 
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { goBack } = useDefaultNavigate();
-  const showNotification = useNotification();
-
   const dataContext = useContext(DataContext);
 
   useNavigateOnChangeAccount('/home/nfts/collections');
-
-  const originAssetInfo = useGetChainAssetInfo(collectionInfo.originAsset);
-
-  const { handleSimpleConfirmModal } = useConfirmModal({
-    title: t<string>('Delete NFT'),
-    maskClosable: true,
-    closable: true,
-    type: 'error',
-    subTitle: t<string>('You are about to delete this NFT collection'),
-    content: t<string>('Confirm delete this NFT collection'),
-    okText: t<string>('Remove')
-  });
-
   const searchNft = useCallback((nftItem: NftItem, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
 
@@ -66,12 +45,29 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, []);
 
+  // todo: `need optimize child router for nfts`
   const handleOnClickNft = useCallback((state: INftItemDetail) => {
     navigate('/home/nfts/item-detail', { state });
   }, [navigate]);
 
   const renderNft = useCallback((nftItem: NftItem) => {
     const routingParams = { collectionInfo, nftItem } as INftItemDetail;
+
+    if (nftItem.description) {
+      const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
+
+        if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+        return (
+            <InscriptionGalleryWrapper
+              handleOnClick={handleOnClickNft}
+              key={`${nftItem.chain}_${nftItem.collectionId}_${nftItem.id}`}
+              name={nftItem.name as string}
+              properties={ordinalNftItem}
+              routingParams={routingParams}
+            />
+          );
+        }
+      }
 
     return (
       <NftGalleryWrapper
@@ -100,35 +96,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, [t]);
 
-  const handleDeleteNftCollection = useCallback(() => {
-    handleSimpleConfirmModal().then(() => {
-      if (collectionInfo.originAsset) {
-        deleteCustomAssets(collectionInfo.originAsset)
-          .then((result) => {
-            if (result) {
-              goBack();
-              showNotification({
-                message: t('Deleted NFT collection successfully')
-              });
-            } else {
-              showNotification({
-                message: t('Deleted NFT collection unsuccessfully')
-              });
-            }
-          })
-          .catch(console.log);
-      }
-    }).catch(console.log);
-  }, [collectionInfo.originAsset, goBack, handleSimpleConfirmModal, showNotification, t]);
-
-  const subHeaderButton: ButtonProps[] = [
-    {
-      icon: subHeaderRightButton,
-      onClick: handleDeleteNftCollection,
-      disabled: !(originAssetInfo && _isSmartContractToken(originAssetInfo) && _isCustomAsset(originAssetInfo.slug))
-    }
-  ];
-
   return (
     <PageWrapper
       className={`${className}`}
@@ -140,7 +107,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         showSubHeader={true}
         subHeaderBackground={'transparent'}
         subHeaderCenter={false}
-        subHeaderIcons={subHeaderButton}
         subHeaderPaddingVertical={true}
         title={(
           <div className={CN('header-content')}>
