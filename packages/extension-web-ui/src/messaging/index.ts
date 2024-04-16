@@ -43,8 +43,9 @@ export async function cancelSubscription (request: string): Promise<boolean> {
   return sendMessage('pri(subscription.cancel)', request);
 }
 
-export async function subscribeTransactionHistory (chain: string, address: string, callback: (items: TransactionHistoryItem[]) => void): Promise<ResponseSubscribeHistory> {
-  return sendMessage('pri(transaction.history.subscribe)', { address, chain }, callback);
+// todo: find all usage of this function then refactor
+export async function subscribeTransactionHistory (accountProxyId: string, chain: string, callback: (items: TransactionHistoryItem[]) => void): Promise<ResponseSubscribeHistory> {
+  return sendMessage('pri(transaction.history.subscribe)', { accountProxyId: accountProxyId, chain }, callback);
 }
 
 export * from './accounts';
