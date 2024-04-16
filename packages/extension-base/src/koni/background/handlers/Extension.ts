@@ -39,7 +39,7 @@ import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectN
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
 import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
-import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, generateAccountProxyId, isSameAddress, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
+import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, generateAccountProxyId, getSizeInfo, isSameAddress, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -1848,7 +1848,7 @@ export default class KoniExtension {
   }
 
   private async makeTransfer (inputData: RequestSubmitTransfer): Promise<SWTransactionResponse> {
-    const { chain, feeCustom, feeOption, from, id, to, tokenSlug, transferAll, value } = inputData;
+    const { chain, feeCustom, feeOption, from, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
 
     const warnings: TransactionWarning[] = [];
@@ -1992,7 +1992,6 @@ export default class KoniExtension {
     return this.#koniState.transactionService.handleTransaction({
       errors,
       warnings,
-      id,
       address: from,
       chain: chain,
       feeCustom,
@@ -2454,7 +2453,14 @@ export default class KoniExtension {
             const _fee = fee as BitcoinFeeInfo;
             const _feeCustom = feeCustom as BitcoinFeeRate;
             const combineFee = combineBitcoinFee(_fee, _feeOptions, _feeCustom);
-            const vSize = 0;
+            const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
+            const utxos = await bitcoinApi.api.getUtxos(address);
+
+            const { txVBytes: vSize } = getSizeInfo({
+              inputLength: utxos.length,
+              recipient: address,
+              outputLength: 1
+            });
 
             estimatedFee = new BigN(combineFee.feeRate || '0').multipliedBy(vSize).toFixed(0);
             feeOptions = {
@@ -2952,6 +2958,8 @@ export default class KoniExtension {
     }
   }
 
+  // Evm confirmation
+
   private subscribeConfirmations (id: string, port: chrome.runtime.Port) {
     const cb = createSubscription<'pri(confirmations.subscribe)'>(id, port);
 
@@ -2968,6 +2976,22 @@ export default class KoniExtension {
 
   private async completeConfirmation (request: RequestConfirmationComplete) {
     return await this.#koniState.completeConfirmation(request);
+  }
+
+  // Bitcoin confirmation
+
+  private subscribeBitcoinConfirmations (id: string, port: chrome.runtime.Port) {
+    const cb = createSubscription<'pri(confirmations.bitcoin.subscribe)'>(id, port);
+
+    const subscription = this.#koniState.requestService.confirmationsQueueSubjectBitcoin.subscribe(cb);
+
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
+    return this.#koniState.requestService.confirmationsQueueSubjectBitcoin.getValue();
   }
 
   private async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin) {
@@ -5258,7 +5282,9 @@ export default class KoniExtension {
       case 'pri(confirmations.complete)':
         return await this.completeConfirmation(request as RequestConfirmationComplete);
 
-      case 'pri(confirmationsBitcoin.complete)':
+      case 'pri(confirmations.bitcoin.subscribe)':
+        return this.subscribeBitcoinConfirmations(id, port);
+      case 'pri(confirmations.bitcoin.complete)':
         return await this.completeConfirmationBitcoin(request as RequestConfirmationCompleteBitcoin);
 
       /// Stake

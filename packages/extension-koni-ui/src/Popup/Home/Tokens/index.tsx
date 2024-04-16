@@ -1,11 +1,13 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { RequestSubmitTransfer } from '@subwallet/extension-base/types';
 import { AccountSelectorModal, EmptyList, PageWrapper, ReceiveQrModal, TokenGroupBalanceItem, TokensSelectorModal } from '@subwallet/extension-koni-ui/components';
 import { DEFAULT_TRANSFER_PARAMS, TRANSFER_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
 import { useNotification, useReceiveQR, useSetCurrentPage, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { makeTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
@@ -22,6 +24,29 @@ import { useLocalStorage } from 'usehooks-ts';
 import { UpperBlock } from './UpperBlock';
 
 type Props = ThemeProps;
+
+function handleBitcoinTransaction () {
+  const fakeBitcoinTransactionData: RequestSubmitTransfer = {
+    from: 'tb1qh87zcmenn2faprewvn5uqgh7sz6p3y00ld93m5',
+    to: 'tb1p49c8gur49dvgjfku6c465n7ltefj0hslaf4th2q8eauc5npg3wtsa7np9e',
+    tokenSlug: 'bitcoinTestnet-NATIVE-BTC',
+    transferAll: false,
+    feeCustom: {
+      feeRate: 2
+    },
+    feeOption: 'custom',
+    value: '1000',
+    chain: 'bitcoinTestnet'
+  };
+
+  makeTransfer(fakeBitcoinTransactionData)
+    .then((result) => {
+      console.log('Bitcoin transaction result:', result);
+    })
+    .catch((error) => {
+      console.error('Error mssaking Bitcoin transaction:', error);
+    });
+}
 
 const Component = (): React.ReactElement => {
   useSetCurrentPage('/home/tokens');
@@ -184,6 +209,12 @@ const Component = (): React.ReactElement => {
       onScroll={handleScroll}
       ref={containerRef}
     >
+      <Button
+        icon={<Icon phosphorIcon={FadersHorizontal} />}
+        onClick={handleBitcoinTransaction}
+      >
+        {t('Manage tokens')}
+      </Button>
       <div
         className={classNames('__upper-block-wrapper', {
           '-is-shrink': isShrink,

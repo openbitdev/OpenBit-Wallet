@@ -33,5 +33,5 @@ export async function completeConfirmation<CT extends ConfirmationType> (type: C
 }
 
 export async function completeConfirmationBitcoin<CT extends ConfirmationTypeBitcoin> (type: CT, payload: ConfirmationDefinitionsBitcoin[CT][1]): Promise<boolean> {
-  return sendMessage('pri(confirmationsBitcoin.complete)', { [type]: payload });
+  return sendMessage('pri(confirmations.bitcoin.complete)', { [type]: payload });
 }

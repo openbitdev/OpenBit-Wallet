@@ -966,8 +966,8 @@ export default class TransactionService {
   // eslint-disable-next-line @typescript-eslint/require-await
   private async signAndSendBitcoinTransaction ({ address, chain, id, transaction, url }: SWTransaction): Promise<TransactionEmitter> {
     const tx = transaction as Psbt;
-    const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
-    const chainInfo = this.state.chainService.getChainInfoByKey(chain);
+    // const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
+    // const chainInfo = this.state.chainService.getChainInfoByKey(chain);
 
     const accountPair = keyring.getPair(address);
     const account: AccountJson = { address, ...accountPair.meta };
@@ -991,7 +991,7 @@ export default class TransactionService {
     };
 
     const isInjected = !!account.isInjected;
-    const isExternal = !!account.isExternal;
+    // const isExternal = !!account.isExternal;
 
     if (isInjected) {
       throw new TransactionError(BasicTxErrorType.UNSUPPORTED);

@@ -494,7 +494,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       // Transfer token or send fund
       sendPromise = makeTransfer({
         from,
-        networkKey: chain,
+        chain,
         to: to,
         tokenSlug: asset,
         value: value,
