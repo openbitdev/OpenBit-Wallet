@@ -18,19 +18,22 @@ export const combineBitcoinFee = (feeInfo: BitcoinFeeInfo, feeOptions?: FeeOptio
 };
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
-export function getSpendableAmount ({ address,
-  feeRate,
+export function getSpendableAmount ({ feeRate,
+  recipient,
+  sender,
   utxos }: {
   utxos: UtxoResponseItem[];
   feeRate: number;
-  address: string;
+  recipient: string;
+  sender: string;
 }) {
   const balance = utxos.map((utxo) => utxo.value).reduce((prevVal, curVal) => prevVal + curVal, 0);
 
   const size = getSizeInfo({
     inputLength: utxos.length,
     outputLength: 1,
-    recipient: address
+    recipient,
+    sender
   });
   const fee = Math.ceil(size.txVBytes * feeRate);
   const bigNumberBalance = new BigN(balance);
@@ -45,30 +48,34 @@ export function getSpendableAmount ({ address,
 // Check if the spendable amount drops when adding a utxo. If it drops, don't use that utxo.
 // Method might be not particularly efficient as it would
 // go through the utxo array multiple times, but it's reliable.
-export function filterUneconomicalUtxos ({ address,
-  feeRate,
+export function filterUneconomicalUtxos ({ feeRate,
+  recipient,
+  sender,
   utxos }: {
   utxos: UtxoResponseItem[];
   feeRate: number;
-  address: string;
+  sender: string;
+  recipient: string;
 }) {
   const { spendableAmount: fullSpendableAmount } = getSpendableAmount({
     utxos,
     feeRate,
-    address
+    recipient,
+    sender
   });
 
-  const addressInfo = validateBitcoinAddress(address) ? getBitcoinAddressInfo(address) : null;
-  const outputAddressTypeWithFallback = addressInfo ? addressInfo.type : BitcoinAddressType.p2wpkh;
+  const addressInfo = validateBitcoinAddress(sender) ? getBitcoinAddressInfo(sender) : null;
+  const inputAddressTypeWithFallback = addressInfo ? addressInfo.type : BitcoinAddressType.p2wpkh;
 
   return utxos
-    .filter((utxo) => utxo.value >= BTC_DUST_AMOUNT[outputAddressTypeWithFallback])
+    .filter((utxo) => utxo.value >= BTC_DUST_AMOUNT[inputAddressTypeWithFallback])
     .filter((utxo) => {
       // calculate spendableAmount without that utxo.
       const { spendableAmount } = getSpendableAmount({
         utxos: utxos.filter((u) => u.txid !== utxo.txid),
         feeRate,
-        address
+        recipient,
+        sender
       });
 
       // if spendable amount becomes bigger, do not use that utxo
@@ -81,16 +88,19 @@ export function getSizeInfo (payload: {
   inputLength: number;
   outputLength: number;
   recipient: string;
+  sender: string;
 }) {
-  const { inputLength, outputLength, recipient } = payload;
-  const addressInfo = validateBitcoinAddress(recipient) ? getBitcoinAddressInfo(recipient) : null;
-  const outputAddressTypeWithFallback = addressInfo ? addressInfo.type : BitcoinAddressType.p2wpkh;
+  const { inputLength, outputLength, recipient, sender } = payload;
+  const senderInfo = validateBitcoinAddress(sender) ? getBitcoinAddressInfo(sender) : null;
+  const inputAddressTypeWithFallback = senderInfo ? senderInfo.type : BitcoinAddressType.p2wpkh;
+  const recipientInfo = validateBitcoinAddress(recipient) ? getBitcoinAddressInfo(recipient) : null;
+  const outputAddressTypeWithFallback = recipientInfo ? recipientInfo.type : BitcoinAddressType.p2wpkh;
 
   const txSizer = new BtcSizeFeeEstimator();
 
   return txSizer.calcTxSize({
     // Only p2wpkh is supported by the wallet
-    input_script: 'p2wpkh',
+    input_script: inputAddressTypeWithFallback,
     input_count: inputLength,
     // From the address of the recipient, we infer the output type
     [outputAddressTypeWithFallback + '_output_count']: outputLength
@@ -98,21 +108,25 @@ export function getSizeInfo (payload: {
 }
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/coinselect/local-coin-selection.ts
-export function determineUtxosForSpendAll ({ amount,
+export function determineUtxosForSpendAll ({
   feeRate,
   recipient,
+  sender,
   utxos }: DetermineUtxosForSpendArgs) {
   if (!validateBitcoinAddress(recipient)) {
     throw new Error('Cannot calculate spend of invalid address type');
   }
 
-  const filteredUtxos = filterUneconomicalUtxos({ utxos, feeRate, address: recipient });
+  const filteredUtxos = filterUneconomicalUtxos({ utxos, feeRate, recipient, sender });
 
   const sizeInfo = getSizeInfo({
+    sender,
     inputLength: filteredUtxos.length,
     outputLength: 1,
     recipient
   });
+
+  const amount = filteredUtxos.reduce((acc, utxo) => acc + utxo.value, 0) - Math.ceil(sizeInfo.txVBytes * feeRate);
 
   // Fee has already been deducted from the amount with send all
   const outputs = [{ value: amount, address: recipient }];
@@ -131,6 +145,7 @@ export function determineUtxosForSpendAll ({ amount,
 export function determineUtxosForSpend ({ amount,
   feeRate,
   recipient,
+  sender,
   utxos }: DetermineUtxosForSpendArgs) {
   if (!validateBitcoinAddress(recipient)) {
     throw new Error('Cannot calculate spend of invalid address type');
@@ -141,7 +156,8 @@ export function determineUtxosForSpend ({ amount,
   const filteredUtxos = filterUneconomicalUtxos({
     utxos: orderedUtxos,
     feeRate,
-    address: recipient
+    recipient,
+    sender
   });
 
   const neededUtxos = [];
@@ -151,6 +167,7 @@ export function determineUtxosForSpend ({ amount,
   for (const utxo of filteredUtxos) {
     sizeInfo = getSizeInfo({
       inputLength: neededUtxos.length,
+      sender,
       outputLength: 2,
       recipient
     });
