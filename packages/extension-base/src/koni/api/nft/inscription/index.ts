@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
-import { TEST_ADDRESS } from '@subwallet/extension-base/koni/api/nft/inscription/constants/accounts';
 import { HIRO_API } from '@subwallet/extension-base/koni/api/nft/inscription/constants/api';
 import { InscriptionResponseItem } from '@subwallet/extension-base/koni/api/nft/inscription/types/interface';
 import { BaseNftApi, HandleNftParams } from '@subwallet/extension-base/koni/api/nft/nft';
@@ -20,22 +19,16 @@ const ORDINAL_COLLECTION_INFO: NftCollection = {
   collectionId: 'INSCRIPTION',
   collectionName: 'Inscriptions'
 };
-// tb1q9349hsyr78tv79lmmak3gwsmkqrplcv8jr30cy
-// tb1qunkzxu23pwv3tdgtgssvvv2qa9s22rqs3hk9ee
-// tb1qltwnv6wwqd8yhwekdlqtkppr9ngna3l9tvayg2
-// tb1qgtfh3judtmdww3myvvv7m2u774f2dxk3eh8uxu
-// tb1qv8przqc226ytdckcu9k3nchy6d6kup8trfg8v2
-// bc1pswkmku02gqu9cg8heetr6lfxc5zusss4knqst7g2rf8teeqtr9lsdlv4ts
-const FAKE_ADDRESS = 'tb1p5sgfjpdxa7y9as2m2ekc797h05ywf6reswhz2u30anhg390cwnuskhf3uq'; // replace this address to your bitcoin address to see
 
 export class InscriptionApi extends BaseNftApi {
   constructor (chain: string, addresses: string[]) {
     super(chain, undefined, addresses);
   }
 
-  private createInscriptionInfoUrl (id: string) {
-    return `https://ordinals.hiro.so/inscription/${id}`;
-  }
+  // todo: temporary not use
+  // private createInscriptionInfoUrl (id: string) {
+  //   return `https://ordinals.hiro.so/inscription/${id}`;
+  // }
 
   private createIframePreviewUrl (id: string) {
     return `https://ordinals.com/preview/${id}`;
@@ -115,8 +108,6 @@ export class InscriptionApi extends BaseNftApi {
     const satNumber = inscription.sat_ordinal;
     const contentType = inscription.content_type;
 
-    console.log('6666_contentType', contentType);
-
     propertiesMap.sat_rarity = {
       value: satRarity
     };
@@ -134,47 +125,49 @@ export class InscriptionApi extends BaseNftApi {
 
   public async handleNfts (params: HandleNftParams) {
     try {
-      const balances = await this.getBalances(TEST_ADDRESS.add4);
+      await Promise.all(this.addresses.map(async (address) => {
+        const balances = await this.getBalances(address);
 
-      if (balances.length > 0) {
-        const collectionMap: Record <string, NftCollection> = {};
+        if (balances.length > 0) {
+          const collectionMap: Record <string, NftCollection> = {};
 
-        for (const ins of balances) {
-          let content;
+          for (const ins of balances) {
+            let content;
 
-          if (ins.content_type.startsWith('text/plain') || ins.content_type.startsWith('application/json')) {
-            content = await this.getOrdinalContent(ins.id);
-          }
+            if (ins.content_type.startsWith('text/plain') || ins.content_type.startsWith('application/json')) {
+              content = await this.getOrdinalContent(ins.id);
+            }
 
-          const propertiesMap = this.handleProperties(ins);
+            const propertiesMap = this.handleProperties(ins);
 
-          const parsedNft: NftItem = {
-            id: ins.id,
-            chain: this.chain,
-            owner: FAKE_ADDRESS, // todo: ins.address
-            name: `#${ins.number.toString()}`,
-            image: this.parseInsUrl(ins.id, ins.content_type),
-            description: content ? JSON.stringify(content) : undefined,
-            collectionId: ORDINAL_COLLECTION_INFO.collectionId,
-            rarity: ins.sat_rarity,
-            properties: propertiesMap
-          };
-
-          params.updateItem(this.chain, parsedNft, FAKE_ADDRESS); // todo: ins.address
-
-          if (!collectionMap[ORDINAL_COLLECTION_INFO.collectionId]) {
-            const parsedCollection: NftCollection = {
-              collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+            const parsedNft: NftItem = {
+              id: ins.id,
               chain: this.chain,
-              collectionName: ORDINAL_COLLECTION_INFO.collectionName,
-              image: ORDINAL_COLLECTION_INFO.image
+              owner: ins.address,
+              name: `#${ins.number.toString()}`,
+              image: this.parseInsUrl(ins.id, ins.content_type),
+              description: content ? JSON.stringify(content) : undefined,
+              collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+              rarity: ins.sat_rarity,
+              properties: propertiesMap
             };
 
-            collectionMap[ORDINAL_COLLECTION_INFO.collectionId] = parsedCollection;
-            params.updateCollection(this.chain, parsedCollection);
+            params.updateItem(this.chain, parsedNft, ins.address);
+
+            if (!collectionMap[ORDINAL_COLLECTION_INFO.collectionId]) {
+              const parsedCollection: NftCollection = {
+                collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+                chain: this.chain,
+                collectionName: ORDINAL_COLLECTION_INFO.collectionName,
+                image: ORDINAL_COLLECTION_INFO.image
+              };
+
+              collectionMap[ORDINAL_COLLECTION_INFO.collectionId] = parsedCollection;
+              params.updateCollection(this.chain, parsedCollection);
+            }
           }
         }
-      }
+      }));
     } catch (error) {
       console.error('Failed to fetch ordinals', error);
     }
