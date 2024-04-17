@@ -178,6 +178,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const destChainValue = useWatchTransaction('destChain', form, defaultData);
   const transferAmountValue = useWatchTransaction('value', form, defaultData);
   const fromValue = useWatchTransaction('from', form, defaultData);
+  const toValue = useWatchTransaction('to', form, defaultData);
   const chainValue = useWatchTransaction('chain', form, defaultData);
   const assetValue = useWatchTransaction('asset', form, defaultData);
 
@@ -295,13 +296,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   }, [form, t]);
 
   const validateAmount = useCallback((rule: Rule, amount: string): Promise<void> => {
-    const maxTransfer = transferInfo?.maxTransferable || '0';
-
     if (!amount) {
       return Promise.reject(t('Amount is required'));
     }
 
-    if ((new BigN(maxTransfer)).lte(BN_ZERO)) {
+    if (transferInfo && (new BigN(transferInfo.maxTransferable)).lte(BN_ZERO)) {
       return Promise.reject(t('You don\'t have enough tokens to proceed'));
     }
 
@@ -309,8 +308,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Amount must be greater than 0'));
     }
 
-    if ((new BigN(amount)).gt(new BigN(maxTransfer))) {
-      const maxString = formatBalance(maxTransfer, decimals);
+    if (transferInfo && (new BigN(amount)).gt(new BigN(transferInfo.maxTransferable))) {
+      const maxString = formatBalance(transferInfo.maxTransferable, decimals);
 
       return Promise.reject(t('Amount must be equal or less than {{number}}', { replace: { number: maxString } }));
     }
@@ -526,6 +525,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   useEffect(() => {
     let cancel = false;
     let id = '';
+    let timeout: NodeJS.Timeout;
 
     setIsFetchingInfo(true);
 
@@ -550,33 +550,36 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       }
     };
 
-    if (fromValue && assetValue) {
-      subscribeMaxTransfer({
-        address: fromValue,
-        chain: assetRegistry[assetValue].originChain,
-        token: assetValue,
-        isXcmTransfer: chainValue !== destChainValue,
-        destChain: destChainValue,
-        feeOption: transactionFeeInfo?.feeOption,
-        feeCustom: transactionFeeInfo?.feeCustom
-      }, callback)
-        .then(callback)
-        .catch((e) => {
-          console.error(e);
+    if (fromValue && assetValue && destChainValue && toValue && transferAmountValue) {
+      timeout = setTimeout(() => {
+        subscribeMaxTransfer({
+          address: fromValue,
+          chain: assetRegistry[assetValue].originChain,
+          token: assetValue,
+          isXcmTransfer: chainValue !== destChainValue,
+          destChain: destChainValue,
+          feeOption: transactionFeeInfo?.feeOption,
+          feeCustom: transactionFeeInfo?.feeCustom
+        }, callback)
+          .then(callback)
+          .catch((e) => {
+            console.error(e);
 
-          setTransferInfo(undefined);
-          validate();
-        })
-        .finally(() => {
-          setIsFetchingInfo(false);
-        });
+            setTransferInfo(undefined);
+            validate();
+          })
+          .finally(() => {
+            setIsFetchingInfo(false);
+          });
+      }, 800);
     }
 
     return () => {
       cancel = true;
+      clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
+  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transferAmountValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
 
   const accountsFilter = useCallback((account: AccountJson) => {
     if (fromProxyId) {
