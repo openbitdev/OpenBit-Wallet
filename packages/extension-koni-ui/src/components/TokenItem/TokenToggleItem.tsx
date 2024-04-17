@@ -57,6 +57,15 @@ const TokenToggleItem = styled(Component)<Props>(({ theme: { token } }: Props) =
         marginRight: `-${token.padding + 2}px`
       }
     },
+    '.ant-web3-block-middle-item': {
+      maxWidth: 191,
+      overflow: 'hidden'
+    },
+    '.ant-network-item-name': {
+      overflow: 'hidden',
+      whitespace: 'nowrap',
+      textOverflow: 'ellipsis'
+    },
 
     '.ant-logo': {
       marginRight: token.marginXXS

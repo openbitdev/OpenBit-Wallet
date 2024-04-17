@@ -1,8 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ExtrinsicType, TransactionAdditionalInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
+import {ChainType, ExtrinsicType, TransactionAdditionalInfo} from '@subwallet/extension-base/background/KoniTypes';
 import { InfoItemBase } from '@subwallet/extension-koni-ui/components';
 import { HISTORY_DETAIL_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -15,6 +14,7 @@ import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
 import HistoryDetailLayout from './parts/Layout';
+import {getExplorerLink} from "@subwallet/extension-base/services/transaction-service/utils";
 
 type Props = ThemeProps & {
   onCancel: () => void,
@@ -55,8 +55,12 @@ function Component ({ className = '', data, onCancel }: Props): React.ReactEleme
       originChainInfo = chainInfoMap[additionalInfo.originalChain] || chainInfo;
     }
 
-    const link = (data.extrinsicHash && data.extrinsicHash !== '') && getExplorerLink(originChainInfo, data.extrinsicHash, 'tx');
-
+    let link;
+    if (data.chainType === ChainType.BITCOIN) {
+       link = `${originChainInfo?.bitcoinInfo?.blockExplorer}/tx/${data.extrinsicHash}`;
+    } else {
+      link = (data.extrinsicHash && data.extrinsicHash !== '') && getExplorerLink(originChainInfo, data.extrinsicHash, 'tx');
+    }
     return (
       <Button
         block

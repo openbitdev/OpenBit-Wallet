@@ -96,7 +96,17 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
       const tokenItem = getTokenSelectorItem(asset, accountProxy);
 
       if (tokenItem) {
-        result.push(tokenItem);
+        if (tokenItem.metadata && tokenItem.metadata.runeId) {
+          const isBip84 = getKeypairTypeByAddress(tokenItem.address) === 'bitcoin-84' || getKeypairTypeByAddress(tokenItem.address) === 'bittest-84';
+          if (isBip84) {
+            const correspondingAccount = accountProxy?.accounts.find(account => account.type === 'bitcoin-86');
+            if (correspondingAccount) {
+              result.push({ ...tokenItem, address: correspondingAccount.address });
+            }
+          }
+        } else {
+          result.push(tokenItem);
+        }
       }
     });
 
@@ -131,7 +141,6 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
   const onSelectAccountProxy = useCallback((accountProxy: AccountProxy) => {
     setReceiveSelectedResult({ selectedAccountProxyId: accountProxy.proxyId });
     const _tokenSelectorItems = getTokenSelectorItems(accountProxy);
-
     setTokenSelectorItems(_tokenSelectorItems);
 
     if (tokenGroupSlug) {

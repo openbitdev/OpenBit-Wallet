@@ -26,7 +26,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const tokenGroupStructure = useTokenGroup(SUPPORT_CHAINS);
   const accountBalance = useAccountProxyBalance(tokenGroupStructure.tokenGroupMap);
 
-  console.log('5555_accountBalance.tokenGroupBalanceMap');
   const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
   const [isConfirmedTermGeneral, setIsConfirmedTermGeneral] = useLocalStorage(CONFIRM_GENERAL_TERM, 'nonConfirmed');
   const [isReadEarningMigrationAnnouncement] = useLocalStorage<boolean>(EARNING_MIGRATION_ANNOUNCEMENT, false);

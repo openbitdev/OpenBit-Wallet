@@ -52,7 +52,7 @@ const Component = ({ children, className, headerIcons, onBack, showFooter, ...pr
         phosphorIcon: Aperture,
         weight: 'fill'
       },
-      label: t('NFTs'),
+      label: t('Collectibles'),
       key: 'nfts',
       url: '/home/nfts/collections'
     },
