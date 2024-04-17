@@ -748,7 +748,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         className={`${className} -transaction-footer`}
       >
         <Button
-          disabled={!isBalanceReady || (isTransferAll ? isFetchingInfo : false)}
+          disabled={!fromValue || isFetchingInfo || !isBalanceReady}
           icon={(
             <Icon
               phosphorIcon={PaperPlaneTilt}
