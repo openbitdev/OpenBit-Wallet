@@ -54,8 +54,8 @@ function Component ({ className = '', id = AccountSelectorModalId, items, onSele
       <AccountProxyItem
         accountProxy={item}
         className={'account-item'}
-        onClick={_onSelectItem(item)}
         key={item.proxyId}
+        onClick={_onSelectItem(item)}
       />
     );
   }, [_onSelectItem]);

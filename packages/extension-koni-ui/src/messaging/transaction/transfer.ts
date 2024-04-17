@@ -3,7 +3,7 @@
 
 import { AmountData, RequestCrossChainTransfer, RequestMaxTransferable, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, SupportTransferResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
-import {RequestSubmitTransfer, RequestSubscribeTransfer, ResponseSubscribeTransfer} from '@subwallet/extension-base/types';
+import { RequestSubmitTransfer, RequestSubscribeTransfer, ResponseSubscribeTransfer } from '@subwallet/extension-base/types';
 
 import { sendMessage } from '../base';
 
