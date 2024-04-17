@@ -10,7 +10,6 @@ import { DEFAULT_TRANSFER_PARAMS, TRANSFER_TRANSACTION } from '@subwallet/extens
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
 import { useReceiveQR, useSetCurrentPage } from '@subwallet/extension-koni-ui/hooks';
-import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { UpperBlock } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/UpperBlock';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -37,8 +36,7 @@ const Component = (): React.ReactElement => {
   const topBlockRef = useRef<HTMLDivElement>(null);
   const { accountBalance: { tokenGroupBalanceMap,
     totalBalanceInfo }, tokenGroupStructure: { sortedTokenGroups } } = useContext(HomeContext);
-  const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
-  const notify = useNotification();
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const { accountSelectorItems,
     onOpenReceive,
     onSelectAccountProxy,
@@ -136,25 +134,15 @@ const Component = (): React.ReactElement => {
   }, [navigate]);
 
   const onOpenSendFund = useCallback(() => {
-    if (currentAccount && currentAccount.isReadOnly) {
-      notify({
-        message: t('The account you are using is watch-only, you cannot send assets with it'),
-        type: 'info',
-        duration: 3
-      });
-
-      return;
-    }
-
-    const address = currentAccount ? isAccountAll(currentAccount.address) ? '' : currentAccount.address : '';
+    const fromProxyId = currentAccountProxy ? isAccountAll(currentAccountProxy.proxyId) ? '' : currentAccountProxy.proxyId : '';
 
     setStorage({
       ...DEFAULT_TRANSFER_PARAMS,
-      from: address
+      fromProxyId
     });
     navigate('/transaction/send-fund');
   },
-  [currentAccount, navigate, notify, t, setStorage]
+  [currentAccountProxy, navigate, setStorage]
   );
 
   const onOpenBuyTokens = useCallback(() => {

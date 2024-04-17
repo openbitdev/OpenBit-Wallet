@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.nobody = nobody;
+var _bitcoinjsLib = require("bitcoinjs-lib");
 // Copyright 2017-2022 @polkadot/keyring authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
@@ -40,7 +41,9 @@ const pair = {
   bitcoin: {
     derive: (index, meta) => pair,
     signMessage: (payload, compressed, options) => '',
-    signTransaction: transaction => ''
+    signTransaction: (transaction, indexes) => _bitcoinjsLib.Psbt.fromHex(''),
+    output: Buffer.from([]),
+    internalPubkey: Buffer.from([])
   },
   evm: {
     derive: (index, meta) => pair,

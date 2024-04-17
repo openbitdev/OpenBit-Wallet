@@ -1,20 +1,23 @@
-// Copyright 2019-2022 @subwallet/extension-base authors & contributors
+// Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { BitcoinAddressSummaryInfo, BitcoinTransferItem, Rune } from '@subwallet/extension-base/services/bitcoin-service/types';
-import { TransactionEventResponse } from '@subwallet/extension-base/services/transaction-service/types';
+import { BitcoinAddressSummaryInfo, BitcoinTransferItem, RuneInfoByAddress } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { ApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy/types';
+import { BitcoinFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
 import EventEmitter from 'eventemitter3';
 
 export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest'> {
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo>;
-  getRunes (address: string): Promise<Rune[]>;
+  getRunes (address: string): Promise<RuneInfoByAddress[]>;
   getAddressTransaction (address: string, limit?: number): Promise<BitcoinTransferItem[]>;
+  getTransactionStatus (txHash: string): Promise<boolean>;
+  getFeeRate (): Promise<BitcoinFeeInfo>;
+  getUtxos (address: string): Promise<UtxoResponseItem[]>;
   sendRawTransaction (rawTransaction: string): EventEmitter<BitcoinTransactionEventMap>;
 }
 
 export interface BitcoinTransactionEventMap {
-  extrinsicHash: (response: TransactionEventResponse) => void;
-  error: (response: TransactionEventResponse) => void;
-  success: (response: TransactionEventResponse) => void;
+  extrinsicHash: (txHash: string) => void;
+  error: (error: string) => void;
+  success: () => void;
 }

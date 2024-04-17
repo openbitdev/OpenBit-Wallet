@@ -10,9 +10,8 @@ import { _getChainNativeTokenSlug } from '@subwallet/extension-base/services/cha
 import { EventItem, EventType } from '@subwallet/extension-base/services/event-service/types';
 import DetectAccountBalanceStore from '@subwallet/extension-base/stores/DetectAccountBalance';
 import { BalanceItem, BalanceJson } from '@subwallet/extension-base/types';
-import { addLazy, createPromiseHandler, getBitcoinChainByAddress, isAccountAll, PromiseHandler, waitTimeout } from '@subwallet/extension-base/utils';
+import { addLazy, createPromiseHandler, isAccountAll, PromiseHandler, waitTimeout } from '@subwallet/extension-base/utils';
 import keyring from '@subwallet/ui-keyring';
-import BigN from 'bignumber.js';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
 
@@ -182,53 +181,6 @@ export class BalanceService implements StoppableServiceInterface {
 
       this.detectAccountBalanceStore.set('DetectBalanceCache', rs);
     });
-  }
-
-  /*
-  Deprecated
-   */
-  // todo: will update logic for this function for more clear
-  private async getBitcoinBalance (address: string, chain: string): Promise<string> {
-    const bitcoinChainSlug = getBitcoinChainByAddress(address);
-
-    if (!bitcoinChainSlug) {
-      console.log(`Invalid address for getting bitcoin balance: ${address}`);
-
-      return '0';
-    }
-
-    if (bitcoinChainSlug !== chain) {
-      console.log(`Cannot get bitcoin balance of address ${address} with chain ${chain}`);
-
-      return '0';
-    }
-
-    const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
-
-    if (!bitcoinApi) {
-      console.log(`Api of ${chain} is not available to get bitcoin balance`);
-
-      return '0';
-    }
-
-    try {
-      const accountSummaryInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
-
-      return new BigN(accountSummaryInfo.chain_stats.funded_txo_sum).minus(accountSummaryInfo.chain_stats.spent_txo_sum).toString();
-    } catch (error) {
-      console.log('Error while fetching Bitcoin balances', error);
-
-      return '0';
-    }
-  }
-
-  /*
-  Deprecated
-  */
-  private async getAddressesBitcoinBalance (addresses: string[], chain: string): Promise<string[]> {
-    return await Promise.all(addresses.map((address) => {
-      return this.getBitcoinBalance(address, chain);
-    }));
   }
 
   /** Subscribe token free balance of an address on chain */

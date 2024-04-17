@@ -7,7 +7,7 @@ import { AccountProxyAvatar, AccountProxyItem } from '@subwallet/extension-koni-
 import { BasicInputWrapper } from '@subwallet/extension-koni-ui/components/Field/Base';
 import { useSelectModalInputHelper, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { funcSortByProxyName } from '@subwallet/extension-koni-ui/utils';
+import { funcSortByProxyName, toShort } from '@subwallet/extension-koni-ui/utils';
 import { InputRef, SelectModal } from '@subwallet/react-ui';
 import React, { ForwardedRef, forwardRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
@@ -18,6 +18,7 @@ interface Props extends ThemeProps, BasicInputWrapper {
   externalAccountProxies?: AccountProxy[];
   filter?: (accountProxy: AccountProxy) => boolean;
   doFilter?: boolean;
+  address?: string;
 }
 
 const renderEmpty = () => <GeneralEmptyList />;
@@ -27,7 +28,7 @@ function defaultFiler (accountProxy: AccountProxy): boolean {
 }
 
 const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> => {
-  const { className = '', disabled, doFilter = true, externalAccountProxies, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
+  const { address, className = '', disabled, doFilter = true, externalAccountProxies, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
   const accountProxies = useSelector((state) => state.accountState.accountProxies);
 
   const items = useMemo(() => {
@@ -49,9 +50,17 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         <div className={'__selected-item-name common-text'}>
           {item.name}
         </div>
+
+        {
+          !!address && (
+            <div className={'__selected-item-address common-text'}>
+              ({toShort(address, 4, 4)})
+            </div>
+          )
+        }
       </div>
     );
-  }, []);
+  }, [address]);
 
   const searchFunction = useCallback((item: AccountProxy, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();

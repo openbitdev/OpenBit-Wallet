@@ -3,7 +3,7 @@
 
 import { _AssetRef, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
-import { AddressBookState, AllLogoMap, AssetSetting, CampaignBanner, ChainStakingMetadata, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationType, CrowdloanItem, KeyringState, LanguageType, MantaPayConfig, NftCollection, NftItem, NominatorMetadata, PriceJson, StakingItem, StakingRewardItem, TransactionHistoryItem, UiSettings, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { AddressBookState, AllLogoMap, AssetSetting, CampaignBanner, ChainStakingMetadata, ConfirmationDefinitions, ConfirmationsQueue, ConfirmationsQueueBitcoin, ConfirmationType, CrowdloanItem, KeyringState, LanguageType, MantaPayConfig, NftCollection, NftItem, NominatorMetadata, PriceJson, StakingItem, StakingRewardItem, TransactionHistoryItem, UiSettings, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, AccountProxy, AccountsContext, AuthorizeRequest, MetadataRequest, SigningRequest } from '@subwallet/extension-base/background/types';
 import { _ChainApiStatus, _ChainState } from '@subwallet/extension-base/services/chain-service/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
@@ -92,7 +92,7 @@ export interface AccountState extends AccountsContext, KeyringState, AddressBook
   isAllAccount: boolean,
 }
 
-export interface RequestState extends ConfirmationsQueue, BaseReduxStore {
+export interface RequestState extends ConfirmationsQueue, BaseReduxStore, ConfirmationsQueueBitcoin {
   authorizeRequest: Record<string, AuthorizeRequest>;
   metadataRequest: Record<string, MetadataRequest>;
   signingRequest: Record<string, SigningRequest>;

@@ -1,0 +1,182 @@
+// Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
+import { _getAssetDecimals, _getAssetPriceId, _getAssetSymbol } from '@subwallet/extension-base/services/chain-service/utils';
+import { BitcoinFeeDetail, TransactionFee } from '@subwallet/extension-base/types';
+import { BN_TEN, BN_ZERO } from '@subwallet/extension-base/utils';
+import { useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
+import { ActivityIndicator, Button, Field, Icon, ModalContext, Number } from '@subwallet/react-ui';
+import BigN from 'bignumber.js';
+import { PencilSimpleLine } from 'phosphor-react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import styled from 'styled-components';
+
+import { BitcoinFeeEditorModal } from './BitcoinFeeEditorModal';
+
+type Props = ThemeProps & {
+  feeDetail: BitcoinFeeDetail;
+  onSelect: (transactionFee: TransactionFee) => void;
+  isLoading?: boolean;
+  tokenSlug: string;
+};
+
+const modalId = 'BitcoinFeeSelectorId';
+
+const Component = ({ className, feeDetail, isLoading, tokenSlug }: Props): React.ReactElement<Props> => {
+  const { t } = useTranslation();
+  const { activeModal } = useContext(ModalContext);
+  const assetRegistry = useSelector((root) => root.assetRegistry.assetRegistry);
+  const [selectedOption, setSelectedOption] = useState<BitcoinFeeOption>({ option: feeDetail.options.default });
+  const priceMap = useSelector((state) => state.price.priceMap);
+
+  const tokenAsset = (() => {
+    return assetRegistry[tokenSlug] || undefined;
+  })();
+
+  console.log('tokenAsset', tokenAsset, tokenSlug, priceMap);
+
+  const decimals = _getAssetDecimals(tokenAsset);
+  const priceId = _getAssetPriceId(tokenAsset);
+  const symbol = _getAssetSymbol(tokenAsset);
+
+  const tokenFeePriceValue = useMemo(() => {
+    if (!isLoading && feeDetail.estimatedFee) {
+      const price = priceMap[priceId] || 0;
+
+      return new BigN(feeDetail.estimatedFee).div(BN_TEN.pow(decimals || 0)).multipliedBy(price);
+    }
+
+    return BN_ZERO;
+  }, [feeDetail.estimatedFee, decimals, priceId, priceMap, isLoading]);
+
+  const onClickEdit = useCallback(() => {
+    activeModal(modalId);
+  }, [activeModal]);
+
+  return (
+    <>
+      <Field
+        className={className}
+        content={(
+          <div>
+            {isLoading
+              ? (
+                <ActivityIndicator size={20} />
+              )
+              : (
+                <Number
+                  className={'__fee-token-value'}
+                  decimal={decimals}
+                  size={14}
+                  suffix={symbol}
+                  value={feeDetail.estimatedFee}
+                />
+              )}
+          </div>
+        )}
+        label={'Transaction fee'}
+        placeholder={t('Network name')}
+        suffix={(
+          <div className={'__right-button'}>
+            <Number
+              className={'__fee-price-value'}
+              decimal={0}
+              prefix={'$'}
+              size={14}
+              value={tokenFeePriceValue}
+            />
+            <Button
+              disabled={isLoading}
+              icon={
+                <Icon
+                  phosphorIcon={PencilSimpleLine}
+                  size='sm'
+                />
+              }
+              onClick={onClickEdit}
+              size='xs'
+              type='ghost'
+            />
+          </div>
+        )}
+        tooltipPlacement='topLeft'
+      />
+
+      {
+        feeDetail && selectedOption && (
+          <BitcoinFeeEditorModal
+            feeDetailOptions={feeDetail.options}
+            modalId={modalId}
+            onSelectOption={setSelectedOption}
+            selectedOption={selectedOption}
+          />
+        )
+      }
+    </>
+  );
+};
+
+const BitcoinFeeSelector = styled(Component)<Props>(({ theme: { token } }: Props) => {
+  return ({
+    paddingBottom: 2,
+    '.__right-button': {
+      display: 'flex',
+      alignItems: 'center'
+    },
+    '.__right-button .ant-btn-ghost': {
+      width: 20,
+      height: 20,
+      alignItems: 'end',
+      marginRight: -10
+    },
+    '.ant-field-wrapper': {
+      paddingBottom: 12
+    },
+    '.__fee-price-value': {
+      fontSize: token.fontSizeHeading6,
+      lineHeight: token.lineHeightHeading6,
+      fontWeight: token.headingFontWeight,
+      color: token.colorTextTertiary,
+
+      '.ant-number-integer': {
+        color: 'inherit !important',
+        fontSize: 'inherit !important',
+        fontWeight: 'inherit !important',
+        lineHeight: 'inherit'
+      },
+
+      '.ant-number-decimal, .ant-number-prefix': {
+        color: `${token.colorTextTertiary} !important`,
+        fontSize: `${token.fontSizeHeading6}px !important`,
+        fontWeight: 'inherit !important',
+        lineHeight: token.lineHeightHeading6
+      }
+    },
+    '.__fee-token-value': {
+      fontSize: token.fontSizeHeading6,
+      lineHeight: token.lineHeightHeading6,
+      fontWeight: token.headingFontWeight,
+      color: token.colorWhite,
+
+      '.ant-number-integer': {
+        color: 'inherit !important',
+        fontSize: 'inherit !important',
+        fontWeight: 'inherit !important',
+        lineHeight: 'inherit'
+      },
+
+      '.ant-number-suffix': {
+        color: `${token.colorTextTertiary} !important`,
+        fontSize: `${token.fontSizeHeading6}px !important`,
+        fontWeight: 'inherit !important',
+        lineHeight: token.lineHeightHeading6
+      }
+    }
+
+  });
+});
+
+export default BitcoinFeeSelector;

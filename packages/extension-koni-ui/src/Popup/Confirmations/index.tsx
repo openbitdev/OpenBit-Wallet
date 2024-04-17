@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitions, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationDefinitions, ConfirmationDefinitionsBitcoin, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, AuthorizeRequest, MetadataRequest, SigningRequest } from '@subwallet/extension-base/background/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { detectTranslate } from '@subwallet/extension-base/utils';
@@ -26,8 +26,12 @@ const titleMap: Record<ConfirmationType, string> = {
   addNetworkRequest: detectTranslate('Add network request'),
   addTokenRequest: detectTranslate('Add token request'),
   authorizeRequest: detectTranslate('Connect with SubWallet'),
-  evmSendTransactionRequest: detectTranslate('Transaction request'),
   evmSignatureRequest: detectTranslate('Signature request'),
+  evmSendTransactionRequest: detectTranslate('Transaction request'),
+  evmWatchTransactionRequest: detectTranslate('Transaction request'),
+  bitcoinSignatureRequest: detectTranslate('Signature request'),
+  bitcoinSendTransactionRequest: detectTranslate('Transaction request'),
+  bitcoinWatchTransactionRequest: detectTranslate('Transaction request'),
   metadataRequest: detectTranslate('Update metadata'),
   signingRequest: detectTranslate('Signature request'),
   switchNetworkRequest: detectTranslate('Add network request'),
@@ -89,6 +93,12 @@ const Component = function ({ className }: Props) {
         account = request.payload.account;
         canSign = request.payload.canSign;
         isMessage = confirmation.type === 'evmSignatureRequest';
+      } else if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinWatchTransactionRequest'].includes(confirmation.type)) {
+        const request = confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest'][0];
+
+        account = request.payload.account;
+        canSign = request.payload.canSign;
+        isMessage = confirmation.type === 'bitcoinSignatureRequest';
       }
 
       if (account?.isReadOnly || !canSign) {

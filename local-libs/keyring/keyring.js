@@ -4,11 +4,10 @@
 import bcrypt from 'bcryptjs';
 import { hexToU8a, isHex, stringToU8a } from '@polkadot/util';
 import { base64Decode, ethereumEncode, hdEthereum, keyExtractSuri, mnemonicToEntropy, mnemonicToLegacySeed, mnemonicToMiniSecret } from '@polkadot/util-crypto';
-import { keyFromPath } from "./utils/fromPath.js";
 import { DEV_PHRASE } from "./defaults.js";
 import { createPair } from "./pair/index.js";
 import { Pairs } from "./pairs.js";
-import { decodeAddress, encodeAddress, TYPE_FROM_SEED } from "./utils/index.js";
+import { decodeAddress, encodeAddress, keyFromPath, TYPE_FROM_SEED } from "./utils/index.js";
 function pairToPublic({
   publicKey
 }) {

@@ -3,7 +3,7 @@
 
 import { _AssetRef, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { AuthUrls } from '@subwallet/extension-base/background/handlers/State';
-import { AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AllLogoMap, AssetSetting, CampaignBanner, ChainStakingMetadata, ConfirmationsQueue, CrowdloanJson, KeyringState, MantaPayConfig, MantaPaySyncState, NftCollection, NftJson, NominatorMetadata, PriceJson, StakingJson, StakingRewardJson, TransactionHistoryItem, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AllLogoMap, AssetSetting, CampaignBanner, ChainStakingMetadata, ConfirmationsQueue, ConfirmationsQueueBitcoin, CrowdloanJson, KeyringState, MantaPayConfig, MantaPaySyncState, NftCollection, NftJson, NominatorMetadata, PriceJson, StakingJson, StakingRewardJson, TransactionHistoryItem, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, AccountProxy, AccountsContext, AuthorizeRequest, ConfirmationRequestBase, MetadataRequest, SigningRequest } from '@subwallet/extension-base/background/types';
 import { _ChainApiStatus, _ChainState } from '@subwallet/extension-base/services/chain-service/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
@@ -131,6 +131,12 @@ export const updateConfirmationRequests = (data: ConfirmationsQueue) => {
 };
 
 export const subscribeConfirmationRequests = lazySubscribeMessage('pri(confirmations.subscribe)', null, updateConfirmationRequests, updateConfirmationRequests);
+
+export const updateBitcoinConfirmationRequests = (data: ConfirmationsQueueBitcoin) => {
+  store.dispatch({ type: 'requestState/updateBitcoinConfirmationRequests', payload: data });
+};
+
+export const subscribeBitcoinConfirmationRequests = lazySubscribeMessage('pri(confirmations.bitcoin.subscribe)', null, updateBitcoinConfirmationRequests, updateBitcoinConfirmationRequests);
 
 export const updateTransactionRequests = (data: Record<string, SWTransactionResult>) => {
   // Convert data to object with key as id

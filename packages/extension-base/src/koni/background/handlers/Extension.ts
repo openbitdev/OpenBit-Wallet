@@ -7,7 +7,7 @@ import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountExternalError, AccountExternalErrorCode, AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountMeta, RequestAccountProxyCreateSuri, RequestAccountProxyEdit, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransfer, RequestTransferBitcoin, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountExternalError, AccountExternalErrorCode, AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountMeta, RequestAccountProxyCreateSuri, RequestAccountProxyEdit, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AccountJson, AccountProxy, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountProxy, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, SUPPORT_KEYPAIR_TYPES, XCM_FEE_RATIO, XCM_MIN_AMOUNT_RATIO } from '@subwallet/extension-base/constants';
@@ -19,14 +19,16 @@ import { getNftTransferExtrinsic, isRecipientSelf } from '@subwallet/extension-b
 import { getBondingExtrinsic, getCancelWithdrawalExtrinsic, getClaimRewardExtrinsic, getNominationPoolsInfo, getUnbondingExtrinsic, getValidatorsInfo, validateBondingCondition, validateUnbondingCondition } from '@subwallet/extension-base/koni/api/staking/bonding';
 import { getTuringCancelCompoundingExtrinsic, getTuringCompoundExtrinsic } from '@subwallet/extension-base/koni/api/staking/bonding/paraChain';
 import { getPoolingBondingExtrinsic, getPoolingUnbondingExtrinsic, validatePoolBondingCondition, validateRelayUnbondingCondition } from '@subwallet/extension-base/koni/api/staking/bonding/relayChain';
-import { getBitcoinTransactionObject, getERC20TransactionObject, getERC721Transaction, getEVMTransactionObject } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
+import { getERC20TransactionObject, getERC721Transaction, getEVMTransactionObject } from '@subwallet/extension-base/koni/api/tokens/evm/transfer';
+import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/web3';
 import { getPSP34TransferExtrinsic } from '@subwallet/extension-base/koni/api/tokens/wasm';
 import { createXcmExtrinsic } from '@subwallet/extension-base/koni/api/xcm';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
+import { getBitcoinTransactionObject } from '@subwallet/extension-base/services/balance-service/helpers/transfer/bitcoin';
 import { _API_OPTIONS_CHAIN_GROUP, _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenBasicInfo, _getContractAddressOfToken, _getEvmChainId, _getSubstrateGenesisHash, _getTokenMinAmount, _isAssetSmartContractNft, _isChainEvmCompatible, _isCustomAsset, _isLocalToken, _isMantaZkAsset, _isNativeToken, _isTokenEvmSmartContract, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenBasicInfo, _getContractAddressOfToken, _getEvmChainId, _getSubstrateGenesisHash, _getTokenMinAmount, _isAssetSmartContractNft, _isChainBitcoinCompatible, _isChainEvmCompatible, _isCustomAsset, _isLocalToken, _isMantaZkAsset, _isNativeToken, _isTokenEvmSmartContract, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
 import { EXTENSION_REQUEST_URL } from '@subwallet/extension-base/services/request-service/constants';
 import { AuthUrls } from '@subwallet/extension-base/services/request-service/types';
@@ -36,8 +38,8 @@ import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/servi
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
-import { BalanceJson, BuyServiceInfo, BuyTokenInfo, EarningRewardJson, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
-import { convertSubjectInfoToAddresses, createTransactionFromRLP, generateAccountProxyId, isSameAddress, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
+import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
+import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, generateAccountProxyId, getSizeInfo, isSameAddress, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -50,7 +52,9 @@ import { ProposalTypes } from '@walletconnect/types/dist/types/sign-client/propo
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { getSdkError } from '@walletconnect/utils';
 import BigN from 'bignumber.js';
+import * as bitcoin from 'bitcoinjs-lib';
 import { t } from 'i18next';
+import { combineLatest, Subject } from 'rxjs';
 import { TransactionConfig } from 'web3-core';
 
 import { SubmittableExtrinsic } from '@polkadot/api/types';
@@ -1843,15 +1847,15 @@ export default class KoniExtension {
     return [errors, keypair, transferValue, tokenInfo];
   }
 
-  private async makeTransfer (inputData: RequestTransfer): Promise<SWTransactionResponse> {
-    const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
+  private async makeTransfer (inputData: RequestSubmitTransfer): Promise<SWTransactionResponse> {
+    const { chain, feeCustom, feeOption, from, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
 
     const warnings: TransactionWarning[] = [];
     const evmApiMap = this.#koniState.getEvmApiMap();
-    const chainInfo = this.#koniState.getChainInfo(networkKey);
 
-    const nativeTokenInfo = this.#koniState.getNativeTokenInfo(networkKey);
+    const chainInfo = this.#koniState.getChainInfo(chain);
+    const nativeTokenInfo = this.#koniState.getNativeTokenInfo(chain);
     const nativeTokenSlug: string = nativeTokenInfo.slug;
     const isTransferNativeToken = nativeTokenSlug === tokenSlug;
     let chainType = ChainType.SUBSTRATE;
@@ -1862,37 +1866,86 @@ export default class KoniExtension {
     let transaction: ValidateTransactionResponseInput['transaction'];
 
     // Get native token amount
-    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
+    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
+
+    const getChainFee: GetFeeFunction = (id, chain, type) => {
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+    };
+
+    const txVal: string = transferAll ? freeBalance.value : (value || '0');
 
     try {
       if (isEthereumAddress(from) && isEthereumAddress(to) && _isTokenTransferredByEvm(tokenInfo)) { // TODO: review this
         chainType = ChainType.EVM;
-        const txVal: string = transferAll ? freeBalance.value : (value || '0');
-        const evmApi = evmApiMap[networkKey];
+        const evmApi = evmApiMap[chain];
 
         // Estimate with EVM API
         if (_isTokenEvmSmartContract(tokenInfo) || _isLocalToken(tokenInfo)) {
           [
             transaction,
             transferAmount.value
-          ] = await getERC20TransactionObject(_getContractAddressOfToken(tokenInfo), chainInfo, from, to, txVal, !!transferAll, evmApi);
+          ] = await getERC20TransactionObject({
+            assetAddress: _getContractAddressOfToken(tokenInfo),
+            chain,
+            evmApi,
+            feeCustom,
+            feeOption,
+            from,
+            getChainFee,
+            to,
+            transferAll,
+            value: txVal
+          });
         } else {
           [
             transaction,
             transferAmount.value
-          ] = await getEVMTransactionObject(chainInfo, from, to, txVal, !!transferAll, evmApi);
+          ] = await getEVMTransactionObject({
+            chain,
+            evmApi,
+            feeCustom,
+            feeOption,
+            from,
+            getChainFee,
+            to,
+            transferAll,
+            value: txVal
+          });
         }
       } else if (_isMantaZkAsset(tokenInfo)) { // TODO
         transaction = undefined;
         transferAmount.value = '0';
+      } else if (_isChainBitcoinCompatible(chainInfo)) {
+        chainType = ChainType.BITCOIN;
+
+        const bitcoinApi = this.#koniState.getBitcoinApi(chain); // Get Bitcoin API map
+        const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+        [
+          transaction,
+          transferAmount.value
+        ] = await getBitcoinTransactionObject({
+          bitcoinApi,
+          from,
+          getChainFee,
+          chain: chain,
+          feeCustom,
+          feeOption,
+          transferAll,
+          value: txVal,
+          to,
+          network
+        });
+
+        console.log('getBitcoinTransactionObject', transaction);
       } else {
-        const substrateApi = this.#koniState.getSubstrateApi(networkKey);
+        const substrateApi = this.#koniState.getSubstrateApi(chain);
 
         [transaction, transferAmount.value] = await createTransferExtrinsic({
           transferAll: !!transferAll,
           value: value || '0',
           from: from,
-          networkKey,
+          networkKey: chain,
           tokenInfo,
           to: to,
           substrateApi
@@ -1917,14 +1970,14 @@ export default class KoniExtension {
 
       // Check ed for sender
       if (!isTransferNativeToken) {
-        const { value: balance } = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
+        const { value: balance } = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
 
         if (new BigN(balance).minus(transferAmount.value).lt(minAmount)) {
           inputTransaction.warnings.push(new TransactionWarning(BasicTxWarningCode.NOT_ENOUGH_EXISTENTIAL_DEPOSIT));
         }
       }
 
-      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey, token: tokenSlug });
+      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey: chain, token: tokenSlug });
 
       // Check ed for receiver
       if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
@@ -1940,7 +1993,9 @@ export default class KoniExtension {
       errors,
       warnings,
       address: from,
-      chain: networkKey,
+      chain: chain,
+      feeCustom,
+      feeOption,
       chainType,
       transferNativeAmount,
       transaction,
@@ -1949,101 +2004,6 @@ export default class KoniExtension {
       ignoreWarnings: transferAll,
       isTransferAll: isTransferNativeToken ? transferAll : false,
       edAsWarning: isTransferNativeToken,
-      additionalValidator: additionalValidator
-    });
-  }
-
-  private async makeTransferBitcoin (inputData: RequestTransferBitcoin): Promise<SWTransactionResponse> {
-    const { from, networkKey, to, tokenSlug, transferAll, value } = inputData;
-    const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
-
-    console.log('errors1815', errors);
-    console.log('chainType', tokenInfo);
-
-    const warnings: TransactionWarning[] = [];
-    const bitcoinApiMap = this.#koniState.getBitcoinApiMap(); // Get Bitcoin API map
-
-    // const chainInfo = this.#koniState.getChainInfo(networkKey);
-
-    let chainType = ChainType.BITCOIN;
-
-    console.log('chainType', chainType);
-
-    const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
-    const transferAmount: AmountData = { ...tokenBaseAmount };
-
-    let transaction: ValidateTransactionResponseInput['transaction'];
-
-    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey, token: tokenSlug });
-
-    console.log('freeBalance', freeBalance);
-
-    try {
-      chainType = ChainType.BITCOIN;
-
-      const txVal: string = transferAll ? freeBalance.value : (value || '0');
-
-      // Estimate with Bitcoin API
-      // const bitcoinChainInfo: string = bitcoinApi.baseUrl;
-      [
-        transaction,
-        transferAmount.value
-      ] = await getBitcoinTransactionObject(from, to, txVal.toString(), !!transferAll, bitcoinApiMap);
-      console.log('getBitcoinTransactionObject', transaction);
-    } catch (e) {
-      const error = e as Error;
-
-      if (error.message.includes('transfer amount exceeds balance')) {
-        error.message = t('Insufficient balance');
-      }
-
-      throw error;
-    }
-
-    const additionalValidator = async (inputTransaction: SWTransactionResponse): Promise<void> => {
-      const minAmount = tokenInfo.minAmount || '0';
-
-      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey, token: tokenSlug });
-
-      // Check ed for receiver
-      if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
-        const atLeast = new BigN(minAmount).minus(receiverBalance).plus((tokenInfo.decimals || 0) === 0 ? 0 : 1);
-        const atLeastStr = formatNumber(atLeast, tokenInfo.decimals || 0, balanceFormatter, { maxNumberFormat: tokenInfo.decimals || 6 });
-
-        inputTransaction.errors.push(new TransactionError(TransferTxErrorType.RECEIVER_NOT_ENOUGH_EXISTENTIAL_DEPOSIT, t('You must transfer at least {{amount}} {{symbol}} to keep the destination account alive', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
-      }
-    };
-
-    console.log('additionalValidator', additionalValidator);
-    console.log('Return from makeTransferBitcoin 1870:', {
-      errors,
-      warnings,
-      address: from,
-      chain: networkKey,
-      chainType,
-      transferNativeAmount: '0',
-      transaction,
-      data: inputData,
-      extrinsicType: ExtrinsicType.TRANSFER_BALANCE,
-      ignoreWarnings: transferAll,
-      isTransferAll: false,
-      edAsWarning: false,
-      additionalValidator: additionalValidator
-    });
-
-    return this.#koniState.transactionService.handleTransaction({
-      errors,
-      warnings,
-      address: from,
-      chain: networkKey,
-      chainType,
-      transferNativeAmount: '0',
-      transaction,
-      data: inputData,
-      extrinsicType: ExtrinsicType.TRANSFER_BALANCE,
-      ignoreWarnings: transferAll,
-      isTransferAll: false,
-      edAsWarning: false,
       additionalValidator: additionalValidator
     });
   }
@@ -2158,8 +2118,19 @@ export default class KoniExtension {
     const contractAddress = params.contractAddress as string;
     const tokenId = params.tokenId as string;
 
-    const transaction = await getERC721Transaction(this.#koniState.getEvmApi(networkKey), networkKey, contractAddress, senderAddress, recipientAddress, tokenId);
+    const getChainFee: GetFeeFunction = (id, chain, type) => {
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+    };
 
+    const transaction = await getERC721Transaction({
+      chain: networkKey,
+      contractAddress,
+      getChainFee,
+      recipientAddress,
+      senderAddress,
+      tokenId,
+      evmApi: this.#koniState.getEvmApi(networkKey)
+    });
     // this.addContact(recipientAddress);
 
     return await this.#koniState.transactionService.handleTransaction({
@@ -2321,11 +2292,11 @@ export default class KoniExtension {
             const priority = await calculateGasFeeParams(web3, networkKey);
 
             if (priority.baseGasFee) {
-              const maxFee = priority.maxFeePerGas;
+              const maxFee = new BigN(priority.options[priority.options.default].maxFeePerGas);
 
               estimatedFee = maxFee.multipliedBy(gasLimit).toFixed(0);
             } else {
-              estimatedFee = new BigN(priority.gasPrice).multipliedBy(gasLimit).toFixed(0);
+              estimatedFee = new BigN(priority.gasPrice || '0').multipliedBy(gasLimit).toFixed(0);
             }
           } else {
             const [mockTx] = await createTransferExtrinsic({
@@ -2355,6 +2326,252 @@ export default class KoniExtension {
         value: maxTransferable.gt(BN_ZERO) ? (maxTransferable.toFixed(0) || '0') : '0'
       } as AmountData;
     }
+  }
+
+  private async subscribeMaxTransferable ({ address, chain, destChain, feeCustom, feeOption: _feeOptions, isXcmTransfer, token }: RequestSubscribeTransfer, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeTransfer> {
+    const cb = createSubscription<'pri(transfer.subscribe)'>(id, port);
+
+    const tokenInfo = token ? this.#koniState.chainService.getAssetBySlug(token) : this.#koniState.chainService.getNativeTokenInfo(chain);
+    const chainInfo = this.#koniState.chainService.getChainInfoByKey(chain);
+    const chainInfoMap = this.#koniState.chainService.getChainInfoMap();
+
+    const freeBalanceSubject = new Subject<AmountData>();
+    const feeSubject = new Subject<FeeInfo>();
+    const feeChainType: FeeChainType = isXcmTransfer
+      ? 'substrate'
+      : _isChainEvmCompatible(chainInfo) && _isTokenTransferredByEvm(tokenInfo)
+        ? 'evm'
+        : _isChainBitcoinCompatible(chainInfo)
+          ? 'bitcoin'
+          : 'substrate';
+
+    const convertData = async (freeBalance: AmountData, fee: FeeInfo): Promise<ResponseSubscribeTransfer> => {
+      const substrateApi = this.#koniState.chainService.getSubstrateApi(chain);
+      let estimatedFee: string;
+      let feeOptions: FeeDetail;
+      let tip = '0';
+      let maxTransferable = new BigN(freeBalance.value);
+
+      try {
+        if (isXcmTransfer) {
+          const destinationTokenInfo = this.#koniState.getXcmEqualAssetByChain(destChain, tokenInfo.slug);
+
+          if (!destinationTokenInfo) {
+            const _fee = fee as SubstrateFeeInfo;
+
+            estimatedFee = '0';
+            feeOptions = {
+              ..._fee,
+              estimatedFee
+            };
+          } else {
+            maxTransferable = maxTransferable.minus(new BigN(tokenInfo.minAmount || '0').multipliedBy(XCM_MIN_AMOUNT_RATIO));
+            const desChainInfo = chainInfoMap[destChain];
+            const orgChainInfo = chainInfoMap[chain];
+            const recipient = !isEthereumAddress(address) && _isChainEvmCompatible(desChainInfo) && !_isChainEvmCompatible(orgChainInfo)
+              ? u8aToHex(addressToEvm(address))
+              : address
+            ;
+
+            const mockTx = await createXcmExtrinsic({
+              chainInfoMap,
+              destinationTokenInfo,
+              originTokenInfo: tokenInfo,
+              recipient: recipient,
+              sendingValue: '1000000000000000000',
+              substrateApi
+            });
+
+            try {
+              const paymentInfo = await mockTx.paymentInfo(address);
+
+              estimatedFee = paymentInfo?.partialFee?.toString() || '0';
+            } catch (e) {
+              estimatedFee = tokenInfo.minAmount || '0';
+            }
+
+            const _fee = fee as SubstrateFeeInfo;
+
+            if (_feeOptions && _feeOptions !== 'custom') {
+              tip = _fee.options[_feeOptions].tip;
+            } else if (_feeOptions === 'custom' && feeCustom && 'tip' in feeCustom) {
+              tip = feeCustom.tip;
+            } else {
+              tip = _fee.options[_fee.options.default].tip;
+            }
+
+            feeOptions = {
+              ..._fee,
+              estimatedFee
+            };
+          }
+        } else {
+          if (_isChainEvmCompatible(chainInfo) && _isTokenTransferredByEvm(tokenInfo)) {
+            const web3 = this.#koniState.chainService.getEvmApi(chain);
+            let gasLimit: number;
+
+            try {
+              if (_isNativeToken(tokenInfo)) {
+                const transaction: TransactionConfig = {
+                  value: 0,
+                  to: '0x0000000000000000000000000000000000000000', // null address
+                  from: address
+                };
+
+                gasLimit = await web3.api.eth.estimateGas(transaction);
+              } else {
+                const contractAddress = _getContractAddressOfToken(tokenInfo);
+                const erc20Contract = getERC20Contract(contractAddress, web3);
+                const address1 = '0xdd718f9Ecaf8f144a3140b79361b5D713D3A6b19';
+                const address2 = '0x5e10e440FEce4dB0b16a6159A4536efb74d32E9b';
+                const to = address1.toLowerCase() === address.toLowerCase() ? address2 : address1;
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+                gasLimit = await erc20Contract.methods.transfer(to, freeBalance.value).estimateGas({ from: address }) as number;
+              }
+            } catch (e) {
+              console.error(e);
+              gasLimit = 0;
+            }
+
+            const _fee = fee as EvmFeeInfo;
+            const _feeCustom = feeCustom as EvmEIP1995FeeOption;
+            const combineFee = combineEthFee(_fee, _feeOptions, _feeCustom);
+
+            if (combineFee.maxFeePerGas) {
+              estimatedFee = new BigN(combineFee.maxFeePerGas).multipliedBy(gasLimit).toFixed(0);
+            } else {
+              estimatedFee = new BigN(combineFee.gasPrice || '0').multipliedBy(gasLimit).toFixed(0);
+            }
+
+            feeOptions = {
+              ..._fee,
+              estimatedFee,
+              gasLimit: gasLimit.toString()
+            };
+          } else if (_isChainBitcoinCompatible(chainInfo)) {
+            const _fee = fee as BitcoinFeeInfo;
+            const _feeCustom = feeCustom as BitcoinFeeRate;
+            const combineFee = combineBitcoinFee(_fee, _feeOptions, _feeCustom);
+            const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
+            const utxos = await bitcoinApi.api.getUtxos(address);
+
+            const { txVBytes: vSize } = getSizeInfo({
+              inputLength: utxos.length,
+              recipient: address,
+              outputLength: 1
+            });
+
+            estimatedFee = new BigN(combineFee.feeRate || '0').multipliedBy(vSize).toFixed(0);
+            feeOptions = {
+              ..._fee,
+              estimatedFee,
+              vSize
+            };
+          } else {
+            const [mockTx] = await createTransferExtrinsic({
+              from: address,
+              networkKey: chain,
+              substrateApi,
+              to: address,
+              tokenInfo,
+              transferAll: true,
+              value: '1000000000000000000'
+            });
+
+            const paymentInfo = await mockTx?.paymentInfo(address);
+            const _fee = fee as SubstrateFeeInfo;
+
+            if (_feeOptions && _feeOptions !== 'custom') {
+              tip = _fee.options[_feeOptions].tip;
+            } else if (_feeOptions === 'custom' && feeCustom && 'tip' in feeCustom) {
+              tip = feeCustom.tip;
+            } else {
+              tip = _fee.options[_fee.options.default].tip;
+            }
+
+            estimatedFee = paymentInfo?.partialFee?.toString() || '0';
+            feeOptions = {
+              ..._fee,
+              estimatedFee
+            };
+          }
+        }
+      } catch (e) {
+        estimatedFee = '0';
+
+        if (fee.type === 'substrate') {
+          feeOptions = {
+            ...fee,
+            estimatedFee
+          };
+        } else if (fee.type === 'bitcoin') {
+          feeOptions = {
+            ...fee,
+            estimatedFee,
+            vSize: 0
+          };
+        } else {
+          feeOptions = {
+            ...fee,
+            estimatedFee,
+            gasLimit: '0'
+          };
+        }
+
+        console.warn('Unable to estimate fee', e);
+      }
+
+      maxTransferable = maxTransferable
+        .minus(new BigN(estimatedFee).multipliedBy(isXcmTransfer ? XCM_FEE_RATIO : 1))
+        .minus(tip);
+
+      return {
+        maxTransferable: !_isNativeToken(tokenInfo)
+          ? freeBalance.value
+          : maxTransferable.gt(BN_ZERO) ? (maxTransferable.toFixed(0) || '0') : '0',
+        feeOptions: feeOptions,
+        feeType: feeChainType,
+        id: id
+      };
+    };
+
+    const subscription = combineLatest({
+      freeBalance: freeBalanceSubject,
+      fee: feeSubject
+    })
+      .subscribe({
+        next: ({ fee, freeBalance }) => {
+          convertData(freeBalance, fee)
+            .then(cb)
+            .catch(console.error);
+        }
+      });
+
+    const [unsubBalance, freeBalance] = await this.#koniState.balanceService.subscribeTokenFreeBalance(address, chain, token, (data) => {
+      freeBalanceSubject.next(data); // Must be called after subscription
+    });
+
+    const fee = await this.#koniState.feeService.subscribeChainFee(id, chain, feeChainType, (data) => {
+      feeSubject.next(data); // Must be called after subscription
+    });
+
+    const unsub = () => {
+      subscription.unsubscribe();
+      unsubBalance();
+      this.#koniState.feeService.unsubscribeChainFee(id, chain, feeChainType);
+    };
+
+    this.createUnsubscriptionHandle(
+      id,
+      unsub
+    );
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
+    return convertData(freeBalance, fee);
   }
 
   private async subscribeAddressFreeBalance ({ address, networkKey, token }: RequestFreeBalance, id: string, port: chrome.runtime.Port): Promise<AmountData> {
@@ -2741,6 +2958,8 @@ export default class KoniExtension {
     }
   }
 
+  // Evm confirmation
+
   private subscribeConfirmations (id: string, port: chrome.runtime.Port) {
     const cb = createSubscription<'pri(confirmations.subscribe)'>(id, port);
 
@@ -2757,6 +2976,22 @@ export default class KoniExtension {
 
   private async completeConfirmation (request: RequestConfirmationComplete) {
     return await this.#koniState.completeConfirmation(request);
+  }
+
+  // Bitcoin confirmation
+
+  private subscribeBitcoinConfirmations (id: string, port: chrome.runtime.Port) {
+    const cb = createSubscription<'pri(confirmations.bitcoin.subscribe)'>(id, port);
+
+    const subscription = this.#koniState.requestService.confirmationsQueueSubjectBitcoin.subscribe(cb);
+
+    this.createUnsubscriptionHandle(id, subscription.unsubscribe);
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
+    return this.#koniState.requestService.confirmationsQueueSubjectBitcoin.getValue();
   }
 
   private async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin) {
@@ -4998,8 +5233,8 @@ export default class KoniExtension {
         return this.transferGetExistentialDeposit(request as RequestTransferExistentialDeposit);
       case 'pri(transfer.getMaxTransferable)':
         return this.transferGetMaxTransferable(request as RequestMaxTransferable);
-      case 'pri(transfer.subscribeMaxTransferable)':
-        return this.transferGetMaxTransferable(request as RequestMaxTransferable);
+      case 'pri(transfer.subscribe)':
+        return this.subscribeMaxTransferable(request as RequestSubscribeTransfer, id, port);
       case 'pri(freeBalance.get)':
         return this.getAddressFreeBalance(request as RequestFreeBalance);
       case 'pri(freeBalance.subscribe)':
@@ -5020,10 +5255,7 @@ export default class KoniExtension {
 
       /// Transfer
       case 'pri(accounts.transfer)':
-        return await this.makeTransfer(request as RequestTransfer);
-      /// Transfer bitcoin
-      case 'pri(accounts.transferBitcoin)':
-        return await this.makeTransferBitcoin(request as RequestTransferBitcoin);
+        return await this.makeTransfer(request as RequestSubmitTransfer);
       case 'pri(accounts.crossChainTransfer)':
         return await this.makeCrossChainTransfer(request as RequestCrossChainTransfer);
 
@@ -5050,7 +5282,9 @@ export default class KoniExtension {
       case 'pri(confirmations.complete)':
         return await this.completeConfirmation(request as RequestConfirmationComplete);
 
-      case 'pri(confirmationsBitcoin.complete)':
+      case 'pri(confirmations.bitcoin.subscribe)':
+        return this.subscribeBitcoinConfirmations(id, port);
+      case 'pri(confirmations.bitcoin.complete)':
         return await this.completeConfirmationBitcoin(request as RequestConfirmationCompleteBitcoin);
 
       /// Stake

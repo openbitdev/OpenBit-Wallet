@@ -4,7 +4,7 @@
 import { Keyring } from "./keyring.js";
 export { setSS58Format } from '@polkadot/util-crypto';
 export * from "./defaults.js";
-export { decodeAddress, encodeAddress, getEvmDerivePath, getBitDerivePathFunction, isBitcoinAddress, getKeypairTypeByAddress, getDerivePath } from "./utils/index.js";
+export { decodeAddress, encodeAddress, getEvmDerivePath, getBitDerivePathFunction, isBitcoinAddress, getKeypairTypeByAddress, getDerivePath, BtcSizeFeeEstimator } from "./utils/index.js";
 export { createPair } from "./pair/index.js";
 export { packageInfo } from "./packageInfo.js";
 export { createTestKeyring } from "./testing.js";

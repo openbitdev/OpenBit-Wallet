@@ -10,13 +10,12 @@ import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi,
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import { SWTransactionResponse, SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
-import { BalanceJson, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
+import { BalanceJson, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
 import { InjectedAccount, InjectedAccountWithMeta, MetadataDefBase } from '@subwallet/extension-inject/types';
 import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
-import { Transaction } from 'bitcoinjs-lib';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
 import { RequestArguments, TransactionConfig } from 'web3-core';
@@ -616,9 +615,6 @@ export interface AmountData extends BasicTokenInfo {
 
 export interface FeeData extends AmountData {
   tooHigh?: boolean;
-  fast: number;
-  medium: number;
-  slow: number;
 }
 
 export interface AmountDataWithId extends AmountData {
@@ -1325,7 +1321,6 @@ export interface EvmSignatureRequest extends EvmSignRequest {
 }
 export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   id: string;
-  type: string;
   payload: unknown;
   payloadJson: any;
 }
@@ -1336,25 +1331,7 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends Transaction, BitcoinSignRequest {
-  isToContract: boolean;
-  inputs: Input[];
-  outputs: Output[];
-}
-export interface Input {
-  hash: string;
-  index: number;
-  script: string;
-  sequence: number;
-  witness: string[];
-  value: number
-}
-
-// Định nghĩa lại kiểu Output
-export interface Output {
-  script: string;
-  value: number;
-}
+export interface BitcoinSendTransactionRequest extends BitcoinSignRequest {}
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
@@ -2481,14 +2458,14 @@ export interface KoniRequestSignatures {
   'pri(transfer.checkSupporting)': [RequestTransferCheckSupporting, SupportTransferResponse];
   'pri(transfer.getExistentialDeposit)': [RequestTransferExistentialDeposit, string];
   'pri(transfer.getMaxTransferable)': [RequestMaxTransferable, AmountData];
+  'pri(transfer.subscribe)': [RequestSubscribeTransfer, ResponseSubscribeTransfer, ResponseSubscribeTransfer];
   'pri(subscription.cancel)': [string, boolean];
   'pri(freeBalance.get)': [RequestFreeBalance, AmountData];
   'pri(freeBalance.subscribe)': [RequestFreeBalance, AmountDataWithId, AmountDataWithId];
 
   // Transfer
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ValidateTransactionResponse];
-  'pri(accounts.transfer)': [RequestTransfer, SWTransactionResponse];
-  'pri(accounts.transferBitcoin)': [RequestTransfer, SWTransactionResponse];
+  'pri(accounts.transfer)': [RequestSubmitTransfer, SWTransactionResponse];
 
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ValidateTransactionResponse];
   'pri(accounts.crossChainTransfer)': [RequestCrossChainTransfer, SWTransactionResponse];
@@ -2496,7 +2473,10 @@ export interface KoniRequestSignatures {
   // Confirmation Queues
   'pri(confirmations.subscribe)': [RequestConfirmationsSubscribe, ConfirmationsQueue, ConfirmationsQueue];
   'pri(confirmations.complete)': [RequestConfirmationComplete, boolean];
-  'pri(confirmationsBitcoin.complete)': [RequestConfirmationCompleteBitcoin, boolean];
+
+  // Confirmation Queues
+  'pri(confirmations.bitcoin.subscribe)': [RequestConfirmationsSubscribe, ConfirmationsQueueBitcoin, ConfirmationsQueueBitcoin];
+  'pri(confirmations.bitcoin.complete)': [RequestConfirmationCompleteBitcoin, boolean];
 
   'pub(utils.getRandom)': [RandomTestRequest, number];
   'pub(accounts.listV2)': [RequestAccountList, InjectedAccount[]];

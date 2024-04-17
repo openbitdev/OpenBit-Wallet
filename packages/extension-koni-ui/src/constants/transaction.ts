@@ -71,7 +71,8 @@ export const ALL_STAKING_ACTIONS: ExtrinsicType[] = [
 export const DEFAULT_TRANSACTION_PARAMS: TransactionFormBaseProps = {
   asset: '',
   chain: '',
-  from: ''
+  from: '',
+  fromProxyId: ''
 };
 
 export const DEFAULT_TRANSFER_PARAMS: TransferParams = {

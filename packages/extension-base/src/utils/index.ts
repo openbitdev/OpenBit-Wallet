@@ -80,16 +80,20 @@ export function categoryAddresses (addresses: string[]) {
   addresses.forEach((address) => {
     if (isEthereumAddress(address)) {
       evmAddresses.push(address);
-    } else if (isBitcoinAddress(address)) {
+    } else {
       const network = isBitcoinAddress(address);
+
+      if (network === 'unknown') {
+        substrateAddresses.push(address);
+
+        return;
+      }
 
       if (network === 'mainnet') {
         mainnetBitcoinAddresses.push(address);
       } else if (network === 'testnet') {
         testnetBitcoinAddresses.push(address);
       }
-    } else {
-      substrateAddresses.push(address);
     }
   });
 
@@ -457,13 +461,15 @@ export function generateAccountProxyId () {
 export * from './account';
 export * from './array';
 export * from './asset';
+export * from './bitcoin';
 export * from './environment';
 export * from './eth';
-export * from './number';
+export * from './fetchEvmChainInfo';
+export * from './fetchStaticData';
+export * from './getId';
 export * from './lazy';
+export * from './number';
+export * from './object';
 export * from './promise';
 export * from './registry';
 export * from './translate';
-export * from './object';
-export * from './fetchStaticData';
-export * from './fetchEvmChainInfo';

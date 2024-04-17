@@ -1,6 +1,7 @@
 // Copyright 2017-2022 @polkadot/keyring authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { Psbt as BitcoinTransaction } from 'bitcoinjs-lib';
 // empty publicKey
 const publicKey = new Uint8Array(32);
 
@@ -34,7 +35,9 @@ const pair = {
   bitcoin: {
     derive: (index, meta) => pair,
     signMessage: (payload, compressed, options) => '',
-    signTransaction: transaction => ''
+    signTransaction: (transaction, indexes) => BitcoinTransaction.fromHex(''),
+    output: Buffer.from([]),
+    internalPubkey: Buffer.from([])
   },
   evm: {
     derive: (index, meta) => pair,

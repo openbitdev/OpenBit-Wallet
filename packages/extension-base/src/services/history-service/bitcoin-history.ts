@@ -3,7 +3,7 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainType, ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
-import { BitcoinTransferItem } from '@subwallet/extension-base/services/bitcoin-service/types';
+import { BitcoinTransferItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 
 function isSender (address: string, transferItem: BitcoinTransferItem) {
   return transferItem.vin.some((i) => i.prevout.scriptpubkey_address === address);

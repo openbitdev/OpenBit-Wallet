@@ -82,9 +82,10 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       <div className='body-container'>
         <div className='logo-container'>
           <Image
+            height={140}
             shape={'square'}
-            src={'./images/subwallet/welcome-logo.png'}
-            width={139}
+            src={'./images/openbit/openbit-logo-and-text.png'}
+            width={120}
           />
         </div>
         <div className='sub-title'>
@@ -110,8 +111,8 @@ function Component ({ className }: Props): React.ReactElement<Props> {
                 schema={item.schema}
               >
                 <div className='welcome-import-button-content'>
-                  <div className='welcome-import-button-title'>{item.title}</div>
-                  <div className='welcome-import-button-description'>{item.description}</div>
+                  <div className={CN(className, 'welcome-import-button-title', { isPrimarySch: item.schema === 'primary' })}>{item.title}</div>
+                  <div className={CN(className, 'welcome-import-button-description', { isPrimarySch: item.schema === 'primary' })}>{item.description}</div>
                 </div>
               </Button>
             ))
@@ -124,11 +125,13 @@ function Component ({ className }: Props): React.ReactElement<Props> {
 }
 
 const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
+  console.log('token', token);
+
   return {
     position: 'relative',
 
     '.bg-image': {
-      backgroundImage: 'url("./images/subwallet/welcome-background.png")',
+      backgroundImage: 'url("./images/subwallet/openbit-welcome-background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',
@@ -202,6 +205,12 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
           fontSize: token.fontSizeHeading6,
           lineHeight: token.lineHeightHeading6,
           color: token.colorTextLabel
+        },
+        '.welcome-import-button-title.isPrimarySch': {
+          color: token.colorTextDark1
+        },
+        '.welcome-import-button-description.isPrimarySch': {
+          color: token.colorTextDark3
         }
       }
     }

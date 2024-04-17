@@ -93,15 +93,15 @@
     "@polkadot/util-crypto": "^12.6.2",
     "@subwallet/chain-list": "file:./local-libs/chain-list",
     "@subwallet/keyring": "file:./local-libs/keyring",
-    "@subwallet/ui-keyring": "0.1.5-beta.0",
+    "@subwallet/ui-keyring": "file:./local-libs/ui-keyring",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^29.3.1",
+    "bitcoinjs-lib": "6.1.5",
     "browserify-sign": "^4.2.2",
     "http-cache-semantics": "^4.1.1",
     "jest": "^29.5.0",
     "rxjs": "^7.8.1",
     "safe-buffer": "^5.2.1",
-    "typescript": "^4.8.4",
-    "bitcoinjs-lib": "6.1.5"
+    "typescript": "^4.8.4"
   }
 }

@@ -1,15 +1,15 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { _ChainInfo } from '@subwallet/chain-list/types';
-import { ExternalRequestPromise, ExternalRequestPromiseStatus, FeeData, HandleBasicTx, TransactionResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { ExternalRequestPromise, ExternalRequestPromiseStatus, HandleBasicTx, TransactionResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { getERC20Contract } from '@subwallet/extension-base/koni/api/tokens/evm/web3';
 import { _BALANCE_PARSING_CHAIN_GROUP, EVM_REFORMAT_DECIMALS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ERC721_ABI } from '@subwallet/extension-base/services/chain-service/helper';
-import { _BitcoinApi, _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
-import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
+import { _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
+import { EvmEIP1995FeeOption, EvmFeeInfo, GetFeeFunction, TransactionFee } from '@subwallet/extension-base/types';
+import { combineEthFee } from '@subwallet/extension-base/utils';
+import { getId } from '@subwallet/extension-base/utils/getId';
 import BigN from 'bignumber.js';
-import { Transaction } from 'bitcoinjs-lib';
 import { TransactionConfig, TransactionReceipt } from 'web3-core';
 
 import { hexToBn } from '@polkadot/util';
@@ -48,44 +48,55 @@ export const handleTransferBalanceResult = ({ callback,
   callback(response);
 };
 
-export async function getEVMTransactionObject (
-  chainInfo: _ChainInfo,
-  from: string,
-  to: string,
-  value: string,
-  transferAll: boolean,
-  web3Api: _EvmApi
-): Promise<[TransactionConfig, string]> {
-  const networkKey = chainInfo.slug;
+interface TransferEvmProps extends TransactionFee {
+  chain: string;
+  from: string;
+  getChainFee: GetFeeFunction;
+  to: string;
+  transferAll: boolean;
+  value: string;
+  evmApi: _EvmApi;
+}
 
-  const priority = await calculateGasFeeParams(web3Api, networkKey);
+export async function getEVMTransactionObject ({ chain,
+  evmApi,
+  feeCustom: _feeCustom,
+  feeOption,
+  from,
+  getChainFee,
+  to,
+  transferAll,
+  value }: TransferEvmProps): Promise<[TransactionConfig, string]> {
+  const id = getId();
+  const feeCustom = _feeCustom as EvmEIP1995FeeOption;
+  const feeInfo = await getChainFee(id, chain, 'evm') as EvmFeeInfo;
+
+  const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom);
 
   const transactionObject = {
     to: to,
     value: value,
     from: from,
-    gasPrice: priority.gasPrice,
-    maxFeePerGas: priority.maxFeePerGas?.toString(),
-    maxPriorityFeePerGas: priority.maxPriorityFeePerGas?.toString()
+    ...feeCombine
   } as TransactionConfig;
 
-  const gasLimit = await web3Api.api.eth.estimateGas(transactionObject);
+  const gasLimit = await evmApi.api.eth.estimateGas(transactionObject);
 
   transactionObject.gas = gasLimit;
 
   let estimateFee: BigN;
 
-  if (priority.baseGasFee) {
-    const maxFee = priority.maxFeePerGas;
+  if (feeCombine.maxFeePerGas) {
+    const maxFee = new BigN(feeCombine.maxFeePerGas);
 
     estimateFee = maxFee.multipliedBy(gasLimit);
   } else {
-    estimateFee = new BigN(priority.gasPrice).multipliedBy(gasLimit);
+    estimateFee = new BigN(feeCombine.gasPrice || '0').multipliedBy(gasLimit);
   }
 
   transactionObject.value = transferAll ? new BigN(value).minus(estimateFee).toString() : value;
 
-  if (EVM_REFORMAT_DECIMALS.acala.includes(networkKey)) {
+  if (EVM_REFORMAT_DECIMALS.acala.includes(chain)) {
     const numberReplace = 18 - 12;
 
     transactionObject.value = transactionObject.value.substring(0, transactionObject.value.length - 6) + new Array(numberReplace).fill('0').join('');
@@ -94,196 +105,29 @@ export async function getEVMTransactionObject (
   return [transactionObject, transactionObject.value.toString()];
 }
 
-export async function getBitcoinTransactionObject (
-  from: string,
-  to: string,
-  amount: string,
-  transferAll: boolean,
-  bitcoinApiToken: Record<string, _BitcoinApi>
-): Promise<[Transaction, string]> {
-  try {
-    const amountValue = parseFloat(amount);
-    const data = JSON.stringify({
-      inputs: [
-        {
-          addresses: [from]
-        }
-      ],
-      outputs: [
-        {
-          addresses: [to],
-          value: amountValue
-        }
-      ]
-    });
-
-    console.log('Data:', data);
-
-    const bitcoinApi = 'https://api.blockcypher.com/v1/btc/test3/txs/new';
-    // const bitcoinApitest = 'https://blockstream.info/testnet/api/tx';
-
-    console.log('Bitcoin API:', bitcoinApi);
-
-    const response = await fetch(bitcoinApi, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: data
-    });
-
-    console.log('Response136:', response);
-
-    const transactionObject = await response.json();
-
-    console.log('Response Data 140 :', transactionObject);
-
-    // const transactionObject: Transaction1 = {
-    //   block_height: responseData.tx.block_height,
-    //   block_index: responseData.tx.block_index,
-    //   hash: responseData.tx.hash,
-    //   addresses: responseData.tx.addresses,
-    //   total: responseData.tx.total,
-    //   fees: responseData.tx.fees,
-    //   size: responseData.tx.size,
-    //   vsize: responseData.tx.vsize,
-    //   preference: responseData.tx.preference,
-    //   relayed_by: responseData.tx.relayed_by,
-    //   received: responseData.tx.received,
-    //   ver: responseData.tx.ver,
-    //   double_spend: responseData.tx.double_spend,
-    //   vin_sz: responseData.tx.vin_sz,
-    //   vout_sz: responseData.tx.vout_sz,
-    //   confirmations: responseData.tx.confirmations
-    // };
-
-    console.log('Transaction Object:', transactionObject);
-
-    const transferAmount = transactionObject.tx.outputs.reduce((acc: number, output: any) => {
-      return acc + output.value;
-    }, 0).toString();
-
-    console.log('Transfer Amount:', transferAmount);
-
-    return [transactionObject, transferAmount];
-  } catch (error) {
-    throw new Error(`Failed to get Bitcoin transaction object: ${error}`);
-  }
+interface TransferERC20Props extends TransactionFee {
+  assetAddress: string;
+  chain: string;
+  evmApi: _EvmApi;
+  from: string;
+  getChainFee: GetFeeFunction;
+  to: string;
+  transferAll: boolean;
+  value: string;
 }
 
-// export async function getBitcoinTransactionObject (
-//   from: string,
-//   to: string,
-//   amount: string,
-//   transferAll: boolean,
-//   bitcoinApi: Record<string, _BitcoinApi> // Change type to string
-// ): Promise<[Transaction, string]> { // Change return type to [Transaction, string]
-//   try {
-//     const requestBody = {
-//       from , to , amount , transferAll
-//     };
-//     console.log('requestBody', requestBody)
-//     const bitcoinApi = 'https://blockstream.info/testnet/api/tx';
-//     console.log('bitcoinApi', requestBody)
-
-//     const response = await fetch(bitcoinApi, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json'
-//       },
-//       body: JSON.stringify(requestBody)
-//     });
-
-//      console.log('responseresponse', response.json())
-//     if (response.ok) {
-//       const responseData = await response.json();
-//       // Create Transaction object
-//       const transactionObject = buildBitcoinTransaction(responseData);
-//       const transferAmount = responseData.outputs[0].value.toString();
-
-//       return [transactionObject, transferAmount];
-//     } else {
-//       throw new Error('Failed to get Bitcoin transaction object: Unexpected response from API');
-//     }
-//   } catch (error) {
-//     throw new Error('Failed to get Bitcoin transaction object: ' );
-//   }
-// }
-
-// function buildBitcoinTransaction (responseData: any): Transaction {
-//   // Assuming responseData contains necessary transaction information
-//   // Build the Transaction object here based on the responseData
-//   const transaction = new Transaction();
-
-//   // Assuming responseData has properties corresponding to Transaction fields
-//   transaction.version = responseData.version;
-//   transaction.locktime = responseData.locktime;
-
-//   // Map input and output data to Input and Output objects
-//   responseData.vin.forEach((inputData: any) => {
-//     const input: Input = {
-//       hash: Buffer.from(inputData.txid, 'hex'), // Assuming txid is provided in hexadecimal format
-//       index: inputData.vout,
-//       script: Buffer.from(inputData.scriptSig.hex, 'hex'), // Assuming scriptSig.hex is provided in hexadecimal format
-//       sequence: inputData.sequence,
-//       witness: [] // Initialize empty witness array
-//       // value: inputData.value // Add value property to Input object
-//     };
-
-//     transaction.ins.push(input);
-//   });
-
-//   responseData.vout.forEach((outputData: any) => {
-//     const output: Output = {
-//       script: Buffer.from(outputData.scriptPubKey.hex, 'hex'), // Assuming scriptPubKey.hex is provided in hexadecimal format
-//       value: outputData.value
-//     };
-
-//     transaction.outs.push(output);
-//   });
-
-//   return transaction;
-// }
-
-export async function getFeeEstimatesFromBlockcypherApi (network: 'main' | 'test3'): Promise<FeeData> {
-  try {
-    const url = `https://api.blockcypher.com/v1/btc/${network}`;
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch fee estimates from Blockcypher API');
-    }
-
-    const responseData = await response.json();
-    const { high_fee_per_kb, low_fee_per_kb, medium_fee_per_kb } = responseData;
-
-    const feeData: FeeData = {
-      symbol: '',
-      decimals: 0,
-      value: '',
-      tooHigh: false,
-      slow: low_fee_per_kb / 1000,
-      medium: medium_fee_per_kb / 1000,
-      fast: high_fee_per_kb / 1000
-    };
-
-    return feeData;
-  } catch (error) {
-    throw new Error('Failed to get fee estimates from Blockcypher API: ');
-  }
-}
-
-export async function getERC20TransactionObject (
-  assetAddress: string,
-  chainInfo: _ChainInfo,
-  from: string,
-  to: string,
-  value: string,
-  transferAll: boolean,
-  evmApi: _EvmApi
-): Promise<[TransactionConfig, string]> {
-  const networkKey = chainInfo.slug;
+export async function getERC20TransactionObject ({ assetAddress,
+  chain,
+  evmApi,
+  feeCustom: _feeCustom,
+  feeOption,
+  from,
+  getChainFee,
+  to,
+  transferAll,
+  value }: TransferERC20Props): Promise<[TransactionConfig, string]> {
   const erc20Contract = getERC20Contract(assetAddress, evmApi);
+  const feeCustom = _feeCustom as EvmEIP1995FeeOption;
 
   let freeAmount = new BigN(0);
   let transferValue = value;
@@ -301,12 +145,17 @@ export async function getERC20TransactionObject (
     return erc20Contract.methods.transfer(to, transferValue).encodeABI() as string;
   }
 
+  const id = getId();
+
   const transferData = generateTransferData(to, transferValue);
-  const [gasLimit, priority] = await Promise.all([
+  const [gasLimit, _feeInfo] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
     erc20Contract.methods.transfer(to, transferValue).estimateGas({ from }) as number,
-    calculateGasFeeParams(evmApi, networkKey)
+    getChainFee(id, chain, 'evm')
   ]);
+
+  const feeInfo = _feeInfo as EvmFeeInfo;
+  const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom);
 
   const transactionObject = {
     gas: gasLimit,
@@ -314,9 +163,7 @@ export async function getERC20TransactionObject (
     value: '0',
     to: assetAddress,
     data: transferData,
-    gasPrice: priority.gasPrice,
-    maxFeePerGas: priority.maxFeePerGas?.toString(),
-    maxPriorityFeePerGas: priority.maxPriorityFeePerGas?.toString()
+    ...feeCombine
   } as TransactionConfig;
 
   if (transferAll) {
@@ -327,31 +174,47 @@ export async function getERC20TransactionObject (
   return [transactionObject, transferValue];
 }
 
-export async function getERC721Transaction (
-  web3Api: _EvmApi,
-  chain: string,
-  contractAddress: string,
-  senderAddress: string,
-  recipientAddress: string,
-  tokenId: string): Promise<TransactionConfig> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  const contract = new web3Api.api.eth.Contract(_ERC721_ABI, contractAddress);
+interface TransferERC721Props extends TransactionFee {
+  chain: string;
+  contractAddress: string;
+  getChainFee: GetFeeFunction;
+  recipientAddress: string;
+  senderAddress: string;
+  tokenId: string;
+  evmApi: _EvmApi;
+}
 
-  const [gasLimit, priority] = await Promise.all([
+export async function getERC721Transaction ({ chain,
+  contractAddress,
+  evmApi,
+  feeCustom: _feeCustom,
+  feeOption,
+  getChainFee,
+  recipientAddress,
+  senderAddress,
+  tokenId }: TransferERC721Props): Promise<TransactionConfig> {
+  const feeCustom = _feeCustom as EvmEIP1995FeeOption;
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  const contract = new evmApi.api.eth.Contract(_ERC721_ABI, contractAddress);
+  const id = getId();
+
+  const [gasLimit, _feeInfo] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
     contract.methods.safeTransferFrom(senderAddress, recipientAddress, tokenId).estimateGas({ from: senderAddress }) as number,
-    calculateGasFeeParams(web3Api, chain)
+    getChainFee(id, chain, 'evm')
   ]);
+
+  const feeInfo = _feeInfo as EvmFeeInfo;
+  const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom);
 
   return {
     from: senderAddress,
-    gasPrice: priority.gasPrice,
-    maxFeePerGas: priority.maxFeePerGas?.toString(),
-    maxPriorityFeePerGas: priority.maxPriorityFeePerGas?.toString(),
     gas: gasLimit,
     to: contractAddress,
     value: '0x00',
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-    data: contract.methods.safeTransferFrom(senderAddress, recipientAddress, tokenId).encodeABI()
+    data: contract.methods.safeTransferFrom(senderAddress, recipientAddress, tokenId).encodeABI(),
+    ...feeCombine
   };
 }

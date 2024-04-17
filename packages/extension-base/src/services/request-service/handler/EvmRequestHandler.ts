@@ -257,8 +257,7 @@ export default class EvmRequestHandler {
     for (const ct in request) {
       const type = ct as ConfirmationType;
       const result = request[type] as ConfirmationDefinitions[typeof type][1];
-
-      const { id } = result;
+      const { id, isApproved } = result;
       const { resolver, validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
 
@@ -267,14 +266,16 @@ export default class EvmRequestHandler {
         throw new Error(t('Unable to proceed. Please try again'));
       }
 
-      // Fill signature for some special type
-      await this.decorateResult(type, confirmation, result);
+      if (isApproved) {
+        // Fill signature for some special type
+        await this.decorateResult(type, confirmation, result);
 
-      // Validate response from confirmation popup some info like password, response format....
-      const error = validator && validator(result);
+        // Validate response from confirmation popup some info like password, response format....
+        const error = validator && validator(result);
 
-      if (error) {
-        resolver.reject(error);
+        if (error) {
+          resolver.reject(error);
+        }
       }
 
       // Delete confirmations from queue

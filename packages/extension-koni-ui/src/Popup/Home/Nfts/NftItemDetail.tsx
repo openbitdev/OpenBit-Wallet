@@ -2,29 +2,27 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
+import { OrdinalRemarkData } from '@subwallet/extension-base/types';
+import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
 import { Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, DEFAULT_NFT_PARAMS, NFT_TRANSACTION, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
+import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
-import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/screen/common/useGetAccountInfoByAddress';
+import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
 import { INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
-import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { SendNftParams, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import reformatAddress from '@subwallet/extension-koni-ui/utils/account/reformatAddress';
-import { BackgroundIcon, Button, ButtonProps, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
+import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { getAlphaColor } from '@subwallet/react-ui/lib/theme/themes/default/colorAlgorithm';
 import CN from 'classnames';
-import { CaretLeft, Info, PaperPlaneTilt } from 'phosphor-react';
-import React, { useCallback, useContext } from 'react';
-import { useSelector } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { CaretLeft, Info } from 'phosphor-react';
+import React, { useCallback, useContext, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
-import { useLocalStorage } from 'usehooks-ts';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
@@ -44,57 +42,17 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { collectionInfo, nftItem } = location.state as INftItemDetail;
 
   const { t } = useTranslation();
-  const notify = useNotification();
-
-  const navigate = useNavigate();
   const { goBack } = useDefaultNavigate();
   const { token } = useTheme() as Theme;
 
   const dataContext = useContext(DataContext);
   const { activeModal, inactiveModal } = useContext(ModalContext);
 
-  const accounts = useSelector((root: RootState) => root.accountState.accounts);
-
   const originChainInfo = useGetChainInfo(nftItem.chain);
   const ownerAccountInfo = useGetAccountInfoByAddress(nftItem.owner || '');
   const accountExternalUrl = getExplorerLink(originChainInfo, nftItem.owner, 'account');
-  const [, setStorage] = useLocalStorage<SendNftParams>(NFT_TRANSACTION, DEFAULT_NFT_PARAMS);
 
   useNavigateOnChangeAccount('/home/nfts/collections');
-
-  const onClickSend = useCallback(() => {
-    if (nftItem && nftItem.owner) {
-      const ownerAddress = reformatAddress(nftItem.owner, 42);
-      const owner = accounts.find((a) => a.address === ownerAddress);
-
-      if (owner?.isReadOnly) {
-        notify({
-          message: t('The NFT owner is a watch-only account, you cannot send the NFT with it'),
-          type: 'info',
-          duration: 3
-        });
-
-        return;
-      }
-    }
-
-    setStorage({
-      asset: '',
-      collectionId: nftItem.collectionId,
-      from: nftItem.owner,
-      itemId: nftItem.id,
-      to: '',
-      chain: nftItem.chain
-    });
-    navigate('/transaction/send-nft');
-  }, [accounts, navigate, nftItem, notify, setStorage, t]);
-
-  const subHeaderRightButton: ButtonProps[] = [
-    {
-      children: t<string>('Send'),
-      onClick: onClickSend
-    }
-  ];
 
   const ownerPrefix = useCallback(() => {
     if (nftItem.owner) {
@@ -184,6 +142,14 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [nftItem.externalUrl]);
 
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
+  const ordinalNftItem = nftItem.description && JSON.parse(nftItem.description) as OrdinalRemarkData;
+  const isInscription = useMemo(() => {
+    if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+      return true;
+    }
+
+    return false;
+  }, [ordinalNftItem]);
 
   return (
     <PageWrapper
@@ -196,20 +162,27 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         showSubHeader={true}
         subHeaderBackground={'transparent'}
         subHeaderCenter={false}
-        subHeaderIcons={subHeaderRightButton}
         subHeaderPaddingVertical={true}
         title={nftItem.name || nftItem.id}
       >
         <div className={'nft_item_detail__container'}>
           <div className={'nft_item_detail__nft_image'}>
-            <Image
-              className={CN({ clickable: nftItem.externalUrl })}
-              height={358}
-              modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
-              onClick={onImageClick}
-              src={nftItem.image}
-              width={ show3DModel ? 358 : undefined}
-            />
+            {isInscription && nftItem.description && (
+              <InscriptionImage
+                alone={true}
+                properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
+              />
+            )}
+            {!isInscription && (
+              <Image
+                className={CN({ clickable: nftItem.externalUrl })}
+                height={358}
+                modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
+                onClick={onImageClick}
+                src={nftItem.image || DefaultLogosMap.default_placeholder}
+                width={show3DModel ? 358 : undefined}
+              />
+            )}
           </div>
 
           <div className={'nft_item_detail__info_container'}>
@@ -292,18 +265,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
               }
             </div>
           </div>
-
-          <Button
-            block
-            icon={<Icon
-              phosphorIcon={PaperPlaneTilt}
-              type='phosphor'
-              weight={'fill'}
-            />}
-            onClick={onClickSend}
-          >
-            <span className={'nft_item_detail__send_text'}>{t('Send')}</span>
-          </Button>
         </div>
 
         <SwModal
@@ -453,7 +414,8 @@ const NftItemDetail = styled(Component)<Props>(({ theme: { token } }: Props) => 
     '.nft_item_detail__nft_image': {
       display: 'flex',
       justifyContent: 'center',
-      width: '100%',
+      width: 358,
+      height: 358,
 
       '.ant-image-img': {
         maxWidth: '100%',

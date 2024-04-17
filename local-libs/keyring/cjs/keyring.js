@@ -8,7 +8,6 @@ exports.Keyring = exports.BIP_PROTOCOLS = void 0;
 var _bcryptjs = _interopRequireDefault(require("bcryptjs"));
 var _util = require("@polkadot/util");
 var _utilCrypto = require("@polkadot/util-crypto");
-var _fromPath = require("./utils/fromPath");
 var _defaults = require("./defaults");
 var _pair = require("./pair");
 var _pairs = require("./pairs");
@@ -278,7 +277,7 @@ class Keyring {
       }
     }
     const derived = BIP_PROTOCOLS.includes(type) ? isPhraseHex ? _utils.TYPE_FROM_SEED[type](seed) // for eth, if the private key is provided as suri, it must be derived only once
-    : (0, _utilCrypto.hdEthereum)(seed, derivePath.substring(1)) : (0, _fromPath.keyFromPath)(_utils.TYPE_FROM_SEED[type](seed), path, type);
+    : (0, _utilCrypto.hdEthereum)(seed, derivePath.substring(1)) : (0, _utils.keyFromPath)(_utils.TYPE_FROM_SEED[type](seed), path, type);
     const entropy = isPhraseHex ? null : (0, _utilCrypto.mnemonicToEntropy)(phrase);
     return (0, _pair.createPair)({
       toSS58: this.encodeAddress,

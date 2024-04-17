@@ -1698,7 +1698,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.10.4, @babel/runtime@npm:^7.10.5, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.5, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.17.9, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.1, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
+"@babel/runtime@npm:^7.10.4, @babel/runtime@npm:^7.10.5, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.14.5, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.17.9, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7, @babel/runtime@npm:^7.9.2":
   version: 7.20.1
   resolution: "@babel/runtime@npm:7.20.1"
   dependencies:
@@ -1713,6 +1713,15 @@ __metadata:
   dependencies:
     regenerator-runtime: ^0.13.11
   checksum: 4629ce5c46f06cca9cfb9b7fc00d48003335a809888e2b91ec2069a2dcfbfef738480cff32ba81e0b7c290f8918e5c22ddcf2b710001464ee84ba62c7e32a3a3
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.20.1":
+  version: 7.24.4
+  resolution: "@babel/runtime@npm:7.24.4"
+  dependencies:
+    regenerator-runtime: ^0.14.0
+  checksum: 2f27d4c0ffac7ae7999ac0385e1106f2a06992a8bdcbf3da06adcac7413863cd08c198c2e4e970041bbea849e17f02e1df18875539b6afba76c781b6b59a07c3
   languageName: node
   linkType: hard
 
@@ -6224,12 +6233,12 @@ __metadata:
 
 "@subwallet/chain-list@file:./local-libs/chain-list::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.53-beta.1
-  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=5de842&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=267d76&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: 388592ace80611abf96faced0c7e10a79ba85206b95bccf5e00b35e6c165c51c8efe308ea780ad9521d0a80b499a8cfe18af7a1bb6199e9aad9780a251fb4c48
+  checksum: 2d72bc6b7e84b0838a579e132e9120c4798fcaaa402c5db5ac1ae4b737181a2e0d87853b85347e17d7c27be19009928546aab3dfaeac034e9809ab1ece125aef
   languageName: node
   linkType: hard
 
@@ -6606,12 +6615,13 @@ __metadata:
 
 "@subwallet/keyring@file:./local-libs/keyring::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.1.4
-  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=ed63d9&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=f0dbce&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
     "@polkadot/util-crypto": ^12.2.1
     bcryptjs: ^2.4.3
+    bignumber.js: ^9.1.2
     bitcoinjs-lib: ^6.1.5
     bitcoinjs-message: ^2.2.0
     ecpair: ^2.1.0
@@ -6620,7 +6630,7 @@ __metadata:
     rxjs: ^7.5.6
     tiny-secp256k1: ^2.2.3
     tslib: ^2.6.2
-  checksum: f5f0a4e9e7be89e8c06503d63bceacedbaf18bf47b9ec32c5e7c9b5c7fff9c679c38fdf79ceb45e9e995785eefa2678940f22c2411e0367a656e8048c7a8f700
+  checksum: 472d0ffc80abcdcf4854a2dcfc1b953c204eb6cde1e5f35d5db0b6dee921f0254e4e0933ac422af4ffed59927d6141421f5444fa554d57f853c94657bd3b17f7
   languageName: node
   linkType: hard
 
@@ -6703,19 +6713,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subwallet/ui-keyring@npm:0.1.5-beta.0":
-  version: 0.1.5-beta.0
-  resolution: "@subwallet/ui-keyring@npm:0.1.5-beta.0"
+"@subwallet/ui-keyring@file:./local-libs/ui-keyring::locator=root-workspace-0b6124%40workspace%3A.":
+  version: 0.1.4
+  resolution: "@subwallet/ui-keyring@file:./local-libs/ui-keyring#./local-libs/ui-keyring::hash=6ca968&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@babel/runtime": ^7.20.1
     "@polkadot/ui-settings": 2.9.14
     "@polkadot/util": ^12.2.1
     "@polkadot/util-crypto": ^12.2.1
-    "@subwallet/keyring": 0.1.5-beta.0
+    "@subwallet/keyring": ^0.1.2
     mkdirp: ^1.0.4
     rxjs: ^7.5.7
     store: ^2.0.12
-  checksum: 5220cb6eef6580ad93065e80da3b686f6af7bcd1df50b4469c43e2b40f1c811ba313877332da2869a84fbf0d97e180d1a849ebf32cf38ac91f880552466e5e0c
+  checksum: 8084f4d0090c743451dd5a9683ba118b21f394ed9c874bce889ddab8f5b759603347fd914e93fb31210f183e2a5e9220b587488e68099c1e3754cfdf13752be7
   languageName: node
   linkType: hard
 

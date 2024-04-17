@@ -6,10 +6,10 @@ import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
-import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
 
@@ -57,13 +57,13 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
       getKeypairTypeByAddress(a) === 'ethereum' ? useAddresses.push(a) : notSupportAddresses.push(a);
     });
   } else if (isBitcoinChain) {
-    addresses.forEach((a) => {
-      const addressType = getKeypairTypeByAddress(a);
+    addresses.forEach((address) => {
+      const bitcoinAddressNetwork = isBitcoinAddress(address);
 
-      if ((addressType === 'bitcoin-84' && chainInfo.slug === 'bitcoin') || (addressType === 'bittest-84' && chainInfo.slug === 'bitcoinTestnet')) {
-        useAddresses.push(a);
+      if ((bitcoinAddressNetwork === 'mainnet' && chainInfo.slug === 'bitcoin') || (bitcoinAddressNetwork === 'testnet' && chainInfo.slug === 'bitcoinTestnet')) {
+        useAddresses.push(address);
       } else {
-        notSupportAddresses.push(a);
+        notSupportAddresses.push(address);
       }
     });
   } else {
@@ -73,56 +73,66 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
   return [useAddresses, notSupportAddresses];
 };
 
-export type BitcoinBalanceFunction = (addresses: string[], chain: string) => Promise<string[]>;
-
 // todo: update bitcoin params
 function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
-  const chain = chainInfo.slug;
-  // todo: check tokenList
   // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
+  const chain = chainInfo.slug;
   const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
 
-  const getRunesBalance = () => {
-    Object.values(tokenList).map(async (tokenInfo) => {
+  // todo: check await asset ready before subscribe
+  if (Object.keys(tokenList).length === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    return () => {
+    };
+  }
+
+  const getRunesBalance = async () => {
+    const runeIdToSlugMap: Record<string, string> = {};
+    const runeIdToAllItemsMap: Record<string, BalanceItem[]> = {};
+
+    Object.values(tokenList).forEach((token) => {
+      runeIdToSlugMap[_getRuneId(token)] = token.slug;
+    });
+
+    // get runeId -> BalanceItem[] mapping
+    await Promise.all(addresses.map(async (address) => {
       try {
-        const runeId = _getRuneId(tokenInfo);
-        const balances = await Promise.all(addresses.map(async (address) => {
-          try {
-            const runes = await bitcoinApi.api.getRunes(address);
+        const runes = await bitcoinApi.api.getRunes(address);
 
-            for (const rune of runes) {
-              if (rune.rune.rune_id === runeId) {
-                return rune.amount;
-              }
-            }
+        runes.forEach((rune) => {
+          const runeId = rune.rune_id;
 
-            return '0';
-          } catch (error) {
-            console.log(`Error on get balance of account ${address} for token ${tokenInfo.slug}`, error);
-
-            return '0';
-          }
-        }));
-
-        const items: BalanceItem[] = balances.map((balance, index): BalanceItem => {
-          return {
-            address: addresses[index],
-            tokenSlug: tokenInfo.slug,
-            free: balance,
+          const item = {
+            address: address,
+            tokenSlug: runeIdToSlugMap[runeId],
+            free: rune.amount,
             locked: '0',
             state: APIItemState.READY
-          };
-        });
+          } as BalanceItem;
 
-        callback(items);
+          if (!runeIdToAllItemsMap[runeId]) {
+            runeIdToAllItemsMap[runeId] = [];
+          }
+
+          runeIdToAllItemsMap[runeId].push(item);
+        });
       } catch (error) {
-        console.error(`Error on fetching balance of ${tokenInfo.slug}`, error);
+        console.log(`Error on get runes balance of account ${address}`);
       }
+    }));
+
+    // callback balance batch items by tokenList
+    Object.values(runeIdToAllItemsMap).forEach((balanceItems) => {
+      callback(balanceItems);
     });
   };
 
-  getRunesBalance();
-  const interval = setInterval(getRunesBalance, COMMON_REFRESH_BALANCE_INTERVAL);
+  const fetchRuneBalances = () => {
+    getRunesBalance().catch(console.error);
+  };
+
+  fetchRuneBalances();
+  const interval = setInterval(fetchRuneBalances, COMMON_REFRESH_BALANCE_INTERVAL);
 
   return () => {
     clearInterval(interval);
@@ -181,12 +191,19 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, as
 
   getBalance();
   const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
-  const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
 
-  return () => {
-    clearInterval(interval);
-    unsub && unsub();
-  };
+  if (_isSupportRuneChain(chainInfo.slug)) {
+    const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
+
+    return () => {
+      clearInterval(interval);
+      unsub && unsub();
+    };
+  } else {
+    return () => {
+      clearInterval(interval);
+    };
+  }
 }
 
 // main subscription, use for multiple chains, multiple addresses and multiple tokens

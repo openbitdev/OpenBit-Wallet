@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitions, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationDefinitions, ConfirmationDefinitionsBitcoin, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { SigningRequest } from '@subwallet/extension-base/background/types';
 import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { AlertBox } from '@subwallet/extension-koni-ui/components';
@@ -14,7 +14,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { EvmSignArea, SubstrateSignArea } from '../../parts/Sign';
+import { BitcoinSignArea, EvmSignArea, SubstrateSignArea } from '../../parts/Sign';
 import { BaseTransactionConfirmation, BondTransactionConfirmation, CancelUnstakeTransactionConfirmation, ClaimRewardTransactionConfirmation, DefaultWithdrawTransactionConfirmation, FastWithdrawTransactionConfirmation, JoinPoolTransactionConfirmation, JoinYieldPoolConfirmation, LeavePoolTransactionConfirmation, SendNftTransactionConfirmation, TokenApproveConfirmation, TransferBlock, UnbondTransactionConfirmation, WithdrawTransactionConfirmation } from './variants';
 
 interface Props extends ThemeProps {
@@ -136,6 +136,16 @@ const Component: React.FC<Props> = (props: Props) => {
             extrinsicType={transaction.extrinsicType}
             id={item.id}
             payload={(item as ConfirmationDefinitions['evmSendTransactionRequest' | 'evmWatchTransactionRequest'][0])}
+            type={type}
+          />
+        )
+      }
+      {
+        (type === 'bitcoinSignatureRequest' || type === 'bitcoinSendTransactionRequest' || type === 'bitcoinWatchTransactionRequest') && (
+          <BitcoinSignArea
+            extrinsicType={transaction.extrinsicType}
+            id={item.id}
+            payload={(item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest'][0])}
             type={type}
           />
         )

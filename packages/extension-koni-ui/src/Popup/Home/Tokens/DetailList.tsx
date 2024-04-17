@@ -9,7 +9,7 @@ import { TokenBalanceDetailItem } from '@subwallet/extension-koni-ui/components/
 import { DEFAULT_TRANSFER_PARAMS, TRANSFER_TRANSACTION } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
-import { useDefaultNavigate, useNavigateOnChangeAccount, useNotification, useReceiveQR, useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { useDefaultNavigate, useNavigateOnChangeAccount, useReceiveQR, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { DetailModal } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/DetailModal';
 import { DetailUpperBlock } from '@subwallet/extension-koni-ui/Popup/Home/Tokens/DetailUpperBlock';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -20,7 +20,6 @@ import { ModalContext } from '@subwallet/react-ui';
 import { SwNumberProps } from '@subwallet/react-ui/es/number';
 import classNames from 'classnames';
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
@@ -50,8 +49,6 @@ const TokenDetailModalId = 'tokenDetailModalId';
 function Component (): React.ReactElement {
   const { slug: tokenGroupSlug } = useParams();
 
-  const notify = useNotification();
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { goHome } = useDefaultNavigate();
 
@@ -61,6 +58,7 @@ function Component (): React.ReactElement {
   const assetRegistryMap = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
   const multiChainAssetMap = useSelector((state: RootState) => state.assetRegistry.multiChainAssetMap);
   const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const accounts = useSelector((state: RootState) => state.accountState.accounts);
   const { tokens } = useSelector((state: RootState) => state.buyService);
   const [, setStorage] = useLocalStorage(TRANSFER_TRANSACTION, DEFAULT_TRANSFER_PARAMS);
@@ -243,27 +241,15 @@ function Component (): React.ReactElement {
   }, []);
 
   const onOpenSendFund = useCallback(() => {
-    if (currentAccount && currentAccount.isReadOnly) {
-      notify({
-        message: t('The account you are using is watch-only, you cannot send assets with it'),
-        type: 'info',
-        duration: 3
-      });
-
-      return;
-    }
-
-    const address = currentAccount ? isAccountAll(currentAccount.address) ? '' : currentAccount.address : '';
+    const fromProxyId = currentAccountProxy ? isAccountAll(currentAccountProxy.proxyId) ? '' : currentAccountProxy.proxyId : '';
 
     setStorage({
       ...DEFAULT_TRANSFER_PARAMS,
-      from: address,
-      defaultSlug: tokenGroupSlug || ''
+      fromProxyId
     });
-
     navigate('/transaction/send-fund');
   },
-  [currentAccount, navigate, notify, setStorage, t, tokenGroupSlug]
+  [currentAccountProxy, navigate, setStorage]
   );
 
   const onOpenBuyTokens = useCallback(() => {

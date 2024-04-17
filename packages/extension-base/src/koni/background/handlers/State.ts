@@ -10,7 +10,6 @@ import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, 
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
-import { BitcoinService } from '@subwallet/extension-base/services/bitcoin-service';
 import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
@@ -137,7 +136,6 @@ export default class KoniState {
   readonly buyService: BuyService;
   readonly earningService: EarningService;
   readonly feeService: FeeService;
-  readonly bitcoinService: BitcoinService;
 
   // Handle the general status of the extension
   private generalStatus: ServiceStatus = ServiceStatus.INITIALIZING;
@@ -152,13 +150,12 @@ export default class KoniState {
     this.keyringService = new KeyringService(this.eventService);
 
     this.notificationService = new NotificationService();
-    this.chainService = new ChainService(this.dbService, this.eventService);
+    this.chainService = new ChainService(this.dbService, this.eventService, this.keyringService);
     this.subscanService = SubscanService.getInstance();
     this.settingService = new SettingService();
     this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
-    this.bitcoinService = new BitcoinService();
     this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService);
     this.mintCampaignService = new MintCampaignService(this);
     this.walletConnectService = new WalletConnectService(this, this.requestService);
@@ -1479,14 +1476,13 @@ export default class KoniState {
         }
       })();
 
-      promiseList.push(Promise.race([promise, timeoutPromise]).then((result) => {
-        return [slug, result
+      promiseList.push(Promise.race([promise, timeoutPromise]).then((priority) => {
+        return [slug, priority
           ? {
-            ...result,
-            gasPrice: result.gasPrice?.toString(),
-            maxFeePerGas: result.maxFeePerGas?.toString(),
-            maxPriorityFeePerGas: result.maxPriorityFeePerGas?.toString(),
-            baseGasFee: result.baseGasFee?.toString()
+            ...priority,
+            gasPrice: priority.gasPrice?.toString(),
+            options: priority.options,
+            baseGasFee: priority.baseGasFee?.toString()
           } as EvmFeeInfo
           : null];
       }));
@@ -1546,15 +1542,15 @@ export default class KoniState {
       const priority = await calculateGasFeeParams(evmApi, networkKey);
 
       if (priority.baseGasFee) {
-        transaction.maxPriorityFeePerGas = priority.maxPriorityFeePerGas.toString();
-        transaction.maxFeePerGas = priority.maxFeePerGas.toString();
+        transaction.maxPriorityFeePerGas = priority.options[priority.options.default].maxPriorityFeePerGas.toString();
+        transaction.maxFeePerGas = priority.options[priority.options.default].maxFeePerGas.toString();
 
-        const maxFee = priority.maxFeePerGas;
+        const maxFee = new BigN(priority.options[priority.options.default].maxFeePerGas);
 
         estimateGas = maxFee.multipliedBy(transaction.gas).toFixed(0);
       } else {
         transaction.gasPrice = priority.gasPrice;
-        estimateGas = new BigN(priority.gasPrice).multipliedBy(transaction.gas).toFixed(0);
+        estimateGas = new BigN(priority.gasPrice || '0').multipliedBy(transaction.gas).toFixed(0);
       }
     }
 

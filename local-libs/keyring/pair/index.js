@@ -160,6 +160,9 @@ export function createPair({
       return !!entropy;
     },
     get evm() {
+      if (!['ethereum'].includes(type)) {
+        throw new Error('Unable to create ethereum handler for this keypair');
+      }
       return {
         signMessage: async (payload, method) => {
           if (isLocked(secretKey)) {
@@ -195,9 +198,7 @@ export function createPair({
           return hexAddPrefix(u8aToHex(transaction.sign(secretKey).serialize()));
         },
         derive: (index, meta) => {
-          if (type !== 'ethereum') {
-            throw new Error('Unable to derive on this keypair');
-          } else if (isEmpty(entropy)) {
+          if (isEmpty(entropy)) {
             throw new Error('Cannot derive on this keypair');
           } else if (isLocked(secretKey)) {
             throw new Error('Cannot derive on a locked keypair');
@@ -215,11 +216,12 @@ export function createPair({
       };
     },
     get substrate() {
+      if (!['ed25519', 'sr25519', 'ecdsa'].includes(type)) {
+        throw new Error('Unable to create substrate handler for this keypair');
+      }
       return {
         derive: (suri, meta) => {
-          if (!['ed25519', 'sr25519', 'ecdsa'].includes(type)) {
-            throw new Error('Unable to derive on this keypair');
-          } else if (isLocked(secretKey)) {
+          if (isLocked(secretKey)) {
             throw new Error('Cannot derive on a locked keypair');
           }
           const {
@@ -238,11 +240,38 @@ export function createPair({
       };
     },
     get bitcoin() {
+      if (!['bitcoin-44', 'bitcoin-84', 'bitcoin-86', 'bittest-44', 'bittest-84', 'bittest-86'].includes(type)) {
+        throw new Error('Unable to create bitcoin handler for this keypair');
+      }
+      const bitNetwork = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86'].includes(type) ? bitcoin.networks.bitcoin : ['bittest-44', 'bittest-84', 'bittest-86'].includes(type) ? bitcoin.networks.testnet : bitcoin.networks.regtest;
+      const internalPubkey = toXOnly(Buffer.from(publicKey));
+      let output;
+      switch (type) {
+        case 'bitcoin-44':
+        case 'bittest-44':
+          output = bitcoin.payments.p2pkh({
+            pubkey: Buffer.from(publicKey),
+            network: bitNetwork
+          }).output;
+          break;
+        case 'bitcoin-84':
+        case 'bittest-84':
+          output = bitcoin.payments.p2wpkh({
+            pubkey: Buffer.from(publicKey),
+            network: bitNetwork
+          }).output;
+          break;
+        case 'bitcoin-86':
+        case 'bittest-86':
+          output = bitcoin.payments.p2tr({
+            internalPubkey,
+            network: bitNetwork
+          }).output;
+          break;
+      }
       return {
         derive: (index, meta) => {
-          if (!['bitcoin-44', 'bitcoin-84', 'bitcoin-86', 'bittest-44', 'bittest-84', 'bittest-86'].includes(type)) {
-            throw new Error('Unable to derive on this keypair');
-          } else if (isEmpty(entropy)) {
+          if (isEmpty(entropy)) {
             throw new Error('Cannot derive on this keypair');
           } else if (isLocked(secretKey)) {
             throw new Error('Cannot derive on a locked keypair');
@@ -266,7 +295,7 @@ export function createPair({
           const signature = bitcoinSignMessage(_message, Buffer.from(secretKey), compressed, options);
           return signature.toString('base64');
         },
-        signTransaction: transaction => {
+        signTransaction: (transaction, indexes) => {
           if (isLocked(secretKey)) {
             throw new Error('Cannot encrypt with a locked key pair');
           }
@@ -274,10 +303,22 @@ export function createPair({
             throw new Error('Not found sign method');
           }
           const pair = ECPair.fromPrivateKey(Buffer.from(secretKey));
-          for (let i = 0; i < transaction.inputCount; i++) {
-            transaction.signInput(i, pair);
+          const isTaproot = ['bitcoin-86', 'bittest-86'].includes(type);
+          for (const index of indexes) {
+            if (isTaproot) {
+              const tweakedSigner = pair.tweak(bitcoin.crypto.taggedHash('TapTweak', toXOnly(pair.publicKey)));
+              transaction.signTaprootInput(index, tweakedSigner);
+            } else {
+              transaction.signInput(index, pair);
+            }
           }
-          return transaction.finalizeAllInputs().toHex();
+          return transaction;
+        },
+        get output() {
+          return output || Buffer.from([]);
+        },
+        get internalPubkey() {
+          return internalPubkey;
         }
       };
     },

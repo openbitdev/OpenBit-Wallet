@@ -1,3 +1,5 @@
+/// <reference types="pouchdb-core" />
+/// <reference types="node" />
 import type { HexString } from '@polkadot/util/types';
 import type { EncryptedJson, Keypair, Prefix } from '@polkadot/util-crypto/types';
 import { TypedTransaction } from '@ethereumjs/tx';
@@ -11,6 +13,19 @@ export type KeypairType = 'ed25519' | 'sr25519' | 'ecdsa' | 'ethereum' | 'bitcoi
 export type BitcoinNetwork = 'mainnet' | 'testnet' | 'regtest' | 'unknown';
 export type BitcoinMainnetKeypairType = 'bitcoin-44' | 'bitcoin-84' | 'bitcoin-86';
 export type BitcoinTestnetKeypairType = 'bittest-44' | 'bittest-84' | 'bittest-86';
+export declare enum BitcoinAddressType {
+    p2pkh = "p2pkh",
+    p2sh = "p2sh",
+    p2wpkh = "p2wpkh",
+    p2wsh = "p2wsh",
+    p2tr = "p2tr"
+}
+export type BitcoinAddressInfo = {
+    bech32: boolean;
+    network: BitcoinNetwork;
+    address: string;
+    type: BitcoinAddressType;
+};
 export interface KeyringOptions {
     /**
      * @description The ss58Format to use for address encoding (defaults to 42)
@@ -41,7 +56,9 @@ export interface SubstrateSigner {
 export interface BitcoinSigner {
     derive: (index: number, meta?: KeyringPair$Meta) => KeyringPair;
     signMessage: (message: HexString | string | Uint8Array, compressed?: boolean, options?: SignatureOptions) => string;
-    signTransaction: (transaction: BitcoinTransaction) => string;
+    signTransaction: (transaction: BitcoinTransaction, indexes: number[]) => BitcoinTransaction;
+    output: Buffer;
+    internalPubkey: Buffer;
 }
 export interface SignOptions {
     /**

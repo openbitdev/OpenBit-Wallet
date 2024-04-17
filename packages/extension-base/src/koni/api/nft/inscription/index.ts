@@ -20,8 +20,13 @@ const ORDINAL_COLLECTION_INFO: NftCollection = {
   collectionId: 'INSCRIPTION',
   collectionName: 'Inscriptions'
 };
-
-const FAKE_ADDRESS = 'tb1q6c980jfrtdhpd23d2jmfdlt77et7zlw0jkwm5r'; // replace this address to your bitcoin address to see
+// tb1q9349hsyr78tv79lmmak3gwsmkqrplcv8jr30cy
+// tb1qunkzxu23pwv3tdgtgssvvv2qa9s22rqs3hk9ee
+// tb1qltwnv6wwqd8yhwekdlqtkppr9ngna3l9tvayg2
+// tb1qgtfh3judtmdww3myvvv7m2u774f2dxk3eh8uxu
+// tb1qv8przqc226ytdckcu9k3nchy6d6kup8trfg8v2
+// bc1pswkmku02gqu9cg8heetr6lfxc5zusss4knqst7g2rf8teeqtr9lsdlv4ts
+const FAKE_ADDRESS = 'tb1p5sgfjpdxa7y9as2m2ekc797h05ywf6reswhz2u30anhg390cwnuskhf3uq'; // replace this address to your bitcoin address to see
 
 export class InscriptionApi extends BaseNftApi {
   constructor (chain: string, addresses: string[]) {
@@ -110,6 +115,8 @@ export class InscriptionApi extends BaseNftApi {
     const satNumber = inscription.sat_ordinal;
     const contentType = inscription.content_type;
 
+    console.log('6666_contentType', contentType);
+
     propertiesMap.sat_rarity = {
       value: satRarity
     };
@@ -127,7 +134,7 @@ export class InscriptionApi extends BaseNftApi {
 
   public async handleNfts (params: HandleNftParams) {
     try {
-      const balances = await this.getBalances(TEST_ADDRESS.add5);
+      const balances = await this.getBalances(TEST_ADDRESS.add4);
 
       if (balances.length > 0) {
         const collectionMap: Record <string, NftCollection> = {};
