@@ -125,7 +125,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           renderWhenEmpty={emptyNft}
           searchFunction={searchNft}
           searchMinCharactersCount={2}
-          searchPlaceholder={t<string>('Search NFT name or ID')}
+          searchPlaceholder={t<string>('Search Collectible name or ID')}
         />
       </Layout.Base>
     </PageWrapper>

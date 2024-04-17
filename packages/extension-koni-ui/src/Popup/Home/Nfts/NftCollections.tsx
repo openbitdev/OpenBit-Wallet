@@ -11,7 +11,7 @@ import { INftCollectionDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nf
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, ButtonProps, Icon, SwList } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { ArrowClockwise, Image, Plus, PlusCircle } from 'phosphor-react';
+import { ArrowClockwise, Image, PlusCircle } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -20,12 +20,6 @@ type Props = ThemeProps
 
 const reloadIcon = <Icon
   phosphorIcon={ArrowClockwise}
-  size='sm'
-  type='phosphor'
-/>;
-
-const rightIcon = <Icon
-  phosphorIcon={Plus}
   size='sm'
   type='phosphor'
 />;
@@ -60,12 +54,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             setLoading(false);
           })
           .catch(console.error);
-      }
-    },
-    {
-      icon: rightIcon,
-      onClick: () => {
-        navigate('/settings/tokens/import-nft', { state: { isExternalRequest: false } });
       }
     }
   ];
