@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseFeeDetail, BaseFeeInfo } from './base';
+import { BaseFeeDetail, BaseFeeInfo, BaseFeeTime } from './base';
 import { FeeDefaultOption } from './option';
 
 export interface EvmLegacyFeeInfo extends BaseFeeInfo {
@@ -16,14 +16,16 @@ export interface EvmEIP1995FeeOption {
   maxPriorityFeePerGas: string;
 }
 
+export type EvmEIP1995FeeOptionDetail = EvmEIP1995FeeOption & BaseFeeTime;
+
 export interface EvmEIP1995FeeInfo extends BaseFeeInfo {
   type: 'evm';
   gasPrice: undefined;
   baseGasFee: string;
   options: {
-    slow: EvmEIP1995FeeOption;
-    average: EvmEIP1995FeeOption;
-    fast: EvmEIP1995FeeOption;
+    slow: EvmEIP1995FeeOptionDetail;
+    average: EvmEIP1995FeeOptionDetail;
+    fast: EvmEIP1995FeeOptionDetail;
     default: FeeDefaultOption;
   }
 }

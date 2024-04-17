@@ -8,6 +8,10 @@ export interface BaseFeeInfo {
   type: FeeChainType;
 }
 
+export interface BaseFeeTime {
+  time: number; // in milliseconds
+}
+
 export interface BaseFeeDetail {
   estimatedFee: string;
 }

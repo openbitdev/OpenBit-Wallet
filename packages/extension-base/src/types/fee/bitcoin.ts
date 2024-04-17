@@ -1,19 +1,21 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { BaseFeeDetail, BaseFeeInfo } from './base';
+import { BaseFeeDetail, BaseFeeInfo, BaseFeeTime } from './base';
 import { FeeDefaultOption } from './option';
 
 export interface BitcoinFeeRate {
   feeRate: number;
 }
 
+export type BitcoinFeeRateDetail = BitcoinFeeRate & BaseFeeTime;
+
 export interface BitcoinFeeInfo extends BaseFeeInfo {
   type: 'bitcoin';
   options: {
-    slow: BitcoinFeeRate;
-    average: BitcoinFeeRate;
-    fast: BitcoinFeeRate;
+    slow: BitcoinFeeRateDetail;
+    average: BitcoinFeeRateDetail;
+    fast: BitcoinFeeRateDetail;
     default: FeeDefaultOption;
   }
 }

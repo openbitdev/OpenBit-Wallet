@@ -3,7 +3,7 @@
 
 import { GAS_PRICE_RATIO, NETWORK_MULTI_GAS_FEE } from '@subwallet/extension-base/constants';
 import { _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
-import { EvmEIP1995FeeOption, EvmFeeInfo, InfuraFeeInfo, InfuraThresholdInfo } from '@subwallet/extension-base/types';
+import { EvmEIP1995FeeOptionDetail, EvmFeeInfo, InfuraFeeInfo, InfuraThresholdInfo } from '@subwallet/extension-base/types';
 import { BN_WEI, BN_ZERO } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 
@@ -24,15 +24,18 @@ export const parseInfuraFee = (info: InfuraFeeInfo, threshold: InfuraThresholdIn
     options: {
       slow: {
         maxFeePerGas: new BigN(info.low.suggestedMaxFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0),
-        maxPriorityFeePerGas: new BigN(info.low.suggestedMaxPriorityFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0)
+        maxPriorityFeePerGas: new BigN(info.low.suggestedMaxPriorityFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0),
+        time: info.low.maxWaitTimeEstimate
       },
       average: {
         maxFeePerGas: new BigN(info.medium.suggestedMaxFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0),
-        maxPriorityFeePerGas: new BigN(info.medium.suggestedMaxPriorityFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0)
+        maxPriorityFeePerGas: new BigN(info.medium.suggestedMaxPriorityFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0),
+        time: info.medium.maxWaitTimeEstimate
       },
       fast: {
         maxFeePerGas: new BigN(info.high.suggestedMaxFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0),
-        maxPriorityFeePerGas: new BigN(info.high.suggestedMaxPriorityFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0)
+        maxPriorityFeePerGas: new BigN(info.high.suggestedMaxPriorityFeePerGas).multipliedBy(BN_WEI).integerValue(BigN.ROUND_UP).toFixed(0),
+        time: info.high.maxWaitTimeEstimate
       },
       default: busyNetwork ? 'average' : 'slow'
     }
@@ -110,12 +113,13 @@ export const recalculateGasPrice = (_price: string, chain: string) => {
 
 export const getEIP1559GasFee = (
   baseFee: BigN,
-  maxPriorityFee: BigN
-): EvmEIP1995FeeOption => {
+  maxPriorityFee: BigN,
+  time: number
+): EvmEIP1995FeeOptionDetail => {
   // https://www.blocknative.com/blog/eip-1559-fees
   const maxFee = baseFee.multipliedBy(2).plus(maxPriorityFee);
 
-  return { maxFeePerGas: maxFee.toFixed(0), maxPriorityFeePerGas: maxPriorityFee.toFixed(0) };
+  return { maxFeePerGas: maxFee.toFixed(0), maxPriorityFeePerGas: maxPriorityFee.toFixed(0), time };
 };
 
 export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, useOnline = false, useInfura = false): Promise<EvmFeeInfo> => {
@@ -169,9 +173,9 @@ export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, u
       baseGasFee: baseGasFee.toString(),
       busyNetwork,
       options: {
-        slow: getEIP1559GasFee(baseGasFee, slowPriorityFee),
-        average: getEIP1559GasFee(baseGasFee, averagePriorityFee),
-        fast: getEIP1559GasFee(baseGasFee, fastPriorityFee),
+        slow: getEIP1559GasFee(baseGasFee, slowPriorityFee, 30000),
+        average: getEIP1559GasFee(baseGasFee, averagePriorityFee, 45000),
+        fast: getEIP1559GasFee(baseGasFee, fastPriorityFee, 60000),
         default: busyNetwork ? 'average' : 'slow'
       }
     };
