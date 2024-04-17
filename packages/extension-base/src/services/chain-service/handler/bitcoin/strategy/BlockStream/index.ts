@@ -13,6 +13,7 @@ import EventEmitter from 'eventemitter3';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
+  private readonly timePerBlock: number; // in milliseconds
 
   constructor (url: string) {
     const context = new BaseApiRequestContext();
@@ -20,6 +21,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     super(context);
 
     this.baseUrl = url;
+    this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
   }
 
   isRateLimited (): boolean {
@@ -84,9 +86,9 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         type: 'bitcoin',
         busyNetwork: false,
         options: {
-          slow: { feeRate: Math.ceil(result['25']) },
-          average: { feeRate: Math.ceil(result['10']) },
-          fast: { feeRate: Math.ceil(result['1']) },
+          slow: { feeRate: Math.ceil(result['25']), time: this.timePerBlock * 25 },
+          average: { feeRate: Math.ceil(result['10']), time: this.timePerBlock * 10 },
+          fast: { feeRate: Math.ceil(result['1']), time: this.timePerBlock * 1 },
           default: 'slow'
         }
       };
