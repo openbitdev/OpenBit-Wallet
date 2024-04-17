@@ -207,8 +207,9 @@ export class BalanceService implements StoppableServiceInterface {
       const evmApiMap = this.state.chainService.getEvmApiMap();
       const substrateApiMap = this.state.chainService.getSubstrateApiMap();
       const bitcoinApiMap = this.state.chainService.getBitcoinApiMap();
+      let unsub = noop;
 
-      const unsub = subscribeBalance([address], [chain], [tSlug], assetMap, chainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap, (result) => {
+      unsub = subscribeBalance([address], [chain], [tSlug], assetMap, chainInfoMap, substrateApiMap, evmApiMap, bitcoinApiMap, (result) => {
         const rs = result[0];
 
         if (rs.tokenSlug === tSlug) {

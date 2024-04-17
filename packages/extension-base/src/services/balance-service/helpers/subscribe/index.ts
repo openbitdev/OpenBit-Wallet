@@ -13,6 +13,8 @@ import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
 
+import { noop } from '@polkadot/util';
+
 import { subscribeEVMBalance } from './evm';
 import { subscribeSubstrateBalance } from './substrate';
 
@@ -243,6 +245,10 @@ export function subscribeBalance (
 
         callback(items);
       });
+    }
+
+    if (!useAddresses.length) {
+      return noop;
     }
 
     const evmApi = evmApiMap[chainSlug];
