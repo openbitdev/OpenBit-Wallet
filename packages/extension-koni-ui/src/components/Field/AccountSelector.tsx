@@ -3,18 +3,16 @@
 
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { isAccountAll } from '@subwallet/extension-base/utils';
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import { BasicInputWrapper } from '@subwallet/extension-koni-ui/components/Field/Base';
-import { useFormatAddress, useSelectModalInputHelper, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useSelectModalInputHelper, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { funcSortByName, toShort } from '@subwallet/extension-koni-ui/utils';
 import { InputRef, SelectModal } from '@subwallet/react-ui';
 import React, { ForwardedRef, forwardRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 
-import { isEthereumAddress } from '@polkadot/util-crypto';
-
 import { AccountItemWithName } from '../Account';
-import { Avatar } from '../Avatar';
 import { GeneralEmptyList } from '../EmptyList';
 
 interface Props extends ThemeProps, BasicInputWrapper {
@@ -31,7 +29,7 @@ function defaultFiler (account: AccountJson): boolean {
 }
 
 const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> => {
-  const { addressPrefix, className = '', disabled, doFilter = true, externalAccounts, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
+  const { className = '', disabled, doFilter = true, externalAccounts, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
   const accounts = useSelector((state) => state.accountState.accounts);
 
   const items = useMemo(() => {
@@ -47,11 +45,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
   const { t } = useTranslation();
   const { onSelect } = useSelectModalInputHelper(props, ref);
 
-  const formatAddress = useFormatAddress(addressPrefix);
-
   const renderSelected = useCallback((item: AccountJson) => {
-    const address = formatAddress(item);
-
     return (
       <div className={'__selected-item'}>
         <div className={'__selected-item-name common-text'}>
@@ -59,11 +53,11 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         </div>
 
         <div className={'__selected-item-address common-text'}>
-        ({toShort(address, 4, 4)})
+        ({toShort(item.address, 4, 4)})
         </div>
       </div>
     );
-  }, [formatAddress]);
+  }, []);
 
   const searchFunction = useCallback((item: AccountJson, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
@@ -77,17 +71,25 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
   }, []);
 
   const renderItem = useCallback((item: AccountJson, selected: boolean) => {
-    const address = formatAddress(item);
-
     return (
       <AccountItemWithName
         accountName={item.name}
-        address={address}
+        address={item.address}
         avatarSize={24}
         isSelected={selected}
+        leftItem={(
+          <AccountProxyAvatar
+            size={24}
+            value={item.proxyId}
+          />
+        )}
       />
     );
-  }, [formatAddress]);
+  }, []);
+
+  const selectedItem = useMemo(() => {
+    return items.find((a) => a.address === value);
+  }, [items, value]);
 
   return (
     <>
@@ -102,10 +104,9 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         onSelect={onSelect}
         placeholder={placeholder || t('Select account')}
         prefix={
-          <Avatar
+          <AccountProxyAvatar
             size={20}
-            theme={value ? isEthereumAddress(value) ? 'ethereum' : 'polkadot' : undefined}
-            value={value}
+            value={selectedItem?.proxyId}
           />
         }
         renderItem={renderItem}

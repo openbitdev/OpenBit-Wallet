@@ -1,11 +1,14 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { BitcoinFeeInfo, FeeDefaultOption } from '@subwallet/extension-base/types';
+import { BitcoinFeeDetail, FeeDefaultOption } from '@subwallet/extension-base/types';
+import { BN_ZERO } from '@subwallet/extension-base/utils';
 import { BasicInputEvent, RadioGroup } from '@subwallet/extension-koni-ui/components';
 import { FormCallbacks, PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
-import { Form, Icon, Input, ModalContext, SwIconProps, SwModal } from '@subwallet/react-ui';
+import { Button, Form, Icon, Input, ModalContext, Number, SwIconProps, SwModal } from '@subwallet/react-ui';
+import { Rule } from '@subwallet/react-ui/es/form';
+import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { CaretLeft, CheckCircle, Lightning, Tree, Wind } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -14,7 +17,7 @@ import styled from 'styled-components';
 
 type Props = ThemeProps & {
   modalId: string;
-  feeDetailOptions: BitcoinFeeInfo['options'];
+  feeDetail: BitcoinFeeDetail;
   selectedOption: BitcoinFeeOption;
   onSelectOption: (option: BitcoinFeeOption) => void
 };
@@ -30,7 +33,7 @@ interface ViewOption {
 }
 
 interface FormProps {
-  customValue: number;
+  customValue: string;
 }
 
 interface IconOption {
@@ -69,32 +72,30 @@ const OPTIONS: BitcoinFeeOption[] = [
   }
 ];
 
-function getCustomValue (selectedOption: BitcoinFeeOption, feeDetailOptions: BitcoinFeeInfo['options']) {
-  if (selectedOption.option === 'custom') {
-    return {
-      customValue: selectedOption.customValue.feeRate
-    };
-  }
-
-  return {
-    customValue: feeDetailOptions[selectedOption.option].feeRate
-  };
+function validateCustomValue (value: string) {
+  return /^\d+$/.test(value) && !value.includes('e');
 }
 
-const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selectedOption }: Props): React.ReactElement<Props> => {
+const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOption }: Props): React.ReactElement<Props> => {
   const { t } = useTranslation();
   const { inactiveModal } = useContext(ModalContext);
   const [currentViewMode, setViewMode] = useState<ViewMode>(selectedOption.option === 'custom' ? ViewMode.CUSTOM : ViewMode.RECOMMENDED);
 
-  const onCancelModal = useCallback(() => {
-    inactiveModal(modalId);
-  }, [inactiveModal, modalId]);
-
   const [form] = Form.useForm<FormProps>();
 
+  const customValue = Form.useWatch('customValue', form);
+
   const formDefault = useMemo((): FormProps => {
-    return getCustomValue(selectedOption, feeDetailOptions);
-  }, [feeDetailOptions, selectedOption]);
+    if (selectedOption.option === 'custom') {
+      return {
+        customValue: `${selectedOption.customValue.feeRate}`
+      };
+    }
+
+    return {
+      customValue: ''
+    };
+  }, [selectedOption]);
 
   useEffect(() => {
     setViewMode(selectedOption.option === 'custom' ? ViewMode.CUSTOM : ViewMode.RECOMMENDED);
@@ -117,21 +118,47 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
     setViewMode(event.target.value as ViewMode);
   }, []);
 
+  const onCancelModal = useCallback(() => {
+    inactiveModal(modalId);
+  }, [inactiveModal, modalId]);
+
   const _onSelectOption = useCallback((o: BitcoinFeeOption) => {
     return () => {
       onSelectOption(o);
-      form.setFieldValue('customValue', getCustomValue(o, feeDetailOptions).customValue);
       inactiveModal(modalId);
     };
-  }, [feeDetailOptions, form, inactiveModal, modalId, onSelectOption]);
+  }, [inactiveModal, modalId, onSelectOption]);
 
   const renderOption = (o: BitcoinFeeOption) => {
     if (o.option === 'custom') {
       return null;
     }
 
-    const feeRate = feeDetailOptions[o.option].feeRate;
+    const feeRate = feeDetail.options[o.option].feeRate;
     const iconOption = IconMap[o.option];
+    const name = (() => {
+      if (o.option === 'slow') {
+        return t('Low');
+      }
+
+      if (o.option === 'average') {
+        return t('Average');
+      }
+
+      return t('High');
+    })();
+
+    const time = (() => {
+      if (o.option === 'slow') {
+        return '~1 hour+';
+      }
+
+      if (o.option === 'average') {
+        return '~30 min';
+      }
+
+      return '~10 - 20min';
+    })();
 
     return (
       <div
@@ -153,29 +180,34 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
         <div className={'__right-part-wrapper'}>
           <div className={'__right-part'}>
             <div className={'__line-1'}>
-              <div className={'__label'}>{o.option}</div>
+              <div className={'__label'}>{name}</div>
               <div className={'__value'}>&nbsp;- {feeRate}&nbsp;sats/vB</div>
             </div>
             <div className={'__line-2'}>
               <div className={'__label'}>Time</div>
-              <div className={'__value'}>&nbsp;~&nbsp;30 min&nbsp;</div>
+              <div className={'__value'}>{time}</div>
             </div>
             <div className={'__line-3'}>
-              <div className={'__label'}>Max fee:</div>
-              <div className={'__value'}>&nbsp;0.000123 BTC&nbsp;</div>
+              <div className={'__label'}>Fee</div>
+              <div className={'__value'}>
+                <Number
+                  decimal={8} // decimals of bitcoin is 8, will update dynamic value later
+                  suffix={'BTC'} // will update dynamic value later
+                  value={feeRate * feeDetail.vSize}
+                />
+              </div>
             </div>
           </div>
+
           <div className={'__selection-item'}>
             {
               selectedOption.option === o.option && (
-                <div>
-                  <Icon
-                    customSize={'20px'}
-                    iconColor={'#7EE76C'}
-                    phosphorIcon={CheckCircle}
-                    weight='fill'
-                  />
-                </div>
+                <Icon
+                  customSize={'20px'}
+                  iconColor={'#7EE76C'}
+                  phosphorIcon={CheckCircle}
+                  weight='fill'
+                />
               )
             }
           </div>
@@ -184,9 +216,29 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
     );
   };
 
-  const onValuesChange: FormCallbacks<FormProps>['onValuesChange'] = useCallback((changes: Partial<FormProps>, values: FormProps) => {
+  const customValueValidator = useCallback((rule: Rule, value: string): Promise<void> => {
+    if (value && !validateCustomValue(value)) {
+      return Promise.reject(t('Invalid value'));
+    }
 
-  }, []);
+    return Promise.resolve();
+  }, [t]);
+
+  const convertedCustomValue = useMemo<BigN>(() => {
+    if (validateCustomValue(customValue)) {
+      return new BigN(customValue).multipliedBy(feeDetail.vSize);
+    }
+
+    return BN_ZERO;
+  }, [customValue, feeDetail.vSize]);
+
+  const onSubmitCustomValue: FormCallbacks<FormProps>['onFinish'] = useCallback(({ customValue }: FormProps) => {
+    inactiveModal(modalId);
+    onSelectOption({
+      option: 'custom',
+      customValue: { feeRate: +customValue }
+    });
+  }, [inactiveModal, modalId, onSelectOption]);
 
   return (
     <SwModal
@@ -224,19 +276,39 @@ const Component = ({ className, feeDetailOptions, modalId, onSelectOption, selec
             <Form
               form={form}
               initialValues={formDefault}
-              onValuesChange={onValuesChange}
+              onFinish={onSubmitCustomValue}
             >
               <Form.Item
                 name={'customValue'}
+                rules={[
+                  {
+                    validator: customValueValidator
+                  }
+                ]}
               >
                 <Input
                   label={'sats/vB'}
-                  min={0}
-                  placeholder={'0.1 - 2'}
+                  min={1}
+                  placeholder={'Enter sats/vB'}
+                  suffix={(
+                    <Number
+                      decimal={8} // decimals of bitcoin is 8, will update dynamic value later
+                      suffix={'BTC'} // will update dynamic value later
+                      value={convertedCustomValue}
+                    />
+                  )}
                   type={'number'}
                 />
               </Form.Item>
             </Form>
+
+            <Button
+              block={true}
+              disabled={convertedCustomValue.lte(0)}
+              onClick={form.submit}
+            >
+              Use custom fee
+            </Button>
           </div>
         )
       }

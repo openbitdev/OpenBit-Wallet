@@ -3,12 +3,12 @@
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { ExtrinsicType, NotificationType } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountJson } from '@subwallet/extension-base/background/types';
 import { _getAssetDecimals, _getOriginChainOfAsset, _getTokenMinAmount, _isAssetFungibleToken, _isChainEvmCompatible, _isNativeToken, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
-import { detectTranslate } from '@subwallet/extension-base/utils';
-import { AccountProxySelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, ChainSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
+import { BN_ZERO, detectTranslate } from '@subwallet/extension-base/utils';
+import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, ChainSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
 import { BITCOIN_CHAINS, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
@@ -16,6 +16,7 @@ import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ChainItemType, FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, formatBalance, noop, reformatAddress } from '@subwallet/extension-koni-ui/utils';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { KeypairType } from '@subwallet/keyring/types';
 import { Button, Form, Icon, Number } from '@subwallet/react-ui';
 import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
@@ -26,28 +27,51 @@ import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useIsFirstRender } from 'usehooks-ts';
 
-import { BN, BN_ZERO } from '@polkadot/util';
 import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
+function checkValidBetweenAddressTypeAndChain (addressType: KeypairType, chain: string): boolean {
+  if (chain === 'bitcoin') {
+    return ['bitcoin-44', 'bitcoin-84'].includes(addressType);
+  }
+
+  if (chain === 'bitcoinTestnet') {
+    return ['bittest-44', 'bittest-84'].includes(addressType);
+  }
+
+  return chain === 'ethereum' && addressType === 'ethereum';
+}
+
 function getTokenItems (
+  address: string,
   assetRegistry: Record<string, _ChainAsset>,
   multiChainAssetMap: Record<string, _MultiChainAsset>,
   tokenGroupSlug?: string // is ether a token slug or a multiChainAsset slug
 ): TokenItemType[] {
+  if (!address) {
+    return [];
+  }
+
   const isSetTokenSlug = !!tokenGroupSlug && !!assetRegistry[tokenGroupSlug];
   const isSetMultiChainAssetSlug = !!tokenGroupSlug && !!multiChainAssetMap[tokenGroupSlug];
+  const addressType = getKeypairTypeByAddress(address);
 
   if (tokenGroupSlug) {
     if (!(isSetTokenSlug || isSetMultiChainAssetSlug)) {
       return [];
     }
 
-    if (isSetTokenSlug) {
-      const { name, originChain, slug, symbol } = assetRegistry[tokenGroupSlug];
+    const chainAsset = assetRegistry[tokenGroupSlug];
+
+    if (isSetTokenSlug && chainAsset) {
+      const { name, originChain, slug, symbol } = chainAsset;
+
+      if (!checkValidBetweenAddressTypeAndChain(addressType, originChain)) {
+        return [];
+      }
 
       return [
         {
@@ -66,6 +90,10 @@ function getTokenItems (
     const isTokenFungible = _isAssetFungibleToken(chainAsset);
 
     if (!(isTokenFungible && _isNativeToken(chainAsset) && SUPPORT_CHAINS.includes(chainAsset.originChain))) {
+      return;
+    }
+
+    if (!checkValidBetweenAddressTypeAndChain(addressType, chainAsset.originChain)) {
       return;
     }
 
@@ -127,35 +155,7 @@ function getTokenAvailableDestinations (tokenSlug: string, xcmRefMap: Record<str
   return result;
 }
 
-function findSenderAddressByProxyIdAndChain (proxyId: string, accountProxies: AccountProxy[], chain: string) {
-  const accountProxy = accountProxies.find((ap) => ap.proxyId === proxyId);
-
-  if (!accountProxy) {
-    return '';
-  }
-
-  const targetAccount = accountProxy.accounts.find((a) => {
-    const addressType = getKeypairTypeByAddress(a.address);
-
-    if (addressType === 'ethereum' && chain === 'ethereum') {
-      return true;
-    }
-
-    if (addressType === 'bitcoin-84' && chain === 'bitcoin') {
-      return true;
-    }
-
-    if (addressType === 'bittest-84' && chain === 'bitcoinTestnet') {
-      return true;
-    }
-
-    return false;
-  });
-
-  return targetAccount?.address || '';
-}
-
-const hiddenFields: Array<keyof TransferParams> = ['chain', 'from'];
+const hiddenFields: Array<keyof TransferParams> = ['chain', 'fromProxyId'];
 const validateFields: Array<keyof TransferParams> = ['value', 'to'];
 const alertModalId = 'confirmation-alert-modal';
 
@@ -165,7 +165,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const notification = useNotification();
 
   const { defaultData, persistData } = useTransactionContext<TransferParams>();
-  const { defaultSlug: sendFundSlug } = defaultData;
+  const { defaultSlug: sendFundSlug, fromProxyId } = defaultData;
   const isFirstRender = useIsFirstRender();
 
   const [form] = Form.useForm<TransferParams>();
@@ -175,42 +175,43 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     };
   }, [defaultData]);
 
-  const destChain = useWatchTransaction('destChain', form, defaultData);
-  const transferAmount = useWatchTransaction('value', form, defaultData);
-  const from = useWatchTransaction('from', form, defaultData);
-  const fromProxyId = useWatchTransaction('fromProxyId', form, defaultData);
-  const chain = useWatchTransaction('chain', form, defaultData);
-  const asset = useWatchTransaction('asset', form, defaultData);
+  const destChainValue = useWatchTransaction('destChain', form, defaultData);
+  const transferAmountValue = useWatchTransaction('value', form, defaultData);
+  const fromValue = useWatchTransaction('from', form, defaultData);
+  const chainValue = useWatchTransaction('chain', form, defaultData);
+  const assetValue = useWatchTransaction('asset', form, defaultData);
 
-  const assetInfo = useFetchChainAssetInfo(asset);
+  const assetInfo = useFetchChainAssetInfo(assetValue);
   const { alertProps, closeAlert, openAlert } = useAlert(alertModalId);
 
   const { chainInfoMap, chainStatusMap } = useSelector((root) => root.chainStore);
   const { assetRegistry, multiChainAssetMap, xcmRefMap } = useSelector((root) => root.assetRegistry);
-  const { accountProxies, accounts, isAllAccount } = useSelector((state: RootState) => state.accountState);
+  const { accounts } = useSelector((state: RootState) => state.accountState);
 
-  const destChainNetworkPrefix = useGetChainPrefixBySlug(destChain);
-  const destChainGenesisHash = chainInfoMap[destChain]?.substrateInfo?.genesisHash || '';
-  const checkAction = usePreCheckAction(from, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
-  const nativeTokenBasicInfo = useGetNativeTokenBasicInfo(chain);
+  const destChainNetworkPrefix = useGetChainPrefixBySlug(destChainValue);
+  const destChainGenesisHash = chainInfoMap[destChainValue]?.substrateInfo?.genesisHash || '';
+  const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
+  const nativeTokenBasicInfo = useGetNativeTokenBasicInfo(chainValue);
+
+  const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
 
   const hideMaxButton = useMemo(() => {
-    const chainInfo = chainInfoMap[chain];
+    const chainInfo = chainInfoMap[chainValue];
 
-    return !!chainInfo && !!assetInfo && _isChainEvmCompatible(chainInfo) && destChain === chain && _isNativeToken(assetInfo);
-  }, [chainInfoMap, chain, destChain, assetInfo]);
+    return !!chainInfo && !!assetInfo && _isChainEvmCompatible(chainInfo) && destChainValue === chainValue && _isNativeToken(assetInfo);
+  }, [chainInfoMap, chainValue, destChainValue, assetInfo]);
 
-  const chainStatus = useMemo(() => chainStatusMap[chain]?.connectionStatus, [chain, chainStatusMap]);
+  const chainStatus = useMemo(() => chainStatusMap[chainValue]?.connectionStatus, [chainValue, chainStatusMap]);
 
   const destChainItems = useMemo<ChainItemType[]>(() => {
-    return getTokenAvailableDestinations(asset, xcmRefMap, chainInfoMap);
-  }, [chainInfoMap, asset, xcmRefMap]);
+    return getTokenAvailableDestinations(assetValue, xcmRefMap, chainInfoMap);
+  }, [chainInfoMap, assetValue, xcmRefMap]);
 
   const currentChainAsset = useMemo(() => {
-    const _asset = isFirstRender ? defaultData.asset : asset;
+    const _asset = isFirstRender ? defaultData.asset : assetValue;
 
     return _asset ? assetRegistry[_asset] : undefined;
-  }, [isFirstRender, defaultData.asset, asset, assetRegistry]);
+  }, [isFirstRender, defaultData.asset, assetValue, assetRegistry]);
 
   const decimals = useMemo(() => {
     return currentChainAsset ? _getAssetDecimals(currentChainAsset) : 0;
@@ -220,7 +221,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     if (!currentChainAsset) {
       return ExtrinsicType.UNKNOWN;
     } else {
-      if (chain !== destChain) {
+      if (chainValue !== destChainValue) {
         return ExtrinsicType.TRANSFER_XCM;
       } else {
         if (currentChainAsset.assetType === _AssetType.NATIVE) {
@@ -230,15 +231,16 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         }
       }
     }
-  }, [chain, currentChainAsset, destChain]);
+  }, [chainValue, currentChainAsset, destChainValue]);
 
   const tokenItems = useMemo<TokenItemType[]>(() => {
     return getTokenItems(
+      fromValue,
       assetRegistry,
       multiChainAssetMap,
       sendFundSlug
     );
-  }, [assetRegistry, multiChainAssetMap, sendFundSlug]);
+  }, [assetRegistry, fromValue, multiChainAssetMap, sendFundSlug]);
 
   const [loading, setLoading] = useState(false);
   const [isTransferAll, setIsTransferAll] = useState(false);
@@ -299,11 +301,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Amount is required'));
     }
 
-    if ((new BN(maxTransfer)).lte(BN_ZERO)) {
+    if ((new BigN(maxTransfer)).lte(BN_ZERO)) {
       return Promise.reject(t('You don\'t have enough tokens to proceed'));
     }
 
-    if ((new BigN(amount)).eq(new BigN(0))) {
+    if ((new BigN(amount)).eq(0)) {
       return Promise.reject(t('Amount must be greater than 0'));
     }
 
@@ -322,6 +324,10 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
       if (part.from || part.asset || part.destChain) {
         setTransactionFeeInfo(undefined);
+
+        if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
+          setFeeResetTrigger({});
+        }
       }
 
       if (part.from) {
@@ -457,7 +463,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   }, [accounts, chainInfoMap, assetRegistry, notification, t, isTransferAll, onSuccess, onError, transactionFeeInfo]);
 
   const onSetMaxTransferable = useCallback((value: boolean) => {
-    const bnMaxTransfer = new BN(transferInfo?.maxTransferable || '0');
+    const bnMaxTransfer = new BigN(transferInfo?.maxTransferable || '0');
 
     if (!bnMaxTransfer.isZero()) {
       setIsTransferAll(value);
@@ -467,9 +473,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const onPreSubmit = useCallback(() => {
     if (_isNativeToken(assetInfo)) {
       const minAmount = _getTokenMinAmount(assetInfo);
-      const bnMinAmount = new BN(minAmount);
+      const bnMinAmount = new BigN(minAmount);
 
-      if (bnMinAmount.gt(BN_ZERO) && isTransferAll && chain === destChain) {
+      if (bnMinAmount.gt(BN_ZERO) && isTransferAll && chainValue === destChainValue) {
         openAlert({
           type: NotificationType.WARNING,
           content: t('Transferring all will remove all assets on this network. Are you sure?'),
@@ -492,12 +498,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
 
     form.submit();
-  }, [assetInfo, chain, closeAlert, destChain, form, isTransferAll, openAlert, t]);
-
-  // todo: will handle case from is empty later
-  useEffect(() => {
-    form.setFieldValue('from', findSenderAddressByProxyIdAndChain(fromProxyId, accountProxies, chain));
-  }, [fromProxyId, chain, form, accountProxies]);
+  }, [assetInfo, chainValue, closeAlert, destChainValue, form, isTransferAll, openAlert, t]);
 
   // TODO: Need to review
   // Auto fill logic
@@ -549,13 +550,13 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       }
     };
 
-    if (from && asset) {
+    if (fromValue && assetValue) {
       subscribeMaxTransfer({
-        address: from,
-        chain: assetRegistry[asset].originChain,
-        token: asset,
-        isXcmTransfer: chain !== destChain,
-        destChain,
+        address: fromValue,
+        chain: assetRegistry[assetValue].originChain,
+        token: assetValue,
+        isXcmTransfer: chainValue !== destChainValue,
+        destChain: destChainValue,
         feeOption: transactionFeeInfo?.feeOption,
         feeCustom: transactionFeeInfo?.feeCustom
       }, callback)
@@ -575,23 +576,31 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       cancel = true;
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [asset, assetRegistry, chain, chainStatus, destChain, form, from, transactionFeeInfo]);
+  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
+
+  const accountsFilter = useCallback((account: AccountJson) => {
+    if (fromProxyId) {
+      if (account.proxyId !== fromProxyId) {
+        return false;
+      }
+    }
+
+    const accountType = account.type || getKeypairTypeByAddress(account.address);
+
+    return ['ethereum', 'bitcoin-44', 'bitcoin-84', 'bittest-44', 'bittest-84'].includes(accountType);
+  }, [fromProxyId]);
 
   useEffect(() => {
-    const bnTransferAmount = new BN(transferAmount || '0');
-    const bnMaxTransfer = new BN(transferInfo?.maxTransferable || '0');
+    const bnTransferAmount = new BigN(transferAmountValue || '0');
+    const bnMaxTransfer = new BigN(transferInfo?.maxTransferable || '0');
 
     if (bnTransferAmount.gt(BN_ZERO) && bnTransferAmount.eq(bnMaxTransfer)) {
       setIsTransferAll(true);
     }
-  }, [transferInfo, transferAmount]);
+  }, [transferInfo, transferAmountValue]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
-
-  useEffect(() => {
-    console.log(transferInfo);
-  }, [transferInfo]);
 
   return (
     <>
@@ -608,12 +617,10 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           onValuesChange={onValuesChange}
         >
           <Form.Item
-            className={CN({ hidden: !isAllAccount })}
-            name={'fromProxyId'}
+            name={'from'}
           >
-            <AccountProxySelector
-              address={from}
-              disabled={!isAllAccount}
+            <AccountSelector
+              filter={accountsFilter}
               label={t('Send from')}
             />
           </Form.Item>
@@ -660,7 +667,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             <AddressInput
               addressPrefix={destChainNetworkPrefix}
               allowDomain={true}
-              chain={destChain}
+              chain={destChainValue}
               fitNetwork={true}
               label={t('Send to')}
               networkGenesisHash={destChainGenesisHash}
@@ -692,13 +699,14 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           </Form.Item>
 
           {
-            BITCOIN_CHAINS.includes(chain) && transferInfo && asset && (
+            BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
               <Form.Item>
                 <BitcoinFeeSelector
                   feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
                   isLoading={isFetchingInfo}
                   onSelect={setTransactionFeeInfo}
-                  tokenSlug={asset}
+                  resetTrigger={feeResetTrigger}
+                  tokenSlug={assetValue}
                 />
               </Form.Item>
             )
@@ -712,7 +720,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         {/*  tokenSlug={asset} */}
         {/* /> */}
         {
-          chain !== destChain && (
+          chainValue !== destChainValue && (
             <div className={'__warning_message_cross_chain'}>
               <AlertBox
                 description={t('Cross-chain transfer to an exchange (CEX) will result in loss of funds. Make sure the receiving address is not an exchange address.')}

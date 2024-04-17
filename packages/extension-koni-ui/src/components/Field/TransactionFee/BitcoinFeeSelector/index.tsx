@@ -10,7 +10,7 @@ import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
 import { ActivityIndicator, Button, Field, Icon, ModalContext, Number } from '@subwallet/react-ui';
 import BigN from 'bignumber.js';
 import { PencilSimpleLine } from 'phosphor-react';
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
@@ -21,22 +21,24 @@ type Props = ThemeProps & {
   onSelect: (transactionFee: TransactionFee) => void;
   isLoading?: boolean;
   tokenSlug: string;
+  resetTrigger?: unknown;
 };
 
+// todo: will update dynamic later
 const modalId = 'BitcoinFeeSelectorId';
 
-const Component = ({ className, feeDetail, isLoading, tokenSlug }: Props): React.ReactElement<Props> => {
+const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, tokenSlug }: Props): React.ReactElement<Props> => {
   const { t } = useTranslation();
   const { activeModal } = useContext(ModalContext);
   const assetRegistry = useSelector((root) => root.assetRegistry.assetRegistry);
   const [selectedOption, setSelectedOption] = useState<BitcoinFeeOption>({ option: feeDetail.options.default });
   const priceMap = useSelector((state) => state.price.priceMap);
+  const resetTriggerRef = useRef<unknown>(resetTrigger);
+  const [modalRenderKey, setModalRenderKey] = useState<string>(modalId);
 
   const tokenAsset = (() => {
     return assetRegistry[tokenSlug] || undefined;
   })();
-
-  console.log('tokenAsset', tokenAsset, tokenSlug, priceMap);
 
   const decimals = _getAssetDecimals(tokenAsset);
   const priceId = _getAssetPriceId(tokenAsset);
@@ -53,8 +55,30 @@ const Component = ({ className, feeDetail, isLoading, tokenSlug }: Props): React
   }, [feeDetail.estimatedFee, decimals, priceId, priceMap, isLoading]);
 
   const onClickEdit = useCallback(() => {
-    activeModal(modalId);
+    setModalRenderKey(`${modalId}_${Date.now()}`);
+
+    setTimeout(() => {
+      activeModal(modalId);
+    }, 100);
   }, [activeModal]);
+
+  const onSelectOption = useCallback((option: BitcoinFeeOption) => {
+    setSelectedOption(option);
+
+    onSelect({
+      feeOption: option.option,
+      feeCustom: option.option === 'custom'
+        ? option.customValue
+        : undefined
+    });
+  }, [onSelect]);
+
+  useEffect(() => {
+    if (resetTrigger !== resetTriggerRef.current) {
+      setSelectedOption({ option: feeDetail.options.default });
+      resetTriggerRef.current = resetTrigger;
+    }
+  }, [feeDetail, resetTrigger]);
 
   return (
     <>
@@ -108,9 +132,10 @@ const Component = ({ className, feeDetail, isLoading, tokenSlug }: Props): React
       {
         feeDetail && selectedOption && (
           <BitcoinFeeEditorModal
-            feeDetailOptions={feeDetail.options}
+            feeDetail={feeDetail}
+            key={modalRenderKey}
             modalId={modalId}
-            onSelectOption={setSelectedOption}
+            onSelectOption={onSelectOption}
             selectedOption={selectedOption}
           />
         )
