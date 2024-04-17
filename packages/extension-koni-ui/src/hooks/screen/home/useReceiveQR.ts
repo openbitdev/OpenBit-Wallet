@@ -103,6 +103,22 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
     return result;
   }, [tokenGroupSlug, assetRegistryMap]);
 
+  const filterTokenSelectorItems = useCallback((items: ReceiveTokenItemType[], accountProxy?: AccountProxy) => {
+    return items.map(item => {
+      if (item.metadata && item.metadata.runeId) {
+        const isBip84 = getKeypairTypeByAddress(item.address) === 'bitcoin-84' || getKeypairTypeByAddress(item.address) === 'bittest-84';
+        if (isBip84) {
+          const correspondingAccount = accountProxy?.accounts.find(account => account.type === 'bitcoin-86');
+          if (correspondingAccount) {
+            return { ...item, address: correspondingAccount.address };
+          }
+        }
+      }
+      return item;
+    });
+  }, []);
+
+
   const onOpenReceive = useCallback(() => {
     if (!currentAccountProxy) {
       return;
@@ -113,7 +129,8 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
     } else {
       const _tokenSelectorItems = getTokenSelectorItems(currentAccountProxy);
 
-      setTokenSelectorItems(_tokenSelectorItems);
+      const filteredTokenItems = filterTokenSelectorItems(_tokenSelectorItems, currentAccountProxy);
+      setTokenSelectorItems(filteredTokenItems);
 
       if (tokenGroupSlug) {
         if (_tokenSelectorItems.length === 1) {
@@ -131,8 +148,9 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
   const onSelectAccountProxy = useCallback((accountProxy: AccountProxy) => {
     setReceiveSelectedResult({ selectedAccountProxyId: accountProxy.proxyId });
     const _tokenSelectorItems = getTokenSelectorItems(accountProxy);
-
-    setTokenSelectorItems(_tokenSelectorItems);
+    const correspondingProxy = accountProxies.find(proxy => proxy.proxyId === accountProxy.proxyId);
+    const filteredTokenItems = filterTokenSelectorItems(_tokenSelectorItems, correspondingProxy);
+    setTokenSelectorItems(filteredTokenItems);
 
     if (tokenGroupSlug) {
       if (_tokenSelectorItems.length === 1) {
