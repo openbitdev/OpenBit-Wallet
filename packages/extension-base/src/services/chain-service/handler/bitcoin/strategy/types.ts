@@ -13,6 +13,7 @@ export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest
   getTransactionStatus (txHash: string): Promise<boolean>;
   getFeeRate (): Promise<BitcoinFeeInfo>;
   getUtxos (address: string): Promise<UtxoResponseItem[]>;
+  getTxHex (txHash: string): Promise<string>;
   sendRawTransaction (rawTransaction: string): EventEmitter<BitcoinTransactionEventMap>;
 }
 

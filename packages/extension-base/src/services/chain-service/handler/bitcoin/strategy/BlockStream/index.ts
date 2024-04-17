@@ -179,4 +179,16 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
       throw error;
     }
   }
+
+  getTxHex (txHash: string): Promise<string> {
+    return this.addRequest<string>(async (): Promise<string> => {
+      const rs = await getRequest(this.getUrl(`tx/${txHash}/hex`));
+
+      if (rs.status !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getTxHex', await rs.text());
+      }
+
+      return await rs.text();
+    }, 0);
+  }
 }

@@ -108,6 +108,7 @@ export default class TransactionService {
       feeCustom,
       feeOption,
       isTransferAll,
+      to,
       transaction } = validation;
 
     // Check duplicate transaction
@@ -158,7 +159,8 @@ export default class TransactionService {
             const sizeInfo = getSizeInfo({
               inputLength: transaction.inputCount,
               outputLength: transaction.txOutputs.length,
-              recipient: address
+              recipient: to || address,
+              sender: address
             });
 
             estimateFee.value = (feeCombine.feeRate * sizeInfo.txVBytes).toString();

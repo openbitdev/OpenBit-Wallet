@@ -42,6 +42,7 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
       amount: amountValue,
       feeRate: bitcoinFee.feeRate,
       recipient: to,
+      sender: from,
       utxos
     };
 
@@ -54,14 +55,24 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
     const transferAmount = new BigN(0);
 
     for (const input of inputs) {
-      tx.addInput({
-        hash: input.txid,
-        index: input.vout,
-        witnessUtxo: {
-          script: pair.bitcoin.output,
-          value: input.value
-        }
-      });
+      if (pair.type === 'bitcoin-44' || pair.type === 'bittest-44') {
+        const hex = await bitcoinApi.api.getTxHex(input.txid);
+
+        tx.addInput({
+          hash: input.txid,
+          index: input.vout,
+          nonWitnessUtxo: Buffer.from(hex, 'hex')
+        });
+      } else {
+        tx.addInput({
+          hash: input.txid,
+          index: input.vout,
+          witnessUtxo: {
+            script: pair.bitcoin.output,
+            value: input.value
+          }
+        });
+      }
 
       transferAmount.plus(input.value);
     }
@@ -76,6 +87,10 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
         transferAmount.minus(output.value);
       }
     }
+
+    console.log(inputs, inputs.reduce((v, i) => v + i.value, 0));
+    console.log(outputs, (outputs as Array<{value: number}>).reduce((v, i) => v + i.value, 0));
+    console.log(fee, bitcoinFee);
 
     transferAmount.minus(fee);
 

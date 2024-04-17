@@ -16,6 +16,7 @@ export interface UtxoResponseItem {
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/coinselect/local-coin-selection.ts
 export interface DetermineUtxosForSpendArgs {
+  sender: string;
   amount: number;
   feeRate: number;
   recipient: string;
