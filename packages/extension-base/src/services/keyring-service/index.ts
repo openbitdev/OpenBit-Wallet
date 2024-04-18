@@ -5,6 +5,7 @@ import { CurrentAccountInfo, CurrentAccountProxyInfo, KeyringState } from '@subw
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { CurrentAccountProxyStore, CurrentAccountStore } from '@subwallet/extension-base/stores';
+import { keyringGetAccounts } from '@subwallet/extension-base/utils';
 import { InjectedAccountWithMeta } from '@subwallet/extension-inject/types';
 import { keyring } from '@subwallet/ui-keyring';
 import { SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -116,7 +117,7 @@ export class KeyringService {
 
   get accountProxyIds (): string[] {
     const proxyIdsSet: Set<string> = new Set(
-      keyring.getAccounts()
+      keyringGetAccounts()
         .map((item) => (item.meta.proxyId || '') as string)
     );
 

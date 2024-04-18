@@ -38,7 +38,7 @@ import WalletConnectService from '@subwallet/extension-base/services/wallet-conn
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
 import { BalanceItem, BalanceMap, EvmFeeInfo } from '@subwallet/extension-base/types';
-import { isAccountAll, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
+import { isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -648,7 +648,7 @@ export default class KoniState {
     const result: CurrentAccountInfo = { ...data };
 
     if (address === ALL_ACCOUNT_KEY) {
-      const pairs = keyring.getAccounts();
+      const pairs = keyringGetAccounts();
       const pair = pairs[0];
       const pairGenesisHash = pair?.meta.genesisHash as string || '';
 
@@ -887,11 +887,11 @@ export default class KoniState {
       return this.getAllAddresses();
     }
 
-    return keyring.getAccounts().filter((a) => a.meta.proxyId === _proxyId).map((a) => a.address);
+    return keyringGetAccounts().filter((a) => a.meta.proxyId === _proxyId).map((a) => a.address);
   }
 
   public getAllAddresses (): string[] {
-    return keyring.getAccounts().map((account) => account.address);
+    return keyringGetAccounts().map((account) => account.address);
   }
 
   public async resetCrowdloanMap (newAddress: string) {

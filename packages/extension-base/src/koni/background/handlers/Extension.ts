@@ -39,7 +39,7 @@ import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectN
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
 import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
-import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isSameAddress, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
+import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -227,7 +227,7 @@ export default class KoniExtension {
   }
 
   private accountProxyEdit ({ name, proxyId }: RequestAccountProxyEdit): boolean {
-    const accounts = keyring.getAccounts();
+    const accounts = keyringGetAccounts();
 
     accounts.forEach((a) => {
       const pair = keyring.getPair(a.address);
@@ -1513,7 +1513,7 @@ export default class KoniExtension {
   }
 
   private async accountProxyForget ({ proxyId }: RequestAccountProxy): Promise<boolean> {
-    keyring.getAccounts().forEach((a) => {
+    keyringGetAccounts().forEach((a) => {
       if (a.meta.proxyId === proxyId) {
         keyring.forgetAccount(a.address);
       }
@@ -1766,7 +1766,7 @@ export default class KoniExtension {
     const historySubject = await this.#koniState.historyService.getHistorySubject();
 
     const subscription = historySubject.subscribe((histories) => {
-      const addresses = keyring.getAccounts().map((a) => a.address);
+      const addresses = keyringGetAccounts().map((a) => a.address);
 
       // Re-filter
       cb(histories.filter((item) => addresses.some((address) => isSameAddress(item.address, address))));
@@ -1778,7 +1778,7 @@ export default class KoniExtension {
       this.cancelSubscription(id);
     });
 
-    const addresses = keyring.getAccounts().map((a) => a.address);
+    const addresses = keyringGetAccounts().map((a) => a.address);
 
     // Re-filter
     return historySubject.getValue().filter((item) => addresses.some((address) => isSameAddress(item.address, address)));
