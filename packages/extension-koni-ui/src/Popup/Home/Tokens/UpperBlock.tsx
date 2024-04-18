@@ -157,6 +157,7 @@ function Component (
           shape='squircle'
           size={isShrink ? 'xs' : 'sm'}
           tooltip={t('Buy token')}
+          disabled={true}
         />
       </div>
     </div>

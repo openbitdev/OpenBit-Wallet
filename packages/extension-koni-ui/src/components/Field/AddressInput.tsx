@@ -67,6 +67,12 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
 
   const _contacts = useMemo((): AbstractAddressJson[] => [...accounts, ...(showAddressBook ? contacts : [])], [accounts, contacts, showAddressBook]);
 
+  const proxyId = useMemo(() => {
+    const account = findAccountByAddress(_contacts, value);
+    return account?.proxyId
+  },[value])
+
+
   const accountName = useMemo(() => {
     const account = findAccountByAddress(_contacts, value);
     if (account?.name) {
@@ -249,12 +255,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
             }
             <AccountProxyAvatar
                 className={'__avatar-account'}
-                size={20} value={currentAccountProxy?.proxyId}/>
-            {/*<Avatar*/}
-            {/*    size={20}*/}
-            {/*    theme={value ? isEthereumAddress(value) ? 'ethereum' : 'polkadot' : undefined}*/}
-            {/*    value={value}*/}
-            {/*/>*/}
+                size={20} value={proxyId}/>
           </>
         }
         readOnly={readOnly}
