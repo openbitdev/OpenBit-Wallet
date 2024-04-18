@@ -4,13 +4,13 @@
 import { AbstractAddressJson } from '@subwallet/extension-base/background/types';
 import { CHAINS_SUPPORTED_DOMAIN, isAzeroDomain } from '@subwallet/extension-base/koni/api/dotsama/domain';
 import { reformatAddress } from '@subwallet/extension-base/utils';
-import { AddressBookModal } from '@subwallet/extension-koni-ui/components';
+import {AccountProxyAvatar, AddressBookModal} from '@subwallet/extension-koni-ui/components';
 import { useForwardInputRef, useOpenQrScanner, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
-import { resolveAddressToDomain, resolveDomainToAddress, saveRecentAccount } from '@subwallet/extension-koni-ui/messaging';
+import { resolveAddressToDomain, resolveDomainToAddress } from '@subwallet/extension-koni-ui/messaging';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ScannerResult } from '@subwallet/extension-koni-ui/types/scanner';
 import {findAccountByAddress, findContactByAddress, toShort} from '@subwallet/extension-koni-ui/utils';
-import {decodeAddress, getKeypairTypeByAddress} from '@subwallet/keyring';
+import {getKeypairTypeByAddress} from '@subwallet/keyring';
 import { Button, Icon, Input, InputRef, ModalContext, SwQrScanner } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Book, Scan } from 'phosphor-react';
@@ -19,9 +19,9 @@ import styled from 'styled-components';
 
 import {isEthereumAddress } from '@polkadot/util-crypto';
 
-import { Avatar } from '../Avatar';
 import { QrScannerErrorNotice } from '../Qr';
 import { BasicInputWrapper } from './Base';
+import {RootState} from "@subwallet/extension-koni-ui/stores";
 
 interface Props extends BasicInputWrapper, ThemeProps {
   showAddressBook?: boolean;
@@ -57,6 +57,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   const { activeModal, inactiveModal } = useContext(ModalContext);
 
   const { accounts, contacts } = useSelector((root) => root.accountState);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
 
   const scannerId = useMemo(() => id ? `${id}-scanner-modal` : defaultScannerModalId, [id]);
   const addressBookId = useMemo(() => id ? `${id}-address-book-modal` : defaultAddressBookModalId, [id]);
@@ -99,17 +100,17 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     onChange && onChange({ target: { value: val } });
     !skipClearDomainName && setDomainName(undefined);
 
-    if (isAddressValid(val) && saveAddress) {
-      if (isEthereumAddress(val)) {
-        saveRecentAccount(val, chain).catch(console.error);
-      } else {
-        try {
-          if (decodeAddress(val, true, addressPrefix)) {
-            saveRecentAccount(val, chain).catch(console.error);
-          }
-        } catch (e) {}
-      }
-    }
+    // if (isAddressValid(val) && saveAddress) {
+    //   if (isEthereumAddress(val)) {
+    //     saveRecentAccount(val, chain).catch(console.error);
+    //   } else {
+    //     try {
+    //       if (decodeAddress(val, true, addressPrefix)) {
+    //         saveRecentAccount(val, chain).catch(console.error);
+    //       }
+    //     } catch (e) {}
+    //   }
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveAddress, chain, addressPrefix]);
 
@@ -212,12 +213,14 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     }
   }, [_contacts, addressPrefix, value, parseAndChangeValue, inputRef, networkGenesisHash]);
 
+  console.log('currentAccountProxy', currentAccountProxy)
+
   // todo: Will work with "Manage address book" feature later
   return (
     <>
       <Input
         className={CN('address-input', className, {
-          '-is-valid-address': isAddressValid(value)
+          '-is-valid-address': true
         })}
         disabled={disabled}
         id={id}
@@ -244,11 +247,14 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
                 </div>
               )
             }
-            <Avatar
-              size={20}
-              theme={value ? isEthereumAddress(value) ? 'ethereum' : 'polkadot' : undefined}
-              value={value}
-            />
+            <AccountProxyAvatar
+                className={'__avatar-account'}
+                size={20} value={currentAccountProxy?.proxyId}/>
+            {/*<Avatar*/}
+            {/*    size={20}*/}
+            {/*    theme={value ? isEthereumAddress(value) ? 'ethereum' : 'polkadot' : undefined}*/}
+            {/*    value={value}*/}
+            {/*/>*/}
           </>
         }
         readOnly={readOnly}
@@ -341,6 +347,9 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
       paddingLeft: 40,
       paddingRight: 84,
       whiteSpace: 'nowrap'
+    },
+    '.__avatar-account': {
+      position: 'relative'
     },
 
     '.__name': {
