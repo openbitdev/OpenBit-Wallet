@@ -92,7 +92,7 @@ function getAccountProxyBalance (
       addresses.forEach((address) => {
         const balanceItem = balanceMap[address]?.[tokenSlug];
 
-        const isReady = !!balanceItem && (balanceItem.state !== APIItemState.PENDING);
+        const isReady = !balanceItem || (balanceItem.state !== APIItemState.PENDING);
         const isNotSupport = !!balanceItem && (balanceItem.state === APIItemState.NOT_SUPPORT);
 
         tokenBalanceReady.push(isReady);
@@ -103,12 +103,12 @@ function getAccountProxyBalance (
         }
 
         if (isReady) {
-          tokenBalance.free.value = tokenBalance.free.value.plus(getBalanceValue(balanceItem.free || '0', decimals));
-          tokenBalance.locked.value = tokenBalance.locked.value.plus(getBalanceValue(balanceItem.locked || '0', decimals));
+          tokenBalance.free.value = tokenBalance.free.value.plus(getBalanceValue(balanceItem?.free || '0', decimals));
+          tokenBalance.locked.value = tokenBalance.locked.value.plus(getBalanceValue(balanceItem?.locked || '0', decimals));
         }
       });
 
-      const isTokenBalanceReady = tokenBalanceReady.some((b) => b);
+      const isTokenBalanceReady = !tokenBalanceReady.length || tokenBalanceReady.some((b) => b);
       const isTokenNotSupport = tokenBalanceNotSupport.every((b) => b);
 
       tokenGroupNotSupport.push(isTokenNotSupport);

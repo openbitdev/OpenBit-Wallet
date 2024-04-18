@@ -19,7 +19,7 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <div
       className={CN(className)}
-      style={{ width: size, height: size, borderWidth: size * 0.05 }}
+      style={{ width: size, height: size, minWidth: size, borderWidth: size * 0.05 }}
     >
       {
         value
@@ -51,8 +51,11 @@ const AccountAvatar = styled(Component)<Props>(({ theme: { token } }: Props) => 
     borderStyle: 'solid',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
 
+    svg: {
+      borderRadius: '100%'
+    }
   };
 });
 

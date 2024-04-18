@@ -10,9 +10,9 @@ import { parseBitcoinTransferData } from '@subwallet/extension-base/services/his
 import { historyRecover, HistoryRecoverStatus } from '@subwallet/extension-base/services/history-service/helpers/recoverHistoryStatus';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
+import { keyringGetAccounts } from '@subwallet/extension-base/utils';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
-import { keyring } from '@subwallet/ui-keyring';
 import { BehaviorSubject } from 'rxjs';
 
 function filterHistoryItemByAddressAndChain (addresses: string[], chain: string) {
@@ -66,7 +66,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
   }
 
   public async getHistories () {
-    const addressList = keyring.getAccounts().map((a) => a.address);
+    const addressList = keyringGetAccounts().map((a) => a.address);
 
     if (!this.fetchPromise) {
       this.fetchPromise = (async () => {
