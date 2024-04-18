@@ -1,9 +1,9 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import { AvatarGroup } from '@subwallet/extension-koni-ui/components/Account';
 import { BaseAccountInfo } from '@subwallet/extension-koni-ui/components/Account/Info/AvatarGroup';
-import { Avatar } from '@subwallet/extension-koni-ui/components/Avatar';
 import { useGetAccountByAddress, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { findNetworkJsonByGenesisHash, isAccountAll, reformatAddress, toShort } from '@subwallet/extension-koni-ui/utils';
 import CN from 'classnames';
@@ -49,14 +49,15 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
 
   const name = useMemo(() => {
     const name = accountName || account?.name;
+
     return (
       <>
         <div className={'__account-wrapper'}>
-        <div className={'__account-name'}>{name}&nbsp;</div>
-        <span>({toShort(address)})</span>
+          <div className={'__account-name'}>{name}&nbsp;</div>
+          <span>({toShort(address)})</span>
         </div>
       </>
-    )
+    );
   }, [account?.name, accountName]);
 
   const isAll = useMemo(() => isAccountAll(address), [address]);
@@ -85,10 +86,10 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
               )
               : (
                 <>
-                  <Avatar
+                  <AccountProxyAvatar
                     className={'__account-avatar'}
                     size={24}
-                    value={address}
+                    value={account?.proxyId}
                   />
                   <div className={'__account-name ml-xs'}>
                     {name || toShort(address)}
@@ -110,7 +111,7 @@ const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: Ac
     '.__account-name': {
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
+      whiteSpace: 'nowrap'
     }
   };
 });

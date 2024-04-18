@@ -1,12 +1,13 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
 import { useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router';
 
-function getSelectedAddress (accountProxies: AccountProxy[], currentAccountProxyId: string | undefined): string {
+function getSelectedAccountProxyId (accountProxies: AccountProxy[], currentAccountProxyId: string | undefined): string {
   if (!currentAccountProxyId || !accountProxies.length) {
     return '';
   }
@@ -18,17 +19,26 @@ function getSelectedAddress (accountProxies: AccountProxy[], currentAccountProxy
   return accountProxies.find((ap) => !isAccountAll(ap.proxyId))?.proxyId || '';
 }
 
+function getSelectedAccountProxyIdByAddress (accounts: AccountJson[], address?: string): string {
+  if (!address || !accounts.length) {
+    return '';
+  }
+
+  return accounts.find((a) => a.address === address)?.proxyId || '';
+}
+
 export default function useHistorySelection () {
-  const { accountProxies, currentAccountProxy } = useSelector((root) => root.accountState);
+  const { address: propAddress, chain: propChain } = useParams<{address: string, chain: string}>();
+  const { accountProxies, accounts, currentAccountProxy } = useSelector((root) => root.accountState);
   const preservedCurrentAccountProxyId = useRef<string>(currentAccountProxy ? currentAccountProxy.proxyId : '');
-  const [selectedAccountProxyId, setSelectedAccountProxyId] = useState<string>(getSelectedAddress(accountProxies, currentAccountProxy?.proxyId));
-  const [selectedChain, setSelectedChain] = useState<string>('bitcoin');
+  const [selectedAccountProxyId, setSelectedAccountProxyId] = useState<string>(getSelectedAccountProxyIdByAddress(accounts, propAddress) || getSelectedAccountProxyId(accountProxies, currentAccountProxy?.proxyId));
+  const [selectedChain, setSelectedChain] = useState<string>(propChain || 'bitcoin');
 
   useEffect(() => {
     if (currentAccountProxy?.proxyId) {
       if (preservedCurrentAccountProxyId.current !== currentAccountProxy.proxyId) {
         preservedCurrentAccountProxyId.current = currentAccountProxy.proxyId;
-        setSelectedAccountProxyId(getSelectedAddress(accountProxies, currentAccountProxy.proxyId));
+        setSelectedAccountProxyId(getSelectedAccountProxyId(accountProxies, currentAccountProxy.proxyId));
       }
     } else {
       preservedCurrentAccountProxyId.current = '';
