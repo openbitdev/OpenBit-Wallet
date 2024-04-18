@@ -12,6 +12,7 @@ import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, Bitco
 import { BITCOIN_CHAINS, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
+import { FreeBalance } from '@subwallet/extension-koni-ui/Popup/Transaction/parts';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ChainItemType, FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, formatBalance, noop, reformatAddress } from '@subwallet/extension-koni-ui/utils';
@@ -247,7 +248,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const [isTransferAll, setIsTransferAll] = useState(false);
   const [, update] = useState({});
   // @ts-ignore
-  const [isBalanceReady, setIsBalanceReady] = useState(true);
+  const [isBalanceReady, setIsBalanceReady] = useState(false);
   const [forceUpdateMaxValue, setForceUpdateMaxValue] = useState<object|undefined>(undefined);
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
   const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransfer | undefined>();
@@ -550,7 +551,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       }
     };
 
-    if (fromValue && assetValue && destChainValue && toValue && transferAmountValue) {
+    if (fromValue && assetValue && destChainValue) {
       timeout = setTimeout(() => {
         subscribeMaxTransfer({
           address: fromValue,
@@ -579,7 +580,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transferAmountValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
+  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
 
   const accountsFilter = useCallback((account: AccountJson) => {
     if (fromProxyId) {
@@ -696,32 +697,51 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               forceUpdateMaxValue={forceUpdateMaxValue}
               maxValue={transferInfo?.maxTransferable || '0'}
               onSetMax={onSetMaxTransferable}
-              showMaxButton={!hideMaxButton}
+              showMaxButton={!hideMaxButton && !!transferInfo}
               tooltip={t('Amount')}
             />
           </Form.Item>
-
-          {
-            BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
-              <Form.Item>
-                <BitcoinFeeSelector
-                  feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
-                  isLoading={isFetchingInfo}
-                  onSelect={setTransactionFeeInfo}
-                  resetTrigger={feeResetTrigger}
-                  tokenSlug={assetValue}
-                />
-              </Form.Item>
-            )
-          }
         </Form>
 
-        {/* <FreeBalance */}
-        {/*  address={from} */}
-        {/*  chain={chain} */}
-        {/*  onBalanceReady={setIsBalanceReady} */}
-        {/*  tokenSlug={asset} */}
-        {/* /> */}
+        <FreeBalance
+          className={'__free-balance-block'}
+          address={fromValue}
+          chain={chainValue}
+          onBalanceReady={setIsBalanceReady}
+          tokenSlug={assetValue}
+        />
+
+        {
+          BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
+            <BitcoinFeeSelector
+              className={'__bitcoin-fee-selector'}
+              feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
+              isLoading={isFetchingInfo}
+              onSelect={setTransactionFeeInfo}
+              resetTrigger={feeResetTrigger}
+              tokenSlug={assetValue}
+            />
+          )
+        }
+
+        {
+          chainValue === 'ethereum' && !!transferInfo && !isFetchingInfo && (
+            <div className={'__fee-display'}>
+              <div className={'__fee-display-label'}>
+                Estimated fee:&nbsp;
+              </div>
+
+              <div className={'__fee-display-value'}>
+                <Number
+                  decimal={nativeTokenBasicInfo.decimals}
+                  suffix={nativeTokenBasicInfo.symbol}
+                  value={estimatedFee}
+                />
+              </div>
+            </div>
+          )
+        }
+
         {
           chainValue !== destChainValue && (
             <div className={'__warning_message_cross_chain'}>
@@ -741,11 +761,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             />
           )
         }
-        <Number
-          decimal={nativeTokenBasicInfo.decimals}
-          suffix={nativeTokenBasicInfo.symbol}
-          value={estimatedFee}
-        />
       </TransactionContent>
       <TransactionFooter
         className={`${className} -transaction-footer`}
@@ -796,6 +811,26 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         '.ant-number-integer, .ant-number-decimal': {
           color: `${token.colorError} !important`
         }
+      }
+    },
+
+    '.__free-balance-block + .__bitcoin-fee-selector': {
+      marginTop: token.marginSM
+    },
+
+    '.__fee-display': {
+      display: 'flex',
+      flexWrap: 'wrap',
+      color: token.colorTextTertiary,
+      lineHeight: token.lineHeight
+    },
+
+    '.__fee-display-value': {
+      '.ant-typography': {
+        color: 'inherit !important',
+        fontSize: 'inherit !important',
+        fontWeight: 'inherit !important',
+        lineHeight: 'inherit'
       }
     }
   });
