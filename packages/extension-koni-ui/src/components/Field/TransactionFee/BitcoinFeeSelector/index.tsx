@@ -151,12 +151,6 @@ const BitcoinFeeSelector = styled(Component)<Props>(({ theme: { token } }: Props
       display: 'flex',
       alignItems: 'center'
     },
-    '.__right-button .ant-btn-ghost': {
-      width: 20,
-      height: 20,
-      alignItems: 'end',
-      marginRight: -10
-    },
     '.ant-field-wrapper': {
       paddingBottom: 12
     },
