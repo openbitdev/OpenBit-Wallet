@@ -173,16 +173,14 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
           >
             <Icon
               phosphorIcon={iconOption.icon}
-              weight={iconOption.weight}
+              weight={'fill'}
+              customSize={'16px'}
             />
           </div>
         </div>
         <div className={'__right-part-wrapper'}>
           <div className={'__right-part'}>
-            <div className={'__line-1'}>
-              <div className={'__label'}>{name}</div>
-              <div className={'__value'}>&nbsp;- {feeRate}&nbsp;sats/vB</div>
-            </div>
+              <div className={'__line-1'}>{name}&nbsp;<span className={'__label'}>- {feeRate}&nbsp;sats/vB</span></div>
             <div className={'__line-2'}>
               <div className={'__label'}>Time</div>
               <div className={'__value'}>{time}</div>
@@ -191,6 +189,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
               <div className={'__label'}>Fee</div>
               <div className={'__value'}>
                 <Number
+                  className={'__fee-value'}
                   decimal={8} // decimals of bitcoin is 8, will update dynamic value later
                   suffix={'BTC'} // will update dynamic value later
                   value={feeRate * feeDetail.vSize}
@@ -292,6 +291,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
                   placeholder={'Enter sats/vB'}
                   suffix={(
                     <Number
+                      className={'__converted-value'}
                       decimal={8} // decimals of bitcoin is 8, will update dynamic value later
                       suffix={'BTC'} // will update dynamic value later
                       value={convertedCustomValue}
@@ -324,14 +324,50 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       display: 'flex',
       gap: 12,
       padding: 12,
-      borderRadius: 8
+      borderRadius: 8,
+      overflow: 'hidden'
+    },
+    '.__fee-option-item: hover': {
+      backgroundColor: token.colorBgInput,
+      transition: 'backgroundColor 0.2s ease-in-out',
+    },
+    '.__line-1 .__label': {
+      color: token.colorTextSecondary,
+      overflow: 'hidden',
+      'white-space': 'nowrap',
+      textOverflow: 'ellipsis'
+    },
+    '.__converted-value': {
+      fontSize: token.fontSizeHeading6,
+      lineHeight: token.lineHeightHeading6,
+      fontWeight: token.headingFontWeight,
+      color: token.colorTextTertiary,
+      paddingLeft: 8,
+      paddingRight: 8,
+
+      '.ant-number-integer': {
+        color: 'inherit !important',
+        fontSize: 'inherit !important',
+        fontWeight: 'inherit !important',
+        lineHeight: 'inherit'
+      },
+
+      '.ant-number-decimal, .ant-number-suffix': {
+        color: `${token.colorTextTertiary} !important`,
+        fontSize: `${token.fontSizeHeading6}px !important`,
+        fontWeight: 'inherit !important',
+        lineHeight: token.lineHeightHeading6
+      }
     },
     '.__line-1': {
+      display: 'flex',
       fontSize: 16,
       fontWeight: token.fontWeightStrong,
-      lineHeight: token.lineHeightLG
+      lineHeight: token.lineHeightLG,
+      'white-space': 'nowrap'
     },
     '.__line-2 .__label, .__line-3 .__label': {
+      minWidth: 68,
       fontSize: 14,
       lineHeight: token.lineHeight,
       color: token.colorTextTertiary
@@ -340,7 +376,14 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      flex: 1
+      flex: 1,
+      overflow: 'hidden'
+    },
+    '.__right-part': {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      overflow: 'hidden'
     },
     '.__value': {
       color: token.colorTextLabel
@@ -366,9 +409,35 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
     '.__fee-option-item + .__fee-option-item': {
       marginTop: token.marginXS
     },
-    '.__line-1, .__line-2, .__line-3': {
+    '.__line-2, .__line-3': {
       display: 'flex',
       gap: 8
+    },
+    '.__line-2 .__value': {
+      color: token.colorTextLight2,
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
+      fontWeight: token.bodyFontWeight
+    },
+    '.__fee-value': {
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
+      fontWeight: token.bodyFontWeight,
+      color: token.colorTextLight2,
+
+      '.ant-number-integer': {
+        color: 'inherit !important',
+        fontSize: 'inherit !important',
+        fontWeight: 'inherit !important',
+        lineHeight: 'inherit'
+      },
+
+      '.ant-number-decimal, .ant-number-suffix': {
+        color: `${token.colorTextLight2} !important`,
+        fontSize: `${token.fontSize}px !important`,
+        fontWeight: 'inherit !important',
+        lineHeight: token.lineHeight
+      }
     },
     '.__custom-mode': {
       marginTop: 16
