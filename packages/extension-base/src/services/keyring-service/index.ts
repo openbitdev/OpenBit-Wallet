@@ -112,7 +112,62 @@ export class KeyringService {
   }
 
   get accounts (): SubjectInfo {
-    return this.accountSubject.value;
+    const result: SubjectInfo = { ...this.accountSubject.value };
+
+    if (Object.keys(result).length) {
+      result.bc1ptd969jhzfny2gwuh9qjrrdphj93avne5gfe64y4nvgnnl0sawsdqrgwjzy = {
+        json: {
+          address: 'bc1ptd969jhzfny2gwuh9qjrrdphj93avne5gfe64y4nvgnnl0sawsdqrgwjzy',
+          meta: {
+            name: 'ACCOUNT_DEV_RUNE',
+            proxyId: 'ACCOUNT_PROXY_DEV_1',
+            type: 'bitcoin-86'
+          }
+        },
+        option: {
+          key: null,
+          name: 'bc1ptd969jhzfny2gwuh9qjrrdphj93avne5gfe64y4nvgnnl0sawsdqrgwjzy',
+          value: null
+        },
+        type: 'bitcoin-86'
+      };
+
+      result.bc1pz5ahewgsduhskzun6449pgwevk5wqat9enqt9n9upqy5xkduf2qsyua5s9 = {
+        json: {
+          address: 'bc1pz5ahewgsduhskzun6449pgwevk5wqat9enqt9n9upqy5xkduf2qsyua5s9',
+          meta: {
+            name: 'ACCOUNT_DEV_INS_1',
+            proxyId: 'ACCOUNT_PROXY_DEV_2',
+            type: 'bitcoin-86'
+          }
+        },
+        option: {
+          key: null,
+          name: 'bc1pz5ahewgsduhskzun6449pgwevk5wqat9enqt9n9upqy5xkduf2qsyua5s9',
+          value: null
+        },
+        type: 'bitcoin-86'
+      };
+
+      result.bc1psemwltnd4j7tryhwpm4fsyqual4dr9te8zvmv3zl7yvzx2x8rwnq3j2lx4 = {
+        json: {
+          address: 'bc1psemwltnd4j7tryhwpm4fsyqual4dr9te8zvmv3zl7yvzx2x8rwnq3j2lx4',
+          meta: {
+            name: 'ACCOUNT_DEV_INS_2',
+            proxyId: 'ACCOUNT_PROXY_DEV_3',
+            type: 'bitcoin-86'
+          }
+        },
+        option: {
+          key: null,
+          name: 'bc1psemwltnd4j7tryhwpm4fsyqual4dr9te8zvmv3zl7yvzx2x8rwnq3j2lx4',
+          value: null
+        },
+        type: 'bitcoin-86'
+      };
+    }
+
+    return result;
   }
 
   get accountProxyIds (): string[] {
