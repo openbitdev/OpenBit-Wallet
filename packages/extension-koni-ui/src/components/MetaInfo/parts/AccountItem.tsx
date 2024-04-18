@@ -29,10 +29,6 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
 
   const account = useGetAccountByAddress(accountAddress);
 
-  const name = useMemo(() => {
-    return accountName || account?.name;
-  }, [account?.name, accountName]);
-
   const address = useMemo(() => {
     let addPrefix = 42;
 
@@ -50,6 +46,18 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
 
     return reformatAddress(accountAddress, addPrefix);
   }, [account, accountAddress, addressPrefix, chainInfoMap]);
+
+  const name = useMemo(() => {
+    const name = accountName || account?.name;
+    return (
+      <>
+        <div className={'__account-wrapper'}>
+        <div className={'__account-name'}>{name}&nbsp;</div>
+        <span>({toShort(address)})</span>
+        </div>
+      </>
+    )
+  }, [account?.name, accountName]);
 
   const isAll = useMemo(() => isAccountAll(address), [address]);
 
@@ -95,7 +103,16 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
 };
 
 const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: AccountInfoItem) => {
-  return {};
+  return {
+    '.__account-wrapper': {
+      display: 'flex'
+    },
+    '.__account-name': {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    }
+  };
 });
 
 export default AccountItem;

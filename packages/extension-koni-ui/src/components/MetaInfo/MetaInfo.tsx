@@ -117,7 +117,6 @@ const _MetaInfo = styled(Component)<Props>(({ theme: { token } }: Props) => {
     },
 
     '.__col': {
-      flex: 1,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -140,7 +139,8 @@ const _MetaInfo = styled(Component)<Props>(({ theme: { token } }: Props) => {
     '.__label': {
       fontSize: token.fontSize,
       lineHeight: token.lineHeight,
-      textAlign: 'left'
+      textAlign: 'left',
+      paddingRight: 8
     },
 
     '.__value': {
