@@ -4,10 +4,10 @@
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
 import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
-import { Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import {AccountProxyAvatar, Layout, PageWrapper} from '@subwallet/extension-koni-ui/components';
 import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
+import {useNavigateOnChangeAccount, useSelector} from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
@@ -16,7 +16,6 @@ import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/compo
 import { INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
-import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { getAlphaColor } from '@subwallet/react-ui/lib/theme/themes/default/colorAlgorithm';
 import CN from 'classnames';
 import { CaretLeft, Info } from 'phosphor-react';
@@ -24,7 +23,7 @@ import React, { useCallback, useContext, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
-import { isEthereumAddress } from '@polkadot/util-crypto';
+import {RootState} from "@subwallet/extension-koni-ui/stores";
 
 type Props = ThemeProps
 
@@ -47,6 +46,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const dataContext = useContext(DataContext);
   const { activeModal, inactiveModal } = useContext(ModalContext);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
 
   const originChainInfo = useGetChainInfo(nftItem.chain);
   const ownerAccountInfo = useGetAccountInfoByAddress(nftItem.owner || '');
@@ -56,15 +56,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const ownerPrefix = useCallback(() => {
     if (nftItem.owner) {
-      const theme = isEthereumAddress(nftItem.owner) ? 'ethereum' : 'polkadot';
-
       return (
-        <SwAvatar
-          identPrefix={originChainInfo.substrateInfo?.addressPrefix}
-          size={token.fontSizeXL}
-          theme={theme}
-          value={nftItem.owner}
-        />
+      <AccountProxyAvatar size={20} value={currentAccountProxy?.proxyId}/>
       );
     }
 
@@ -186,7 +179,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           </div>
 
           <div className={'nft_item_detail__info_container'}>
-            <div className={'nft_item_detail__section_title'}>{t<string>('NFT details')}</div>
+            <div className={'nft_item_detail__section_title'}>{t<string>('Collectible details')}</div>
             {
               nftItem.description && (
                 <div
@@ -212,7 +205,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
             <Field
               content={collectionInfo.collectionName || collectionInfo.collectionId}
-              label={t<string>('NFT collection name')}
+              label={t<string>('Collectible name')}
               suffix={nftItem.externalUrl && externalInfoIcon('collection')}
             />
 
@@ -236,8 +229,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
               <Field
                 className={'nft_item_detail__id_field'}
                 content={nftItem.id}
-                key={'NFT ID'}
-                label={'NFT ID'}
+                key={'Collectible ID'}
+                label={'Collectible ID'}
                 width={'fit-content'}
               />
 

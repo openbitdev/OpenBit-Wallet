@@ -83,8 +83,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const emptyNft = useCallback(() => {
     return (
       <EmptyList
-        emptyMessage={t('Your NFT collectible will appear here!')}
-        emptyTitle={t('No NFT collectible')}
+        emptyMessage={t('Your collectible will appear here!')}
+        emptyTitle={t('No collectible')}
         phosphorIcon={Image}
       />
     );

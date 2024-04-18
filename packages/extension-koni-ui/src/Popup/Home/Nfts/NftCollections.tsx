@@ -11,8 +11,8 @@ import { INftCollectionDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nf
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, ButtonProps, Icon, SwList } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { ArrowClockwise, Image, PlusCircle } from 'phosphor-react';
-import React, { useCallback, useContext, useMemo } from 'react';
+import { ArrowClockwise, Image } from 'phosphor-react';
+import React, { useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -110,33 +110,15 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, [getNftsByCollection, handleOnClickCollection]);
 
-  const emptyButtonProps = useMemo((): ButtonProps => {
-    return {
-      icon: (
-        <Icon
-          phosphorIcon={PlusCircle}
-          weight='fill'
-        />
-      ),
-      children: t('Add NFT'),
-      shape: 'circle',
-      size: 'xs',
-      onClick: () => {
-        navigate('/settings/tokens/import-nft', { state: { isExternalRequest: false } });
-      }
-    };
-  }, [navigate, t]);
-
   const emptyNft = useCallback(() => {
     return (
       <EmptyList
-        buttonProps={emptyButtonProps}
         emptyMessage={t('Try adding one manually')}
-        emptyTitle={t('No NFTs found')}
+        emptyTitle={t('No Collectible found')}
         phosphorIcon={Image}
       />
     );
-  }, [emptyButtonProps, t]);
+  }, [t]);
 
   return (
     <PageWrapper

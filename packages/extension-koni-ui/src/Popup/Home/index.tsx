@@ -5,7 +5,7 @@ import { CampaignBanner } from '@subwallet/extension-base/background/KoniTypes';
 import { CampaignBannerModal, Layout } from '@subwallet/extension-koni-ui/components';
 import { GlobalSearchTokenModal } from '@subwallet/extension-koni-ui/components/Modal/GlobalSearchTokenModal';
 import { GeneralTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/GeneralTermModal';
-import { CONFIRM_GENERAL_TERM, EARNING_MIGRATION_ANNOUNCEMENT, EARNING_MIGRATION_MODAL, GENERAL_TERM_AND_CONDITION_MODAL, HOME_CAMPAIGN_BANNER_MODAL, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
+import { CONFIRM_GENERAL_TERM, EARNING_MIGRATION_ANNOUNCEMENT, GENERAL_TERM_AND_CONDITION_MODAL, HOME_CAMPAIGN_BANNER_MODAL, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
 import { useAccountProxyBalance, useGetBannerByScreen, useGetMantaPayConfig, useHandleMantaPaySync, useTokenGroup } from '@subwallet/extension-koni-ui/hooks';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -72,13 +72,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }
   }, [activeModal, isConfirmedTermGeneral, setIsConfirmedTermGeneral]);
 
-  useEffect(() => {
-    const canShow = !isReadEarningMigrationAnnouncementRef.current;
-
-    if (canShow) {
-      activeModal(EARNING_MIGRATION_MODAL);
-    }
-  }, [activeModal]);
 
   return (
     <>
