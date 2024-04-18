@@ -172,15 +172,15 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
             style={{ backgroundColor: iconOption.color }}
           >
             <Icon
+              customSize={'16px'}
               phosphorIcon={iconOption.icon}
               weight={'fill'}
-              customSize={'16px'}
             />
           </div>
         </div>
         <div className={'__right-part-wrapper'}>
           <div className={'__right-part'}>
-              <div className={'__line-1'}>{name}&nbsp;<span className={'__label'}>- {feeRate}&nbsp;sats/vB</span></div>
+            <div className={'__line-1'}>{name}&nbsp;<span className={'__label'}>- {feeRate}&nbsp;sats/vB</span></div>
             <div className={'__line-2'}>
               <div className={'__label'}>Time</div>
               <div className={'__value'}>{time}</div>
@@ -329,7 +329,7 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
     },
     '.__fee-option-item: hover': {
       backgroundColor: token.colorBgInput,
-      transition: 'backgroundColor 0.2s ease-in-out',
+      transition: 'backgroundColor 0.2s ease-in-out'
     },
     '.__line-1 .__label': {
       color: token.colorTextSecondary,

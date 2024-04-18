@@ -4,24 +4,24 @@
 import { AbstractAddressJson } from '@subwallet/extension-base/background/types';
 import { CHAINS_SUPPORTED_DOMAIN, isAzeroDomain } from '@subwallet/extension-base/koni/api/dotsama/domain';
 import { reformatAddress } from '@subwallet/extension-base/utils';
-import {AccountProxyAvatar, AddressBookModal} from '@subwallet/extension-koni-ui/components';
+import { AccountProxyAvatar, AddressBookModal } from '@subwallet/extension-koni-ui/components';
 import { useForwardInputRef, useOpenQrScanner, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { resolveAddressToDomain, resolveDomainToAddress } from '@subwallet/extension-koni-ui/messaging';
+import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ScannerResult } from '@subwallet/extension-koni-ui/types/scanner';
-import {findAccountByAddress, findContactByAddress, toShort} from '@subwallet/extension-koni-ui/utils';
-import {getKeypairTypeByAddress} from '@subwallet/keyring';
+import { findAccountByAddress, findContactByAddress, toShort } from '@subwallet/extension-koni-ui/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import { Button, Icon, Input, InputRef, ModalContext, SwQrScanner } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Book, Scan } from 'phosphor-react';
 import React, { ChangeEventHandler, ForwardedRef, forwardRef, SyntheticEvent, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import {isEthereumAddress } from '@polkadot/util-crypto';
+import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { QrScannerErrorNotice } from '../Qr';
 import { BasicInputWrapper } from './Base';
-import {RootState} from "@subwallet/extension-koni-ui/stores";
 
 interface Props extends BasicInputWrapper, ThemeProps {
   showAddressBook?: boolean;
@@ -38,11 +38,14 @@ const defaultScannerModalId = 'input-account-address-scanner-modal';
 const defaultAddressBookModalId = 'input-account-address-book-modal';
 
 const addressLength = 9;
+
 const isAddressValid = (address?: string): boolean => {
   const type = address && getKeypairTypeByAddress(address);
+
   if (type === 'ethereum' || type === 'bitcoin-44' || type === 'bitcoin-84' || type === 'bittest-44' || type === 'bittest-84') {
     return true;
   }
+
   return false;
 };
 
@@ -69,12 +72,13 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
 
   const proxyId = useMemo(() => {
     const account = findAccountByAddress(_contacts, value);
-    return account?.proxyId
-  },[value])
 
+    return account?.proxyId;
+  }, [value]);
 
   const accountName = useMemo(() => {
     const account = findAccountByAddress(_contacts, value);
+
     if (account?.name) {
       return account?.name;
     } else {
@@ -219,7 +223,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     }
   }, [_contacts, addressPrefix, value, parseAndChangeValue, inputRef, networkGenesisHash]);
 
-  console.log('currentAccountProxy', currentAccountProxy)
+  console.log('currentAccountProxy', currentAccountProxy);
 
   // todo: Will work with "Manage address book" feature later
   return (
@@ -254,8 +258,10 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
               )
             }
             <AccountProxyAvatar
-                className={'__avatar-account'}
-                size={20} value={proxyId}/>
+              className={'__avatar-account'}
+              size={20}
+              value={proxyId}
+            />
           </>
         }
         readOnly={readOnly}

@@ -162,6 +162,7 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const renderItem = useCallback((item: AccountItem) => {
     const address = formatAddress(item);
+
     if (item.group === AccountGroup.RECENT) {
       return (
         <AccountItemBase
@@ -170,8 +171,8 @@ const Component: React.FC<Props> = (props: Props) => {
           addressSufLength={8}
           avatarSize={24}
           key={item.address}
-          proxyId={item.proxyId}
           onClick={onSelectItem(item)}
+          proxyId={item.proxyId}
         />
       );
     }

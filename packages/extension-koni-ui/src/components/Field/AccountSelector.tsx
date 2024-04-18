@@ -77,12 +77,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         address={item.address}
         avatarSize={24}
         isSelected={selected}
-        leftItem={(
-          <AccountProxyAvatar
-            size={24}
-            value={item.proxyId}
-          />
-        )}
+        proxyId={item.proxyId}
       />
     );
   }, []);

@@ -72,7 +72,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }
   }, [activeModal, isConfirmedTermGeneral, setIsConfirmedTermGeneral]);
 
-
   return (
     <>
       <HomeContext.Provider value={{

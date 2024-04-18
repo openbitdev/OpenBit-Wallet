@@ -146,6 +146,7 @@ function Component (
         />
         <div className={'__button-space'} />
         <Button
+          disabled={true}
           icon={
             <Icon
               phosphorIcon={ShoppingCartSimple}
@@ -157,7 +158,6 @@ function Component (
           shape='squircle'
           size={isShrink ? 'xs' : 'sm'}
           tooltip={t('Buy token')}
-          disabled={true}
         />
       </div>
     </div>

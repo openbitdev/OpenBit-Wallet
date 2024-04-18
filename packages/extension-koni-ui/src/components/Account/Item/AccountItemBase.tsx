@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import useAccountAvatarInfo from '@subwallet/extension-koni-ui/hooks/account/useAccountAvatarInfo';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { KeypairType } from '@subwallet/keyring/types';
@@ -9,7 +10,6 @@ import AccountItem, { AccountItemProps } from '@subwallet/react-ui/es/web3-block
 import { CheckCircle } from 'phosphor-react';
 import React from 'react';
 import styled, { useTheme } from 'styled-components';
-import {AccountProxyAvatar} from "@subwallet/extension-koni-ui/components";
 
 export interface AccountItemBaseProps extends Omit<AccountItemProps, 'avatarIdentPrefix'>, ThemeProps {
   genesisHash?: string | null;
@@ -21,7 +21,7 @@ export interface AccountItemBaseProps extends Omit<AccountItemProps, 'avatarIden
 }
 
 const Component: React.FC<AccountItemBaseProps> = (props: AccountItemBaseProps) => {
-  const { address, genesisHash, isSelected, onClick, preventPrefix, rightItem, showUnselectIcon, type: givenType, proxyId } = props;
+  const { address, genesisHash, isSelected, onClick, preventPrefix, proxyId, rightItem, showUnselectIcon, type: givenType } = props;
   const { address: avatarAddress } = useAccountAvatarInfo(address ?? '', preventPrefix, genesisHash, givenType);
   const { token } = useTheme() as Theme;
 
@@ -43,11 +43,16 @@ const Component: React.FC<AccountItemBaseProps> = (props: AccountItemBaseProps) 
   return (
     <div className={props.className}>
       <AccountItem
-        avatarIdentPrefix={0} {...props}
+        avatarIdentPrefix={0}
+        {...props}
         address={avatarAddress ?? ''}
-        leftItem={<AccountProxyAvatar size={24} value={proxyId}/>}
+        leftItem={<AccountProxyAvatar
+          size={24}
+          value={proxyId}
+        />}
         onPressItem={onClick}
-        rightItem={_rightItem}      />
+        rightItem={_rightItem}
+      />
     </div>
   );
 };

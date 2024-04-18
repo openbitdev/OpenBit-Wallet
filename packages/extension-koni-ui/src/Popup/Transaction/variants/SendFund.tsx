@@ -704,9 +704,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         </Form>
 
         <FreeBalance
-          className={'__free-balance-block'}
           address={fromValue}
           chain={chainValue}
+          className={'__free-balance-block'}
           onBalanceReady={setIsBalanceReady}
           tokenSlug={assetValue}
         />
