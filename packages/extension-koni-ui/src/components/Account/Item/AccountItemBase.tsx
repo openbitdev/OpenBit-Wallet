@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import useAccountAvatarInfo from '@subwallet/extension-koni-ui/hooks/account/useAccountAvatarInfo';
-import useAccountAvatarTheme from '@subwallet/extension-koni-ui/hooks/account/useAccountAvatarTheme';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { KeypairType } from '@subwallet/keyring/types';
 import { Icon } from '@subwallet/react-ui';
@@ -10,6 +9,7 @@ import AccountItem, { AccountItemProps } from '@subwallet/react-ui/es/web3-block
 import { CheckCircle } from 'phosphor-react';
 import React from 'react';
 import styled, { useTheme } from 'styled-components';
+import {AccountProxyAvatar} from "@subwallet/extension-koni-ui/components";
 
 export interface AccountItemBaseProps extends Omit<AccountItemProps, 'avatarIdentPrefix'>, ThemeProps {
   genesisHash?: string | null;
@@ -17,12 +17,12 @@ export interface AccountItemBaseProps extends Omit<AccountItemProps, 'avatarIden
   accountName?: string;
   showUnselectIcon?: boolean;
   preventPrefix?: boolean;
+  proxyId?: string;
 }
 
 const Component: React.FC<AccountItemBaseProps> = (props: AccountItemBaseProps) => {
-  const { address, genesisHash, isSelected, onClick, preventPrefix, rightItem, showUnselectIcon, type: givenType } = props;
-  const { address: avatarAddress, prefix } = useAccountAvatarInfo(address ?? '', preventPrefix, genesisHash, givenType);
-  const avatarTheme = useAccountAvatarTheme(address || '');
+  const { address, genesisHash, isSelected, onClick, preventPrefix, rightItem, showUnselectIcon, type: givenType, proxyId } = props;
+  const { address: avatarAddress } = useAccountAvatarInfo(address ?? '', preventPrefix, genesisHash, givenType);
   const { token } = useTheme() as Theme;
 
   const _rightItem = rightItem || (
@@ -43,13 +43,11 @@ const Component: React.FC<AccountItemBaseProps> = (props: AccountItemBaseProps) 
   return (
     <div className={props.className}>
       <AccountItem
-        {...props}
+        avatarIdentPrefix={0} {...props}
         address={avatarAddress ?? ''}
-        avatarIdentPrefix={prefix ?? 42}
-        avatarTheme={avatarTheme}
+        leftItem={<AccountProxyAvatar size={24} value={proxyId}/>}
         onPressItem={onClick}
-        rightItem={_rightItem}
-      />
+        rightItem={_rightItem}      />
     </div>
   );
 };

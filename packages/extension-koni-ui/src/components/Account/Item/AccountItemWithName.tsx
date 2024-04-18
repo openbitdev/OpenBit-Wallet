@@ -9,15 +9,17 @@ import CN from 'classnames';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
+import {AccountProxyAvatar} from "@subwallet/extension-koni-ui/components";
 
 interface Props extends AccountItemBaseProps {
   direction?: 'vertical' | 'horizontal';
   accounts?: AbstractAddressJson[];
   fallbackName?: boolean;
+  proxyId?: string;
 }
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { accountName, accounts, address, addressPreLength = 4, addressSufLength = 4, direction = 'horizontal', fallbackName = true } = props;
+  const { accountName, accounts, address, addressPreLength = 4, addressSufLength = 4, direction = 'horizontal', fallbackName = true, proxyId } = props;
   const isAll = isAccountAll(address);
   const { t } = useTranslation();
 
@@ -38,7 +40,8 @@ const Component: React.FC<Props> = (props: Props) => {
       {...props}
       address={address}
       className={CN('account-item-with-name', props.className)}
-      leftItem={isAll ? <AvatarGroup accounts={accounts} /> : props.leftItem}
+      leftItem={isAll ? <AvatarGroup accounts={accounts} /> : <AccountProxyAvatar size={24} value={proxyId}
+      />}
       middleItem={(
         <div className={CN('account-item-content-wrapper', `direction-${direction}`)}>
           <div className={'account-item-name'}>{isAll ? t('All accounts') : (accountName || toShort(address, addressPreLength, addressSufLength))}</div>

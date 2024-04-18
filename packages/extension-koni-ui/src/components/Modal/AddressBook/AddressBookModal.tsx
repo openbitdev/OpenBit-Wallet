@@ -177,6 +177,7 @@ const Component: React.FC<Props> = (props: Props) => {
         avatarSize={24}
         fallbackName={false}
         isSelected={selected}
+        proxyId={item.proxyId}
         key={`${item.address}_${item.group}`}
         onClick={onSelectItem(item)}
       />
