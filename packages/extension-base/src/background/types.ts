@@ -36,6 +36,7 @@ export interface AbstractAddressJson extends KeyringPair$Meta {
   type?: KeypairType;
   whenCreated?: number;
   name?: string;
+  proxyId?: string;
 }
 
 export interface AccountJson extends AbstractAddressJson {
