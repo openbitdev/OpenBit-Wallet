@@ -9,15 +9,15 @@ import { useForwardInputRef, useOpenQrScanner, useSelector, useTranslation } fro
 import { resolveAddressToDomain, resolveDomainToAddress, saveRecentAccount } from '@subwallet/extension-koni-ui/messaging';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ScannerResult } from '@subwallet/extension-koni-ui/types/scanner';
-import { findContactByAddress, toShort } from '@subwallet/extension-koni-ui/utils';
-import { decodeAddress } from '@subwallet/keyring';
+import {findAccountByAddress, findContactByAddress, toShort} from '@subwallet/extension-koni-ui/utils';
+import {decodeAddress, getKeypairTypeByAddress} from '@subwallet/keyring';
 import { Button, Icon, Input, InputRef, ModalContext, SwQrScanner } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { Book, Scan } from 'phosphor-react';
 import React, { ChangeEventHandler, ForwardedRef, forwardRef, SyntheticEvent, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import { isAddress, isEthereumAddress } from '@polkadot/util-crypto';
+import {isEthereumAddress } from '@polkadot/util-crypto';
 
 import { Avatar } from '../Avatar';
 import { QrScannerErrorNotice } from '../Qr';
@@ -38,6 +38,13 @@ const defaultScannerModalId = 'input-account-address-scanner-modal';
 const defaultAddressBookModalId = 'input-account-address-book-modal';
 
 const addressLength = 9;
+const isAddressValid = (address?: string): boolean => {
+  const type = address && getKeypairTypeByAddress(address);
+  if (type === 'ethereum' || type === 'bitcoin-44' || type === 'bitcoin-84' || type === 'bittest-44' || type === 'bittest-84') {
+    return true;
+  }
+  return false;
+};
 
 function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> {
   const { addressPrefix, allowDomain,
@@ -60,8 +67,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   const _contacts = useMemo((): AbstractAddressJson[] => [...accounts, ...(showAddressBook ? contacts : [])], [accounts, contacts, showAddressBook]);
 
   const accountName = useMemo(() => {
-    const account = findContactByAddress(_contacts, value);
-
+    const account = findAccountByAddress(_contacts, value);
     if (account?.name) {
       return account?.name;
     } else {
@@ -93,7 +99,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     onChange && onChange({ target: { value: val } });
     !skipClearDomainName && setDomainName(undefined);
 
-    if (isAddress(val) && saveAddress) {
+    if (isAddressValid(val) && saveAddress) {
       if (isEthereumAddress(val)) {
         saveRecentAccount(val, chain).catch(console.error);
       } else {
@@ -163,7 +169,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
             }
           })
           .catch(console.error);
-      } else if (isAddress(value)) {
+      } else if (isAddressValid(value)) {
         resolveAddressToDomain({
           chain,
           address: value
@@ -199,7 +205,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
         inputRef?.current?.focus();
         inputRef?.current?.blur();
       } else {
-        if (isAddress(value)) {
+        if (isAddressValid(value)) {
           parseAndChangeValue(value);
         }
       }
@@ -211,7 +217,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     <>
       <Input
         className={CN('address-input', className, {
-          '-is-valid-address': isAddress(value)
+          '-is-valid-address': isAddressValid(value)
         })}
         disabled={disabled}
         id={id}
@@ -223,7 +229,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
         prefix={
           <>
             {
-              value && isAddress(value) && (
+              value && isAddressValid(value) && (
                 <div className={'__overlay'}>
                   <div className={CN('__name common-text', { 'limit-width': !!accountName })}>
                     {accountName || toShort(value, addressLength, addressLength)}
