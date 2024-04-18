@@ -4,16 +4,17 @@
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
 import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
-import {AccountProxyAvatar, Layout, PageWrapper} from '@subwallet/extension-koni-ui/components';
+import { AccountProxyAvatar, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import {useNavigateOnChangeAccount, useSelector} from '@subwallet/extension-koni-ui/hooks';
+import { useNavigateOnChangeAccount, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/screen/common/useGetAccountInfoByAddress';
 import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
 import { INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
 import { getAlphaColor } from '@subwallet/react-ui/lib/theme/themes/default/colorAlgorithm';
@@ -22,8 +23,6 @@ import { CaretLeft, Info } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
-
-import {RootState} from "@subwallet/extension-koni-ui/stores";
 
 type Props = ThemeProps
 
@@ -57,7 +56,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const ownerPrefix = useCallback(() => {
     if (nftItem.owner) {
       return (
-      <AccountProxyAvatar size={20} value={currentAccountProxy?.proxyId}/>
+        <AccountProxyAvatar
+          size={20}
+          value={currentAccountProxy?.proxyId}
+        />
       );
     }
 

@@ -108,8 +108,7 @@ export function getSizeInfo (payload: {
 }
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/coinselect/local-coin-selection.ts
-export function determineUtxosForSpendAll ({
-  feeRate,
+export function determineUtxosForSpendAll ({ feeRate,
   recipient,
   sender,
   utxos }: DetermineUtxosForSpendArgs) {

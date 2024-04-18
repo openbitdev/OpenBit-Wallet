@@ -1331,7 +1331,7 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends BitcoinSignRequest {}
+export type BitcoinSendTransactionRequest = BitcoinSignRequest
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;

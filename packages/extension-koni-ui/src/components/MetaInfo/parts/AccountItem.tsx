@@ -49,15 +49,16 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
 
   const name = useMemo(() => {
     const name = accountName || account?.name;
+
     return (
       <>
         <div className={'__account-wrapper'}>
-        <div className={'__account-name'}>{name}&nbsp;</div>
-        <span>({toShort(address)})</span>
+          <div className={'__account-name'}>{name}&nbsp;</div>
+          <span>({toShort(address)})</span>
         </div>
       </>
-    )
-  }, [account?.name, accountName]);
+    );
+  }, [account?.name, accountName, address]);
 
   const isAll = useMemo(() => isAccountAll(address), [address]);
 
@@ -110,7 +111,7 @@ const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: Ac
     '.__account-name': {
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
+      whiteSpace: 'nowrap'
     }
   };
 });
