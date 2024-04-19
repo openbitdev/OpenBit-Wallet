@@ -32,7 +32,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const [_isConfirmedTermGeneral, setIsConfirmedTermGeneral] = useLocalStorage(CONFIRM_GENERAL_TERM, 'nonConfirmed');
   const items = useMemo((): WelcomeButtonItem[] => [
     {
-      description: t('Create a new account with SubWallet'),
+      description: t('Create a new account with OpenBit'),
       icon: PlusCircle,
       id: CREATE_ACCOUNT_MODAL,
       schema: 'primary',

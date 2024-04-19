@@ -77,7 +77,7 @@ const Component: React.FC<Props> = (props: Props) => {
         size='xs'
         type='ghost'
       >
-        {t('Copy to the clipboard')}
+        {t('Copy to clipboard')}
       </Button>
       {enableDownload && (
         <>

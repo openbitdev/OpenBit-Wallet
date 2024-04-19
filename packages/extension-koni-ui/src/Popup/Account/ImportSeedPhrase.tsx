@@ -194,7 +194,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
       >
         <div className='container'>
           <div className='description'>
-            {t('To import an existing account, please enter seed phrase.')}
+            {t('Enter seed phrase to import an existing account')}
           </div>
           <Form
             className='form-container form-space-xs'
