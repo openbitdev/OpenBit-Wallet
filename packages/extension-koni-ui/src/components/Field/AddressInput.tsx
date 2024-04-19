@@ -7,7 +7,6 @@ import { reformatAddress } from '@subwallet/extension-base/utils';
 import { AccountProxyAvatar, AddressBookModal } from '@subwallet/extension-koni-ui/components';
 import { useForwardInputRef, useOpenQrScanner, useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { resolveAddressToDomain, resolveDomainToAddress } from '@subwallet/extension-koni-ui/messaging';
-import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ScannerResult } from '@subwallet/extension-koni-ui/types/scanner';
 import { findAccountByAddress, findContactByAddress, toShort } from '@subwallet/extension-koni-ui/utils';
@@ -60,7 +59,6 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   const { activeModal, inactiveModal } = useContext(ModalContext);
 
   const { accounts, contacts } = useSelector((root) => root.accountState);
-  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
 
   const scannerId = useMemo(() => id ? `${id}-scanner-modal` : defaultScannerModalId, [id]);
   const addressBookId = useMemo(() => id ? `${id}-address-book-modal` : defaultAddressBookModalId, [id]);
@@ -222,8 +220,6 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
       }
     }
   }, [_contacts, addressPrefix, value, parseAndChangeValue, inputRef, networkGenesisHash]);
-
-  console.log('currentAccountProxy', currentAccountProxy);
 
   // todo: Will work with "Manage address book" feature later
   return (
