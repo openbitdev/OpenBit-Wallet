@@ -11,7 +11,7 @@ import { Button, Form, Icon, Input } from '@subwallet/react-ui';
 import { wordlists } from 'bip39';
 import CN from 'classnames';
 import { Eye, EyeSlash, FileArrowDown } from 'phosphor-react';
-import React, {ClipboardEventHandler, useCallback, useMemo, useState} from 'react';
+import React, { ClipboardEventHandler, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 type Props = ThemeProps;
@@ -78,8 +78,8 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   }, [form]);
 
   const allPhraseNumber = useMemo(() => {
-    return phraseNumberItems.map(item => item.value);
-  },[phraseNumberItems])
+    return phraseNumberItems.map((item) => item.value);
+  }, [phraseNumberItems]);
 
   const onPasteData: ClipboardEventHandler<HTMLInputElement> = useCallback((event) => {
     const value = event.clipboardData.getData('text');
@@ -93,6 +93,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
     }
 
     const wordCount = String(data.length);
+
     if (allPhraseNumber.includes(wordCount)) {
       try {
         form.setFieldValue('phraseNumber', wordCount);
@@ -100,7 +101,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
         console.error('Error updating phraseNumber field:', error);
       }
     }
-  }, [form])
+  }, [form]);
 
   const onFinish: FormCallbacks<FormState>['onFinish'] = useCallback((values: FormState) => {
     const { phraseNumber: _phraseNumber } = values;
@@ -251,8 +252,8 @@ const Component: React.FC<Props> = ({ className }: Props) => {
                           formName={formName}
                           hideText={!showSeed}
                           index={index}
-                          prefix={fieldNamePrefix}
                           onPasteData = {onPasteData}
+                          prefix={fieldNamePrefix}
 
                         />
                       </Form.Item>

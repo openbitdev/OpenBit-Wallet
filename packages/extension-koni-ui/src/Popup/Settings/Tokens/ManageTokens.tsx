@@ -88,7 +88,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, [assetSettingMap]);
 
-
   const openFilterModal = useCallback((e?: SyntheticEvent) => {
     e && e.stopPropagation();
     activeModal(FILTER_MODAL_ID);

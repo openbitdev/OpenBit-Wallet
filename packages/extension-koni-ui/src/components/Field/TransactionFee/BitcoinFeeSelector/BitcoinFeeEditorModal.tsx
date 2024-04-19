@@ -138,12 +138,15 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       const minutes = Math.floor((seconds % 3600) / 60);
 
       let timeString = '';
+
       if (days > 0) {
         timeString += `${days} ${days === 1 ? 'day' : 'days'}`;
       }
+
       if (hours > 0) {
         timeString += ` ${hours} ${hours === 1 ? 'hr' : 'hrs'}`;
       }
+
       if (minutes > 0) {
         timeString += ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}`;
       }
@@ -153,7 +156,6 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return 'unknown time';
     }
   }, []);
-
 
   const renderOption = (o: BitcoinFeeOption) => {
     if (o.option === 'custom') {

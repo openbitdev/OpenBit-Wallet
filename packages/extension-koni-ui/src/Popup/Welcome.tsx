@@ -125,7 +125,6 @@ function Component ({ className }: Props): React.ReactElement<Props> {
 }
 
 const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
-
   return {
     position: 'relative',
 

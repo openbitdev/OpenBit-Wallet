@@ -5,15 +5,7 @@ import { BasicInputWrapper } from '@subwallet/extension-koni-ui/components';
 import { FormInstance, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Input, InputRef } from '@subwallet/react-ui';
 import CN from 'classnames';
-import React, {
-  ChangeEventHandler,
-  ClipboardEventHandler,
-  FocusEventHandler,
-  ForwardedRef,
-  forwardRef,
-  useCallback,
-  useState
-} from 'react';
+import React, { ChangeEventHandler, ClipboardEventHandler, FocusEventHandler, ForwardedRef, forwardRef, useCallback, useState } from 'react';
 import styled from 'styled-components';
 
 interface Props extends BasicInputWrapper, ThemeProps {
@@ -26,7 +18,7 @@ interface Props extends BasicInputWrapper, ThemeProps {
 }
 
 const Component: React.ForwardRefRenderFunction<InputRef, Props> = (props: Props, ref: ForwardedRef<InputRef>) => {
-  const { className, form, formName, onPasteData, hideText, index, onBlur, onFocus, prefix, ...restProps } = props;
+  const { className, form, formName, hideText, index, onBlur, onFocus, onPasteData, prefix, ...restProps } = props;
   const [focus, setFocus] = useState(false);
 
   const _onChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => {
@@ -100,6 +92,7 @@ const Component: React.ForwardRefRenderFunction<InputRef, Props> = (props: Props
     if (onPasteData) {
       onPasteData(event);
     }
+
     form.setFieldsValue(result);
 
     form.validateFields(validates).catch(console.error);
