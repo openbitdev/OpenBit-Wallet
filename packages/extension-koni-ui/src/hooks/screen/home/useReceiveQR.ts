@@ -1,8 +1,10 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import type { KeypairType } from '@subwallet/keyring/types';
+
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
 import { _getMultiChainAsset, _isAssetFungibleToken, _isNativeToken } from '@subwallet/extension-base/services/chain-service/utils';
 import { AccountSelectorModalId } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
 import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
@@ -27,31 +29,55 @@ function getTokenSelectorItem (asset: _ChainAsset, accountProxy: AccountProxy): 
     return null;
   }
 
-  const targetAccount = accountProxy.accounts.find((a) => {
-    const accountType = getKeypairTypeByAddress(a.address);
+  let targetAccount: AccountJson | undefined;
 
-    if (accountType === 'ethereum' && asset.originChain === 'ethereum' && _isNativeToken(asset)) {
-      return true;
+  for (const account of accountProxy.accounts) {
+    const accountType = getKeypairTypeByAddress(account.address);
+
+    if ((accountType === 'ethereum' && asset.originChain === 'ethereum' && _isNativeToken(asset)) ||
+      (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') ||
+      (accountType === 'bitcoin-86' && asset.originChain === 'bitcoin' && asset.metadata?.runeId) ||
+      (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet')) {
+      targetAccount = {
+        ...account,
+        type: accountType
+      };
+
+      break;
     }
-
-    if (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') {
-      return true;
-    }
-
-    if (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet') {
-      return true;
-    }
-
-    return false;
-  });
+  }
 
   if (!targetAccount) {
     return null;
   }
 
+  const isRune = !!asset.metadata?.runeId;
+  const order = (() => {
+    if (isRune) {
+      return 2;
+    }
+
+    if (asset.originChain === 'bitcoin') {
+      return 1;
+    }
+
+    if (asset.originChain === 'bitcoinTestnet') {
+      return 3;
+    }
+
+    if (asset.originChain === 'ethereum') {
+      return 4;
+    }
+
+    return 99;
+  })();
+
   return {
     ...asset,
-    address: targetAccount.address
+    address: targetAccount.address,
+    addressType: targetAccount.type as KeypairType,
+    isRune,
+    order
   };
 }
 
@@ -88,6 +114,8 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
 
     const result: ReceiveTokenItemType[] = [];
 
+    let runeTokenFlag = false;
+
     Object.values(assetRegistryMap).forEach((asset) => {
       if (tokenGroupSlug && (_getMultiChainAsset(asset) !== tokenGroupSlug)) {
         return;
@@ -95,22 +123,20 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
 
       const tokenItem = getTokenSelectorItem(asset, accountProxy);
 
-      if (tokenItem) {
-        if (tokenItem.metadata && tokenItem.metadata.runeId) {
-          const isBip84 = getKeypairTypeByAddress(tokenItem.address) === 'bitcoin-84' || getKeypairTypeByAddress(tokenItem.address) === 'bittest-84';
+      if (!tokenItem) {
+        return;
+      }
 
-          if (isBip84) {
-            const correspondingAccount = accountProxy?.accounts.find((account) => account.type === 'bitcoin-86');
+      if (tokenItem.isRune && !runeTokenFlag) {
+        result.push(tokenItem);
 
-            if (correspondingAccount) {
-              result.push({ ...tokenItem, address: correspondingAccount.address });
-            }
-          }
-        } else {
-          result.push(tokenItem);
-        }
+        runeTokenFlag = true;
+      } else if (!tokenItem.isRune) {
+        result.push(tokenItem);
       }
     });
+
+    result.sort((a, b) => a.order - b.order);
 
     return result;
   }, [tokenGroupSlug, assetRegistryMap]);
