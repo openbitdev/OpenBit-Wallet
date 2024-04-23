@@ -789,7 +789,7 @@ export class ChainService {
 
       runes.forEach((rune) => {
         const amount = rune.amount;
-        const runeName = rune.rune.rune;
+        const runeName = rune.rune.rune_name;
         const runeId = rune.rune_id;
 
         const assetSlug = `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${runeName}-${runeId}`;
@@ -1095,10 +1095,10 @@ export class ChainService {
           runes.forEach((rune) => {
             const chainAssetItem = {
               originChain: `${_BITCOIN_CHAIN_SLUG}`,
-              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune}-${rune.rune_id}`,
+              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
               name: `${_BITCOIN_NAME}`,
-              symbol: rune.rune,
-              decimals: 0,
+              symbol: rune.rune_name,
+              decimals: parseInt(rune.divisibility) || 0,
               priceId: null,
               minAmount: '0',
               assetType: _AssetType.LOCAL,

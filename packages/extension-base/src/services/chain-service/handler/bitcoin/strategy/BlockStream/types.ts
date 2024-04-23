@@ -37,13 +37,14 @@ interface RunesInfoByAddressFetchedData {
 
 export interface RunesInfoByAddress {
   amount: string,
-  amount_decimal: string,
   address: string,
   rune_id: string,
   rune: {
-    rune_id: string,
     rune: string,
+    rune_name: string,
     divisibility: number,
+    premine: string,
+    spacers: string,
     symbol: string
   }
 }
@@ -63,6 +64,8 @@ interface RunesCollectionInfoFetchedData {
 export interface RunesCollectionInfo {
   rune_id: string,
   rune: string,
+  rune_name: string,
+  divisibility: string
 }
 
 export interface BlockStreamUtxo {

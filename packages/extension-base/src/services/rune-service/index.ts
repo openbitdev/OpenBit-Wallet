@@ -7,7 +7,7 @@ import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-r
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const RUNE_ALPHA_ENDPOINT = 'https://api2.runealpha.xyz';
+const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz';
 
 export class RunesService extends BaseApiRequestStrategy {
   private constructor () {
