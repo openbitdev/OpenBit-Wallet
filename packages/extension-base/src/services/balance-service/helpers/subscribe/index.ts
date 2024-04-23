@@ -97,7 +97,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
     });
 
     // get runeId -> BalanceItem[] mapping
-    await Promise.all(addresses.map(async (address) => { // todo: fake address has runes here to get balance
+    await Promise.all(addresses.map(async (address) => { // noted: fake address has runes here to get balance
       try {
         const runes = await bitcoinApi.api.getRunes(address);
 
@@ -105,7 +105,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
           const runeId = rune.rune_id;
 
           const item = {
-            address: address, // todo: fake address display on wallet here to show balance
+            address: address, // noted: fake address display on wallet here to show balance
             tokenSlug: runeIdToSlugMap[runeId],
             free: rune.amount,
             locked: '0',

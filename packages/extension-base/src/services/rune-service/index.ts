@@ -39,7 +39,7 @@ export class RunesService extends BaseApiRequestStrategy {
         throw new SWError('RuneScanService.getAddressRunesInfo', await rs.text());
       }
 
-      return (await rs.json()) as RunesInfoByAddressResponse; // todo: check return type RuneInfoByAddressResponse
+      return (await rs.json()) as RunesInfoByAddressResponse;
     }, 0);
   }
 
@@ -53,7 +53,7 @@ export class RunesService extends BaseApiRequestStrategy {
         throw new SWError('RuneScanService.getRuneCollectionsByBatch', await rs.text());
       }
 
-      return (await rs.json()) as RunesCollectionInfoResponse; // todo: check return type RunesCollectionInfoResponse
+      return (await rs.json()) as RunesCollectionInfoResponse;
     }, 0);
   }
 
