@@ -280,7 +280,7 @@ const Component: React.FC<Props> = (props: Props) => {
         <div className='body-container'>
           <div className={CN('notice', { 'mb-large': !firstStep })}>
             <AlertBox
-              description={t('Anyone with your key can use any assets held in your account.')}
+              description={t('Anyone with your key can use any assets held in your account')}
               title={t('Warning: Never disclose this key')}
               type='warning'
             />

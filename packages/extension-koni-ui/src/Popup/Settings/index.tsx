@@ -3,7 +3,7 @@
 
 import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
 import { PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { EXTENSION_VERSION, SUPPORT_MAIL, TERMS_OF_SERVICE_URL, TWITTER_URL, WEBSITE_URL, WIKI_URL } from '@subwallet/extension-koni-ui/constants/common';
+import { EXTENSION_VERSION, TERMS_OF_SERVICE_URL, TWITTER_URL, WEBSITE_URL } from '@subwallet/extension-koni-ui/constants/common';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useUILock from '@subwallet/extension-koni-ui/hooks/common/useUILock';
@@ -14,7 +14,7 @@ import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { openInNewTab } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, Button, ButtonProps, Icon, Image, ModalContext, SettingItem, SwHeader, SwIconProps, SwModal } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { ArrowsOut, ArrowSquareOut, Book, BookBookmark, CaretRight, ChatTeardropText, Coin, EnvelopeSimple, FrameCorners, Globe, GlobeHemisphereEast, Lock, ShareNetwork, ShieldCheck, X } from 'phosphor-react';
+import { ArrowsOut, ArrowSquareOut, BookBookmark, CaretRight, Coin, FrameCorners, Globe, GlobeHemisphereEast, Lock, ShareNetwork, ShieldCheck, X } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
@@ -207,59 +207,59 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         }
       ]
     },
-    {
-      key: 'community-&-support',
-      label: t('Community & support'),
-      items: [
-        {
-          key: 'contact-support',
-          leftIcon: EnvelopeSimple,
-          leftIconBgColor: token['geekblue-6'],
-          rightIcon: ArrowSquareOut,
-          title: t('Contact support'),
-          onClick: () => {
-            window.open(`${SUPPORT_MAIL}?subject=[In-app Support]`, '_self');
-          }
-        },
-        {
-          key: 'user-manual',
-          leftIcon: Book,
-          leftIconBgColor: token['green-6'],
-          rightIcon: ArrowSquareOut,
-          title: t('User guide'),
-          onClick: openInNewTab(WIKI_URL)
-        },
-        {
-          key: 'request-a-feature',
-          leftIcon: ChatTeardropText,
-          leftIconBgColor: token['magenta-7'],
-          rightIcon: ArrowSquareOut,
-          title: t('Request a feature'),
-          onClick: () => {
-            window.open(`${SUPPORT_MAIL}?subject=[SubWallet In-app Feedback]`, '_self');
-          }
-        },
-        {
-          key: 'about-subwallet',
-          leftIcon: (
-            <Image
-              className='__subwallet-logo'
-              height={24}
-              shape='squircle'
-              src={DefaultLogosMap.subwallet}
-              width={24}
-            />
-          ),
-          leftIconBgColor: token['magenta-7'],
-          rightIcon: CaretRight,
-          title: t('About SubWallet'),
-          onClick: () => {
-            activeModal(modalId);
-          }
-        }
-
-      ]
-    }
+    // {
+    //   key: 'community-&-support',
+    //   label: t('Community & support'),
+    //   items: [
+    //     {
+    //       key: 'contact-support',
+    //       leftIcon: EnvelopeSimple,
+    //       leftIconBgColor: token['geekblue-6'],
+    //       rightIcon: ArrowSquareOut,
+    //       title: t('Contact support'),
+    //       onClick: () => {
+    //         window.open(`${SUPPORT_MAIL}?subject=[In-app Support]`, '_self');
+    //       }
+    //     },
+    //     {
+    //       key: 'user-manual',
+    //       leftIcon: Book,
+    //       leftIconBgColor: token['green-6'],
+    //       rightIcon: ArrowSquareOut,
+    //       title: t('User guide'),
+    //       onClick: openInNewTab(WIKI_URL)
+    //     },
+    //     {
+    //       key: 'request-a-feature',
+    //       leftIcon: ChatTeardropText,
+    //       leftIconBgColor: token['magenta-7'],
+    //       rightIcon: ArrowSquareOut,
+    //       title: t('Request a feature'),
+    //       onClick: () => {
+    //         window.open(`${SUPPORT_MAIL}?subject=[SubWallet In-app Feedback]`, '_self');
+    //       }
+    //     },
+    //     {
+    //       key: 'about-subwallet',
+    //       leftIcon: (
+    //         <Image
+    //           className='__subwallet-logo'
+    //           height={24}
+    //           shape='squircle'
+    //           src={DefaultLogosMap.subwallet}
+    //           width={24}
+    //         />
+    //       ),
+    //       leftIconBgColor: token['magenta-7'],
+    //       rightIcon: CaretRight,
+    //       title: t('About OpenBit'),
+    //       onClick: () => {
+    //         activeModal(modalId);
+    //       }
+    //     }
+    //
+    //   ]
+    // }
   ]), [activeModal, isPopup, navigate, t, token]);
 
   const aboutSubwalletType = useMemo<SettingItemType[]>(() => {
@@ -377,7 +377,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           </Button>
 
           <div className={'__version'}>
-          SubWallet v {EXTENSION_VERSION}
+          Openbit v {EXTENSION_VERSION}
           </div>
         </div>
         <Outlet />
@@ -385,7 +385,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           className={CN(className, 'about-subwallet-modal')}
           id={modalId}
           onCancel={closeModal}
-          title={t('About SubWallet')}
+          title={t('About OpenBit')}
         >
           {aboutSubwalletType.map((item) => (
             <div
