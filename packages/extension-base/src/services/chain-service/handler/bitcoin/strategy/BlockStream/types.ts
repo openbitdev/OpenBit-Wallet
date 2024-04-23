@@ -19,27 +19,32 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
-export interface RunesByAddressResponse {
+// todo: combine RunesByAddressResponse & RunesCollectionInfoResponse
+
+export interface RunesInfoByAddressResponse {
   statusCode: number;
-  data: RunesByAddressFetchedData
+  data: RunesInfoByAddressFetchedData
 }
 
-interface RunesByAddressFetchedData {
+interface RunesInfoByAddressFetchedData {
   limit: number,
   offset: number,
   total: number,
-  runes: RuneInfoByAddress[]
+  runes: RunesInfoByAddress[]
 }
 
-export interface RuneInfoByAddress {
+// todo: check is_hot and turbo and cenotaph attributes meaning in RuneInfoByAddress
+
+export interface RunesInfoByAddress {
   amount: string,
-  amount_decimal: string,
   address: string,
   rune_id: string,
   rune: {
-    rune_id: string,
     rune: string,
+    rune_name: string,
     divisibility: number,
+    premine: string,
+    spacers: string,
     symbol: string
   }
 }
@@ -59,6 +64,8 @@ interface RunesCollectionInfoFetchedData {
 export interface RunesCollectionInfo {
   rune_id: string,
   rune: string,
+  rune_name: string,
+  divisibility: string
 }
 
 export interface BlockStreamUtxo {
