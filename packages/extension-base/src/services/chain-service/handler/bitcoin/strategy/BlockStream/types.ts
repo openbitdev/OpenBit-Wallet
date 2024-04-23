@@ -19,19 +19,23 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
-export interface RunesByAddressResponse {
+// todo: combine RunesByAddressResponse & RunesCollectionInfoResponse
+
+export interface RunesInfoByAddressResponse {
   statusCode: number;
-  data: RunesByAddressFetchedData
+  data: RunesInfoByAddressFetchedData
 }
 
-interface RunesByAddressFetchedData {
+interface RunesInfoByAddressFetchedData {
   limit: number,
   offset: number,
   total: number,
-  runes: RuneInfoByAddress[]
+  runes: RunesInfoByAddress[]
 }
 
-export interface RuneInfoByAddress {
+// todo: check is_hot and turbo and cenotaph attributes meaning in RuneInfoByAddress
+
+export interface RunesInfoByAddress {
   amount: string,
   amount_decimal: string,
   address: string,

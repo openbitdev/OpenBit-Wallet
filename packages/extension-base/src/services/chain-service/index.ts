@@ -784,7 +784,7 @@ export class ChainService {
     const allAddresses = this.keyringService.accounts;
     const hasRuneAddresses = Object.keys(allAddresses).filter((address) => getKeypairTypeByAddress(address) === 'bitcoin-86');
 
-    await Promise.all(hasRuneAddresses.map(async (address) => {
+    await Promise.all(hasRuneAddresses.map(async (address) => { // todo: fake addresses here to enable tokens they have
       const runes = await bitcoinApi.api.getRunes(address);
 
       runes.forEach((rune) => {

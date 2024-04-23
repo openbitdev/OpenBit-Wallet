@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RuneInfoByAddress, RunesByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
@@ -143,7 +143,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
   }
 
   async getRunes (address: string) {
-    const runesFullList: RuneInfoByAddress[] = [];
+    const runesFullList: RunesInfoByAddress[] = [];
     const pageSize = 10;
     let offset = 0;
 
@@ -154,9 +154,9 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         const response = await runeService.getAddressRunesInfo(address, {
           limit: String(pageSize),
           offset: String(offset)
-        }) as unknown as RunesByAddressResponse;
+        }) as unknown as RunesInfoByAddressResponse;
 
-        let runes: RuneInfoByAddress[] = [];
+        let runes: RunesInfoByAddress[] = [];
 
         if (response.statusCode === 200) {
           runes = response.data.runes;
