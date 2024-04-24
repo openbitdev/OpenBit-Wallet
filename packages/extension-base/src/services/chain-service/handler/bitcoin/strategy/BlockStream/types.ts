@@ -91,6 +91,33 @@ interface RuneTxsUtxosVout {
   runeInject: any
 }
 
+export interface InscriptionFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  results: Inscription[]
+}
+
+export interface Inscription {
+  id: string;
+  number: number;
+  address: string;
+  genesis_block_height: number;
+  genesis_block_hash: string;
+  genesis_timestamp: number;
+  tx_id: string;
+  location: string;
+  output: string;
+  value: string;
+  offset: string;
+  fee: number;
+  sat_ordinal: string;
+  sat_rarity: string;
+  content_type: string;
+  content_length: number;
+  // content: any
+}
+
 export interface BlockStreamUtxo {
   txid: string;
   vout: number;

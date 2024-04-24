@@ -8,7 +8,7 @@ import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/const
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
@@ -142,23 +142,23 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
 }
 
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
-  // bc1pqev6wwy8rlvs47elzluuc6l9ssv802qyw2mfslm68st33793cx8q4dn4x9 Has many runes
-  // bc1pkc06k249vwpmdxj5rdxuc0yzrlhfup9m6cdu48ua9rsnz3mrwwmsq4t9jd Only has 1 rune and 1 utxo
-
-  return await Promise.all(addresses.map(async (address) => { // noted: fake address here to get all utxos and runesTxsUtxos
+  return await Promise.all(addresses.map(async (address) => {
     try {
-      const utxos = await bitcoinApi.api.getUtxos(address);
-      const txs = await bitcoinApi.api.getAddressTransaction(address);
+      const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
+        await bitcoinApi.api.getUtxos(address),
+        await bitcoinApi.api.getAddressTransaction(address),
+        await getRuneTxsUtxos(bitcoinApi, address),
+        await getInscriptionUtxos(bitcoinApi, address)
+      ]);
 
-      // todo: (4-18-24 17:58) need filter inscription too
+      // filter out pending utxos
       let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
 
-      // filter out runes
-      const runesTxsUtxos = await getRuneTxsUtxos(bitcoinApi, address);
+      // filter out rune utxos
+      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
 
-      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runesTxsUtxos);
-
-      // todo: filtered out inscriptions
+      // filter out inscription utxos
+      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
 
       let balanceValue = new BigN(0);
 

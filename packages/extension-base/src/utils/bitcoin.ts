@@ -239,7 +239,7 @@ export async function getRuneTxsUtxos (bitcoinApi: _BitcoinApi, address: string)
         txid,
         vout: runeUtxoIndex,
         status: {
-          confirmed: true
+          confirmed: true // not use in filter out rune utxos
         },
         value: runeUtxoValue
       } as UtxoResponseItem;
@@ -249,4 +249,24 @@ export async function getRuneTxsUtxos (bitcoinApi: _BitcoinApi, address: string)
   });
 
   return runeTxsUtxos;
+}
+
+export async function getInscriptionUtxos (bitcoinApi: _BitcoinApi, address: string) {
+  const inscriptions = await bitcoinApi.api.getAddressInscriptions(address);
+
+  return inscriptions.map((inscription) => {
+    const [txid, vout] = inscription.output.split(':');
+
+    return {
+      txid,
+      vout: parseInt(vout),
+      status: {
+        confirmed: true, // not use in filter out inscription utxos
+        block_height: inscription.genesis_block_height,
+        block_hash: inscription.genesis_block_hash,
+        block_time: inscription.genesis_timestamp
+      },
+      value: parseInt(inscription.value)
+    } as UtxoResponseItem;
+  });
 }
