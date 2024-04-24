@@ -1798,7 +1798,7 @@ export default class KoniExtension {
 
     return {
       id,
-      items: []
+      items: subscribeHistoriesResponse.value
     };
   }
 

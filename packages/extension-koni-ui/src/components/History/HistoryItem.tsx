@@ -166,7 +166,7 @@ export const HistoryItem = styled(Component)<Props>(({ theme: { token } }: Props
       color: token.colorTextLight2
     },
 
-    '&.-processing, &.-unconfirmed': {
+    '&.-processing': {
       '.__main-icon-wrapper:before': {
         backgroundColor: token['gold-6']
       },

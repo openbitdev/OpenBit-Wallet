@@ -113,6 +113,11 @@ function getDisplayData (item: TransactionHistoryItem, nameMap: Record<string, s
     displayData.typeName = nameMap.submitting;
   }
 
+  if (item.status === ExtrinsicStatus.UNCONFIRMED) {
+    displayData.className = '-processing';
+    displayData.typeName = nameMap.unconfirmed;
+  }
+
   return displayData;
 }
 
@@ -168,6 +173,11 @@ function filterDuplicateItems (items: TransactionHistoryItem[]): TransactionHist
   return result;
 }
 
+const PROCESSING_STATUSES: ExtrinsicStatus[] = [
+  ExtrinsicStatus.QUEUED,
+  ExtrinsicStatus.SUBMITTING,
+  ExtrinsicStatus.PROCESSING
+];
 const modalId = HISTORY_DETAIL_MODAL;
 const DEFAULT_ITEMS_COUNT = 20;
 const NEXT_ITEMS_COUNT = 10;
@@ -265,11 +275,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }, {} as Record<string, AccountJson>);
   }, [accounts]);
 
-  const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'submitting' | 'processing' | 'timeout' | 'send' | 'received', string> => ({
+  const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'submitting' | 'processing' | 'timeout' | 'send' | 'received' | 'unconfirmed', string> => ({
     default: t('Transaction'),
     submitting: t('Submitting...'),
     processing: t('Processing...'),
     timeout: t('Time-out'),
+    unconfirmed: t('Unconfirmed'),
     send: t('Send'),
     received: t('Receive'),
     [ExtrinsicType.TRANSFER_BALANCE]: t('Send token'),
@@ -375,7 +386,21 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [currentItemDisplayCount, setCurrentItemDisplayCount] = useState<number>(DEFAULT_ITEMS_COUNT);
 
   const getHistoryItems = useCallback((count: number) => {
-    return Object.values(historyMap).filter(filterFunction).sort((a, b) => (b.time - a.time)).slice(0, count);
+    return Object.values(historyMap).filter(filterFunction)
+      .sort((a, b) => {
+        if (PROCESSING_STATUSES.includes(a.status) && !PROCESSING_STATUSES.includes(b.status)) {
+          return -1;
+        } else if (PROCESSING_STATUSES.includes(b.status) && !PROCESSING_STATUSES.includes(a.status)) {
+          return 1;
+        } else if (a.status === ExtrinsicStatus.UNCONFIRMED && b.status !== ExtrinsicStatus.UNCONFIRMED) {
+          return -1;
+        } else if (b.status === ExtrinsicStatus.UNCONFIRMED && a.status !== ExtrinsicStatus.UNCONFIRMED) {
+          return 1;
+        } else {
+          return b.time - a.time;
+        }
+      })
+      .slice(0, count);
   }, [filterFunction, historyMap]);
 
   const [historyItems, setHistoryItems] = useState<TransactionHistoryDisplayItem[]>(getHistoryItems(DEFAULT_ITEMS_COUNT));
@@ -462,8 +487,16 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   );
 
   const groupBy = useCallback((item: TransactionHistoryItem) => {
+    if (PROCESSING_STATUSES.includes(item.status)) {
+      return t('Processing');
+    }
+
+    if (item.status === ExtrinsicStatus.UNCONFIRMED) {
+      return t('Unconfirmed');
+    }
+
     return formatHistoryDate(item.time, language, 'list');
-  }, [language]);
+  }, [language, t]);
 
   const groupSeparator = useCallback((group: TransactionHistoryItem[], idx: number, groupLabel: string) => {
     return (
