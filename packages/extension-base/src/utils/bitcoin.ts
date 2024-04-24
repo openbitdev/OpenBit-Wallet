@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
+import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { BitcoinFeeInfo, BitcoinFeeRate, BitcoinTx, DetermineUtxosForSpendArgs, FeeOption, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { BitcoinAddressType } from '@subwallet/keyring/types';
 import { BtcSizeFeeEstimator, getBitcoinAddressInfo, validateBitcoinAddress } from '@subwallet/keyring/utils';
@@ -213,4 +214,39 @@ export function filterOutPendingTxsUtxos (address: string, bitcoinTx: BitcoinTx[
         (input) => input.prevout.scriptpubkey_address === address && input.txid === utxo.txid
       )
   );
+}
+
+export function filteredOutTxsUtxos (allTxsUtxos: UtxoResponseItem[], filteredOutTxsUtxos: UtxoResponseItem[]): UtxoResponseItem[] {
+  const listFilterOut = filteredOutTxsUtxos.map((utxo) => {
+    return `${utxo.txid}:${utxo.vout}`;
+  });
+
+  return allTxsUtxos.filter((element) => !listFilterOut.includes(`${element.txid}:${element.vout}`));
+}
+
+export async function getRuneTxsUtxos (bitcoinApi: _BitcoinApi, address: string) {
+  const runeTxs = await bitcoinApi.api.getRuneTxsUtxos(address);
+  const runeTxsUtxos: UtxoResponseItem[] = [];
+
+  runeTxs.forEach((runeTx) => {
+    const txid = runeTx.txid;
+    const runeOutput = runeTx.vout.find((vout) => !!vout.runeInject);
+    const runeUtxoIndex = runeOutput ? runeOutput.n : undefined;
+    const runeUtxoValue = runeOutput ? runeOutput.value : undefined;
+
+    if (runeUtxoIndex && runeUtxoValue) {
+      const item = {
+        txid,
+        vout: runeUtxoIndex,
+        status: {
+          confirmed: true
+        },
+        value: runeUtxoValue
+      } as UtxoResponseItem;
+
+      runeTxsUtxos.push(item);
+    }
+  });
+
+  return runeTxsUtxos;
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { RunesCollectionInfo, RunesCollectionInfoResponse, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { RunesCollectionInfoResponse, RunesInfoByAddressResponse, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
@@ -29,13 +29,12 @@ export class RunesService extends BaseApiRequestStrategy {
     }
   }
 
-  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddress> {
+  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddressResponse> {
     return this.addRequest(async () => {
       const url = this.getUrl(isTestnet, `address/${address}/runes`);
       const rs = await getRequest(url, params);
 
       if (rs.status !== 200) {
-        // todo: update error
         throw new SWError('RuneScanService.getAddressRunesInfo', await rs.text());
       }
 
@@ -43,17 +42,29 @@ export class RunesService extends BaseApiRequestStrategy {
     }, 0);
   }
 
-  getRuneCollectionsByBatch (params: Record<string, string>, isTestnet = false): Promise<RunesCollectionInfo> {
+  getRuneCollectionsByBatch (params: Record<string, string>, isTestnet = false): Promise<RunesCollectionInfoResponse> {
     return this.addRequest(async () => {
       const url = this.getUrl(isTestnet, 'rune');
       const rs = await getRequest(url, params);
 
       if (rs.status !== 200) {
-        // todo: update error
         throw new SWError('RuneScanService.getRuneCollectionsByBatch', await rs.text());
       }
 
       return (await rs.json()) as RunesCollectionInfoResponse;
+    }, 0);
+  }
+
+  getAddressRuneTxs (address: string, params: Record<string, string>, isTestnet = false): Promise<RuneTxsResponse> {
+    return this.addRequest(async () => {
+      const url = this.getUrl(isTestnet, `address/${address}/txs`);
+      const rs = await getRequest(url, params);
+
+      if (rs.status !== 200) {
+        throw new SWError('RuneScanService.getAddressRuneTxs', await rs.text());
+      }
+
+      return (await rs.json()) as RuneTxsResponse;
     }, 0);
   }
 

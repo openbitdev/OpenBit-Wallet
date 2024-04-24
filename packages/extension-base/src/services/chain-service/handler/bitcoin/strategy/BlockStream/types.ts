@@ -68,6 +68,29 @@ export interface RunesCollectionInfo {
   divisibility: string
 }
 
+export interface RuneTxsResponse {
+  statusCode: number;
+  data: RuneTxsFetchedData
+}
+
+interface RuneTxsFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  transactions: RuneTxs[]
+}
+
+export interface RuneTxs {
+  txid: string,
+  vout: RuneTxsUtxosVout[]
+}
+
+interface RuneTxsUtxosVout {
+  n: number,
+  value: number,
+  runeInject: any
+}
+
 export interface BlockStreamUtxo {
   txid: string;
   vout: number;

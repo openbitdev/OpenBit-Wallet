@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
@@ -176,6 +176,44 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
       return runesFullList;
     } catch (error) {
       console.error(`Failed to get ${address} balances`, error);
+      throw error;
+    }
+  }
+
+  async getRuneTxsUtxos (address: string) {
+    const txsFullList: RuneTxs[] = [];
+    const pageSize = 10;
+    let offset = 0;
+
+    const runeService = RunesService.getInstance();
+
+    try {
+      while (true) {
+        const response = await runeService.getAddressRuneTxs(address, {
+          limit: String(pageSize),
+          offset: String(offset)
+        }) as unknown as RuneTxsResponse;
+
+        let runesTxs: RuneTxs[] = [];
+
+        if (response.statusCode === 200) {
+          runesTxs = response.data.transactions;
+        } else {
+          console.log(`Error on request rune transactions for address ${address}`);
+          break;
+        }
+
+        if (runesTxs.length !== 0) {
+          txsFullList.push(...runesTxs);
+          offset += pageSize;
+        } else {
+          break;
+        }
+      }
+
+      return txsFullList;
+    } catch (error) {
+      console.error(`Failed to get ${address} transactions`, error);
       throw error;
     }
   }
