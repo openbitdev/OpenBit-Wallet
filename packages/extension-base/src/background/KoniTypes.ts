@@ -578,7 +578,9 @@ export enum ExtrinsicStatus {
   FAIL = 'fail', // Send failed
   CANCELLED = 'cancelled', // Is remove before sending,
   TIMEOUT = 'timeout',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
+  UNCONFIRMED = 'unconfirmed', // in bitcoin, transaction is unconfirmed
+  CONFIRMED = 'confirmed' // in bitcoin, transaction is confirmed
 }
 
 export interface TxHistoryItem {
@@ -681,6 +683,7 @@ export interface TransactionHistoryItem<ET extends ExtrinsicType = ExtrinsicType
   status: ExtrinsicStatus,
   transactionId?: string, // Available for transaction history
   extrinsicHash: string,
+  submitTime?: number,
   time: number,
   data?: string,
   blockNumber: number,
@@ -1331,7 +1334,7 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends BitcoinSignRequest {}
+export type BitcoinSendTransactionRequest = BitcoinSignRequest
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;

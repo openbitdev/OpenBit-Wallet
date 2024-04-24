@@ -30,7 +30,7 @@ export class InsufficientFundsError extends Error {
   }
 }
 // Source: https://github.com/Blockstream/esplora/blob/master/API.md#transaction-format
-//---------------
+// ---------------
 interface BitcoinTransactionIssuance {
   asset_id: string;
   is_reissuance: boolean;
@@ -96,4 +96,4 @@ export interface BitcoinTx {
   vout: BitcoinTransactionVectorOutput[];
   weight: number;
 }
-//---------------
+// ---------------

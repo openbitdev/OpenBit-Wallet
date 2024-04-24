@@ -129,7 +129,9 @@ enum FilterValue {
   CROWDLOAN = 'crowdloan',
   SUCCESSFUL = 'successful',
   FAILED = 'failed',
-  EARN = 'earn'
+  EARN = 'earn',
+  UNCONFIRMED = 'unconfirmed',
+  CONFIRMED = 'confirmed'
 }
 
 function getHistoryItemKey (item: Pick<TransactionHistoryItem, 'chain' | 'address' | 'extrinsicHash' | 'transactionId'>) {
@@ -229,6 +231,14 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           if (YIELD_EXTRINSIC_TYPES.includes(item.type)) {
             return true;
           }
+        } else if (filter === FilterValue.CONFIRMED) {
+          if (item.status === ExtrinsicStatus.CONFIRMED) {
+            return true;
+          }
+        } else if (filter === FilterValue.UNCONFIRMED) {
+          if (item.status === ExtrinsicStatus.UNCONFIRMED) {
+            return true;
+          }
         }
       }
 
@@ -241,7 +251,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       { label: t('Send token'), value: FilterValue.SEND },
       { label: t('Receive token'), value: FilterValue.RECEIVED },
       { label: t('Successful'), value: FilterValue.SUCCESSFUL },
-      { label: t('Failed'), value: FilterValue.FAILED }
+      { label: t('Failed'), value: FilterValue.FAILED },
+      { label: t('Confirmed'), value: FilterValue.CONFIRMED },
+      { label: t('Unconfirmed'), value: FilterValue.UNCONFIRMED }
     ];
   }, [t]);
 
@@ -675,7 +687,7 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
         left: 0,
         right: 0,
         position: 'absolute',
-        background: 'linear-gradient(180deg, rgba(76, 234, 172, 0.10) 0%, rgba(76, 234, 172, 0.00) 94.17%)'
+        background: 'linear-gradient(180deg, rgba(236, 208, 51, 0.10) 0%, rgba(236, 208, 51, 0.00) 94.17%)'
       }
     },
 

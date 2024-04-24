@@ -95,5 +95,15 @@ export const HistoryStatusMap: Record<ExtrinsicStatus, StatusType> = {
     schema: 'gold',
     icon: ClockCounterClockwise,
     name: detectTranslate('Time-out')
+  },
+  [ExtrinsicStatus.UNCONFIRMED]: {
+    schema: 'gold',
+    icon: Spinner,
+    name: detectTranslate('Unconfirmed')
+  },
+  [ExtrinsicStatus.CONFIRMED]: {
+    schema: 'success',
+    icon: CheckCircle,
+    name: detectTranslate('Confirmed')
   }
 };
