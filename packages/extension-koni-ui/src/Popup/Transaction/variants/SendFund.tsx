@@ -197,6 +197,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
 
+  // @ts-ignore
   const hideMaxButton = useMemo(() => {
     const chainInfo = chainInfoMap[chainValue];
 
@@ -595,7 +596,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       }
     }
 
-    if (account.isReadOnly) {
+    if (account.isReadOnly || account.isMock) {
       return false;
     }
 
@@ -708,7 +709,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               forceUpdateMaxValue={forceUpdateMaxValue}
               maxValue={transferInfo?.maxTransferable || '0'}
               onSetMax={onSetMaxTransferable}
-              showMaxButton={!hideMaxButton && !!transferInfo}
+              // showMaxButton={!hideMaxButton && !!transferInfo}
               tooltip={t('Amount')}
             />
           </Form.Item>
