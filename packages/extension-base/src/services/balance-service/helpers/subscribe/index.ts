@@ -142,7 +142,10 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
 }
 
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
-  return await Promise.all(addresses.map(async (address) => {
+
+  console.log('[i] start query balance');
+
+  return await Promise.all(addresses.map(async (address) => { // noted: fake an account here to see balance
     try {
       const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
         await bitcoinApi.api.getUtxos(address),
@@ -154,17 +157,27 @@ async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) 
       // filter out pending utxos
       let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
 
+      console.log('--- START LOG ---');
+      console.log('[1.1] UTXO after filtering pending UTXO: ', filteredUtxos);
+      console.log('[1.2] Rune UTXO: ', runeTxsUtxos);
+      console.log('[1.3] Inscription UTXO: ', inscriptionUtxos);
       // filter out rune utxos
       filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
 
+      console.log('[2.] UTXO after filtering rune UTXO: ', filteredUtxos);
       // filter out inscription utxos
       filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
 
+      console.log('[3.] UTXO after filtering rune and inscription UTXO: ', filteredUtxos);
       let balanceValue = new BigN(0);
 
       filteredUtxos.forEach((utxo) => {
         balanceValue = balanceValue.plus(utxo.value);
       });
+
+      // console.log('[4.] Balance before filtering: ', balanceValue.toString()); // Comment 2. and 3. filter out to see balance before
+      console.log('[4.] Balance after filtering: ', balanceValue.toString());
+      console.log('--- END LOG ---');
 
       return balanceValue.toString();
     } catch (error) {
