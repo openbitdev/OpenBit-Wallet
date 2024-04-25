@@ -9,11 +9,10 @@ import { useDefaultNavigate, useFilterModal, useTranslation } from '@subwallet/e
 import { useChainAssets } from '@subwallet/extension-koni-ui/hooks/assets';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { ButtonProps, Icon, ModalContext, SwList } from '@subwallet/react-ui';
-import { FadersHorizontal, Plus } from 'phosphor-react';
+import { Icon, ModalContext, SwList } from '@subwallet/react-ui';
+import { FadersHorizontal } from 'phosphor-react';
 import React, { SyntheticEvent, useCallback, useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 type Props = ThemeProps;
@@ -30,7 +29,6 @@ const renderEmpty = () => <TokenEmptyList />;
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const goBack = useDefaultNavigate().goBack;
   const dataContext = useContext(DataContext);
   const { activeModal } = useContext(ModalContext);
@@ -90,23 +88,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, [assetSettingMap]);
 
-  const subHeaderButton: ButtonProps[] = useMemo(() => {
-    return [
-      {
-        icon: (
-          <Icon
-            phosphorIcon={Plus}
-            size='sm'
-            type='phosphor'
-          />
-        ),
-        onClick: () => {
-          navigate('/settings/tokens/import-token', { state: { isExternalRequest: false } });
-        }
-      }
-    ];
-  }, [navigate]);
-
   const openFilterModal = useCallback((e?: SyntheticEvent) => {
     e && e.stopPropagation();
     activeModal(FILTER_MODAL_ID);
@@ -123,7 +104,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         showSubHeader={true}
         subHeaderBackground={'transparent'}
         subHeaderCenter={true}
-        subHeaderIcons={subHeaderButton}
         subHeaderPaddingVertical={true}
         title={t<string>('Manage tokens')}
       >

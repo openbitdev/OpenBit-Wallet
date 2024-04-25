@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { RuneInfoByAddress, RunesCollectionInfo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { RunesCollectionInfo, RunesCollectionInfoResponse, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const RUNE_ALPHA_ENDPOINT = 'https://api2.runealpha.xyz';
+const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz';
 
 export class RunesService extends BaseApiRequestStrategy {
   private constructor () {
@@ -29,7 +29,7 @@ export class RunesService extends BaseApiRequestStrategy {
     }
   }
 
-  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RuneInfoByAddress> {
+  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddress> {
     return this.addRequest(async () => {
       const url = this.getUrl(isTestnet, `address/${address}/runes`);
       const rs = await getRequest(url, params);
@@ -39,7 +39,7 @@ export class RunesService extends BaseApiRequestStrategy {
         throw new SWError('RuneScanService.getAddressRunesInfo', await rs.text());
       }
 
-      return (await rs.json()) as RuneInfoByAddress;
+      return (await rs.json()) as RunesInfoByAddressResponse;
     }, 0);
   }
 
@@ -53,7 +53,7 @@ export class RunesService extends BaseApiRequestStrategy {
         throw new SWError('RuneScanService.getRuneCollectionsByBatch', await rs.text());
       }
 
-      return (await rs.json()) as RunesCollectionInfo;
+      return (await rs.json()) as RunesCollectionInfoResponse;
     }, 0);
   }
 

@@ -42,13 +42,10 @@ const Component: React.FC<Props> = (props: Props) => {
       className={CN('account-item-with-name', props.className)}
       leftItem={isAll
         ? <AvatarGroup accounts={accounts} />
-        : (
-          <AccountProxyAvatar
-            size={24}
-            value={proxyId}
-          />
-        )
-      }
+        : <AccountProxyAvatar
+          size={24}
+          value={proxyId}
+          />}
       middleItem={(
         <div className={CN('account-item-content-wrapper', `direction-${direction}`)}>
           <div className={'account-item-name'}>{isAll ? t('All accounts') : (accountName || toShort(address, addressPreLength, addressSufLength))}</div>

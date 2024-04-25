@@ -27,7 +27,6 @@ function Component (
   { balanceValue,
     className = '',
     isShrink,
-    isSupportBuyTokens,
     onClickBack,
     onOpenBuyTokens,
     onOpenReceive,
@@ -103,7 +102,7 @@ function Component (
           />
           <div className={'__button-space'} />
           <Button
-            disabled={!isSupportBuyTokens}
+            disabled={true}
             icon={(
               <Icon
                 phosphorIcon={ShoppingCartSimple}

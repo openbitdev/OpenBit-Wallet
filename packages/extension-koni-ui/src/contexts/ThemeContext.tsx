@@ -268,6 +268,12 @@ const GlobalStyle = createGlobalStyle<ThemeProps>(({ theme }) => {
       '&.-disabled, &:disabled': {
         color: token.colorTextDark5
       }
+    },
+
+    // .ant-sw-avatar
+
+    '.ant-sw-avatar': {
+      borderColor: token.colorSecondary
     }
   });
 });

@@ -64,13 +64,12 @@ function Component (props: Props): React.ReactElement<Props> {
       <div className={CN(props.className)}>
         <div className='__item-left-part'>
           <AccountProxyAvatar
-            size={40}
+            size={24}
             value={accountProxy.proxyId}
           />
         </div>
         <div className='__item-center-part'>
           <div className='__item-name'>{accountProxy.name}</div>
-          <div className='__item-address'>{accountProxy.name}</div>
         </div>
         <div className='__item-right-part'>
           <div className='__item-actions'>
@@ -143,9 +142,9 @@ const AccountProxySelectorItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
-    height: 68,
+    height: 52,
     background: token.colorBgSecondary,
-    padding: token.paddingSM,
+    paddingLeft: token.paddingSM,
     paddingRight: token.paddingXXS,
     borderRadius: token.borderRadiusLG,
     alignItems: 'center',

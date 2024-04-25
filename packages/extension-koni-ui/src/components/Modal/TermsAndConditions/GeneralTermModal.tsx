@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // eslint-disable-next-line header/header
-import { fetchStaticData } from '@subwallet/extension-base/utils/fetchStaticData';
 import { GENERAL_TERM_AND_CONDITION_MODAL } from '@subwallet/extension-koni-ui/constants';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -10,9 +9,10 @@ import { Button, Checkbox, Icon, ModalContext, SwModal, Typography } from '@subw
 import { CheckboxChangeEvent } from '@subwallet/react-ui/es/checkbox';
 import CN from 'classnames';
 import { ArrowCircleRight, CaretDown } from 'phosphor-react';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import styled from 'styled-components';
+import {staticDataRaw} from "@subwallet/extension-base/constants/staticData";
 
 interface Props extends ThemeProps {
   onOk: () => void
@@ -28,16 +28,16 @@ const Component = ({ className, onOk }: Props) => {
   const { inactiveModal } = useContext(ModalContext);
   const { t } = useTranslation();
 
-  const [staticData, setStaticData] = useState({} as StaticDataInterface);
+  const [staticData] = useState<StaticDataInterface>(staticDataRaw);
   const [isChecked, setIsChecked] = useState(false);
   const [isScrollEnd, setIsScrollEnd] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchStaticData<string>('term-and-condition', 'index.md', false)
-      .then((md) => setStaticData({ md }))
-      .catch((e) => console.log('fetch _termAndCondition error:', e));
-  }, []);
+  // useEffect(() => {
+  //   fetchStaticData<string>('term-and-condition', 'index.md', false)
+  //     .then((md) => setStaticData({ md }))
+  //     .catch((e) => console.log('fetch _termAndCondition error:', e));
+  // }, []);
 
   const onCheckedInput = useCallback((e: CheckboxChangeEvent) => {
     setIsChecked(e.target.checked);
@@ -73,7 +73,7 @@ const Component = ({ className, onOk }: Props) => {
         ref={scrollRef}
       >
         <Typography.Text>
-          <Markdown>{staticData && staticData.md}</Markdown>
+          <Markdown>{staticData.md}</Markdown>
         </Typography.Text>
         {!isScrollEnd && <Button
           className={'term-body-caret-button'}
@@ -89,7 +89,7 @@ const Component = ({ className, onOk }: Props) => {
           checked={isChecked}
           className={'term-footer-checkbox'}
           onChange={onCheckedInput}
-        >{t('I understand and agree to the Terms of Use, which apply to my use of SubWallet and all of its feature')}</Checkbox>
+        >{t('I understand and agree to the Terms of Use, which apply to my use of OpenBit and all of its feature')}</Checkbox>
         <div className={'term-footer-button-group'}>
           <Button
             block={true}

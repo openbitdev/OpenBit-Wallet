@@ -11,7 +11,7 @@ import { Button, Form, Icon, Input } from '@subwallet/react-ui';
 import { wordlists } from 'bip39';
 import CN from 'classnames';
 import { Eye, EyeSlash, FileArrowDown } from 'phosphor-react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { ClipboardEventHandler, useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 type Props = ThemeProps;
@@ -75,6 +75,32 @@ const Component: React.FC<Props> = ({ className }: Props) => {
     }
 
     setDisabled(empty || error);
+  }, [form]);
+
+  const allPhraseNumber = useMemo(() => {
+    return phraseNumberItems.map((item) => item.value);
+  }, [phraseNumberItems]);
+
+  const onPasteData: ClipboardEventHandler<HTMLInputElement> = useCallback((event) => {
+    const value = event.clipboardData.getData('text');
+
+    const data = value.trim().split(' ');
+
+    if (data.length > 1) {
+      event.preventDefault();
+    } else {
+      return;
+    }
+
+    const wordCount = String(data.length);
+
+    if (allPhraseNumber.includes(wordCount)) {
+      try {
+        form.setFieldValue('phraseNumber', wordCount);
+      } catch (error) {
+        console.error('Error updating phraseNumber field:', error);
+      }
+    }
   }, [form]);
 
   const onFinish: FormCallbacks<FormState>['onFinish'] = useCallback((values: FormState) => {
@@ -169,7 +195,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
       >
         <div className='container'>
           <div className='description'>
-            {t('To import an existing account, please enter seed phrase.')}
+            {t('Enter seed phrase to import an existing account')}
           </div>
           <Form
             className='form-container form-space-xs'
@@ -226,7 +252,9 @@ const Component: React.FC<Props> = ({ className }: Props) => {
                           formName={formName}
                           hideText={!showSeed}
                           index={index}
+                          onPasteData = {onPasteData}
                           prefix={fieldNamePrefix}
+
                         />
                       </Form.Item>
                     );

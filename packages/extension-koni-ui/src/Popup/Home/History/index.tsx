@@ -166,6 +166,11 @@ function filterDuplicateItems (items: TransactionHistoryItem[]): TransactionHist
   return result;
 }
 
+const PROCESSING_STATUSES: ExtrinsicStatus[] = [
+  ExtrinsicStatus.QUEUED,
+  ExtrinsicStatus.SUBMITTING,
+  ExtrinsicStatus.PROCESSING
+];
 const modalId = HISTORY_DETAIL_MODAL;
 const DEFAULT_ITEMS_COUNT = 20;
 const NEXT_ITEMS_COUNT = 10;
@@ -363,7 +368,17 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [currentItemDisplayCount, setCurrentItemDisplayCount] = useState<number>(DEFAULT_ITEMS_COUNT);
 
   const getHistoryItems = useCallback((count: number) => {
-    return Object.values(historyMap).filter(filterFunction).sort((a, b) => (b.time - a.time)).slice(0, count);
+    return Object.values(historyMap).filter(filterFunction)
+      .sort((a, b) => {
+        if (PROCESSING_STATUSES.includes(a.status) && !PROCESSING_STATUSES.includes(b.status)) {
+          return -1;
+        } else if (PROCESSING_STATUSES.includes(b.status) && !PROCESSING_STATUSES.includes(a.status)) {
+          return 1;
+        } else {
+          return b.time - a.time;
+        }
+      })
+      .slice(0, count);
   }, [filterFunction, historyMap]);
 
   const [historyItems, setHistoryItems] = useState<TransactionHistoryDisplayItem[]>(getHistoryItems(DEFAULT_ITEMS_COUNT));
@@ -450,8 +465,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   );
 
   const groupBy = useCallback((item: TransactionHistoryItem) => {
+    if (PROCESSING_STATUSES.includes(item.status)) {
+      return t('Processing');
+    }
+
     return formatHistoryDate(item.time, language, 'list');
-  }, [language]);
+  }, [language, t]);
 
   const groupSeparator = useCallback((group: TransactionHistoryItem[], idx: number, groupLabel: string) => {
     return (
@@ -675,7 +694,7 @@ const History = styled(Component)<Props>(({ theme: { token } }: Props) => {
         left: 0,
         right: 0,
         position: 'absolute',
-        background: 'linear-gradient(180deg, rgba(76, 234, 172, 0.10) 0%, rgba(76, 234, 172, 0.00) 94.17%)'
+        background: 'linear-gradient(180deg, rgba(236, 208, 51, 0.10) 0%, rgba(236, 208, 51, 0.00) 94.17%)'
       }
     },
 

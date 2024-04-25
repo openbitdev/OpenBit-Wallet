@@ -19,27 +19,32 @@ export interface BitcoinAddressSummaryInfo {
   }
 }
 
-export interface RunesByAddressResponse {
+// todo: combine RunesByAddressResponse & RunesCollectionInfoResponse
+
+export interface RunesInfoByAddressResponse {
   statusCode: number;
-  data: RunesByAddressFetchedData
+  data: RunesInfoByAddressFetchedData
 }
 
-interface RunesByAddressFetchedData {
+interface RunesInfoByAddressFetchedData {
   limit: number,
   offset: number,
   total: number,
-  runes: RuneInfoByAddress[]
+  runes: RunesInfoByAddress[]
 }
 
-export interface RuneInfoByAddress {
+// todo: check is_hot and turbo and cenotaph attributes meaning in RuneInfoByAddress
+
+export interface RunesInfoByAddress {
   amount: string,
-  amount_decimal: string,
   address: string,
   rune_id: string,
   rune: {
-    rune_id: string,
     rune: string,
+    rune_name: string,
     divisibility: number,
+    premine: string,
+    spacers: string,
     symbol: string
   }
 }
@@ -59,54 +64,8 @@ interface RunesCollectionInfoFetchedData {
 export interface RunesCollectionInfo {
   rune_id: string,
   rune: string,
-}
-
-export interface BitcoinTransferItem {
-  txid: string;
-  version: number;
-  locktime: number;
-  vin: {
-    txid: string;
-    vout: number;
-    prevout: {
-      scriptpubkey: string;
-      scriptpubkey_asm: string;
-      scriptpubkey_type: string;
-      scriptpubkey_address: string;
-      value: number;
-    };
-    scriptsig: string;
-    scriptsig_asm: string;
-    witness: string[];
-    is_coinbase: boolean;
-    sequence: number;
-  }[];
-  vout: {
-    scriptpubkey: string;
-    scriptpubkey_asm: string;
-    scriptpubkey_type: string;
-    scriptpubkey_address: string;
-    value: number;
-  }[];
-  size: number;
-  weight: number;
-  fee: string;
-  status: {
-    confirmed: boolean;
-    block_height: number;
-    block_hash: string;
-    block_time: number;
-  }
-}
-
-export interface TransfersListResponse {
-  count?: number,
-  transfers: null | BitcoinTransferItem[]
-}
-
-export type RequestBlockRange = {
-  from: number | null,
-  to: number | null
+  rune_name: string,
+  divisibility: string
 }
 
 export interface BlockStreamUtxo {

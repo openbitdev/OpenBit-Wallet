@@ -250,7 +250,7 @@ const Component: React.FC<Props> = (props: Props) => {
                   weight='fill'
                 />
               )}
-              name={t('Account Addresses')}
+              name={t('Account addresses')}
               rightItem={(
                 <Icon
                   customSize={'20px'}

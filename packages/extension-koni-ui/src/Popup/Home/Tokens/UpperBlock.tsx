@@ -146,6 +146,7 @@ function Component (
         />
         <div className={'__button-space'} />
         <Button
+          disabled={true}
           icon={
             <Icon
               phosphorIcon={ShoppingCartSimple}

@@ -49,6 +49,7 @@ const AccountProxySelectorAllItem = styled(Component)<Props>(({ theme }) => {
   const { token } = theme as Theme;
 
   return {
+    height: 52,
     background: token.colorBgSecondary,
     padding: token.paddingSM,
     paddingRight: token.paddingXXS,

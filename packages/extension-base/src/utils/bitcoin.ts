@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
-import { BitcoinFeeInfo, BitcoinFeeRate, DetermineUtxosForSpendArgs, FeeOption, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
+import { BitcoinFeeInfo, BitcoinFeeRate, BitcoinTx, DetermineUtxosForSpendArgs, FeeOption, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { BitcoinAddressType } from '@subwallet/keyring/types';
 import { BtcSizeFeeEstimator, getBitcoinAddressInfo, validateBitcoinAddress } from '@subwallet/keyring/utils';
 import BigN from 'bignumber.js';
@@ -201,4 +201,16 @@ export function determineUtxosForSpend ({ amount,
     size: sizeInfo.txVBytes,
     fee
   };
+}
+
+// https://github.com/leather-wallet/extension/blob/dev/src/app/query/bitcoin/address/utxos-by-address.hooks.ts
+export function filterOutPendingTxsUtxos (address: string, bitcoinTx: BitcoinTx[], utxos: UtxoResponseItem[]): UtxoResponseItem[] {
+  const pendingInputs = bitcoinTx.filter((tx) => !tx.status.confirmed).flatMap((tx) => tx.vin.map((input) => input));
+
+  return utxos.filter(
+    (utxo) =>
+      !pendingInputs.find(
+        (input) => input.prevout.scriptpubkey_address === address && input.txid === utxo.txid
+      )
+  );
 }

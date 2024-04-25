@@ -3,13 +3,13 @@
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
 import { ChainType, ExtrinsicStatus, ExtrinsicType, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
-import { BitcoinTransferItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinTx } from '@subwallet/extension-base/types';
 
-function isSender (address: string, transferItem: BitcoinTransferItem) {
+function isSender (address: string, transferItem: BitcoinTx) {
   return transferItem.vin.some((i) => i.prevout.scriptpubkey_address === address);
 }
 
-export function parseBitcoinTransferData (address: string, transferItem: BitcoinTransferItem, chainInfo: _ChainInfo): TransactionHistoryItem {
+export function parseBitcoinTransferData (address: string, transferItem: BitcoinTx, chainInfo: _ChainInfo): TransactionHistoryItem {
   const chainType = ChainType.BITCOIN;
   const nativeDecimals = chainInfo.bitcoinInfo?.decimals || 8;
   const nativeSymbol = chainInfo.bitcoinInfo?.symbol || '';
@@ -30,26 +30,26 @@ export function parseBitcoinTransferData (address: string, transferItem: Bitcoin
   return {
     address,
     origin: 'blockstream',
-    time: transferItem.status.block_time * 1000,
+    time: (transferItem.status.block_time || 0) * 1000,
     chainType,
     type: ExtrinsicType.TRANSFER_BALANCE,
     extrinsicHash: transferItem.txid,
     chain: chainInfo.slug,
     direction: address === sender ? TransactionDirection.SEND : TransactionDirection.RECEIVED,
     fee: {
-      value: transferItem.fee,
+      value: `${transferItem.fee}`,
       decimals: nativeDecimals,
       symbol: nativeSymbol
     },
     from: sender,
     to: receiver,
-    blockNumber: transferItem.status.block_height,
-    blockHash: transferItem.status.block_hash,
+    blockNumber: transferItem.status.block_height || 0,
+    blockHash: transferItem.status.block_hash || '',
     amount: {
       value: `${amountValue}`,
       decimals: nativeDecimals,
       symbol: nativeSymbol
     },
-    status: transferItem.status.confirmed ? ExtrinsicStatus.SUCCESS : ExtrinsicStatus.FAIL
+    status: transferItem.status.confirmed ? ExtrinsicStatus.SUCCESS : ExtrinsicStatus.PROCESSING
   };
 }

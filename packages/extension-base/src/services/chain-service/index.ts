@@ -784,12 +784,12 @@ export class ChainService {
     const allAddresses = this.keyringService.accounts;
     const hasRuneAddresses = Object.keys(allAddresses).filter((address) => getKeypairTypeByAddress(address) === 'bitcoin-86');
 
-    await Promise.all(hasRuneAddresses.map(async (address) => {
+    await Promise.all(hasRuneAddresses.map(async (address) => { // noted: fake addresses here to enable tokens they have
       const runes = await bitcoinApi.api.getRunes(address);
 
       runes.forEach((rune) => {
         const amount = rune.amount;
-        const runeName = rune.rune.rune;
+        const runeName = rune.rune.rune_name;
         const runeId = rune.rune_id;
 
         const assetSlug = `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${runeName}-${runeId}`;
@@ -1095,10 +1095,10 @@ export class ChainService {
           runes.forEach((rune) => {
             const chainAssetItem = {
               originChain: `${_BITCOIN_CHAIN_SLUG}`,
-              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune}-${rune.rune_id}`,
+              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
               name: `${_BITCOIN_NAME}`,
-              symbol: rune.rune,
-              decimals: 0,
+              symbol: rune.rune_name,
+              decimals: parseInt(rune.divisibility) || 0,
               priceId: null,
               minAmount: '0',
               assetType: _AssetType.LOCAL,

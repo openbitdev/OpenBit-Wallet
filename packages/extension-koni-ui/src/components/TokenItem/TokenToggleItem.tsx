@@ -5,6 +5,7 @@ import { _ChainAsset } from '@subwallet/chain-list/types';
 import { AssetSetting } from '@subwallet/extension-base/background/KoniTypes';
 import TokenItemFooter from '@subwallet/extension-koni-ui/Popup/Settings/Tokens/component/TokenItemFooter';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { Logo } from '@subwallet/react-ui';
 import TokenItem from '@subwallet/react-ui/es/web3-block/token-item';
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +38,20 @@ const Component: React.FC<Props> = (props: Props) => {
       dividerPadding={56}
       isShowSubLogo={true}
       key={tokenInfo.slug}
+      leftItem={
+        tokenInfo.metadata?.runeId
+          ? (
+            <Logo
+              isShowSubLogo
+              shape={'squircle'}
+              size={36}
+              subLogoShape={'circle'}
+              subNetwork={tokenInfo.originChain}
+              token={'rune'}
+            />
+          )
+          : undefined
+      }
       name={tokenInfo.symbol}
       rightItem={renderTokenRightItem(tokenInfo)}
       subName={''}
@@ -58,7 +73,7 @@ const TokenToggleItem = styled(Component)<Props>(({ theme: { token } }: Props) =
       }
     },
     '.ant-web3-block-middle-item': {
-      maxWidth: 191,
+      paddingRight: token.paddingSM,
       overflow: 'hidden'
     },
     '.ant-network-item-name': {

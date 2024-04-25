@@ -85,7 +85,7 @@ const Component: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div className='description'>
-          {t('We do not keep a copy of your password. If you’re having trouble unlocking your account, you will need to reset your wallet using the Secret Recovery Phrase')}
+          {t('We do not keep a copy of your password. If you’re having trouble unlocking your account, you will need to reset your wallet using the seed phrase or other backup methods')}
         </div>
         <div className='footer-area'>
           <Button

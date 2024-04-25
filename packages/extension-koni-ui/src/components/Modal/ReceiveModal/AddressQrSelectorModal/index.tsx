@@ -6,6 +6,7 @@ import { AddressQrSelectorItem } from '@subwallet/extension-koni-ui/components/M
 import { useGetAccountProxyByProxyId, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { KeypairType } from '@subwallet/keyring/types';
 import { Icon, ModalContext, SwList, SwModal } from '@subwallet/react-ui';
 import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
 import { CaretLeft, X } from 'phosphor-react';
@@ -25,16 +26,20 @@ type ItemInfo = {
   addressTypeName: string;
   address: string;
   order: number;
+  type: KeypairType;
 }
 
 function getItemInfo (address: string): ItemInfo {
   const result: ItemInfo = {
     addressTypeName: 'Unknown',
     address,
-    order: 99
+    order: 99,
+    type: 'sr25519'
   };
 
   const type = getKeypairTypeByAddress(address);
+
+  result.type = type;
 
   if (type === 'ethereum') {
     result.logoKey = 'ethereum';
@@ -50,25 +55,25 @@ function getItemInfo (address: string): ItemInfo {
 
   if (type === 'bitcoin-84') {
     result.logoKey = 'bitcoin';
-    result.addressTypeName = 'Bitcoin (BIP84)';
+    result.addressTypeName = 'Bitcoin';
     result.order = 2;
   }
 
   if (type === 'bitcoin-86') {
-    result.logoKey = 'bitcoin';
-    result.addressTypeName = 'Bitcoin (BIP86)';
+    result.logoKey = 'ordinal_rune';
+    result.addressTypeName = 'Ordinal, Runes';
     result.order = 3;
   }
 
   if (type === 'bittest-44') {
     result.logoKey = 'bitcoin';
-    result.addressTypeName = 'Bitcoin testnet (BIP44)';
+    result.addressTypeName = 'Bitcoin testnet';
     result.order = 4;
   }
 
   if (type === 'bittest-84') {
     result.logoKey = 'bitcoin';
-    result.addressTypeName = 'Bitcoin testnet (BIP84)';
+    result.addressTypeName = 'Bitcoin testnet';
     result.order = 5;
   }
 
@@ -98,7 +103,9 @@ function Component ({ accountProxyId, className = '', modalId, onBack }: Props):
       return [];
     }
 
-    return accountProxy.accounts.map((a) => getItemInfo(a.address)).sort((a, b) => a.order - b.order);
+    return accountProxy.accounts.map((a) => getItemInfo(a.address)).filter((i) => {
+      return ['ethereum', 'bitcoin-84', 'bitcoin-86', 'bittest-84'].includes(i.type);
+    }).sort((a, b) => a.order - b.order);
   }, [accountProxy]);
 
   const searchFunction = useCallback((item: ItemInfo, searchText: string) => {

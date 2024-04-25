@@ -8,7 +8,7 @@ import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/const
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType, filterOutPendingTxsUtxos } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
@@ -97,7 +97,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
     });
 
     // get runeId -> BalanceItem[] mapping
-    await Promise.all(addresses.map(async (address) => {
+    await Promise.all(addresses.map(async (address) => { // noted: fake address has runes here to get balance
       try {
         const runes = await bitcoinApi.api.getRunes(address);
 
@@ -105,7 +105,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
           const runeId = rune.rune_id;
 
           const item = {
-            address: address,
+            address: address, // noted: fake address display on wallet here to show balance
             tokenSlug: runeIdToSlugMap[runeId],
             free: rune.amount,
             locked: '0',
@@ -141,13 +141,22 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
   };
 }
 
-async function getAddressesSummaryInfo (bitcoinApi: _BitcoinApi, addresses: string[]) {
+async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
   return await Promise.all(addresses.map(async (address) => {
     try {
-      const accountSummaryInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
+      const utxos = await bitcoinApi.api.getUtxos(address);
+      const txs = await bitcoinApi.api.getAddressTransaction(address);
 
-      // todo: update balance interface
-      return new BigN(accountSummaryInfo.chain_stats.funded_txo_sum).minus(accountSummaryInfo.chain_stats.spent_txo_sum).toString();
+      // todo: (4-18-24 17:58) need filter inscription too
+      const filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
+
+      let balanceValue = new BigN(0);
+
+      filteredUtxos.forEach((utxo) => {
+        balanceValue = balanceValue.plus(utxo.value);
+      });
+
+      return balanceValue.toString();
     } catch (error) {
       console.log('Error while fetching Bitcoin balances', error);
 
@@ -160,7 +169,7 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, as
   const nativeSlug = _getChainNativeTokenSlug(chainInfo);
 
   const getBalance = () => {
-    getAddressesSummaryInfo(bitcoinApi, addresses)
+    getBitcoinBalance(bitcoinApi, addresses)
       .then((balances) => {
         return balances.map((balance, index): BalanceItem => {
           return {

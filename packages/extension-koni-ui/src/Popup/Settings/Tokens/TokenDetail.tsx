@@ -228,7 +228,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             <div className={'token_detail__header_icon_wrapper'}>
               <Logo
                 size={112}
-                token={tokenInfo.slug.toLowerCase()}
+                token={tokenInfo.metadata?.runeId ? 'rune' : tokenInfo.slug.toLowerCase()}
               />
             </div>
 
@@ -349,7 +349,8 @@ const TokenDetail = styled(Component)<Props>(({ theme: { token } }: Props) => {
       fontWeight: token.headingFontWeight,
       textAlign: 'center',
       fontSize: token.fontSizeHeading3,
-      color: token.colorText
+      color: token.colorText,
+      wordBreak: 'break-word'
     },
 
     '.token_detail__header_icon_wrapper': {

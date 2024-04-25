@@ -210,7 +210,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
               <Checkbox
                 className={'checkbox'}
               >
-                I understand that SubWallet can’t recover the password. <a
+                I understand that OpenBit can’t recover the password. <a
                   href={TERMS_OF_SERVICE_URL}
                   rel='noreferrer'
                   style={{ textDecoration: 'underline' }}
@@ -241,7 +241,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
               />
               <AlertBox
                 description={t('The password is stored securely on your device. We will not be able to recover it for you, so make sure you remember it!')}
-                title={t('Can I recover a password?')}
+                title={t('Can I recover my password?')}
               />
             </div>
           </SwModal>

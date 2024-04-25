@@ -144,6 +144,12 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { extend
       justifyContent: 'center',
       color: token.colorTextLight4
     },
+    '.ant-balance-item-name': {
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      paddingRight: token.paddingXS
+    },
     '.ant-balance-item-content:hover': {
       '.__icon-wrapper': {
         color: token.colorTextLight2

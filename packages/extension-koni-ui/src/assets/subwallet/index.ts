@@ -14,7 +14,10 @@ const SwLogosMap: Record<string, string> = {
   moonpay: DefaultLogosMap.moonpay,
   banxa: DefaultLogosMap.banxa,
   coinbase: DefaultLogosMap.coinbase,
-  stellaswap: DefaultLogosMap.stellaswap
+  stellaswap: DefaultLogosMap.stellaswap,
+  rune: DefaultLogosMap.rune,
+  ordinal_rune: DefaultLogosMap.ordinal_rune,
+  default_placeholder: DefaultLogosMap.default_placeholder
 };
 
 export default SwLogosMap;

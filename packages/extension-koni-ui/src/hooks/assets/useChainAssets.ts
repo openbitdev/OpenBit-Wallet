@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset, _ChainStatus } from '@subwallet/chain-list/types';
-import { _isAssetFungibleToken, _isChainEvmCompatible, _isNativeToken, _isSubstrateChain } from '@subwallet/extension-base/services/chain-service/utils';
-import { BITCOIN_CHAINS, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
+import { _isAssetFungibleToken, _isChainEvmCompatible, _isSubstrateChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -73,10 +73,6 @@ export default function useChainAssets ({ chainTypes, isActive = false, isActive
       const isTokenFungible = _isAssetFungibleToken(asset);
 
       if (!(isTokenFungible && SUPPORT_CHAINS.includes(asset.originChain))) {
-        return false;
-      }
-
-      if (!(BITCOIN_CHAINS.includes(asset.originChain) || _isNativeToken(asset))) {
         return false;
       }
 

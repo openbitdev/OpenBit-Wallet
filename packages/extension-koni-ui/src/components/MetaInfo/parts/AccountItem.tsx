@@ -1,9 +1,9 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
 import { AvatarGroup } from '@subwallet/extension-koni-ui/components/Account';
 import { BaseAccountInfo } from '@subwallet/extension-koni-ui/components/Account/Info/AvatarGroup';
-import { Avatar } from '@subwallet/extension-koni-ui/components/Avatar';
 import { useGetAccountByAddress, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import { findNetworkJsonByGenesisHash, isAccountAll, reformatAddress, toShort } from '@subwallet/extension-koni-ui/utils';
 import CN from 'classnames';
@@ -58,7 +58,7 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
         </div>
       </>
     );
-  }, [account?.name, accountName, address]);
+  }, [account?.name, accountName]);
 
   const isAll = useMemo(() => isAccountAll(address), [address]);
 
@@ -86,10 +86,10 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
               )
               : (
                 <>
-                  <Avatar
+                  <AccountProxyAvatar
                     className={'__account-avatar'}
                     size={24}
-                    value={address}
+                    value={account?.proxyId}
                   />
                   <div className={'__account-name ml-xs'}>
                     {name || toShort(address)}

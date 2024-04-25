@@ -46,12 +46,10 @@ const Component: React.FC<AccountItemBaseProps> = (props: AccountItemBaseProps) 
         avatarIdentPrefix={0}
         {...props}
         address={avatarAddress ?? ''}
-        leftItem={(
-          <AccountProxyAvatar
-            size={24}
-            value={proxyId}
-          />
-        )}
+        leftItem={<AccountProxyAvatar
+          size={24}
+          value={proxyId}
+        />}
         onPressItem={onClick}
         rightItem={_rightItem}
       />

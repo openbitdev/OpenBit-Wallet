@@ -5,7 +5,7 @@ import { GeneralEmptyList } from '@subwallet/extension-koni-ui/components';
 import { RECEIVE_QR_MODAL, RECEIVE_TOKEN_SELECTOR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ReceiveTokenItemType, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { ModalContext, SwList, SwModal } from '@subwallet/react-ui';
+import { Logo, ModalContext, SwList, SwModal } from '@subwallet/react-ui';
 import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import styled from 'styled-components';
@@ -67,8 +67,25 @@ function Component ({ className = '', items, onSelectItem }: Props): React.React
       <TokenSelectionItem
         address={item.address}
         className={'token-selector-item'}
-        item={item}
+        item={item.isRune
+          ? ({
+            ...item,
+            symbol: 'Runes'
+          })
+          : item}
         key={item.slug}
+        leftItem={!item.isRune
+          ? undefined
+          : (
+            <Logo
+              isShowSubLogo
+              network={'rune'}
+              shape={'squircle'}
+              size={40}
+              subLogoShape={'circle'}
+              subNetwork={item.originChain}
+            />
+          )}
         onClickQrBtn={onClickQrBtn(item)}
         onPressItem={onClickQrBtn(item)}
       />

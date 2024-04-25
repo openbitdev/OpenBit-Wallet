@@ -3,15 +3,13 @@
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
 import { _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
-import { _getChainSubstrateAddressPrefix } from '@subwallet/extension-base/services/chain-service/utils';
 import { useFetchChainInfo, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import reformatAddress from '@subwallet/extension-koni-ui/utils/account/reformatAddress';
 import { Button, Icon } from '@subwallet/react-ui';
 import TokenItem, { TokenItemProps } from '@subwallet/react-ui/es/web3-block/token-item';
 import classNames from 'classnames';
 import { Copy, QrCode } from 'phosphor-react';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import styled from 'styled-components';
 
@@ -28,17 +26,6 @@ const Component = (props: Props) => {
   const chainInfo = useFetchChainInfo(chain || '');
   const notify = useNotification();
   const { t } = useTranslation();
-
-  const formattedAddress = useMemo(() => {
-    const networkPrefix = _getChainSubstrateAddressPrefix(chainInfo);
-    const isEvmChain = !!chainInfo.evmInfo;
-
-    if (_MANTA_ZK_CHAIN_GROUP.includes(chainInfo.slug) && symbol?.startsWith(_ZK_ASSET_PREFIX)) { // TODO: improve this
-      return address || '';
-    }
-
-    return reformatAddress(address || '', networkPrefix, isEvmChain);
-  }, [address, chainInfo, symbol]);
 
   const _onCLickCopyBtn = useCallback((e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -58,13 +45,13 @@ const Component = (props: Props) => {
             <>
               <div className='token-info'>
                 <span>{symbol}</span>
-                { name && (
-                  <span className='__token-name'>
-                    &nbsp;(
-                    <span className='name'>{name}</span>
-                    )
-                  </span>
-                ) }
+                {/* { name && ( */}
+                {/*  <span className='__token-name'> */}
+                {/*    &nbsp;( */}
+                {/*    <span className='name'>{name}</span> */}
+                {/*    ) */}
+                {/*  </span> */}
+                {/* ) } */}
               </div>
               <div className={'__chain-name'}>
                 {chainInfo.name}
@@ -79,7 +66,7 @@ const Component = (props: Props) => {
         rightItem={
           (
             <>
-              <CopyToClipboard text={formattedAddress}>
+              <CopyToClipboard text={address || ''}>
                 <Button
                   icon={
                     <Icon

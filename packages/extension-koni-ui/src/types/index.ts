@@ -9,6 +9,7 @@ import { Icon as _PhosphorIcon, IconProps } from 'phosphor-react';
 import React from 'react';
 
 import { Theme as _Theme } from '../themes';
+import {KeypairType} from '@subwallet/keyring/types';
 
 export type Theme = _Theme;
 export type PhosphorIcon = _PhosphorIcon;
@@ -59,6 +60,9 @@ export interface SigData {
 
 export type ReceiveTokenItemType = _ChainAsset & {
   address: string;
+  addressType: KeypairType;
+  order: number;
+  isRune?: boolean;
 };
 
 export * from './account';

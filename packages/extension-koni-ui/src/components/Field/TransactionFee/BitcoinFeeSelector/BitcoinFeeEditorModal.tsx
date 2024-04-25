@@ -129,6 +129,34 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
     };
   }, [inactiveModal, modalId, onSelectOption]);
 
+  const convertTime = useCallback((milliseconds?: number): string => {
+    if (milliseconds !== undefined && milliseconds >= 0) {
+      const seconds = milliseconds / 1000;
+
+      const days = Math.floor(seconds / 86400); // 86400 seconds in a day
+      const hours = Math.floor((seconds % 86400) / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+
+      let timeString = '';
+
+      if (days > 0) {
+        timeString += `${days} ${days === 1 ? 'day' : 'days'}`;
+      }
+
+      if (hours > 0) {
+        timeString += ` ${hours} ${hours === 1 ? 'hr' : 'hrs'}`;
+      }
+
+      if (minutes > 0) {
+        timeString += ` ${minutes} ${minutes === 1 ? 'min' : 'mins'}`;
+      }
+
+      return timeString.trim() || '0 min'; // Return '0 minutes' if time is 0
+    } else {
+      return 'unknown time';
+    }
+  }, []);
+
   const renderOption = (o: BitcoinFeeOption) => {
     if (o.option === 'custom') {
       return null;
@@ -136,6 +164,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
 
     const feeRate = feeDetail.options[o.option].feeRate;
     const iconOption = IconMap[o.option];
+    const timeOption = feeDetail.options[o.option].time;
     const name = (() => {
       if (o.option === 'slow') {
         return t('Low');
@@ -146,18 +175,6 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       }
 
       return t('High');
-    })();
-
-    const time = (() => {
-      if (o.option === 'slow') {
-        return '~1 hour+';
-      }
-
-      if (o.option === 'average') {
-        return '~30 min';
-      }
-
-      return '~10 - 20min';
     })();
 
     return (
@@ -183,7 +200,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
             <div className={'__line-1'}>{name}&nbsp;<span className={'__label'}>- {feeRate}&nbsp;sats/vB</span></div>
             <div className={'__line-2'}>
               <div className={'__label'}>Time</div>
-              <div className={'__value'}>{time}</div>
+              <div className={'__value'}>~&nbsp;{convertTime(timeOption)}</div>
             </div>
             <div className={'__line-3'}>
               <div className={'__label'}>Fee</div>
