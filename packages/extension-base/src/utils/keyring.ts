@@ -79,9 +79,9 @@ export const MockAccountProxyMap = {
 };
 
 export function updateSubjectInfoWithMockAccount (subjectInfo: SubjectInfo) {
-  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BTC.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BTC;
-  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_RUNE.json.address] = MockAccountProxyMap.ACCOUNT_DEV_RUNE;
-  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_INS_1.json.address] = MockAccountProxyMap.ACCOUNT_DEV_INS_1;
+  // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BTC.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BTC;
+  // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_RUNE.json.address] = MockAccountProxyMap.ACCOUNT_DEV_RUNE;
+  // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_INS_1.json.address] = MockAccountProxyMap.ACCOUNT_DEV_INS_1;
   subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_INS_2.json.address] = MockAccountProxyMap.ACCOUNT_DEV_INS_2;
 }
 
@@ -90,9 +90,9 @@ export function keyringGetAccounts () {
 
   if (results.length) {
     results.push(
-      MockAccountProxyMap.ACCOUNT_DEV_BTC.json as unknown as KeyringAddress,
-      MockAccountProxyMap.ACCOUNT_DEV_RUNE.json as unknown as KeyringAddress,
-      MockAccountProxyMap.ACCOUNT_DEV_INS_1.json as unknown as KeyringAddress,
+      // MockAccountProxyMap.ACCOUNT_DEV_BTC.json as unknown as KeyringAddress,
+      // MockAccountProxyMap.ACCOUNT_DEV_RUNE.json as unknown as KeyringAddress,
+      // MockAccountProxyMap.ACCOUNT_DEV_INS_1.json as unknown as KeyringAddress,
       MockAccountProxyMap.ACCOUNT_DEV_INS_2.json as unknown as KeyringAddress
     );
   }
