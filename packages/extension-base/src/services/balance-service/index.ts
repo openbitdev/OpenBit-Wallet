@@ -11,6 +11,7 @@ import { EventItem, EventType } from '@subwallet/extension-base/services/event-s
 import DetectAccountBalanceStore from '@subwallet/extension-base/stores/DetectAccountBalance';
 import { BalanceItem, BalanceJson } from '@subwallet/extension-base/types';
 import { addLazy, createPromiseHandler, isAccountAll, PromiseHandler, waitTimeout } from '@subwallet/extension-base/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
@@ -399,14 +400,18 @@ export class BalanceService implements StoppableServiceInterface {
   public async autoEnableChains (addresses: string[]) {
     this.setBalanceDetectCache(addresses);
     const assetMap = this.state.chainService.getAssetRegistry();
-    const promiseList = addresses.map((address) => {
-      return this.state.subscanService.getMultiChainBalance(address)
-        .catch((e) => {
-          console.error(e);
+    const promiseList = addresses
+      .filter((address) => {
+        return ['ed25519', 'sr25519', 'ecdsa', 'ethereum'].includes(getKeypairTypeByAddress(address));
+      })
+      .map((address) => {
+        return this.state.subscanService.getMultiChainBalance(address)
+          .catch((e) => {
+            console.error(e);
 
-          return null;
-        });
-    });
+            return null;
+          });
+      });
 
     const needEnableChains: string[] = [];
     const needActiveTokens: string[] = [];
