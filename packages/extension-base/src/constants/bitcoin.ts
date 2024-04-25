@@ -11,3 +11,5 @@ export const BTC_DUST_AMOUNT: Record<BitcoinAddressType, number> = {
   [BitcoinAddressType.p2wpkh]: 294,
   [BitcoinAddressType.p2wsh]: 330
 };
+
+export const BITCOIN_DECIMAL = 8;

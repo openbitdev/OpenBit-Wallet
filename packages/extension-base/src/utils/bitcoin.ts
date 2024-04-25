@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
+import { BITCOIN_DECIMAL, BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { BitcoinFeeInfo, BitcoinFeeRate, BitcoinTx, DetermineUtxosForSpendArgs, FeeOption, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { BitcoinAddressType } from '@subwallet/keyring/types';
@@ -232,7 +232,7 @@ export async function getRuneTxsUtxos (bitcoinApi: _BitcoinApi, address: string)
     const txid = runeTx.txid;
     const runeOutput = runeTx.vout.find((vout) => !!vout.runeInject);
     const runeUtxoIndex = runeOutput ? runeOutput.n : undefined;
-    const runeUtxoValue = runeOutput ? runeOutput.value : undefined;
+    const runeUtxoValue = runeOutput ? applyBitcoinDecimal(runeOutput.value) : undefined;
 
     if (runeUtxoIndex && runeUtxoValue) {
       const item = {
@@ -269,4 +269,8 @@ export async function getInscriptionUtxos (bitcoinApi: _BitcoinApi, address: str
       value: parseInt(inscription.value)
     } as UtxoResponseItem;
   });
+}
+
+function applyBitcoinDecimal (valueBeforeDecimal: number) {
+  return valueBeforeDecimal * Math.pow(10, BITCOIN_DECIMAL);
 }
