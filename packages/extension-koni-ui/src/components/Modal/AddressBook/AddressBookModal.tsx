@@ -26,6 +26,7 @@ interface Props extends ThemeProps {
   addressPrefix?: number;
   onSelect: (val: string) => void;
   networkGenesisHash?: string;
+  addressBookFilter?: (addressJson: AbstractAddressJson) => boolean;
 }
 
 enum AccountGroup {
@@ -64,7 +65,7 @@ const checkLedger = (account: AccountJson, networkGenesisHash?: string): boolean
 };
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { addressPrefix, className, id, networkGenesisHash, onSelect, value = '' } = props;
+  const { addressBookFilter, addressPrefix, className, id, networkGenesisHash, onSelect, value = '' } = props;
 
   const { t } = useTranslation();
 
@@ -103,6 +104,10 @@ const Component: React.FC<Props> = (props: Props) => {
     const result: AccountItem[] = [];
 
     (!selectedFilters.length || selectedFilters.includes(AccountGroup.RECENT)) && recent.forEach((acc) => {
+      if (addressBookFilter && !addressBookFilter(acc)) {
+        return;
+      }
+
       const chains = acc.recentChainSlugs || [];
 
       if (chains.includes(chain)) {
@@ -113,12 +118,20 @@ const Component: React.FC<Props> = (props: Props) => {
     });
 
     (!selectedFilters.length || selectedFilters.includes(AccountGroup.CONTACT)) && contacts.forEach((acc) => {
+      if (addressBookFilter && !addressBookFilter(acc)) {
+        return;
+      }
+
       const address = isAddress(acc.address) ? reformatAddress(acc.address) : acc.address;
 
       result.push({ ...acc, address: address, group: AccountGroup.CONTACT });
     });
 
     (!selectedFilters.length || selectedFilters.includes(AccountGroup.WALLET)) && accounts.filter((acc) => !isAccountAll(acc.address)).forEach((acc) => {
+      if (addressBookFilter && !addressBookFilter(acc)) {
+        return;
+      }
+
       const address = isAddress(acc.address) ? reformatAddress(acc.address) : acc.address;
 
       if (checkLedger(acc, networkGenesisHash)) {
@@ -129,7 +142,7 @@ const Component: React.FC<Props> = (props: Props) => {
     return result
       .sort(funcSortByName)
       .sort((a, b) => getGroupPriority(b) - getGroupPriority(a));
-  }, [accounts, chain, contacts, networkGenesisHash, recent, selectedFilters]);
+  }, [accounts, addressBookFilter, chain, contacts, networkGenesisHash, recent, selectedFilters]);
 
   const searchFunction = useCallback((item: AccountItem, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();

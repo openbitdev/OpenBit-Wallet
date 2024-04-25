@@ -67,6 +67,7 @@ export interface AccountProxy {
   proxyId: string,
   name?: string,
   isMaster?: boolean,
+  isReadOnly?: boolean,
   accounts: AccountJson[]
 }
 

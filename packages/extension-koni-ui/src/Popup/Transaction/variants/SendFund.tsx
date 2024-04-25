@@ -3,7 +3,7 @@
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { ExtrinsicType, NotificationType } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountJson } from '@subwallet/extension-base/background/types';
+import { AbstractAddressJson, AccountJson } from '@subwallet/extension-base/background/types';
 import { _getAssetDecimals, _getOriginChainOfAsset, _getTokenMinAmount, _isAssetFungibleToken, _isChainEvmCompatible, _isNativeToken, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
@@ -285,11 +285,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.resolve();
     }
 
-    if (['bitcoin-44', 'bitcoin-84'].includes(addressType) && chain === 'bitcoin') {
+    if (['bitcoin-84'].includes(addressType) && chain === 'bitcoin') {
       return Promise.resolve();
     }
 
-    if (['bittest-44', 'bittest-84'].includes(addressType) && chain === 'bitcoinTestnet') {
+    if (['bittest-84'].includes(addressType) && chain === 'bitcoinTestnet') {
       return Promise.resolve();
     }
 
@@ -500,6 +500,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     form.submit();
   }, [assetInfo, chainValue, closeAlert, destChainValue, form, isTransferAll, openAlert, t]);
 
+  const addressBookFilter = useCallback((addressJson: AbstractAddressJson): boolean => {
+    const addressType = getKeypairTypeByAddress(addressJson.address);
+
+    return ['ethereum', 'bitcoin-84', 'bittest-84'].includes(addressType);
+  }, []);
+
   // TODO: Need to review
   // Auto fill logic
   useEffect(() => {
@@ -589,9 +595,13 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       }
     }
 
+    if (account.isReadOnly) {
+      return false;
+    }
+
     const accountType = account.type || getKeypairTypeByAddress(account.address);
 
-    return ['ethereum', 'bitcoin-44', 'bitcoin-84', 'bittest-44', 'bittest-84'].includes(accountType);
+    return ['ethereum', 'bitcoin-84', 'bittest-84'].includes(accountType);
   }, [fromProxyId]);
 
   useEffect(() => {
@@ -669,6 +679,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             validateTrigger='onBlur'
           >
             <AddressInput
+              addressBookFilter={addressBookFilter}
               addressPrefix={destChainNetworkPrefix}
               allowDomain={true}
               chain={destChainValue}
