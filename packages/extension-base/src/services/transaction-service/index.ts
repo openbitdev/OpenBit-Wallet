@@ -271,8 +271,6 @@ export default class TransactionService {
     const isInternal = true;
     const transactionId = transaction.id || getTransactionId(transaction.chainType, transaction.chain, isInternal, isWalletConnectRequest(transaction.id));
 
-    console.log(transactionId);
-
     return {
       ...transaction,
       createdAt: new Date().getTime(),
@@ -283,18 +281,15 @@ export default class TransactionService {
       status: ExtrinsicStatus.QUEUED,
       isInternal: false,
       id: transactionId,
-      extrinsicHash: ''
+      extrinsicHash: transactionId
     } as SWTransaction;
   }
 
   public async addTransaction (inputTransaction: SWTransactionInput): Promise<TransactionEmitter> {
     const transactions = this.transactions;
 
-    console.log('addTransaction268', transactions);
     // Fill transaction default info
     const transaction = this.fillTransactionDefaultInfo(inputTransaction);
-
-    console.log('transaction390', transactions);
 
     // Add Transaction
     transactions[transaction.id] = transaction;
@@ -381,10 +376,8 @@ export default class TransactionService {
       throw new Error('Unsupported chain type');
     }
 
-    console.log('emmiter483', emitter);
     const { eventsHandler } = transaction;
 
-    console.log('sendtransactions');
     emitter.on('signed', (data: TransactionEventResponse) => {
       this.onSigned(data);
     });
