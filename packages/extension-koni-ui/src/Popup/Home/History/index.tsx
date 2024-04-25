@@ -113,11 +113,6 @@ function getDisplayData (item: TransactionHistoryItem, nameMap: Record<string, s
     displayData.typeName = nameMap.submitting;
   }
 
-  if (item.status === ExtrinsicStatus.UNCONFIRMED) {
-    displayData.className = '-processing';
-    displayData.typeName = nameMap.unconfirmed;
-  }
-
   return displayData;
 }
 
@@ -134,9 +129,7 @@ enum FilterValue {
   CROWDLOAN = 'crowdloan',
   SUCCESSFUL = 'successful',
   FAILED = 'failed',
-  EARN = 'earn',
-  UNCONFIRMED = 'unconfirmed',
-  CONFIRMED = 'confirmed'
+  EARN = 'earn'
 }
 
 function getHistoryItemKey (item: Pick<TransactionHistoryItem, 'chain' | 'address' | 'extrinsicHash' | 'transactionId'>) {
@@ -241,14 +234,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           if (YIELD_EXTRINSIC_TYPES.includes(item.type)) {
             return true;
           }
-        } else if (filter === FilterValue.CONFIRMED) {
-          if (item.status === ExtrinsicStatus.CONFIRMED) {
-            return true;
-          }
-        } else if (filter === FilterValue.UNCONFIRMED) {
-          if (item.status === ExtrinsicStatus.UNCONFIRMED) {
-            return true;
-          }
         }
       }
 
@@ -261,9 +246,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       { label: t('Send token'), value: FilterValue.SEND },
       { label: t('Receive token'), value: FilterValue.RECEIVED },
       { label: t('Successful'), value: FilterValue.SUCCESSFUL },
-      { label: t('Failed'), value: FilterValue.FAILED },
-      { label: t('Confirmed'), value: FilterValue.CONFIRMED },
-      { label: t('Unconfirmed'), value: FilterValue.UNCONFIRMED }
+      { label: t('Failed'), value: FilterValue.FAILED }
     ];
   }, [t]);
 
@@ -275,12 +258,11 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }, {} as Record<string, AccountJson>);
   }, [accounts]);
 
-  const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'submitting' | 'processing' | 'timeout' | 'send' | 'received' | 'unconfirmed', string> => ({
+  const typeNameMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'submitting' | 'processing' | 'timeout' | 'send' | 'received', string> => ({
     default: t('Transaction'),
     submitting: t('Submitting...'),
     processing: t('Processing...'),
     timeout: t('Time-out'),
-    unconfirmed: t('Unconfirmed'),
     send: t('Send'),
     received: t('Receive'),
     [ExtrinsicType.TRANSFER_BALANCE]: t('Send token'),
@@ -392,10 +374,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           return -1;
         } else if (PROCESSING_STATUSES.includes(b.status) && !PROCESSING_STATUSES.includes(a.status)) {
           return 1;
-        } else if (a.status === ExtrinsicStatus.UNCONFIRMED && b.status !== ExtrinsicStatus.UNCONFIRMED) {
-          return -1;
-        } else if (b.status === ExtrinsicStatus.UNCONFIRMED && a.status !== ExtrinsicStatus.UNCONFIRMED) {
-          return 1;
         } else {
           return b.time - a.time;
         }
@@ -489,10 +467,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const groupBy = useCallback((item: TransactionHistoryItem) => {
     if (PROCESSING_STATUSES.includes(item.status)) {
       return t('Processing');
-    }
-
-    if (item.status === ExtrinsicStatus.UNCONFIRMED) {
-      return t('Unconfirmed');
     }
 
     return formatHistoryDate(item.time, language, 'list');

@@ -196,7 +196,7 @@ export const HistoryItem = styled(Component)<Props>(({ theme: { token } }: Props
       }
     },
 
-    '&.-success, &.-confirmed': {
+    '&.-success': {
       '.__main-icon-wrapper:before': {
         backgroundColor: token.colorSuccess
       },
