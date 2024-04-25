@@ -118,6 +118,8 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { extend
     },
 
     '.ant-web3-block-middle-item': {
+      overflow: 'hidden',
+
       '.ant-number': {
         fontSize: token.fontSizeSM,
         lineHeight: token.lineHeightSM,
@@ -154,6 +156,9 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { extend
       '.__icon-wrapper': {
         color: token.colorTextLight2
       }
+    },
+    '.ant-balance-item-balance-info-wrapper': {
+      'white-space': 'nowrap'
     }
   });
 });
