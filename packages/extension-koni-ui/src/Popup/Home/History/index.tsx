@@ -129,9 +129,7 @@ enum FilterValue {
   CROWDLOAN = 'crowdloan',
   SUCCESSFUL = 'successful',
   FAILED = 'failed',
-  EARN = 'earn',
-  UNCONFIRMED = 'unconfirmed',
-  CONFIRMED = 'confirmed'
+  EARN = 'earn'
 }
 
 function getHistoryItemKey (item: Pick<TransactionHistoryItem, 'chain' | 'address' | 'extrinsicHash' | 'transactionId'>) {
@@ -168,6 +166,11 @@ function filterDuplicateItems (items: TransactionHistoryItem[]): TransactionHist
   return result;
 }
 
+const PROCESSING_STATUSES: ExtrinsicStatus[] = [
+  ExtrinsicStatus.QUEUED,
+  ExtrinsicStatus.SUBMITTING,
+  ExtrinsicStatus.PROCESSING
+];
 const modalId = HISTORY_DETAIL_MODAL;
 const DEFAULT_ITEMS_COUNT = 20;
 const NEXT_ITEMS_COUNT = 10;
@@ -231,14 +234,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           if (YIELD_EXTRINSIC_TYPES.includes(item.type)) {
             return true;
           }
-        } else if (filter === FilterValue.CONFIRMED) {
-          if (item.status === ExtrinsicStatus.CONFIRMED) {
-            return true;
-          }
-        } else if (filter === FilterValue.UNCONFIRMED) {
-          if (item.status === ExtrinsicStatus.UNCONFIRMED) {
-            return true;
-          }
         }
       }
 
@@ -251,9 +246,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       { label: t('Send token'), value: FilterValue.SEND },
       { label: t('Receive token'), value: FilterValue.RECEIVED },
       { label: t('Successful'), value: FilterValue.SUCCESSFUL },
-      { label: t('Failed'), value: FilterValue.FAILED },
-      { label: t('Confirmed'), value: FilterValue.CONFIRMED },
-      { label: t('Unconfirmed'), value: FilterValue.UNCONFIRMED }
+      { label: t('Failed'), value: FilterValue.FAILED }
     ];
   }, [t]);
 
@@ -375,7 +368,17 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [currentItemDisplayCount, setCurrentItemDisplayCount] = useState<number>(DEFAULT_ITEMS_COUNT);
 
   const getHistoryItems = useCallback((count: number) => {
-    return Object.values(historyMap).filter(filterFunction).sort((a, b) => (b.time - a.time)).slice(0, count);
+    return Object.values(historyMap).filter(filterFunction)
+      .sort((a, b) => {
+        if (PROCESSING_STATUSES.includes(a.status) && !PROCESSING_STATUSES.includes(b.status)) {
+          return -1;
+        } else if (PROCESSING_STATUSES.includes(b.status) && !PROCESSING_STATUSES.includes(a.status)) {
+          return 1;
+        } else {
+          return b.time - a.time;
+        }
+      })
+      .slice(0, count);
   }, [filterFunction, historyMap]);
 
   const [historyItems, setHistoryItems] = useState<TransactionHistoryDisplayItem[]>(getHistoryItems(DEFAULT_ITEMS_COUNT));
@@ -462,8 +465,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   );
 
   const groupBy = useCallback((item: TransactionHistoryItem) => {
+    if (PROCESSING_STATUSES.includes(item.status)) {
+      return t('Processing');
+    }
+
     return formatHistoryDate(item.time, language, 'list');
-  }, [language]);
+  }, [language, t]);
 
   const groupSeparator = useCallback((group: TransactionHistoryItem[], idx: number, groupLabel: string) => {
     return (

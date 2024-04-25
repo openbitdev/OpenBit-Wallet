@@ -578,9 +578,7 @@ export enum ExtrinsicStatus {
   FAIL = 'fail', // Send failed
   CANCELLED = 'cancelled', // Is remove before sending,
   TIMEOUT = 'timeout',
-  UNKNOWN = 'unknown',
-  UNCONFIRMED = 'unconfirmed', // in bitcoin, transaction is unconfirmed
-  CONFIRMED = 'confirmed' // in bitcoin, transaction is confirmed
+  UNKNOWN = 'unknown'
 }
 
 export interface TxHistoryItem {

@@ -50,6 +50,6 @@ export function parseBitcoinTransferData (address: string, transferItem: Bitcoin
       decimals: nativeDecimals,
       symbol: nativeSymbol
     },
-    status: transferItem.status.confirmed ? ExtrinsicStatus.CONFIRMED : ExtrinsicStatus.UNCONFIRMED
+    status: transferItem.status.confirmed ? ExtrinsicStatus.SUCCESS : ExtrinsicStatus.PROCESSING
   };
 }
