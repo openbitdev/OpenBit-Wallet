@@ -213,7 +213,7 @@ const Component: React.FC<Props> = (props: Props) => {
             >
               <Input
                 className='account-name-input'
-                disabled={deriving}
+                disabled={deriving || accountProxy?.isMock}
                 label={t('Account name')}
                 onBlur={form.submit}
                 placeholder={t('Account name')}
@@ -264,7 +264,7 @@ const Component: React.FC<Props> = (props: Props) => {
         <div className={CN('account-detail___action-footer')}>
           <Button
             className={CN('account-button')}
-            disabled={deriving}
+            disabled={deriving || accountProxy?.isMock}
             icon={(
               <Icon
                 phosphorIcon={Trash}

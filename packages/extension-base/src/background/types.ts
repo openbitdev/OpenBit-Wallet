@@ -68,6 +68,7 @@ export interface AccountProxy {
   name?: string,
   isMaster?: boolean,
   isReadOnly?: boolean,
+  isMock?: boolean,
   accounts: AccountJson[]
 }
 

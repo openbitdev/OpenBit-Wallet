@@ -8,7 +8,7 @@ import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button, Icon } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { CheckCircle, Copy, GitMerge, PencilSimpleLine } from 'phosphor-react';
+import { CheckCircle, Copy, Eye, GitMerge, PencilSimpleLine } from 'phosphor-react';
 import { IconWeight } from 'phosphor-react/src/lib';
 import React, { Context, useContext, useMemo } from 'react';
 import styled, { ThemeContext } from 'styled-components';
@@ -38,7 +38,12 @@ function Component (props: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
 
   const accountProxyTypeIcon = useMemo<AccountProxyTypeIcon | undefined>(() => {
-    if (!accountProxy.isMaster) {
+    if (accountProxy.isReadOnly || accountProxy.isMock) {
+      return {
+        type: 'icon',
+        value: Eye
+      };
+    } else if (!accountProxy.isMaster) {
       return {
         type: 'icon',
         value: GitMerge,
@@ -47,7 +52,7 @@ function Component (props: Props): React.ReactElement<Props> {
     }
 
     return undefined;
-  }, [accountProxy.isMaster]);
+  }, [accountProxy.isMaster, accountProxy.isMock, accountProxy.isReadOnly]);
 
   const _onClickMore: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement> = React.useCallback((event) => {
     event.stopPropagation();
