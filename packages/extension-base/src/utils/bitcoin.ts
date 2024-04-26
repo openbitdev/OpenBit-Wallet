@@ -135,6 +135,10 @@ export function determineUtxosForSpendAll ({ feeRate,
 
   const amount = filteredUtxos.reduce((acc, utxo) => acc + utxo.value, 0) - Math.ceil(sizeInfo.txVBytes * feeRate);
 
+  if (amount <= 0) {
+    throw new InsufficientFundsError();
+  }
+
   // Fee has already been deducted from the amount with send all
   const outputs = [{ value: amount, address: recipient }];
 
@@ -201,11 +205,17 @@ export function determineUtxosForSpend ({ amount,
 
   const fee = Math.ceil(sizeInfo.txVBytes * feeRate);
 
+  const amountLeft = sum.minus(amount).minus(fee);
+
+  if (amountLeft.lte(0)) {
+    throw new InsufficientFundsError();
+  }
+
   const outputs = [
     // outputs[0] = the desired amount going to recipient
     { value: amount, address: recipient },
     // outputs[1] = the remainder to be returned to a change address
-    { value: sum.minus(amount).minus(fee).toNumber(), address: sender }
+    { value: amountLeft.toNumber(), address: sender }
   ];
 
   return {
