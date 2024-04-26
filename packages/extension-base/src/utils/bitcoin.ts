@@ -19,20 +19,19 @@ export const combineBitcoinFee = (feeInfo: BitcoinFeeInfo, feeOptions?: FeeOptio
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
 export function getSpendableAmount ({ feeRate,
-  recipient,
+  recipients,
   sender,
   utxos }: {
   utxos: UtxoResponseItem[];
   feeRate: number;
-  recipient: string;
+  recipients: string[];
   sender: string;
 }) {
   const balance = utxos.map((utxo) => utxo.value).reduce((prevVal, curVal) => prevVal + curVal, 0);
 
   const size = getSizeInfo({
     inputLength: utxos.length,
-    outputLength: 1,
-    recipient,
+    recipients,
     sender
   });
   const fee = Math.ceil(size.txVBytes * feeRate);
@@ -49,18 +48,18 @@ export function getSpendableAmount ({ feeRate,
 // Method might be not particularly efficient as it would
 // go through the utxo array multiple times, but it's reliable.
 export function filterUneconomicalUtxos ({ feeRate,
-  recipient,
+  recipients,
   sender,
   utxos }: {
   utxos: UtxoResponseItem[];
   feeRate: number;
   sender: string;
-  recipient: string;
+  recipients: string[];
 }) {
   const { spendableAmount: fullSpendableAmount } = getSpendableAmount({
     utxos,
     feeRate,
-    recipient,
+    recipients,
     sender
   });
 
@@ -74,7 +73,7 @@ export function filterUneconomicalUtxos ({ feeRate,
       const { spendableAmount } = getSpendableAmount({
         utxos: utxos.filter((u) => u.txid !== utxo.txid),
         feeRate,
-        recipient,
+        recipients,
         sender
       });
 
@@ -83,27 +82,35 @@ export function filterUneconomicalUtxos ({ feeRate,
     });
 }
 
-// https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
+// Source: https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
 export function getSizeInfo (payload: {
   inputLength: number;
-  outputLength: number;
-  recipient: string;
+  recipients: string[];
   sender: string;
 }) {
-  const { inputLength, outputLength, recipient, sender } = payload;
+  const { inputLength, recipients, sender } = payload;
   const senderInfo = validateBitcoinAddress(sender) ? getBitcoinAddressInfo(sender) : null;
   const inputAddressTypeWithFallback = senderInfo ? senderInfo.type : BitcoinAddressType.p2wpkh;
-  const recipientInfo = validateBitcoinAddress(recipient) ? getBitcoinAddressInfo(recipient) : null;
-  const outputAddressTypeWithFallback = recipientInfo ? recipientInfo.type : BitcoinAddressType.p2wpkh;
+  const outputMap: Record<string, number> = {};
+
+  for (const recipient of recipients) {
+    const recipientInfo = validateBitcoinAddress(recipient) ? getBitcoinAddressInfo(recipient) : null;
+    const outputAddressTypeWithFallback = recipientInfo ? recipientInfo.type : BitcoinAddressType.p2wpkh;
+    const outputKey = outputAddressTypeWithFallback + '_output_count';
+
+    if (outputMap[outputKey]) {
+      outputMap[outputKey]++;
+    } else {
+      outputMap[outputKey] = 1;
+    }
+  }
 
   const txSizer = new BtcSizeFeeEstimator();
 
   return txSizer.calcTxSize({
-    // Only p2wpkh is supported by the wallet
     input_script: inputAddressTypeWithFallback,
     input_count: inputLength,
-    // From the address of the recipient, we infer the output type
-    [outputAddressTypeWithFallback + '_output_count']: outputLength
+    ...outputMap
   });
 }
 
@@ -116,13 +123,14 @@ export function determineUtxosForSpendAll ({ feeRate,
     throw new Error('Cannot calculate spend of invalid address type');
   }
 
-  const filteredUtxos = filterUneconomicalUtxos({ utxos, feeRate, recipient, sender });
+  const recipients = [recipient];
+
+  const filteredUtxos = filterUneconomicalUtxos({ utxos, feeRate, recipients, sender });
 
   const sizeInfo = getSizeInfo({
     sender,
     inputLength: filteredUtxos.length,
-    outputLength: 1,
-    recipient
+    recipients
   });
 
   const amount = filteredUtxos.reduce((acc, utxo) => acc + utxo.value, 0) - Math.ceil(sizeInfo.txVBytes * feeRate);
@@ -151,11 +159,11 @@ export function determineUtxosForSpend ({ amount,
   }
 
   const orderedUtxos = utxos.sort((a, b) => b.value - a.value);
-
+  const recipients = [recipient, sender];
   const filteredUtxos = filterUneconomicalUtxos({
     utxos: orderedUtxos,
     feeRate,
-    recipient,
+    recipients,
     sender
   });
 
@@ -167,8 +175,7 @@ export function determineUtxosForSpend ({ amount,
     sizeInfo = getSizeInfo({
       inputLength: neededUtxos.length,
       sender,
-      outputLength: 2,
-      recipient
+      recipients: [recipient, sender]
     });
 
     const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * feeRate));
@@ -179,6 +186,13 @@ export function determineUtxosForSpend ({ amount,
 
     sum = sum.plus(utxo.value);
     neededUtxos.push(utxo);
+
+    // re calculate size info, some case array end
+    sizeInfo = getSizeInfo({
+      inputLength: neededUtxos.length,
+      sender,
+      recipients: [recipient, sender]
+    });
   }
 
   if (!sizeInfo) {
@@ -191,7 +205,7 @@ export function determineUtxosForSpend ({ amount,
     // outputs[0] = the desired amount going to recipient
     { value: amount, address: recipient },
     // outputs[1] = the remainder to be returned to a change address
-    { value: sum.minus(amount).minus(fee).toNumber() }
+    { value: sum.minus(amount).minus(fee).toNumber(), address: sender }
   ];
 
   return {

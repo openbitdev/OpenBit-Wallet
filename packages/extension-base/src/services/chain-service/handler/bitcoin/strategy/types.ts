@@ -7,6 +7,7 @@ import { BitcoinFeeInfo, BitcoinTx, UtxoResponseItem } from '@subwallet/extensio
 import EventEmitter from 'eventemitter3';
 
 export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest'> {
+  getBlockTime (): Promise<number>;
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo>;
   getRunes (address: string): Promise<RunesInfoByAddress[]>;
   getAddressTransaction (address: string, limit?: number): Promise<BitcoinTx[]>;

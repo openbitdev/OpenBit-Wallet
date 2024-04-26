@@ -566,7 +566,10 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           isXcmTransfer: chainValue !== destChainValue,
           destChain: destChainValue,
           feeOption: transactionFeeInfo?.feeOption,
-          feeCustom: transactionFeeInfo?.feeCustom
+          feeCustom: transactionFeeInfo?.feeCustom,
+          value: transferAmountValue || '0',
+          transferAll: isTransferAll,
+          to: toValue
         }, callback)
           .then(callback)
           .catch((e) => {
@@ -586,7 +589,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
+  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption, transferAmountValue, isTransferAll]);
 
   const accountsFilter = useCallback((account: AccountJson) => {
     if (fromProxyId) {

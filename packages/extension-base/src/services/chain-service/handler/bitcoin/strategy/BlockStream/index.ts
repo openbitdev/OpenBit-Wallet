@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
@@ -13,7 +13,7 @@ import EventEmitter from 'eventemitter3';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
-  private readonly timePerBlock: number; // in milliseconds
+  private timePerBlock = 0; // in milliseconds
 
   constructor (url: string) {
     const context = new BaseApiRequestContext();
@@ -21,7 +21,14 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     super(context);
 
     this.baseUrl = url;
-    this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
+
+    this.getBlockTime()
+      .then((rs) => {
+        this.timePerBlock = rs;
+      })
+      .catch(() => {
+        this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
+      });
   }
 
   isRateLimited (): boolean {
@@ -30,6 +37,22 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getUrl (path: string): string {
     return `${this.baseUrl}/${path}`;
+  }
+
+  getBlockTime (): Promise<number> {
+    return this.addRequest<number>(async () => {
+      const rs = await getRequest(this.getUrl('blocks'));
+
+      if (rs.status !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getBlockTime', await rs.text());
+      }
+
+      const blocks = (await rs.json()) as BlockStreamBlock[];
+      const lenght = blocks.length;
+      const time = (blocks[0].timestamp - blocks[lenght - 1].timestamp) * 1000;
+
+      return time / lenght;
+    }, 0);
   }
 
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo> {
