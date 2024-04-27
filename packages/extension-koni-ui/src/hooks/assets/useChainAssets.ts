@@ -2,89 +2,56 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset, _ChainStatus } from '@subwallet/chain-list/types';
-import { _isAssetFungibleToken, _isChainEvmCompatible, _isSubstrateChain } from '@subwallet/extension-base/services/chain-service/utils';
-import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
+import { _isAssetFungibleToken, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 interface _ChainAssetFilters {
   isActive?: boolean,
   isFungible?: boolean,
-  isAvailableChain?: boolean,
   isActiveChain?: boolean,
-  chainTypes?: 'substrate' | 'evm'
 }
 
-export default function useChainAssets ({ chainTypes, isActive = false, isActiveChain = false, isAvailableChain = true, isFungible = true }: _ChainAssetFilters = {}) {
+export default function useChainAssets ({ isActive = false, isActiveChain = false, isFungible = true }: _ChainAssetFilters = {}) {
   const { chainInfoMap, chainStateMap } = useSelector((state: RootState) => state.chainStore);
   const { assetRegistry, assetSettingMap } = useSelector((state: RootState) => state.assetRegistry);
 
-  const activeChains = useMemo(() => {
-    return Object.values(chainStateMap).filter((chainState) => chainState.active).map((chainState) => chainState.slug);
-  }, [chainStateMap]);
-
-  const availableChains = useMemo(() => {
-    return Object.values(chainInfoMap).filter((chainInfo) => chainInfo.chainStatus === _ChainStatus.ACTIVE).map((chainInfo) => chainInfo.slug);
-  }, [chainInfoMap]);
-
-  const evmChains = useMemo(() => {
-    return availableChains.filter((slug) => _isChainEvmCompatible(chainInfoMap[slug]));
-  }, [availableChains, chainInfoMap]);
-
-  const substrateChains = useMemo(() => {
-    return availableChains.filter((slug) => _isSubstrateChain(chainInfoMap[slug]));
-  }, [availableChains, chainInfoMap]);
-
-  const activeAssets = useMemo(() => {
-    return Object.entries(assetSettingMap).filter(([, value]) => value.visible).map(([slug]) => slug);
-  }, [assetSettingMap]);
-
-  const chainAssets = useMemo(() => {
+  const getChainAssets = useCallback(() => {
     let assets: _ChainAsset[] = Object.values(assetRegistry);
+
+    assets = assets.filter((asset) => {
+      const chainInfo = chainInfoMap[asset.originChain];
+
+      if (!chainInfo) {
+        return false;
+      }
+
+      if (chainInfo.chainStatus !== _ChainStatus.ACTIVE) {
+        return false;
+      }
+
+      return _isPureBitcoinChain(chainInfo) || _isPureEvmChain(chainInfo);
+    });
 
     if (isFungible) {
       assets = assets.filter((asset) => _isAssetFungibleToken(asset));
     }
 
-    if (isAvailableChain) {
-      assets = assets.filter((asset) => availableChains.includes(asset.originChain));
-    }
-
     if (isActiveChain) {
-      assets = assets.filter((asset) => activeChains.includes(asset.originChain));
+      assets = assets.filter((asset) => chainStateMap[asset.originChain]?.active);
     }
 
     if (isActive) {
-      assets = assets.filter((asset) => activeAssets.includes(asset.slug));
+      assets = assets.filter((asset) => assetSettingMap[asset.slug]?.visible);
     }
-
-    if (chainTypes) {
-      if (chainTypes.includes('evm')) {
-        assets = assets.filter((asset) => evmChains.includes(asset.originChain));
-      }
-
-      if (chainTypes.includes('substrate')) {
-        assets = assets.filter((asset) => substrateChains.includes(asset.originChain));
-      }
-    }
-
-    assets = assets.filter((asset) => {
-      const isTokenFungible = _isAssetFungibleToken(asset);
-
-      if (!(isTokenFungible && SUPPORT_CHAINS.includes(asset.originChain))) {
-        return false;
-      }
-
-      return true;
-    });
 
     return assets;
-  }, [activeAssets, activeChains, assetRegistry, availableChains, chainTypes, evmChains, isActive, isActiveChain, isAvailableChain, isFungible, substrateChains]);
+  }, [assetRegistry, assetSettingMap, chainInfoMap, chainStateMap, isActive, isActiveChain, isFungible]);
 
-  const chainAssetRegistry = useMemo(() => {
-    return Object.fromEntries(chainAssets.map((asset) => [asset.slug, asset]));
-  }, [chainAssets]);
+  const getChainAssetRegistry = useCallback(() => {
+    return Object.fromEntries(getChainAssets().map((asset) => [asset.slug, asset]));
+  }, [getChainAssets]);
 
-  return { chainAssets, chainAssetRegistry };
+  return { getChainAssets, getChainAssetRegistry };
 }

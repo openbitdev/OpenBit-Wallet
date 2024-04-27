@@ -9,10 +9,11 @@ import { useDefaultNavigate, useFilterModal, useTranslation } from '@subwallet/e
 import { useChainAssets } from '@subwallet/extension-koni-ui/hooks/assets';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Icon, ModalContext, SwList } from '@subwallet/react-ui';
-import { FadersHorizontal } from 'phosphor-react';
+import { ButtonProps, Icon, ModalContext, SwList } from '@subwallet/react-ui';
+import { FadersHorizontal, Plus } from 'phosphor-react';
 import React, { SyntheticEvent, useCallback, useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 type Props = ThemeProps;
@@ -29,13 +30,14 @@ const renderEmpty = () => <TokenEmptyList />;
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const goBack = useDefaultNavigate().goBack;
   const dataContext = useContext(DataContext);
   const { activeModal } = useContext(ModalContext);
 
   const { assetSettingMap } = useSelector((state: RootState) => state.assetRegistry);
 
-  const assetItems = useChainAssets({ isFungible: true }).chainAssets;
+  const chainAssetRegistry = useChainAssets().getChainAssetRegistry();
   const { filterSelectionMap, onApplyFilter, onChangeFilterOption, onCloseFilterModal, selectedFilters } = useFilterModal(FILTER_MODAL_ID);
   const filterFunction = useMemo<(item: _ChainAsset) => boolean>(() => {
     return (chainAsset) => {
@@ -88,10 +90,41 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     );
   }, [assetSettingMap]);
 
+  const subHeaderButton: ButtonProps[] = useMemo(() => {
+    return [
+      {
+        icon: (
+          <Icon
+            phosphorIcon={Plus}
+            size='sm'
+            type='phosphor'
+          />
+        ),
+        onClick: () => {
+          navigate('/settings/tokens/import-token', { state: { isExternalRequest: false } });
+        }
+      }
+    ];
+  }, [navigate]);
+
   const openFilterModal = useCallback((e?: SyntheticEvent) => {
     e && e.stopPropagation();
     activeModal(FILTER_MODAL_ID);
   }, [activeModal]);
+
+  const assetItems = useMemo(() => {
+    const bitcoinAsset = chainAssetRegistry['bitcoin-NATIVE-BTC'];
+    const bitcoinTestnetAsset = chainAssetRegistry['bitcoinTestnet-NATIVE-BTC'];
+    const ethereumAsset = chainAssetRegistry['ethereum-NATIVE-ETH'];
+
+    const topAssets: _ChainAsset[] = [];
+
+    bitcoinAsset && topAssets.push(bitcoinAsset);
+    bitcoinTestnetAsset && topAssets.push(bitcoinTestnetAsset);
+    ethereumAsset && topAssets.push(ethereumAsset);
+
+    return [...topAssets, ...Object.values(chainAssetRegistry).filter((a) => !['bitcoin-NATIVE-BTC', 'bitcoinTestnet-NATIVE-BTC', 'ethereum-NATIVE-ETH'].includes(a.slug))];
+  }, [chainAssetRegistry]);
 
   return (
     <PageWrapper
@@ -104,6 +137,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         showSubHeader={true}
         subHeaderBackground={'transparent'}
         subHeaderCenter={true}
+        subHeaderIcons={subHeaderButton}
         subHeaderPaddingVertical={true}
         title={t<string>('Manage tokens')}
       >
