@@ -8,7 +8,7 @@ import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/const
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType, filterOutPendingTxsUtxos } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
@@ -146,33 +146,26 @@ async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) 
 
   return await Promise.all(addresses.map(async (address) => { // noted: fake an account here to see balance
     try {
-      // const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
-      //   await bitcoinApi.api.getUtxos(address),
-      //   await bitcoinApi.api.getAddressTransaction(address),
-      //   await getRuneTxsUtxos(bitcoinApi, address),
-      //   await getInscriptionUtxos(bitcoinApi, address)
-      // ]);
-
-      const [utxos, txs] = await Promise.all([
+      const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
         await bitcoinApi.api.getUtxos(address),
-        await bitcoinApi.api.getAddressTransaction(address)
-        // await getRuneTxsUtxos(bitcoinApi, address),
-        // await getInscriptionUtxos(bitcoinApi, address)
+        await bitcoinApi.api.getAddressTransaction(address),
+        await getRuneTxsUtxos(bitcoinApi, address),
+        await getInscriptionUtxos(bitcoinApi, address)
       ]);
 
       // filter out pending utxos
-      const filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
+      let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
 
-      // console.log('--- START LOG ---');
-      // console.log('[1.1] UTXO after filtering pending UTXO: ', filteredUtxos);
-      // console.log('[1.2] Rune UTXO: ', runeTxsUtxos);
-      // console.log('[1.3] Inscription UTXO: ', inscriptionUtxos);
-      // // filter out rune utxos
-      // filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
-      //
-      // console.log('[2.] UTXO after filtering rune UTXO: ', filteredUtxos);
-      // // filter out inscription utxos
-      // filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
+      console.log('--- START LOG ---');
+      console.log('[1.1] UTXO after filtering pending UTXO: ', filteredUtxos);
+      console.log('[1.2] Rune UTXO: ', runeTxsUtxos);
+      console.log('[1.3] Inscription UTXO: ', inscriptionUtxos);
+      // filter out rune utxos
+      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
+
+      console.log('[2.] UTXO after filtering rune UTXO: ', filteredUtxos);
+      // filter out inscription utxos
+      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
 
       console.log('[3.] UTXO after filtering rune and inscription UTXO: ', filteredUtxos);
       let balanceValue = new BigN(0);
