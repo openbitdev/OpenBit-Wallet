@@ -237,7 +237,7 @@ export class BalanceService implements StoppableServiceInterface {
           unsub();
           reject(new Error(t('Failed to get balance. Please check your internet connection or change your network endpoint')));
         }
-      }, 9999);
+      }, 59999);
     });
   }
 
