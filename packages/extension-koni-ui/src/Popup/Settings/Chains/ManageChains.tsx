@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ALWAYS_ACTIVE_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _isChainEvmCompatible, _isCustomChain, _isSubstrateChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { FilterModal, Layout, NetworkEmptyList, NetworkToggleItem, OptionType, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
@@ -93,6 +94,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return (
       <NetworkToggleItem
         chainInfo={chainInfo}
+        disabledToggle={_ALWAYS_ACTIVE_CHAINS.includes(chainInfo.slug)}
         isShowSubLogo={true}
         key={chainInfo.slug}
       />
