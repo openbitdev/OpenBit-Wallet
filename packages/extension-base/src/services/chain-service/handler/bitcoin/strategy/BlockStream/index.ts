@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, RunesInfoByAddress, RunesInfoByAddressResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
+import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
@@ -13,7 +14,7 @@ import EventEmitter from 'eventemitter3';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
-  private readonly timePerBlock: number; // in milliseconds
+  private timePerBlock = 0; // in milliseconds
 
   constructor (url: string) {
     const context = new BaseApiRequestContext();
@@ -21,7 +22,14 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     super(context);
 
     this.baseUrl = url;
-    this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
+
+    this.getBlockTime()
+      .then((rs) => {
+        this.timePerBlock = rs;
+      })
+      .catch(() => {
+        this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
+      });
   }
 
   isRateLimited (): boolean {
@@ -30,6 +38,22 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getUrl (path: string): string {
     return `${this.baseUrl}/${path}`;
+  }
+
+  getBlockTime (): Promise<number> {
+    return this.addRequest<number>(async () => {
+      const rs = await getRequest(this.getUrl('blocks'));
+
+      if (rs.status !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getBlockTime', await rs.text());
+      }
+
+      const blocks = (await rs.json()) as BlockStreamBlock[];
+      const lenght = blocks.length;
+      const time = (blocks[0].timestamp - blocks[lenght - 1].timestamp) * 1000;
+
+      return time / lenght;
+    }, 0);
   }
 
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo> {
@@ -176,6 +200,76 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
       return runesFullList;
     } catch (error) {
       console.error(`Failed to get ${address} balances`, error);
+      throw error;
+    }
+  }
+
+  async getRuneTxsUtxos (address: string) {
+    const txsFullList: RuneTxs[] = [];
+    const pageSize = 10;
+    let offset = 0;
+
+    const runeService = RunesService.getInstance();
+
+    try {
+      while (true) {
+        const response = await runeService.getAddressRuneTxs(address, {
+          limit: String(pageSize),
+          offset: String(offset)
+        }) as unknown as RuneTxsResponse;
+
+        let runesTxs: RuneTxs[] = [];
+
+        if (response.statusCode === 200) {
+          runesTxs = response.data.transactions;
+        } else {
+          console.log(`Error on request rune transactions for address ${address}`);
+          break;
+        }
+
+        if (runesTxs.length !== 0) {
+          txsFullList.push(...runesTxs);
+          offset += pageSize;
+        } else {
+          break;
+        }
+      }
+
+      return txsFullList;
+    } catch (error) {
+      console.error(`Failed to get ${address} transactions`, error);
+      throw error;
+    }
+  }
+
+  async getAddressInscriptions (address: string) {
+    const inscriptionsFullList: Inscription[] = [];
+    const pageSize = 50;
+    let offset = 0;
+
+    const hiroService = HiroService.getInstance();
+
+    try {
+      while (true) {
+        const response = await hiroService.getAddressInscriptionsInfo({
+          limit: String(pageSize),
+          offset: String(offset),
+          address: String(address)
+        }) as unknown as InscriptionFetchedData;
+
+        const inscriptions = response.results;
+
+        if (inscriptions.length !== 0) {
+          inscriptionsFullList.push(...inscriptions);
+          offset += pageSize;
+        } else {
+          break;
+        }
+      }
+
+      return inscriptionsFullList;
+    } catch (error) {
+      console.error(`Failed to get ${address} inscriptions`, error);
       throw error;
     }
   }

@@ -78,7 +78,7 @@ const AddProvider = new LazyLoader('AddProvider', () => import('@subwallet/exten
 const ChainDetail = new LazyLoader('ChainDetail', () => import('@subwallet/extension-koni-ui/Popup/Settings/Chains/ChainDetail'));
 
 const ManageTokens = new LazyLoader('ManageTokens', () => import('@subwallet/extension-koni-ui/Popup/Settings/Tokens/ManageTokens'));
-// const FungibleTokenImport = new LazyLoader('FungibleTokenImport', () => import('@subwallet/extension-koni-ui/Popup/Settings/Tokens/FungibleTokenImport'));
+const FungibleTokenImport = new LazyLoader('FungibleTokenImport', () => import('@subwallet/extension-koni-ui/Popup/Settings/Tokens/FungibleTokenImport'));
 const TokenDetail = new LazyLoader('TokenDetail', () => import('@subwallet/extension-koni-ui/Popup/Settings/Tokens/TokenDetail'));
 
 const SecurityList = new LazyLoader('SecurityList', () => import('@subwallet/extension-koni-ui/Popup/Settings/Security'));
@@ -228,7 +228,7 @@ export const router = createHashRouter([
             element: <Outlet />,
             children: [
               ManageTokens.generateRouterObject('manage'),
-              // FungibleTokenImport.generateRouterObject('import-token'),
+              FungibleTokenImport.generateRouterObject('import-token'),
               TokenDetail.generateRouterObject('detail')
               // NftImport.generateRouterObject('import-nft')
             ]

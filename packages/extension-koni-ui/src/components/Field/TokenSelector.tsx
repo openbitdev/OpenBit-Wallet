@@ -40,7 +40,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   const { t } = useTranslation();
   const { token } = useTheme() as Theme;
 
-  const assetRegistry = useChainAssets({}).chainAssetRegistry;
+  const assetRegistry = useChainAssets({}).getChainAssetRegistry();
   const { chainInfoMap, chainStateMap } = useSelector((state) => state.chainStore);
 
   const { onSelect } = useSelectModalInputHelper(props, ref);

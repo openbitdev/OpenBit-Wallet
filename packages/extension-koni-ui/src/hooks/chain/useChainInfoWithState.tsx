@@ -3,7 +3,7 @@
 
 import { _ChainInfo, _ChainStatus } from '@subwallet/chain-list/types';
 import { _ChainState } from '@subwallet/extension-base/services/chain-service/types';
-import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
+import { _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -17,13 +17,38 @@ export default function useChainInfoWithState ({ filterStatus = true } = {} as {
   return useMemo(() => {
     const rs: ChainInfoWithState[] = [];
 
-    SUPPORT_CHAINS.forEach((chainSlug) => {
-      const item = chainInfoMap[chainSlug];
+    // todo: will optimize later
+    let bitcoinChain: ChainInfoWithState| undefined;
+    let bitcoinTestnetChain: ChainInfoWithState| undefined;
+    let ethereumChain: ChainInfoWithState| undefined;
 
-      if (item) {
-        rs.push({ ...item, ...(chainStateMap[item.slug] || {}) });
+    Object.values(chainInfoMap).forEach((chainInfo) => {
+      if (chainInfo.slug === 'bitcoin') {
+        bitcoinChain = { ...chainInfo, ...(chainStateMap[chainInfo.slug] || {}) };
+
+        return;
+      }
+
+      if (chainInfo.slug === 'bitcoinTestnet') {
+        bitcoinTestnetChain = { ...chainInfo, ...(chainStateMap[chainInfo.slug] || {}) };
+
+        return;
+      }
+
+      if (chainInfo.slug === 'ethereum') {
+        ethereumChain = { ...chainInfo, ...(chainStateMap[chainInfo.slug] || {}) };
+
+        return;
+      }
+
+      if (_isPureBitcoinChain(chainInfo) || _isPureEvmChain(chainInfo)) {
+        rs.push({ ...chainInfo, ...(chainStateMap[chainInfo.slug] || {}) });
       }
     });
+
+    ethereumChain && rs.unshift(ethereumChain);
+    bitcoinTestnetChain && rs.unshift(bitcoinTestnetChain);
+    bitcoinChain && rs.unshift(bitcoinChain);
 
     if (filterStatus) {
       return rs.filter((item) => item.chainStatus === _ChainStatus.ACTIVE);

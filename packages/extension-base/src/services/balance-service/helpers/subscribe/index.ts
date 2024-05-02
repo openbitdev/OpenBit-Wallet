@@ -8,7 +8,7 @@ import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/const
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType, filterOutPendingTxsUtxos } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
@@ -97,7 +97,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
     });
 
     // get runeId -> BalanceItem[] mapping
-    await Promise.all(addresses.map(async (address) => { // noted: fake address has runes here to get balance
+    await Promise.all(addresses.map(async (address) => {
       try {
         const runes = await bitcoinApi.api.getRunes(address);
 
@@ -105,7 +105,7 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
           const runeId = rune.rune_id;
 
           const item = {
-            address: address, // noted: fake address display on wallet here to show balance
+            address: address,
             tokenSlug: runeIdToSlugMap[runeId],
             free: rune.amount,
             locked: '0',
@@ -142,19 +142,41 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
 }
 
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
-  return await Promise.all(addresses.map(async (address) => {
+  console.log('[i] start query balance');
+
+  return await Promise.all(addresses.map(async (address) => { // noted: fake an account here to see balance
     try {
-      const utxos = await bitcoinApi.api.getUtxos(address);
-      const txs = await bitcoinApi.api.getAddressTransaction(address);
+      const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
+        await bitcoinApi.api.getUtxos(address),
+        await bitcoinApi.api.getAddressTransaction(address),
+        await getRuneTxsUtxos(bitcoinApi, address),
+        await getInscriptionUtxos(bitcoinApi, address)
+      ]);
 
-      // todo: (4-18-24 17:58) need filter inscription too
-      const filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
+      // filter out pending utxos
+      let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
 
+      console.log('--- START LOG ---');
+      console.log('[1.1] UTXO after filtering pending UTXO: ', filteredUtxos);
+      console.log('[1.2] Rune UTXO: ', runeTxsUtxos);
+      console.log('[1.3] Inscription UTXO: ', inscriptionUtxos);
+      // filter out rune utxos
+      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
+
+      console.log('[2.] UTXO after filtering rune UTXO: ', filteredUtxos);
+      // filter out inscription utxos
+      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
+
+      console.log('[3.] UTXO after filtering rune and inscription UTXO: ', filteredUtxos);
       let balanceValue = new BigN(0);
 
       filteredUtxos.forEach((utxo) => {
         balanceValue = balanceValue.plus(utxo.value);
       });
+
+      // console.log('[4.] Balance before filtering: ', balanceValue.toString()); // Comment 2. and 3. filter out to see balance before
+      console.log('[4.] Balance after filtering: ', balanceValue.toString());
+      console.log('--- END LOG ---');
 
       return balanceValue.toString();
     } catch (error) {

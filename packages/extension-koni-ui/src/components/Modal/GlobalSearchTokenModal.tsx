@@ -38,7 +38,7 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
 
   const { chainInfoMap } = useSelector((state) => state.chainStore);
   const { multiChainAssetMap } = useSelector((state) => state.assetRegistry);
-  const assetRegistry = useChainAssets({ isActive: true }).chainAssetRegistry;
+  const assetRegistry = useChainAssets({ isActive: true }).getChainAssetRegistry();
 
   const tokenBalances = useMemo<TokenBalanceItemType[]>(() => {
     return getTokenBalances(tokenBalanceMap, sortedTokenSlugs).sort(sortTokenByValue);

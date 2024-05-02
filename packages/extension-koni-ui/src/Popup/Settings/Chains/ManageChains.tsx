@@ -1,15 +1,16 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _ALWAYS_ACTIVE_CHAINS } from '@subwallet/extension-base/services/chain-service/constants';
 import { _isChainEvmCompatible, _isCustomChain, _isSubstrateChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { FilterModal, Layout, NetworkEmptyList, NetworkToggleItem, OptionType, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { ChainInfoWithState, useFilterModal, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import useChainInfoWithStateAndStatus, { ChainInfoWithStateAndStatus } from '@subwallet/extension-koni-ui/hooks/chain/useChainInfoWithStateAndStatus';
 import { ManageChainsParam, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Icon, ModalContext, SwList } from '@subwallet/react-ui';
+import { ButtonProps, Icon, ModalContext, SwList } from '@subwallet/react-ui';
 import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
-import { FadersHorizontal } from 'phosphor-react';
+import { FadersHorizontal, Plus } from 'phosphor-react';
 import React, { SyntheticEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -93,11 +94,29 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return (
       <NetworkToggleItem
         chainInfo={chainInfo}
+        disabledToggle={_ALWAYS_ACTIVE_CHAINS.includes(chainInfo.slug)}
         isShowSubLogo={true}
         key={chainInfo.slug}
       />
     );
   }, []);
+
+  const subHeaderButton: ButtonProps[] = useMemo(() => {
+    return [
+      {
+        icon: (
+          <Icon
+            phosphorIcon={Plus}
+            size='md'
+            type='phosphor'
+          />
+        ),
+        onClick: () => {
+          navigate('/settings/chains/import', { state: { isExternalRequest: false } });
+        }
+      }
+    ];
+  }, [navigate]);
 
   const onBack = useCallback(() => {
     navigate(-1);
@@ -128,6 +147,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         showSubHeader={true}
         subHeaderBackground={'transparent'}
         subHeaderCenter={true}
+        subHeaderIcons={subHeaderButton}
         subHeaderPaddingVertical={true}
         title={t<string>('Manage networks')}
       >

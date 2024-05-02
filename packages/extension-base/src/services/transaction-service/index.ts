@@ -108,7 +108,6 @@ export default class TransactionService {
       feeCustom,
       feeOption,
       isTransferAll,
-      to,
       transaction } = validation;
 
     // Check duplicate transaction
@@ -155,11 +154,17 @@ export default class TransactionService {
           } else if (isBitcoinTransaction(transaction)) {
             const feeInfo = await this.state.feeService.subscribeChainFee(id, chain, 'bitcoin') as BitcoinFeeInfo;
             const feeCombine = combineBitcoinFee(feeInfo, feeOption, feeCustom as BitcoinFeeRate);
+
+            const recipients: string[] = [];
+
+            for (const txOutput of transaction.txOutputs) {
+              txOutput.address && recipients.push(txOutput.address);
+            }
+
             // TODO: Need review
             const sizeInfo = getSizeInfo({
               inputLength: transaction.inputCount,
-              outputLength: transaction.txOutputs.length,
-              recipient: to || address,
+              recipients: recipients,
               sender: address
             });
 

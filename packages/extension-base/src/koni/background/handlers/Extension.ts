@@ -38,8 +38,8 @@ import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/servi
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
-import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
-import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray, updateSubjectInfoWithMockAccount } from '@subwallet/extension-base/utils';
+import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
+import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, generateAccountProxyId, getSizeInfo, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray, updateSubjectInfoWithMockAccount } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -2008,7 +2008,6 @@ export default class KoniExtension {
       transferNativeAmount,
       transaction,
       data: inputData,
-      to,
       extrinsicType: isTransferNativeToken ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.TRANSFER_TOKEN,
       ignoreWarnings: transferAll,
       isTransferAll: isTransferNativeToken ? transferAll : false,
@@ -2337,7 +2336,7 @@ export default class KoniExtension {
     }
   }
 
-  private async subscribeMaxTransferable ({ address, chain, destChain, feeCustom, feeOption: _feeOptions, isXcmTransfer, token }: RequestSubscribeTransfer, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeTransfer> {
+  private async subscribeMaxTransferable ({ address, chain, destChain, feeCustom, feeOption: _feeOptions, isXcmTransfer, to, token, transferAll, value }: RequestSubscribeTransfer, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeTransfer> {
     const cb = createSubscription<'pri(transfer.subscribe)'>(id, port);
 
     const tokenInfo = token ? this.#koniState.chainService.getAssetBySlug(token) : this.#koniState.chainService.getNativeTokenInfo(chain);
@@ -2357,6 +2356,7 @@ export default class KoniExtension {
     const convertData = async (freeBalance: AmountData, fee: FeeInfo): Promise<ResponseSubscribeTransfer> => {
       const substrateApi = this.#koniState.chainService.getSubstrateApi(chain);
       let estimatedFee: string;
+      let estimatedFeeMax: string;
       let feeOptions: FeeDetail;
       let tip = '0';
       let maxTransferable = new BigN(freeBalance.value);
@@ -2369,6 +2369,7 @@ export default class KoniExtension {
             const _fee = fee as SubstrateFeeInfo;
 
             estimatedFee = '0';
+            estimatedFeeMax = '0';
             feeOptions = {
               ..._fee,
               estimatedFee
@@ -2399,6 +2400,7 @@ export default class KoniExtension {
               estimatedFee = tokenInfo.minAmount || '0';
             }
 
+            estimatedFeeMax = estimatedFee;
             const _fee = fee as SubstrateFeeInfo;
 
             if (_feeOptions && _feeOptions !== 'custom') {
@@ -2418,6 +2420,7 @@ export default class KoniExtension {
           if (_isChainEvmCompatible(chainInfo) && _isTokenTransferredByEvm(tokenInfo)) {
             const web3 = this.#koniState.chainService.getEvmApi(chain);
             let gasLimit: number;
+            let gasLimitMax: number;
 
             try {
               if (_isNativeToken(tokenInfo)) {
@@ -2428,19 +2431,23 @@ export default class KoniExtension {
                 };
 
                 gasLimit = await web3.api.eth.estimateGas(transaction);
+                gasLimitMax = await web3.api.eth.estimateGas(transaction);
               } else {
                 const contractAddress = _getContractAddressOfToken(tokenInfo);
                 const erc20Contract = getERC20Contract(contractAddress, web3);
                 const address1 = '0xdd718f9Ecaf8f144a3140b79361b5D713D3A6b19';
                 const address2 = '0x5e10e440FEce4dB0b16a6159A4536efb74d32E9b';
-                const to = address1.toLowerCase() === address.toLowerCase() ? address2 : address1;
+                const receipent = to || address1.toLowerCase() === address.toLowerCase() ? address2 : address1;
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
-                gasLimit = await erc20Contract.methods.transfer(to, freeBalance.value).estimateGas({ from: address }) as number;
+                gasLimit = await erc20Contract.methods.transfer(receipent, freeBalance.value).estimateGas({ from: address }) as number;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment
+                gasLimitMax = await erc20Contract.methods.transfer(receipent, freeBalance.value).estimateGas({ from: address }) as number;
               }
             } catch (e) {
               console.error(e);
               gasLimit = 0;
+              gasLimitMax = 0;
             }
 
             const _fee = fee as EvmFeeInfo;
@@ -2449,8 +2456,10 @@ export default class KoniExtension {
 
             if (combineFee.maxFeePerGas) {
               estimatedFee = new BigN(combineFee.maxFeePerGas).multipliedBy(gasLimit).toFixed(0);
+              estimatedFeeMax = new BigN(combineFee.maxFeePerGas).multipliedBy(gasLimitMax).toFixed(0);
             } else {
               estimatedFee = new BigN(combineFee.gasPrice || '0').multipliedBy(gasLimit).toFixed(0);
+              estimatedFeeMax = new BigN(combineFee.gasPrice || '0').multipliedBy(gasLimitMax).toFixed(0);
             }
 
             feeOptions = {
@@ -2464,22 +2473,28 @@ export default class KoniExtension {
             const combineFee = combineBitcoinFee(_fee, _feeOptions, _feeCustom);
             const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
             const utxos = await bitcoinApi.api.getUtxos(address);
-
-            const filteredUtxos = filterUneconomicalUtxos({
-              utxos,
+            const determineUtxosArgs: DetermineUtxosForSpendArgs = {
+              amount: parseInt(value || '0'),
               feeRate: combineFee.feeRate,
+              recipient: to || address,
               sender: address,
-              recipient: address
-            });
-
+              utxos
+            };
+            const { fee: _estimatedFee, inputs, outputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
+            const recipients = outputs.filter((o) => o.address).map((o) => o.address || '');
             const { txVBytes: vSize } = getSizeInfo({
-              inputLength: filteredUtxos.length,
+              inputLength: inputs.length,
               sender: address,
-              recipient: address,
-              outputLength: 1
+              recipients: recipients
             });
 
-            estimatedFee = new BigN(combineFee.feeRate || '0').multipliedBy(vSize).toFixed(0);
+            if (transferAll) {
+              estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
+            } else {
+              estimatedFeeMax = new BigN(determineUtxosForSpendAll(determineUtxosArgs).fee).toFixed(0);
+            }
+
+            estimatedFee = new BigN(_estimatedFee).toFixed(0);
             feeOptions = {
               ..._fee,
               estimatedFee,
@@ -2508,6 +2523,7 @@ export default class KoniExtension {
             }
 
             estimatedFee = paymentInfo?.partialFee?.toString() || '0';
+            estimatedFeeMax = paymentInfo?.partialFee?.toString() || '0';
             feeOptions = {
               ..._fee,
               estimatedFee
@@ -2516,6 +2532,7 @@ export default class KoniExtension {
         }
       } catch (e) {
         estimatedFee = '0';
+        estimatedFeeMax = '0';
 
         if (fee.type === 'substrate') {
           feeOptions = {
@@ -2540,7 +2557,7 @@ export default class KoniExtension {
       }
 
       maxTransferable = maxTransferable
-        .minus(new BigN(estimatedFee).multipliedBy(isXcmTransfer ? XCM_FEE_RATIO : 1))
+        .minus(new BigN(estimatedFeeMax).multipliedBy(isXcmTransfer ? XCM_FEE_RATIO : 1))
         .minus(tip);
 
       return {

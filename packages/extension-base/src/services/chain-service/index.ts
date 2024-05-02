@@ -12,7 +12,7 @@ import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-se
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
-import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
+import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
@@ -751,15 +751,24 @@ export class ChainService {
   }
 
   async autoEnableTokens () {
-    const autoEnableTokens = Object.values(this.dataMap.assetRegistry).filter((asset) => _isAssetAutoEnable(asset));
-
     const assetSettings = this.assetSettingSubject.value;
     const chainStateMap = this.getChainStateMap();
+    const chainInfoMap = this.getChainInfoMap();
 
-    for (const asset of autoEnableTokens) {
+    for (const asset of Object.values(this.dataMap.assetRegistry)) {
+      if (!_isAssetAutoEnable(asset)) {
+        continue;
+      }
+
       const { originChain, slug: assetSlug } = asset;
       const assetState = assetSettings[assetSlug];
       const chainState = chainStateMap[originChain];
+      const chainInfo = chainInfoMap[originChain];
+
+      // todo: will add more condition if there are more networks to support
+      if (!(chainInfo && (_isPureEvmChain(chainInfo) || _isPureBitcoinChain(chainInfo)))) {
+        continue;
+      }
 
       if (!assetState) { // If this asset not has asset setting, this token is not enabled before (not turned off before)
         if (!chainState || !chainState.manualTurnOff) {
@@ -784,7 +793,7 @@ export class ChainService {
     const allAddresses = this.keyringService.accounts;
     const hasRuneAddresses = Object.keys(allAddresses).filter((address) => getKeypairTypeByAddress(address) === 'bitcoin-86');
 
-    await Promise.all(hasRuneAddresses.map(async (address) => { // noted: fake addresses here to enable tokens they have
+    await Promise.all(hasRuneAddresses.map(async (address) => {
       const runes = await bitcoinApi.api.getRunes(address);
 
       runes.forEach((rune) => {
@@ -1971,6 +1980,11 @@ export class ChainService {
     const assetSettings: Record<string, AssetSetting> = storedAssetSettings || {};
 
     Object.values(assetsByChain).forEach((assetInfo) => {
+      // total Rune tokens are very large, make sure to not enable theme when changing chain state
+      if (assetInfo.metadata?.runeId && visible) {
+        return;
+      }
+
       assetSettings[assetInfo.slug] = { visible };
     });
 

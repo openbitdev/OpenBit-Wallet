@@ -86,7 +86,7 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
   const isAllAccount = useSelector((state: RootState) => state.accountState.isAllAccount);
   const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
   const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
-  const assetRegistryMap = useChainAssets().chainAssetRegistry;
+  const assetRegistryMap = useChainAssets().getChainAssetRegistry();
   const [tokenSelectorItems, setTokenSelectorItems] = useState<ReceiveTokenItemType[]>([]);
   const [{ selectedAccountProxyAddress, selectedAccountProxyId, selectedNetwork }, setReceiveSelectedResult] = useState<ReceiveSelectedResult>(
     { selectedAccountProxyId: isAllAccount ? undefined : currentAccountProxy?.proxyId }

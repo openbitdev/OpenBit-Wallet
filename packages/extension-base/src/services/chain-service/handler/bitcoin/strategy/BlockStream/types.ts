@@ -1,6 +1,22 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
+export interface BlockStreamBlock {
+  id: string;
+  height: number;
+  version: number;
+  timestamp: number;
+  tx_count: number;
+  size: number;
+  weight: number;
+  merkle_root: string;
+  previousblockhash: string;
+  mediantime: number;
+  nonce: number;
+  bits: number;
+  difficulty: number;
+}
+
 export interface BitcoinAddressSummaryInfo {
   address: string,
   chain_stats: {
@@ -66,6 +82,56 @@ export interface RunesCollectionInfo {
   rune: string,
   rune_name: string,
   divisibility: string
+}
+
+export interface RuneTxsResponse {
+  statusCode: number;
+  data: RuneTxsFetchedData
+}
+
+interface RuneTxsFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  transactions: RuneTxs[]
+}
+
+export interface RuneTxs {
+  txid: string,
+  vout: RuneTxsUtxosVout[]
+}
+
+interface RuneTxsUtxosVout {
+  n: number,
+  value: number,
+  runeInject: any
+}
+
+export interface InscriptionFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  results: Inscription[]
+}
+
+export interface Inscription {
+  id: string;
+  number: number;
+  address: string;
+  genesis_block_height: number;
+  genesis_block_hash: string;
+  genesis_timestamp: number;
+  tx_id: string;
+  location: string;
+  output: string;
+  value: string;
+  offset: string;
+  fee: number;
+  sat_ordinal: string;
+  sat_rarity: string;
+  content_type: string;
+  content_length: number;
+  // content: any
 }
 
 export interface BlockStreamUtxo {
