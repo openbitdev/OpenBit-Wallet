@@ -20,7 +20,7 @@
     "./cjs/detectPackage.js"
   ],
   "type": "module",
-  "version": "0.2.53-beta.1",
+  "version": "0.2.59-beta.2",
   "main": "./cjs/index.js",
   "module": "./index.js",
   "types": "./index.d.ts",

@@ -7,5 +7,5 @@ export const packageInfo = {
   name: '@subwallet/chain-list',
   path: (import.meta && import.meta.url) ? new URL(import.meta.url).pathname.substring(0, new URL(import.meta.url).pathname.lastIndexOf('/') + 1) : 'auto',
   type: 'esm',
-  version: '0.2.53-beta.1'
+  version: '0.2.59-beta.2'
 };

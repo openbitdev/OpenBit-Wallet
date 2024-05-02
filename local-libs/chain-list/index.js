@@ -31,6 +31,7 @@ export let COMMON_CHAIN_SLUGS;
   COMMON_CHAIN_SLUGS["HYDRADX_TESTNET"] = "hydradx_rococo";
   COMMON_CHAIN_SLUGS["ETHEREUM_SEPOLIA"] = "sepolia_ethereum";
   COMMON_CHAIN_SLUGS["CHAINFLIP_POLKADOT"] = "chainflip_dot";
+  COMMON_CHAIN_SLUGS["MOONBASE"] = "moonbase";
 })(COMMON_CHAIN_SLUGS || (COMMON_CHAIN_SLUGS = {}));
 export let COMMON_ASSETS;
 (function (COMMON_ASSETS) {

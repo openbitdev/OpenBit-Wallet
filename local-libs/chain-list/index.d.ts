@@ -21,7 +21,8 @@ export declare enum COMMON_CHAIN_SLUGS {
     HYDRADX = "hydradx_main",
     HYDRADX_TESTNET = "hydradx_rococo",
     ETHEREUM_SEPOLIA = "sepolia_ethereum",
-    CHAINFLIP_POLKADOT = "chainflip_dot"
+    CHAINFLIP_POLKADOT = "chainflip_dot",
+    MOONBASE = "moonbase"
 }
 export declare enum COMMON_ASSETS {
     DOT = "polkadot-NATIVE-DOT",
