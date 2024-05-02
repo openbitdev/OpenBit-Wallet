@@ -195,7 +195,9 @@ function getAccountProxyBalance (
     tokenGroupBalance.isReady = isTokenGroupBalanceReady;
     tokenGroupBalance.isNotSupport = tokenGroupNotSupport.every((e) => e);
 
-    if (!multiChainAsset && tokenGroupMap[tokenGroupKey].length === 1 && tokenBalanceMap[tokenGroupKey]) {
+    if (multiChainAsset && !multiChainAsset.hasValue) {
+      tokenGroupBalance.isTestnet = true;
+    } else if (!multiChainAsset && tokenGroupMap[tokenGroupKey].length === 1 && tokenBalanceMap[tokenGroupKey]) {
       tokenGroupBalance.isTestnet = tokenBalanceMap[tokenGroupKey].isTestnet;
     }
 
