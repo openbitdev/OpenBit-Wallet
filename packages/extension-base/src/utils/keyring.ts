@@ -75,6 +75,74 @@ export const MockAccountProxyMap = {
       value: null
     },
     type: 'bitcoin-86' as KeypairType
+  },
+  ACCOUNT_DEV_BITLAYER: {
+    json: {
+      address: '0xfb23db59cda36714d8dda0d96a95b82bfdfb2c9d',
+      meta: {
+        name: 'ACCOUNT_DEV_BITLAYER',
+        proxyId: 'ACCOUNT_PROXY_BITLAYER',
+        type: 'ethereum',
+        isMock: true
+      }
+    },
+    option: {
+      key: null,
+      name: '0x00D63557A0476D4dE12956BC9E8EC328b7CaC197',
+      value: null
+    },
+    type: 'ethereum' as KeypairType
+  },
+  ACCOUNT_DEV_BEVM_MAINNET: {
+    json: {
+      address: '0xB5136FEba197f5fF4B765E5b50c74db717796dcD',
+      meta: {
+        name: 'ACCOUNT_DEV_BEVM_MAINNET',
+        proxyId: 'ACCOUNT_PROXY_BEVM_MAINNET',
+        type: 'ethereum',
+        isMock: true
+      }
+    },
+    option: {
+      key: null,
+      name: '0xB5136FEba197f5fF4B765E5b50c74db717796dcD',
+      value: null
+    },
+    type: 'ethereum' as KeypairType
+  },
+  ACCOUNT_DEV_BOB: {
+    json: {
+      address: '0xe5bc234A484A912A61Aa74501960cFc202e773dA',
+      meta: {
+        name: 'ACCOUNT_DEV_BOB',
+        proxyId: 'ACCOUNT_PROXY_BOB',
+        type: 'ethereum',
+        isMock: true
+      }
+    },
+    option: {
+      key: null,
+      name: '0xe5bc234A484A912A61Aa74501960cFc202e773dA',
+      value: null
+    },
+    type: 'ethereum' as KeypairType
+  },
+  ACCOUNT_DEV_B2: {
+    json: {
+      address: '0x5c18ad1e3118654d9149148a5438eb681178fe77',
+      meta: {
+        name: 'ACCOUNT_DEV_B2',
+        proxyId: 'ACCOUNT_PROXY_B2',
+        type: 'ethereum',
+        isMock: true
+      }
+    },
+    option: {
+      key: null,
+      name: '0xe5bc234A484A912A61Aa74501960cFc202e773dA',
+      value: null
+    },
+    type: 'ethereum' as KeypairType
   }
 };
 
@@ -82,7 +150,11 @@ export function updateSubjectInfoWithMockAccount (subjectInfo: SubjectInfo) {
   // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BTC.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BTC;
   // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_RUNE.json.address] = MockAccountProxyMap.ACCOUNT_DEV_RUNE;
   // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_INS_1.json.address] = MockAccountProxyMap.ACCOUNT_DEV_INS_1;
-  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_INS_2.json.address] = MockAccountProxyMap.ACCOUNT_DEV_INS_2;
+  // subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_INS_2.json.address] = MockAccountProxyMap.ACCOUNT_DEV_INS_2;
+  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BITLAYER.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BITLAYER;
+  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BEVM_MAINNET.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BEVM_MAINNET;
+  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BOB.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BOB;
+  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_B2.json.address] = MockAccountProxyMap.ACCOUNT_DEV_B2;
 }
 
 export function keyringGetAccounts () {
@@ -93,7 +165,11 @@ export function keyringGetAccounts () {
       // MockAccountProxyMap.ACCOUNT_DEV_BTC.json as unknown as KeyringAddress,
       // MockAccountProxyMap.ACCOUNT_DEV_RUNE.json as unknown as KeyringAddress,
       // MockAccountProxyMap.ACCOUNT_DEV_INS_1.json as unknown as KeyringAddress,
-      MockAccountProxyMap.ACCOUNT_DEV_INS_2.json as unknown as KeyringAddress
+      // MockAccountProxyMap.ACCOUNT_DEV_INS_2.json as unknown as KeyringAddress
+      MockAccountProxyMap.ACCOUNT_DEV_BITLAYER.json as unknown as KeyringAddress,
+      MockAccountProxyMap.ACCOUNT_DEV_BEVM_MAINNET.json as unknown as KeyringAddress,
+      MockAccountProxyMap.ACCOUNT_DEV_BOB.json as unknown as KeyringAddress,
+      MockAccountProxyMap.ACCOUNT_DEV_B2.json as unknown as KeyringAddress
     );
   }
 

@@ -822,16 +822,16 @@ export class ChainService {
         .catch(console.error);
     }).catch(console.error);
 
-    this.fetchLatestRuneData().then((runesAssetMap) => {
-      this.eventService.waitAssetReady
-        .then(() => {
-          this.upsertBatchCustomToken(Object.values(runesAssetMap));
-
-          this.autoEnableRuneTokens()
-            .catch(console.error);
-        })
-        .catch(console.error);
-    }).catch(console.error);
+    // this.fetchLatestRuneData().then((runesAssetMap) => {
+    //   this.eventService.waitAssetReady
+    //     .then(() => {
+    //       this.upsertBatchCustomToken(Object.values(runesAssetMap));
+    //
+    //       this.autoEnableRuneTokens()
+    //         .catch(console.error);
+    //     })
+    //     .catch(console.error);
+    // }).catch(console.error);
 
     this.fetchLatestChainData().then((latestChainInfo) => {
       this.handleLatestChainData(latestChainInfo);
@@ -1083,6 +1083,7 @@ export class ChainService {
     return await Promise.all([fetchPatchData<Record<string, _ChainAsset>>('ChainAsset.json'), fetchPatchData<Record<string, string>>('AssetLogoMap.json')]);
   }
 
+  // @ts-ignore
   private async fetchLatestRuneData () {
     const chainAssetMap: Record<string, _ChainAsset> = {};
     const pageSize = 2000;
