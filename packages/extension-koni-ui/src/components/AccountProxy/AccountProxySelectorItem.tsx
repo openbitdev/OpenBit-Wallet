@@ -186,8 +186,9 @@ const AccountProxySelectorItem = styled(Component)<Props>(({ theme }) => {
     '.__item-right-part': {
       marginLeft: 'auto',
       display: 'flex',
-      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'flex-end',
+      minWidth: 120,
       position: 'relative'
     },
     '.__item-actions-overlay': {

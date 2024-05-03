@@ -6232,13 +6232,13 @@ __metadata:
   linkType: hard
 
 "@subwallet/chain-list@file:./local-libs/chain-list::locator=root-workspace-0b6124%40workspace%3A.":
-  version: 0.2.59-beta.2
-  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=509136&locator=root-workspace-0b6124%40workspace%3A."
+  version: 0.2.60-beta.0
+  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=aca7fb&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: e1a7417316433b23853d6162b3abd58b108669db7632d7d16a72134d25eadafd6cd6fd21abe15b51edbf8139cabcbf2e09012f3c37d6ea2fcb58182aed06efd6
+  checksum: 61da332b70d766704d7ed50f84c606d63d76bfdaf53477bf0a5b50e312217aa99cf3a802a8b0103e4f1db7c6f031dea9b4b48ec7713902d34ebe5e7c0a7cd02d
   languageName: node
   linkType: hard
 
