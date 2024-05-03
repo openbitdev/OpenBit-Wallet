@@ -23,7 +23,6 @@ function Component (
     logoKey,
     onClick,
     priceValue,
-    slug,
     symbol,
     total }: Props) {
   // todo: Create new Web3block item in react-ui lib
@@ -38,7 +37,7 @@ function Component (
         convertedBalanceValue={total.convertedValue}
         decimal={0}
         displayToken={symbol}
-        isShowSubLogo={!!chain && !slug.includes('NATIVE')}
+        isShowSubLogo={!!chain}
         middleItem={
           (
             <>
