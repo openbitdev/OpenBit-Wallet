@@ -139,7 +139,41 @@ export const MockAccountProxyMap = {
     },
     option: {
       key: null,
-      name: '0xe5bc234A484A912A61Aa74501960cFc202e773dA',
+      name: '0x5c18ad1e3118654d9149148a5438eb681178fe77',
+      value: null
+    },
+    type: 'ethereum' as KeypairType
+  },
+  ACCOUNT_DEV_BOTANIX_TESTNET: {
+    json: {
+      address: '0x0Ea320990B44236A0cEd0ecC0Fd2b2df33071e78',
+      meta: {
+        name: 'ACCOUNT_DEV_BOTANIX_TESTNET',
+        proxyId: 'ACCOUNT_PROXY_BOTANIX_TESTNET',
+        type: 'ethereum',
+        isMock: true
+      }
+    },
+    option: {
+      key: null,
+      name: '0x0Ea320990B44236A0cEd0ecC0Fd2b2df33071e78',
+      value: null
+    },
+    type: 'ethereum' as KeypairType
+  },
+  ACCOUNT_DEV_MERLIN: {
+    json: {
+      address: '0x9B83A0534Bc6dfC9E036184C7f56e7aC8cD99ea5',
+      meta: {
+        name: 'ACCOUNT_DEV_MERLIN',
+        proxyId: 'ACCOUNT_PROXY_MERLIN',
+        type: 'ethereum',
+        isMock: true
+      }
+    },
+    option: {
+      key: null,
+      name: '0x9B83A0534Bc6dfC9E036184C7f56e7aC8cD99ea5',
       value: null
     },
     type: 'ethereum' as KeypairType
@@ -155,6 +189,8 @@ export function updateSubjectInfoWithMockAccount (subjectInfo: SubjectInfo) {
   subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BEVM_MAINNET.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BEVM_MAINNET;
   subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BOB.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BOB;
   subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_B2.json.address] = MockAccountProxyMap.ACCOUNT_DEV_B2;
+  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_BOTANIX_TESTNET.json.address] = MockAccountProxyMap.ACCOUNT_DEV_BOTANIX_TESTNET;
+  subjectInfo[MockAccountProxyMap.ACCOUNT_DEV_MERLIN.json.address] = MockAccountProxyMap.ACCOUNT_DEV_MERLIN;
 }
 
 export function keyringGetAccounts () {
@@ -169,7 +205,9 @@ export function keyringGetAccounts () {
       MockAccountProxyMap.ACCOUNT_DEV_BITLAYER.json as unknown as KeyringAddress,
       MockAccountProxyMap.ACCOUNT_DEV_BEVM_MAINNET.json as unknown as KeyringAddress,
       MockAccountProxyMap.ACCOUNT_DEV_BOB.json as unknown as KeyringAddress,
-      MockAccountProxyMap.ACCOUNT_DEV_B2.json as unknown as KeyringAddress
+      MockAccountProxyMap.ACCOUNT_DEV_B2.json as unknown as KeyringAddress,
+      MockAccountProxyMap.ACCOUNT_DEV_BOTANIX_TESTNET.json as unknown as KeyringAddress,
+      MockAccountProxyMap.ACCOUNT_DEV_MERLIN.json as unknown as KeyringAddress
     );
   }
 
