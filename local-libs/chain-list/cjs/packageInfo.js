@@ -13,6 +13,6 @@ const packageInfo = {
   name: '@subwallet/chain-list',
   path: typeof __dirname === 'string' ? __dirname : 'auto',
   type: 'cjs',
-  version: '0.2.60-beta.0'
+  version: '0.2.60-beta.1'
 };
 exports.packageInfo = packageInfo;
