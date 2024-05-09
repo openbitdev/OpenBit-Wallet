@@ -11426,23 +11426,30 @@
   	minAmount: "0",
   	assetType: "LOCAL",
   	metadata: {
-  		runeId: "841052:1863"
+  		runeId: "841052:1863",
+  		spacersList: [
+  			6
+  		]
   	},
   	multiChainAsset: null,
   	hasValue: true,
   	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/botanixevmtest-native-btc.png"
   },
-  	"bitcoin-LOCAL-RUNESXBITCOIN-840000:142": {
+  	"bitcoin-LOCAL-RUNES*X*BITCOIN-840000:142": {
   	originChain: "bitcoin",
-  	slug: "bitcoin-LOCAL-RUNESXBITCOIN-840000:142",
+  	slug: "bitcoin-LOCAL-RUNES*X*BITCOIN-840000:142",
   	name: "RUNES X BITCOIN",
-  	symbol: "RUNESXBITCOIN",
+  	symbol: "RUNES*X*BITCOIN",
   	decimals: 0,
   	priceId: null,
   	minAmount: "0",
   	assetType: "LOCAL",
   	metadata: {
-  		runeId: "840000:142"
+  		runeId: "840000:142",
+  		spacersList: [
+  			5,
+  			6
+  		]
   	},
   	multiChainAsset: null,
   	hasValue: true,
