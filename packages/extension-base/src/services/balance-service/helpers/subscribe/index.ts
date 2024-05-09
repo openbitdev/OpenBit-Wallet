@@ -104,6 +104,10 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
         runes.forEach((rune) => {
           const runeId = rune.rune_id;
 
+          if (!Object.keys(runeIdToSlugMap).includes(runeId)) {
+            return;
+          }
+
           const item = {
             address: address,
             tokenSlug: runeIdToSlugMap[runeId],

@@ -6233,12 +6233,12 @@ __metadata:
 
 "@subwallet/chain-list@file:./local-libs/chain-list::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.2.60-beta.1
-  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=8873f5&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/chain-list@file:./local-libs/chain-list#./local-libs/chain-list::hash=86f3a8&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: bbe22dd92bce51126a00445591265bc9964c67c0531cef93ed8409577ff09ace7d8e436361b1c7a4b90b3b9b2d2aa7afcf031c62e5fa5484e0918b500610fcad
+  checksum: c5d268386fed10af37d9b3c831909e88f52dec02025d5dd56afd8fd1f8a0d5079277cb22d3652974ffc37855214c886f959964e9f4e2e454c07ea81e14d079b3
   languageName: node
   linkType: hard
 
@@ -6615,7 +6615,7 @@ __metadata:
 
 "@subwallet/keyring@file:./local-libs/keyring::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.1.4
-  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=f0dbce&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/keyring@file:./local-libs/keyring#./local-libs/keyring::hash=7e488d&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@ethereumjs/tx": ^5.0.0
     "@polkadot/util": ^12.2.1
@@ -6630,7 +6630,7 @@ __metadata:
     rxjs: ^7.5.6
     tiny-secp256k1: ^2.2.3
     tslib: ^2.6.2
-  checksum: 472d0ffc80abcdcf4854a2dcfc1b953c204eb6cde1e5f35d5db0b6dee921f0254e4e0933ac422af4ffed59927d6141421f5444fa554d57f853c94657bd3b17f7
+  checksum: 203aa14cd26fdbbd7edda98125995d328cf5b5c0a2a8f9decfcb203b9aac14be76c9a4c7afa038a2585ed2238ba5ef1a009016df920f086e753100ea34bdfe37
   languageName: node
   linkType: hard
 
@@ -6715,7 +6715,7 @@ __metadata:
 
 "@subwallet/ui-keyring@file:./local-libs/ui-keyring::locator=root-workspace-0b6124%40workspace%3A.":
   version: 0.1.4
-  resolution: "@subwallet/ui-keyring@file:./local-libs/ui-keyring#./local-libs/ui-keyring::hash=2161b6&locator=root-workspace-0b6124%40workspace%3A."
+  resolution: "@subwallet/ui-keyring@file:./local-libs/ui-keyring#./local-libs/ui-keyring::hash=4f7758&locator=root-workspace-0b6124%40workspace%3A."
   dependencies:
     "@babel/runtime": ^7.20.1
     "@polkadot/ui-settings": 2.9.14
@@ -6725,7 +6725,7 @@ __metadata:
     mkdirp: ^1.0.4
     rxjs: ^7.5.7
     store: ^2.0.12
-  checksum: 4bc41dbbc12d52ba52f61f9ed54f3eebcf500cde908961e6ff68cda865f78ca44aa61866714405b75223c33b49a6998df9e6a17e66dafc29e75f235c905998a9
+  checksum: a4b5af48bbec7471f8d4c000326c170ad8b92d5aa9c7b2a88a9ca0d56d88abe0c7993811dd5b3e927beb542e9acaf4644998826fa9a64d706c38e8d8a9b91fc2
   languageName: node
   linkType: hard
 
