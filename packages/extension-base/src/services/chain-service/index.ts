@@ -12,7 +12,7 @@ import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-se
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse } from '@subwallet/extension-base/services/chain-service/types';
-import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
+import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _isRuneToken, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import { getAllCollectionRunes } from '@subwallet/extension-base/services/rune-service/utils';
@@ -176,9 +176,7 @@ export class ChainService {
     const filteredAssetRegistry: Record<string, _ChainAsset> = {};
 
     Object.values(this.getAssetRegistry()).forEach((asset) => {
-      const assetType = asset.assetType;
-
-      if (assetType === _AssetType.RUNE) {
+      if (_isRuneToken(asset)) {
         filteredAssetRegistry[asset.slug] = asset;
       }
     });
@@ -529,7 +527,7 @@ export class ChainService {
         const defaultSlug = this.generateSlugForNativeToken(token.originChain, token.assetType, token.symbol);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
-      } else if (token.assetType === _AssetType.RUNE) {
+      } else if (_isRuneToken(token)) {
         const defaultSlug = this.generateSlugForRune(token.originChain, token.assetType, token.symbol, token.metadata?.runeId as string);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
