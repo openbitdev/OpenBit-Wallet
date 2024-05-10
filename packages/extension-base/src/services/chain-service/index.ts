@@ -10,7 +10,7 @@ import { EvmChainHandler } from '@subwallet/extension-base/services/chain-servic
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
-import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
+import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
@@ -169,6 +169,20 @@ export class ChainService {
 
   public getMultiChainAssetMap () {
     return MultiChainAssetMap;
+  }
+
+  public getRuneTokens () {
+    const filteredAssetRegistry: Record<string, _ChainAsset> = {};
+
+    Object.values(this.getAssetRegistry()).forEach((asset) => {
+      const assetType = asset.assetType;
+
+      if (assetType === _AssetType.RUNE) {
+        filteredAssetRegistry[asset.slug] = asset;
+      }
+    });
+
+    return filteredAssetRegistry;
   }
 
   public getSmartContractTokens () {
@@ -1739,6 +1753,71 @@ export class ChainService {
     }
 
     return { error, conflictChainSlug, conflictChainName };
+  }
+
+  private async getRuneInfo (runeId: string, tokenType: _AssetType, originChain: string, contractCaller?: string): Promise<_SmartContractTokenInfo> {
+    if (tokenType === _AssetType.RUNE && originChain === _BITCOIN_CHAIN_SLUG) {
+      const allCollectionRunes = await getAllCollectionRunes();
+
+      for (const runeCollection of allCollectionRunes) {
+        if (runeCollection.rune_id === runeId) {
+          const spacer = runeCollection.spacers;
+          const baseRuneName = runeCollection.rune_name;
+
+          const spacerList = decodeRuneSpacer(parseInt(spacer));
+          const runeName = insertRuneSpacer(baseRuneName, spacerList);
+
+          return {
+            decimals: parseInt(runeCollection.divisibility) || 0,
+            name: runeCollection.rune_name,
+            symbol: runeName,
+            contractError: false
+          };
+        }
+      }
+    }
+
+    return {
+      decimals: -1,
+      name: '',
+      symbol: '',
+      contractError: false
+    };
+  }
+
+  public async validateCustomRune (data: _ValidateCustomRuneRequest): Promise<_ValidateCustomRuneResponse> {
+    const assetRegistry = this.getRuneTokens();
+    let existedToken: _ChainAsset | undefined;
+
+    for (const token of Object.values(assetRegistry)) {
+      const runeId = token?.metadata?.runeId as string;
+
+      if (runeId === data.runeId && token.assetType === data.type && token.originChain === data.originChain) {
+        existedToken = token;
+        break;
+      }
+    }
+
+    if (existedToken) {
+      return {
+        decimals: existedToken.decimals || 0,
+        name: existedToken.name,
+        symbol: existedToken.symbol,
+        isExist: !!existedToken,
+        existedSlug: existedToken?.slug,
+        contractError: false
+      };
+    }
+
+    const { contractError, decimals, name, symbol } = await this.getRuneInfo(data.runeId, data.type, data.originChain, data.contractCaller);
+
+    return {
+      name,
+      decimals,
+      symbol,
+      isExist: !!existedToken,
+      contractError
+    };
   }
 
   private async getSmartContractTokenInfo (contractAddress: string, tokenType: _AssetType, originChain: string, contractCaller?: string): Promise<_SmartContractTokenInfo> {

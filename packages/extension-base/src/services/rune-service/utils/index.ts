@@ -6,7 +6,7 @@ import { RunesService } from '@subwallet/extension-base/services/rune-service';
 
 export async function getAllCollectionRunes () {
   const runesCollectionFullList: RunesCollectionInfo[] = [];
-  const pageSize = 2000;
+  const pageSize = 15000;
   let offset = 0;
 
   const runeService = RunesService.getInstance();
