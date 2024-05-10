@@ -4,6 +4,7 @@
 import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, MultiChainAssetMap } from '@subwallet/chain-list';
 import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { decodeRuneSpacer, insertRuneSpacer } from '@subwallet/extension-base/services/balance-service/utils/rune';
 import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/BitcoinChainHandler';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
@@ -526,6 +527,10 @@ export class ChainService {
     if (token.slug.length === 0) { // new token
       if (token.assetType === _AssetType.NATIVE) {
         const defaultSlug = this.generateSlugForNativeToken(token.originChain, token.assetType, token.symbol);
+
+        token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
+      } else if (token.assetType === _AssetType.RUNE) {
+        const defaultSlug = this.generateSlugForRune(token.originChain, token.assetType, token.symbol, token.metadata?.runeId as string);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
       } else {
@@ -1098,7 +1103,7 @@ export class ChainService {
 
   private async fetchLatestRuneData () {
     const chainAssetMap: Record<string, _ChainAsset> = {};
-    const allCollectionRunes = await getAllCollectionRunes()
+    const allCollectionRunes = await getAllCollectionRunes();
 
     allCollectionRunes.forEach((rune) => {
       const chainAssetItem = {
@@ -1868,6 +1873,10 @@ export class ChainService {
       isExist: !!existedToken,
       contractError
     };
+  }
+
+  private generateSlugForRune (originChain: string, assetType: _AssetType, symbol: string, runeId: string) {
+    return `${originChain}-${assetType}-${symbol}-${runeId}`;
   }
 
   private generateSlugForSmartContractAsset (originChain: string, assetType: _AssetType, symbol: string, contractAddress: string) {
