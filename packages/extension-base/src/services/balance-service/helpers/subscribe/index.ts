@@ -79,7 +79,7 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
 function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
   // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
   const chain = chainInfo.slug;
-  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
+  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.RUNE]);
 
   // todo: check await asset ready before subscribe
   if (Object.keys(tokenList).length === 0) {

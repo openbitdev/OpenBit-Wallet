@@ -22,6 +22,7 @@ export let _AssetType;
   _AssetType["PSP22"] = "PSP22";
   _AssetType["PSP34"] = "PSP34";
   _AssetType["UNKNOWN"] = "UNKNOWN";
+  _AssetType["RUNE"] = "RUNE";
 })(_AssetType || (_AssetType = {}));
 export let _SubstrateChainType;
 (function (_SubstrateChainType) {

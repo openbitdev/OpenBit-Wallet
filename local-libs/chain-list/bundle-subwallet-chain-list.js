@@ -11416,15 +11416,15 @@
   	hasValue: false,
   	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/botanixevmtest-native-btc.png"
   },
-  	"bitcoin-LOCAL-RUNINGBITCOIN-841052:1863": {
+  	"bitcoin-RUNE-RUNINGBITCOIN-841052:1863": {
   	originChain: "bitcoin",
-  	slug: "bitcoin-LOCAL-RUNINGBITCOIN-841052:1863",
+  	slug: "bitcoin-RUNE-RUNINGBITCOIN-841052:1863",
   	name: "RUNING BITCOIN",
   	symbol: "RUNINGBITCOIN",
   	decimals: 8,
   	priceId: null,
   	minAmount: "0",
-  	assetType: "LOCAL",
+  	assetType: "RUNE",
   	metadata: {
   		runeId: "841052:1863",
   		spacersList: [
@@ -11435,15 +11435,15 @@
   	hasValue: true,
   	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/botanixevmtest-native-btc.png"
   },
-  	"bitcoin-LOCAL-RUNES*X*BITCOIN-840000:142": {
+  	"bitcoin-RUNE-RUNES*X*BITCOIN-840000:142": {
   	originChain: "bitcoin",
-  	slug: "bitcoin-LOCAL-RUNES*X*BITCOIN-840000:142",
+  	slug: "bitcoin-RUNE-RUNES*X*BITCOIN-840000:142",
   	name: "RUNES X BITCOIN",
   	symbol: "RUNES*X*BITCOIN",
   	decimals: 0,
   	priceId: null,
   	minAmount: "0",
-  	assetType: "LOCAL",
+  	assetType: "RUNE",
   	metadata: {
   		runeId: "840000:142",
   		spacersList: [
