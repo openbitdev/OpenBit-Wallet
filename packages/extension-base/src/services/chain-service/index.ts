@@ -6,7 +6,6 @@ import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _Chain
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/BitcoinChainHandler';
-import { RunesCollectionInfo, RunesCollectionInfoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
@@ -15,7 +14,7 @@ import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _
 import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
-import { RunesService } from '@subwallet/extension-base/services/rune-service';
+import { getAllCollectionRunes } from '@subwallet/extension-base/services/rune-service/utils';
 import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storage-service/databases';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
@@ -1085,59 +1084,30 @@ export class ChainService {
 
   private async fetchLatestRuneData () {
     const chainAssetMap: Record<string, _ChainAsset> = {};
-    const pageSize = 2000;
-    let offset = 0;
+    const allCollectionRunes = await getAllCollectionRunes()
 
-    const runeService = RunesService.getInstance();
+    allCollectionRunes.forEach((rune) => {
+      const chainAssetItem = {
+        originChain: `${_BITCOIN_CHAIN_SLUG}`,
+        slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
+        name: `${_BITCOIN_NAME}`,
+        symbol: rune.rune_name,
+        decimals: parseInt(rune.divisibility) || 0,
+        priceId: null,
+        minAmount: '0',
+        assetType: _AssetType.LOCAL,
+        metadata: {
+          runeId: rune.rune_id
+        },
+        multiChainAsset: null,
+        hasValue: true,
+        icon: '' // todo: update token logo if available
+      };
 
-    try {
-      while (true) {
-        const response = await runeService.getRuneCollectionsByBatch({
-          limit: String(pageSize),
-          offset: String(offset)
-        }) as unknown as RunesCollectionInfoResponse;
+      chainAssetMap[chainAssetItem.slug] = chainAssetItem;
+    });
 
-        let runes: RunesCollectionInfo[] = [];
-
-        if (response.statusCode === 200) {
-          runes = response.data.runes;
-          runes.forEach((rune) => {
-            const chainAssetItem = {
-              originChain: `${_BITCOIN_CHAIN_SLUG}`,
-              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
-              name: `${_BITCOIN_NAME}`,
-              symbol: rune.rune_name,
-              decimals: parseInt(rune.divisibility) || 0,
-              priceId: null,
-              minAmount: '0',
-              assetType: _AssetType.LOCAL,
-              metadata: {
-                runeId: rune.rune_id
-              },
-              multiChainAsset: null,
-              hasValue: true,
-              icon: '' // todo: update token logo if available
-            };
-
-            chainAssetMap[chainAssetItem.slug] = chainAssetItem;
-          });
-        } else {
-          console.log(`Error on request batch rune collection information with pageSize ${pageSize} and offset ${offset}`);
-          break;
-        }
-
-        if (runes.length !== 0) {
-          offset += pageSize;
-        } else {
-          break;
-        }
-      }
-
-      return chainAssetMap;
-    } catch (error) {
-      console.error('Failed to fetch all rune collection', error);
-      throw error;
-    }
+    return chainAssetMap;
   }
 
   // @ts-ignore

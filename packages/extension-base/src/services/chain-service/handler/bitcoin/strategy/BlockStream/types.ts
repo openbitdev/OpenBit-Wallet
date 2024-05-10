@@ -81,7 +81,8 @@ export interface RunesCollectionInfo {
   rune_id: string,
   rune: string,
   rune_name: string,
-  divisibility: string
+  divisibility: string,
+  spacers: string
 }
 
 export interface RuneTxsResponse {

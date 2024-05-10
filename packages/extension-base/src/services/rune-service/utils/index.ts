@@ -5,7 +5,7 @@ import { RunesCollectionInfo, RunesCollectionInfoResponse } from '@subwallet/ext
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 
 export async function getAllCollectionRunes () {
-  const runesFullList: RunesCollectionInfo[] = [];
+  const runesCollectionFullList: RunesCollectionInfo[] = [];
   const pageSize = 2000;
   let offset = 0;
 
@@ -28,14 +28,14 @@ export async function getAllCollectionRunes () {
       }
 
       if (runes.length !== 0) {
-        runesFullList.push(...runes);
+        runesCollectionFullList.push(...runes);
         offset += pageSize;
       } else {
         break;
       }
     }
 
-    return runesFullList;
+    return runesCollectionFullList;
   } catch (error) {
     console.error('Failed to get rune collections', error);
     throw error;
