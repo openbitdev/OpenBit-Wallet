@@ -23,8 +23,8 @@ export async function validateCustomRune (data: _ValidateCustomRuneRequest): Pro
   return sendMessage('pri(chainService.validateCustomRune)', data);
 }
 
-export async function validateCustomToken (data: _ValidateCustomAssetRequest): Promise<_ValidateCustomAssetResponse> {
-  return sendMessage('pri(chainService.validateCustomAsset)', data);
+export async function validateCustomToken (data: _ValidateCustomRuneRequest): Promise<_ValidateCustomRuneResponse> {
+  return sendMessage('pri(chainService.validateCustomRune)', data);
 }
 
 export async function resetDefaultNetwork (): Promise<boolean> {
