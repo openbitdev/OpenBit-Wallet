@@ -76,8 +76,7 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
 };
 
 // todo: update bitcoin params
-function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
-  // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
+function subscribeRuneBalance (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
   const chain = chainInfo.slug;
   const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
 
@@ -211,20 +210,15 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, as
   };
 
   getBalance();
+
   const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
 
-  if (_isSupportRuneChain(chainInfo.slug)) {
-    const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
+  const unsub = subscribeRuneBalance(bitcoinApi, addresses, assetMap, chainInfo, callback);
 
-    return () => {
-      clearInterval(interval);
-      unsub && unsub();
-    };
-  } else {
-    return () => {
-      clearInterval(interval);
-    };
-  }
+  return () => {
+    clearInterval(interval);
+    unsub && unsub();
+  };
 }
 
 // main subscription, use for multiple chains, multiple addresses and multiple tokens
