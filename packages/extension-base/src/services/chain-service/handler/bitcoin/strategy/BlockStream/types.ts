@@ -107,6 +107,25 @@ interface RuneTxsUtxosVout {
   runeInject: any
 }
 
+export interface Brc20BalanceFetchedData {
+  limit: number,
+  offset: number,
+  total: number,
+  results: Brc20Balance[]
+}
+
+export interface Brc20Balance {
+  ticker: string,
+  available_balance: string,
+  transferrable_balance: string,
+  overall_balance: string
+}
+
+export interface Brc20BalanceItem {
+  free: string,
+  locked: string
+}
+
 export interface InscriptionFetchedData {
   limit: number,
   offset: number,
