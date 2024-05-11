@@ -11,6 +11,8 @@ import { BehaviorSubject } from 'rxjs';
 import { _ApiOptions } from '../../handler/types';
 import { _BitcoinApi, _ChainConnectionStatus } from '../../types';
 
+const isBlockStreamProvider = (apiUrl: string): boolean => apiUrl === 'https://blockstream-testnet.openbit.app' || apiUrl === 'https://electrs.openbit.app';
+
 export class BitcoinApi implements _BitcoinApi {
   chainSlug: string;
   apiUrl: string;
@@ -31,7 +33,7 @@ export class BitcoinApi implements _BitcoinApi {
     this.providerName = providerName || 'unknown';
     this.isReadyHandler = createPromiseHandler<_BitcoinApi>();
 
-    if (apiUrl.includes('https://blockstream.info')) {
+    if (isBlockStreamProvider(apiUrl)) {
       this.api = new BlockStreamRequestStrategy(apiUrl);
     } else {
       throw new Error(`Unsupported provider: ${apiUrl}`);
@@ -73,7 +75,7 @@ export class BitcoinApi implements _BitcoinApi {
 
     this.apiUrl = apiUrl;
 
-    if (apiUrl.includes('https://blockstream.info')) {
+    if (isBlockStreamProvider(apiUrl)) {
       this.api = new BlockStreamRequestStrategy(apiUrl);
     } else {
       throw new Error(`Unsupported provider: ${apiUrl}`);

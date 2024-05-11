@@ -6,7 +6,7 @@
     "chainStatus": "ACTIVE",
     "icon": "https://dev.sw-chain-list-assets.pages.dev/assets/multi-chain-assets/wbtc-wrappedbtc.png",
     "providers": {
-      "Blockstream": "https://blockstream.info/api"
+      "Blockstream": "https://electrs.openbit.app"
     },
     "bitcoinInfo": {
       "blockExplorer": "https://mempool.space",
@@ -29,7 +29,7 @@
     "chainStatus": "ACTIVE",
     "icon": "https://dev.sw-chain-list-assets.pages.dev/assets/multi-chain-assets/wbtc-wrappedbtc.png",
     "providers": {
-      "Blockstream": "https://blockstream.info/testnet/api"
+      "Blockstream": "https://blockstream-testnet.openbit.app"
     },
     "bitcoinInfo": {
       "blockExplorer": "https://mempool.space/testnet",
