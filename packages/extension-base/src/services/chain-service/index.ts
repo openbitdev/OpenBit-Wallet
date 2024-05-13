@@ -12,7 +12,7 @@ import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-se
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response } from '@subwallet/extension-base/services/chain-service/types';
-import { _isAssetAutoEnable, _isAssetFungibleToken, _isBrc20Token, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
+import { _isAssetAutoEnable, _isAssetFungibleToken, _isBrc20Token, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isNativeToken, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { getBrc20Metadata } from '@subwallet/extension-base/services/hiro-service/utils';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
@@ -524,8 +524,12 @@ export class ChainService {
 
   public upsertCustomToken (token: _ChainAsset) {
     if (token.slug.length === 0) { // new token
-      if (token.assetType === _AssetType.NATIVE) {
+      if (_isNativeToken(token)) {
         const defaultSlug = this.generateSlugForNativeToken(token.originChain, token.assetType, token.symbol);
+
+        token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
+      } else if (_isBrc20Token(token)) {
+        const defaultSlug = this.generateSlugForBrc20Token(token.originChain, token.assetType, token.symbol);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
       } else {
@@ -1887,6 +1891,10 @@ export class ChainService {
       isExist: !!existedToken,
       contractError
     };
+  }
+
+  private generateSlugForBrc20Token (originChain: string, assetType: _AssetType, symbol: string) {
+    return `${originChain}-${assetType}-${symbol}`;
   }
 
   private generateSlugForSmartContractAsset (originChain: string, assetType: _AssetType, symbol: string, contractAddress: string) {
