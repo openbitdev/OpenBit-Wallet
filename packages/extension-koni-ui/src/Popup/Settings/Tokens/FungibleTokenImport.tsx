@@ -3,7 +3,6 @@
 
 import { _AssetType, _ChainInfo } from '@subwallet/chain-list/types';
 import { _getTokenTypesSupportedByChain, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
-import { isValidSubstrateAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, ChainSelector, Layout, PageWrapper, TokenTypeSelector } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useChainChecker, useDefaultNavigate, useGetChainPrefixBySlug, useGetContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
@@ -99,46 +98,46 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       ({ getFieldValue }) => ({
         validator: (_, contractAddress: string) => {
           return new Promise<void>((resolve, reject) => {
-            const selectedTokenType = getFieldValue('type') as _AssetType;
-            const isValidEvmContract = [_AssetType.ERC20].includes(selectedTokenType) && isEthereumAddress(contractAddress);
-            const isValidWasmContract = [_AssetType.PSP22].includes(selectedTokenType) && isValidSubstrateAddress(contractAddress);
-            const reformattedAddress = reformatAddress(contractAddress, chainNetworkPrefix);
+            // const selectedTokenType = getFieldValue('type') as _AssetType;
+            // const isValidEvmContract = [_AssetType.ERC20].includes(selectedTokenType) && isEthereumAddress(contractAddress);
+            // const isValidWasmContract = [_AssetType.PSP22].includes(selectedTokenType) && isValidSubstrateAddress(contractAddress);
+            // const reformattedAddress = reformatAddress(contractAddress, chainNetworkPrefix);
+            //
+            // if (isValidEvmContract || isValidWasmContract) {
+            setLoading(true);
+            validateCustomToken({
+              ticker: contractAddress,
+              originChain: 'bitcoin',
+              type: _AssetType.BRC20
+            })
+              .then((validationResult) => {
+                setLoading(false);
 
-            if (isValidEvmContract || isValidWasmContract) {
-              setLoading(true);
-              validateCustomToken({
-                contractAddress: reformattedAddress,
-                originChain: selectedChain,
-                type: selectedTokenType
-              })
-                .then((validationResult) => {
-                  setLoading(false);
+                if (validationResult.isExist) {
+                  reject(new Error(t('Existed token')));
+                }
 
-                  if (validationResult.isExist) {
-                    reject(new Error(t('Existed token')));
-                  }
-
-                  if (validationResult.contractError) {
-                    reject(new Error(t('Error validating this token')));
-                  }
-
-                  if (!validationResult.isExist && !validationResult.contractError) {
-                    form.setFieldValue('tokenName', validationResult.name);
-                    form.setFieldsValue({
-                      tokenName: validationResult.name,
-                      decimals: validationResult.decimals,
-                      symbol: validationResult.symbol
-                    });
-                    resolve();
-                  }
-                })
-                .catch(() => {
-                  setLoading(false);
+                if (validationResult.contractError) {
                   reject(new Error(t('Error validating this token')));
-                });
-            } else {
-              reject(t('Invalid contract address'));
-            }
+                }
+
+                if (!validationResult.isExist && !validationResult.contractError) {
+                  form.setFieldValue('tokenName', validationResult.name);
+                  form.setFieldsValue({
+                    tokenName: validationResult.name,
+                    decimals: validationResult.decimals,
+                    symbol: validationResult.symbol
+                  });
+                  resolve();
+                }
+              })
+              .catch(() => {
+                setLoading(false);
+                reject(new Error(t('Error validating this token')));
+              });
+            // } else {
+            //   reject(t('Invalid contract address'));
+            // }
           });
         }
       })
@@ -188,15 +187,15 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     setLoading(true);
 
     upsertCustomToken({
-      originChain: chain,
+      originChain: 'bitcoin',
       slug: '',
       name: tokenName || symbol,
       symbol,
       decimals,
       priceId: priceId || null,
       minAmount: null,
-      assetType: type,
-      metadata: _parseMetadataForSmartContractAsset(reformattedAddress),
+      assetType: _AssetType.BRC20,
+      metadata: _parseMetadataForSmartContractAsset(contractAddress),
       multiChainAsset: null,
       hasValue: _isChainTestNet(chainInfoMap[formValues.chain]),
       icon: 'default.png'

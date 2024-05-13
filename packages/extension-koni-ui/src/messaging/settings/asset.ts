@@ -23,8 +23,8 @@ export async function validateCustomBrc20 (data: _ValidateCustomBrc20Request): P
   return sendMessage('pri(chainService.validateCustomBrc20)', data);
 }
 
-export async function validateCustomToken (data: _ValidateCustomAssetRequest): Promise<_ValidateCustomAssetResponse> {
-  return sendMessage('pri(chainService.validateCustomAsset)', data);
+export async function validateCustomToken (data: _ValidateCustomBrc20Request): Promise<_ValidateCustomBrc20Response> {
+  return sendMessage('pri(chainService.validateCustomBrc20)', data);
 }
 
 export async function resetDefaultNetwork (): Promise<boolean> {
