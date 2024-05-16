@@ -525,7 +525,9 @@ export function updateLatestChainInfo (currentDataMap: _DataMap, latestChainInfo
 
         currentChainState.currentProvider = providerKey;
 
-        needUpdateChainApiList.push(currentChainInfo);
+        if (currentChainState.active) {
+          needUpdateChainApiList.push(currentChainInfo);
+        }
       }
 
       storedChainInfoList.push({
