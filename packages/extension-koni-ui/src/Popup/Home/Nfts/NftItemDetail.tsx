@@ -64,7 +64,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     }
 
     return <div />;
-  }, [nftItem.owner, originChainInfo.substrateInfo?.addressPrefix, token.fontSizeXL]);
+  }, [currentAccountProxy?.proxyId, nftItem.owner]);
 
   const originChainLogo = useCallback(() => {
     return (

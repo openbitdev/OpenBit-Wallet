@@ -101,7 +101,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
         console.error('Error updating phraseNumber field:', error);
       }
     }
-  }, [form]);
+  }, [allPhraseNumber, form]);
 
   const onFinish: FormCallbacks<FormState>['onFinish'] = useCallback((values: FormState) => {
     const { phraseNumber: _phraseNumber } = values;
