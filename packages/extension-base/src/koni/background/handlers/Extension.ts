@@ -25,6 +25,7 @@ import { getPSP34TransferExtrinsic } from '@subwallet/extension-base/koni/api/to
 import { createXcmExtrinsic } from '@subwallet/extension-base/koni/api/xcm';
 import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/helper/utils';
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
+import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { getBitcoinTransactionObject } from '@subwallet/extension-base/services/balance-service/helpers/transfer/bitcoin';
 import { _API_OPTIONS_CHAIN_GROUP, _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
@@ -2464,7 +2465,7 @@ export default class KoniExtension {
             const _feeCustom = feeCustom as BitcoinFeeRate;
             const combineFee = combineBitcoinFee(_fee, _feeOptions, _feeCustom);
             const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
-            const utxos = await bitcoinApi.api.getUtxos(address);
+            const utxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
             const determineUtxosArgs: DetermineUtxosForSpendArgs = {
               amount: parseInt(value || '0'),
               feeRate: combineFee.feeRate,

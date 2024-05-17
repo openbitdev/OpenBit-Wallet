@@ -2,5 +2,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export * from './group';
-export * from './subscribe';
+export * from './balance';
 export * from './transfer';

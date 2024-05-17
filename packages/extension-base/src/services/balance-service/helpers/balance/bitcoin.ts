@@ -1,0 +1,175 @@
+// Copyright 2019-2022 @subwallet/extension-base
+// SPDX-License-Identifier: Apache-2.0
+
+import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
+import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
+import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
+import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
+import { _getChainNativeTokenSlug, _getRuneId, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { BalanceItem } from '@subwallet/extension-base/types';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
+import BigN from 'bignumber.js';
+
+// todo: update bitcoin params
+function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
+  // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
+  const chain = chainInfo.slug;
+  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
+
+  // todo: check await asset ready before subscribe
+  if (Object.keys(tokenList).length === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    return () => {
+    };
+  }
+
+  const getRunesBalance = async () => {
+    const runeIdToSlugMap: Record<string, string> = {};
+    const runeIdToAllItemsMap: Record<string, BalanceItem[]> = {};
+
+    Object.values(tokenList).forEach((token) => {
+      runeIdToSlugMap[_getRuneId(token)] = token.slug;
+    });
+
+    // get runeId -> BalanceItem[] mapping
+    await Promise.all(addresses.map(async (address) => {
+      try {
+        const runes = await bitcoinApi.api.getRunes(address);
+
+        runes.forEach((rune) => {
+          const runeId = rune.rune_id;
+
+          const item = {
+            address: address,
+            tokenSlug: runeIdToSlugMap[runeId],
+            free: rune.amount,
+            locked: '0',
+            state: APIItemState.READY
+          } as BalanceItem;
+
+          if (!runeIdToAllItemsMap[runeId]) {
+            runeIdToAllItemsMap[runeId] = [];
+          }
+
+          runeIdToAllItemsMap[runeId].push(item);
+        });
+      } catch (error) {
+        console.log(`Error on get runes balance of account ${address}`);
+      }
+    }));
+
+    // callback balance batch items by tokenList
+    Object.values(runeIdToAllItemsMap).forEach((balanceItems) => {
+      callback(balanceItems);
+    });
+  };
+
+  const fetchRuneBalances = () => {
+    getRunesBalance().catch(console.error);
+  };
+
+  fetchRuneBalances();
+  const interval = setInterval(fetchRuneBalances, COMMON_REFRESH_BALANCE_INTERVAL);
+
+  return () => {
+    clearInterval(interval);
+  };
+}
+
+export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, address: string) => {
+  try {
+    const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
+      await bitcoinApi.api.getUtxos(address),
+      await bitcoinApi.api.getAddressTransaction(address),
+      await getRuneTxsUtxos(bitcoinApi, address),
+      await getInscriptionUtxos(bitcoinApi, address)
+    ]);
+
+    // filter out pending utxos
+    let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
+
+    // filter out rune utxos
+    filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
+
+    // filter out inscription utxos
+    filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
+
+    return filteredUtxos;
+  } catch (error) {
+    console.log('Error while fetching Bitcoin balances', error);
+
+    return [];
+  }
+};
+
+async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
+  return await Promise.all(addresses.map(async (address) => {
+    try {
+      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
+
+      let balanceValue = new BigN(0);
+
+      filteredUtxos.forEach((utxo) => {
+        balanceValue = balanceValue.plus(utxo.value);
+      });
+
+      return balanceValue.toString();
+    } catch (error) {
+      console.log('Error while fetching Bitcoin balances', error);
+
+      return '0';
+    }
+  }));
+}
+
+export function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, assetMap: Record<string, _ChainAsset>, bitcoinApi: _BitcoinApi, callback: (rs: BalanceItem[]) => void): () => void {
+  const nativeSlug = _getChainNativeTokenSlug(chainInfo);
+
+  const getBalance = () => {
+    getBitcoinBalance(bitcoinApi, addresses)
+      .then((balances) => {
+        return balances.map((balance, index): BalanceItem => {
+          return {
+            address: addresses[index],
+            tokenSlug: nativeSlug,
+            state: APIItemState.READY,
+            free: balance,
+            locked: '0'
+          };
+        });
+      })
+      .catch((e) => {
+        console.error(`Error on get Bitcoin balance with token ${nativeSlug}`, e);
+
+        return addresses.map((address): BalanceItem => {
+          return {
+            address: address,
+            tokenSlug: nativeSlug,
+            state: APIItemState.READY,
+            free: '0',
+            locked: '0'
+          };
+        });
+      })
+      .then((items) => {
+        callback(items);
+      })
+      .catch(console.error);
+  };
+
+  getBalance();
+  const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
+
+  if (_isSupportRuneChain(chainInfo.slug)) {
+    const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
+
+    return () => {
+      clearInterval(interval);
+      unsub && unsub();
+    };
+  } else {
+    return () => {
+      clearInterval(interval);
+    };
+  }
+}
