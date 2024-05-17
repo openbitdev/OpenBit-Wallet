@@ -13,6 +13,9 @@ export type KeypairType = 'ed25519' | 'sr25519' | 'ecdsa' | 'ethereum' | 'bitcoi
 export type BitcoinNetwork = 'mainnet' | 'testnet' | 'regtest' | 'unknown';
 export type BitcoinMainnetKeypairType = 'bitcoin-44' | 'bitcoin-84' | 'bitcoin-86';
 export type BitcoinTestnetKeypairType = 'bittest-44' | 'bittest-84' | 'bittest-86';
+export declare const SubstrateKeypairTypes: KeypairType[];
+export declare const EthereumKeypairTypes: KeypairType[];
+export declare const BitcoinKeypairTypes: KeypairType[];
 export declare enum BitcoinAddressType {
     p2pkh = "p2pkh",
     p2sh = "p2sh",

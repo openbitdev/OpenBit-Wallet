@@ -3,10 +3,8 @@
 
 import { ETHEREUM_PREFIX, SCAN_TYPE, SECRET_PREFIX, SUBSTRATE_PREFIX } from '@subwallet/extension-koni-ui/constants/qr';
 import { QrAccount } from '@subwallet/extension-koni-ui/types/scanner';
-import { decodeAddress, encodeAddress } from '@subwallet/keyring';
-
-import { isHex } from '@polkadot/util';
-import { isEthereumAddress } from '@polkadot/util-crypto';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { BitcoinKeypairTypes, EthereumKeypairTypes } from '@subwallet/keyring/types';
 
 export const qrSignerScan = (data: string): QrAccount | null => {
   const arr: string[] = data.split(':');
@@ -68,32 +66,30 @@ export const readOnlyScan = (data: string): QrAccount | null => {
     return null;
   }
 
-  if (isEthereumAddress(data)) {
-    return {
-      content: data,
-      genesisHash: data,
-      isAddress: true,
-      isEthereum: true,
-      name: undefined,
-      isReadOnly: true
-    };
-  }
-
   try {
-    if (isHex(data)) {
+    const type = getKeypairTypeByAddress(data);
+
+    if (EthereumKeypairTypes.includes(type)) {
+      return {
+        content: data,
+        genesisHash: data,
+        isAddress: true,
+        isEthereum: true,
+        name: undefined,
+        isReadOnly: true
+      };
+    } else if (BitcoinKeypairTypes.includes(type)) {
+      return {
+        content: data,
+        genesisHash: data,
+        isAddress: true,
+        isEthereum: false,
+        name: undefined,
+        isReadOnly: true
+      };
+    } else {
       return null;
     }
-
-    const address = encodeAddress(decodeAddress(data));
-
-    return {
-      content: address,
-      genesisHash: data,
-      isAddress: true,
-      isEthereum: false,
-      name: undefined,
-      isReadOnly: true
-    };
   } catch (e) {
     console.log(e);
 
