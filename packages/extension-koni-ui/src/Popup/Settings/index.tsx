@@ -77,7 +77,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { goHome } = useDefaultNavigate();
   const { t } = useTranslation();
   const [locking, setLocking] = useState(false);
-  const { activeModal, inactiveModal } = useContext(ModalContext);
+  const { inactiveModal } = useContext(ModalContext);
 
   const { isUILocked, lock, unlock } = useUILock();
 
@@ -206,7 +206,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           }
         }
       ]
-    },
+    }
     // {
     //   key: 'community-&-support',
     //   label: t('Community & support'),
@@ -260,7 +260,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     //
     //   ]
     // }
-  ]), [activeModal, isPopup, navigate, t, token]);
+  ]), [isPopup, navigate, t, token]);
 
   const aboutSubwalletType = useMemo<SettingItemType[]>(() => {
     return [

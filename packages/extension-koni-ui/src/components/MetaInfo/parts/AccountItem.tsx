@@ -58,7 +58,7 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
         </div>
       </>
     );
-  }, [account?.name, accountName]);
+  }, [account?.name, accountName, address]);
 
   const isAll = useMemo(() => isAccountAll(address), [address]);
 

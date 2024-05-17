@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 // eslint-disable-next-line header/header
+import { staticDataRaw } from '@subwallet/extension-base/constants/staticData';
 import { GENERAL_TERM_AND_CONDITION_MODAL } from '@subwallet/extension-koni-ui/constants';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -12,7 +13,6 @@ import { ArrowCircleRight, CaretDown } from 'phosphor-react';
 import React, { useCallback, useContext, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import styled from 'styled-components';
-import {staticDataRaw} from "@subwallet/extension-base/constants/staticData";
 
 interface Props extends ThemeProps {
   onOk: () => void

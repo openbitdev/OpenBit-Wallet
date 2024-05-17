@@ -1,6 +1,6 @@
-// // Copyright 2019-2022 @polkadot/extension authors & contributors
-// // SPDX-License-Identifier: Apache-2.0
-//
+// Copyright 2019-2022 @polkadot/extension authors & contributors
+// SPDX-License-Identifier: Apache-2.0
+
 // import type { RequestSignatures, TransportRequestMessage } from '@subwallet/extension-base/background/types';
 // import type { Message } from '@subwallet/extension-base/types';
 //

@@ -73,7 +73,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
     const account = findAccountByAddress(_contacts, value);
 
     return account?.proxyId;
-  }, [value]);
+  }, [_contacts, value]);
 
   const accountName = useMemo(() => {
     const account = findAccountByAddress(_contacts, value);

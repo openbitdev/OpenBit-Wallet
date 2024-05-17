@@ -96,7 +96,7 @@ const Component: React.ForwardRefRenderFunction<InputRef, Props> = (props: Props
     form.setFieldsValue(result);
 
     form.validateFields(validates).catch(console.error);
-  }, [form, prefix]);
+  }, [form, onPasteData, prefix]);
 
   const _onFocus: FocusEventHandler<HTMLInputElement> = useCallback((event) => {
     setFocus(true);

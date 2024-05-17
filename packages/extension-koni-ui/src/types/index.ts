@@ -4,12 +4,12 @@
 import { _ChainAsset } from '@subwallet/chain-list/types';
 import { NotificationType } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
+import { KeypairType } from '@subwallet/keyring/types';
 import { ButtonSchema } from '@subwallet/react-ui/es/button/button';
 import { Icon as _PhosphorIcon, IconProps } from 'phosphor-react';
 import React from 'react';
 
 import { Theme as _Theme } from '../themes';
-import {KeypairType} from '@subwallet/keyring/types';
 
 export type Theme = _Theme;
 export type PhosphorIcon = _PhosphorIcon;
