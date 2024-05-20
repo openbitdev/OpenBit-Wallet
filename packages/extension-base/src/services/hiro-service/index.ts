@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { Brc20BalanceFetchedData, Brc20MetadataFetchedData, InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
@@ -27,6 +27,35 @@ export class HiroService extends BaseApiRequestStrategy {
       // todo: update testnet url
       return '';
     }
+  }
+
+  getBRC20Metadata (ticker: string, isTestnet = false): Promise<Brc20MetadataFetchedData> {
+    return this.addRequest(async () => {
+      const url = this.getUrl(isTestnet, 'brc-20/tokens');
+      const param = {
+        ticker
+      };
+      const rs = await getRequest(url, param);
+
+      if (rs.status !== 200) {
+        throw new SWError('HiroService.getBRC20Metadata', await rs.text());
+      }
+
+      return (await rs.json()) as Brc20MetadataFetchedData;
+    }, 0);
+  }
+
+  getAddressBRC20BalanceInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<Brc20BalanceFetchedData> {
+    return this.addRequest(async () => {
+      const url = this.getUrl(isTestnet, `brc-20/balances/${address}`);
+      const rs = await getRequest(url, params);
+
+      if (rs.status !== 200) {
+        throw new SWError('HiroService.getAddressBRC20BalanceInfo', await rs.text());
+      }
+
+      return (await rs.json()) as Brc20BalanceFetchedData;
+    }, 0);
   }
 
   getAddressInscriptionsInfo (params: Record<string, string>, isTestnet = false): Promise<InscriptionFetchedData> {

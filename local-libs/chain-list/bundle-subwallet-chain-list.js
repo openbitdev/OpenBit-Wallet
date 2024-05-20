@@ -11463,6 +11463,48 @@
   	multiChainAsset: null,
   	hasValue: true,
   	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/kernal_bitcorn.png"
+  },
+  	"bitcoin-BRC20-cPen": {
+  	originChain: "bitcoin",
+  	slug: "bitcoin-BRC20-cPen",
+  	name: "cPen",
+  	symbol: "cPen",
+  	decimals: 18,
+  	priceId: null,
+  	minAmount: "0",
+  	assetType: "BRC20",
+  	metadata: null,
+  	multiChainAsset: null,
+  	hasValue: true,
+  	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/kernal_bitcorn.png"
+  },
+  	"bitcoin-BRC20-PGCH": {
+  	originChain: "bitcoin",
+  	slug: "bitcoin-BRC20-PGCH",
+  	name: "PGCH",
+  	symbol: "PGCH",
+  	decimals: 18,
+  	priceId: null,
+  	minAmount: "0",
+  	assetType: "BRC20",
+  	metadata: null,
+  	multiChainAsset: null,
+  	hasValue: true,
+  	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/kernal_bitcorn.png"
+  },
+  	"bitcoin-BRC20-🜊": {
+  	originChain: "bitcoin",
+  	slug: "bitcoin-BRC20-🜊",
+  	name: "🜊",
+  	symbol: "🜊",
+  	decimals: 18,
+  	priceId: null,
+  	minAmount: "0",
+  	assetType: "BRC20",
+  	metadata: null,
+  	multiChainAsset: null,
+  	hasValue: true,
+  	icon: "https://dev.sw-chain-list-assets.pages.dev/assets/chain-assets/kernal_bitcorn.png"
   }
   };
 

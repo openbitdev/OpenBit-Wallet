@@ -153,6 +153,17 @@ export interface EnableMultiChainParams {
   enableTokens?: boolean
 }
 
+export interface _ValidateCustomBrc20Request {
+  ticker: string,
+  originChain: string,
+  type: _AssetType
+}
+
+export interface _ValidateCustomBrc20Response extends _SmartContractTokenInfo {
+  isExist: boolean,
+  existedSlug?: string
+}
+
 export interface _ValidateCustomAssetRequest {
   contractAddress: string,
   originChain: string,

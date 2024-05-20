@@ -31,6 +31,7 @@ exports._AssetType = _AssetType;
   _AssetType["PSP34"] = "PSP34";
   _AssetType["UNKNOWN"] = "UNKNOWN";
   _AssetType["RUNE"] = "RUNE";
+  _AssetType["BRC20"] = "BRC20";
 })(_AssetType || (exports._AssetType = _AssetType = {}));
 let _SubstrateChainType;
 exports._SubstrateChainType = _SubstrateChainType;

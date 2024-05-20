@@ -142,6 +142,10 @@ export function _isNativeTokenBySlug (tokenSlug: string) {
   return tokenSlug.includes(_AssetType.NATIVE as string);
 }
 
+export function _isBrc20Token (tokenInfo: _ChainAsset) {
+  return tokenInfo.assetType === _AssetType.BRC20;
+}
+
 export function _isSmartContractToken (tokenInfo: _ChainAsset) {
   return _SMART_CONTRACT_STANDARDS.includes(tokenInfo.assetType);
 }

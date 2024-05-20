@@ -11,9 +11,10 @@ import { EvmChainHandler } from '@subwallet/extension-base/services/chain-servic
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
-import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse } from '@subwallet/extension-base/services/chain-service/types';
-import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _isRuneToken, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
+import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse } from '@subwallet/extension-base/services/chain-service/types';
+import { _isAssetAutoEnable, _isAssetFungibleToken, _isBrc20Token, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isNativeToken, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _isRuneToken, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
+import { getBrc20Metadata } from '@subwallet/extension-base/services/hiro-service/utils';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import { getAllCollectionRunes } from '@subwallet/extension-base/services/rune-service/utils';
 import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storage-service/databases';
@@ -177,6 +178,18 @@ export class ChainService {
 
     Object.values(this.getAssetRegistry()).forEach((asset) => {
       if (_isRuneToken(asset)) {
+        filteredAssetRegistry[asset.slug] = asset;
+      }
+    });
+
+    return filteredAssetRegistry;
+  }
+
+  public getBrc20Tokens () {
+    const filteredAssetRegistry: Record<string, _ChainAsset> = {};
+
+    Object.values(this.getAssetRegistry()).forEach((asset) => {
+      if (_isBrc20Token(asset)) {
         filteredAssetRegistry[asset.slug] = asset;
       }
     });
@@ -523,12 +536,16 @@ export class ChainService {
 
   public upsertCustomToken (token: _ChainAsset) {
     if (token.slug.length === 0) { // new token
-      if (token.assetType === _AssetType.NATIVE) {
+      if (_isNativeToken(token)) {
         const defaultSlug = this.generateSlugForNativeToken(token.originChain, token.assetType, token.symbol);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
       } else if (_isRuneToken(token)) {
         const defaultSlug = this.generateSlugForRune(token.originChain, token.assetType, token.symbol, token.metadata?.runeId as string);
+
+        token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
+      } else if (_isBrc20Token(token)) {
+        const defaultSlug = this.generateSlugForBrc20Token(token.originChain, token.assetType, token.symbol);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
       } else {
@@ -1838,6 +1855,61 @@ export class ChainService {
     };
   }
 
+  private async getBrc20Info (ticker: string, tokenType: _AssetType, originChain: string) {
+    if ([_AssetType.BRC20].includes(tokenType) && originChain === _BITCOIN_CHAIN_SLUG) {
+      const brc20Metdata = await getBrc20Metadata(ticker);
+
+      return {
+        decimals: brc20Metdata.decimals,
+        name: brc20Metdata.ticker, // brc20 does not have a name
+        symbol: brc20Metdata.ticker,
+        contractError: false
+      };
+    }
+
+    return {
+      decimals: -1,
+      name: '',
+      symbol: '',
+      contractError: false
+    };
+  }
+
+  public async validateCustomBrc20 (data: _ValidateCustomBrc20Request): Promise<_ValidateCustomBrc20Response> {
+    const assetRegistry = this.getBrc20Tokens();
+    let existedToken: _ChainAsset | undefined;
+
+    for (const token of Object.values(assetRegistry)) {
+      const ticker = token?.slug;
+
+      if (ticker === data.ticker && token.assetType === data.type && token.originChain === data.originChain) {
+        existedToken = token;
+        break;
+      }
+    }
+
+    if (existedToken) {
+      return {
+        decimals: existedToken.decimals || 0,
+        name: existedToken.name,
+        symbol: existedToken.symbol,
+        isExist: !!existedToken,
+        existedSlug: existedToken?.slug,
+        contractError: false
+      };
+    }
+
+    const { contractError, decimals, name, symbol } = await this.getBrc20Info(data.ticker, data.type, data.originChain);
+
+    return {
+      name,
+      decimals,
+      symbol,
+      isExist: !!existedToken,
+      contractError
+    };
+  }
+
   public async validateCustomToken (data: _ValidateCustomAssetRequest): Promise<_ValidateCustomAssetResponse> {
     const assetRegistry = this.getSmartContractTokens();
     let existedToken: _ChainAsset | undefined;
@@ -1875,6 +1947,10 @@ export class ChainService {
 
   private generateSlugForRune (originChain: string, assetType: _AssetType, symbol: string, runeId: string) {
     return `${originChain}-${assetType}-${symbol}-${runeId}`;
+  }
+
+  private generateSlugForBrc20Token (originChain: string, assetType: _AssetType, symbol: string) {
+    return `${originChain}-${assetType}-${symbol}`;
   }
 
   private generateSlugForSmartContractAsset (originChain: string, assetType: _AssetType, symbol: string, contractAddress: string) {
