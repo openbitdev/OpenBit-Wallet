@@ -10,7 +10,7 @@ function filterFungibleContractTypes (chainInfoMap: Record<string, _ChainInfo>) 
   const filteredChainInfoMap: Record<string, _ChainInfo> = {};
 
   Object.values(chainInfoMap).forEach((chainInfo) => {
-    if (_isChainSupportEvmERC20(chainInfo) || _isChainSupportWasmPSP22(chainInfo)) {
+    if (_isChainSupportEvmERC20(chainInfo) || _isChainSupportWasmPSP22(chainInfo) || chainInfo.bitcoinInfo) { // noted: can also add support token field in bitcoinInfo
       filteredChainInfoMap[chainInfo.slug] = chainInfo;
     }
   });

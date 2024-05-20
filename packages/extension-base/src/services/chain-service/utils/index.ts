@@ -260,6 +260,10 @@ export function _getTokenTypesSupportedByChain (chainInfo: _ChainInfo): _AssetTy
     });
   }
 
+  if (chainInfo.bitcoinInfo) { // todo: check bitcoinInfo
+    result.push(... [_AssetType.RUNE, _AssetType.BRC20]);
+  }
+
   return result;
 }
 
@@ -423,6 +427,18 @@ export function _getBlockExplorerFromChain (chainInfo: _ChainInfo): string | und
 export function _parseMetadataForSmartContractAsset (contractAddress: string): Record<string, string> {
   return {
     contractAddress
+  };
+}
+
+export function _parseMetadataForRuneAsset (runeId: string): Record<string, string> {
+  return {
+    runeId
+  };
+}
+
+export function _parseMetadataForBrc20Asset (ticker: string): Record<string, string> {
+  return {
+    ticker
   };
 }
 
