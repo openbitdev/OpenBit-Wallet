@@ -13,17 +13,13 @@ export async function getBrc20Metadata (ticker: string) {
 
   try {
     const response = await hiroService.getBRC20Metadata(ticker);
-    const rs = response.results;
+    const rs = response?.token;
 
-    if (rs.length !== 0) {
-      for (const brc20 of rs) { // the API response all brc-20 start with ticker instead of exactly equal to ticker
-        if (brc20.ticker === ticker) {
-          return {
-            ticker,
-            decimals: brc20.decimals
-          } as Brc20Metadata;
-        }
-      }
+    if (rs) {
+      return {
+        ticker: rs.ticker,
+        decimals: rs.decimals
+      } as Brc20Metadata;
     }
 
     return defaultMetadata;

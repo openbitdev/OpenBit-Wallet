@@ -109,10 +109,7 @@ interface RuneTxsUtxosVout {
 }
 
 export interface Brc20MetadataFetchedData {
-  limit: number,
-  offset: number,
-  total: number,
-  results: Brc20Metadata[]
+  token: Brc20Metadata
 }
 
 export interface Brc20Metadata {

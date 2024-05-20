@@ -31,11 +31,9 @@ export class HiroService extends BaseApiRequestStrategy {
 
   getBRC20Metadata (ticker: string, isTestnet = false): Promise<Brc20MetadataFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, 'brc-20/tokens');
-      const param = {
-        ticker
-      };
-      const rs = await getRequest(url, param);
+      const url = this.getUrl(isTestnet, `brc-20/tokens/${ticker}`);
+
+      const rs = await getRequest(url);
 
       if (rs.status !== 200) {
         throw new SWError('HiroService.getBRC20Metadata', await rs.text());
