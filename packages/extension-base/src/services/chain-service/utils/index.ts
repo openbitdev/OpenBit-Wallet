@@ -410,7 +410,7 @@ export function _getBlockExplorerFromChain (chainInfo: _ChainInfo): string | und
 
 export function _parseMetadataForSmartContractAsset (contractAddress: string): Record<string, string> {
   return {
-    runeId: contractAddress
+    contractAddress
   };
 }
 
