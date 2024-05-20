@@ -149,7 +149,7 @@ function subscribeBRC20Balance (bitcoinApi: _BitcoinApi, addresses: string[], as
     Object.values(tokenList).map(async (token) => {
       try {
         const ticker = token.symbol;
-        const balances: Brc20BalanceItem[] = await Promise.all(['bc1pmq52px0smv7nm0mt29k3yu70wedufz2g905hystl5p8gz5t84lcqld73sm'].map(async (address) => {
+        const balances: Brc20BalanceItem[] = await Promise.all(addresses.map(async (address) => {
           try {
             return await bitcoinApi.api.getAddressBRC20FreeLockedBalance(address, ticker);
           } catch (error) {
@@ -164,7 +164,7 @@ function subscribeBRC20Balance (bitcoinApi: _BitcoinApi, addresses: string[], as
 
         const items: BalanceItem[] = balances.map((balance, index): BalanceItem => {
           return {
-            address: 'bc1p5y6jx4zlnr3vqd5v59dggj35yuze6dc5zyknp7sjveh97dt202aq6u3mdq',
+            address: addresses[index],
             tokenSlug: token.slug,
             free: balance.free || '0',
             locked: balance.locked || '0',
