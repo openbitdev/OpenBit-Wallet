@@ -3,7 +3,7 @@
 
 import { _AssetRef, _AssetRefPath, _AssetType, _ChainAsset, _ChainInfo, _ChainStatus, _MultiChainAsset, _SubstrateChainType } from '@subwallet/chain-list/types';
 import { BasicTokenInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
+import { _BITCOIN_CHAIN_SLUG, _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
 import { _ChainState, _CUSTOM_PREFIX, _DataMap, _SMART_CONTRACT_STANDARDS } from '@subwallet/extension-base/services/chain-service/types';
 import { IChain } from '@subwallet/extension-base/services/storage-service/databases';
 
@@ -207,6 +207,10 @@ export function _isChainSupportWasmPSP22 (chainInfo: _ChainInfo) {
   return chainInfo.evmInfo?.supportSmartContract?.includes(_AssetType.PSP22) || false;
 }
 
+export function _isBitcoinMainnet (chainInfo: _ChainInfo) {
+  return chainInfo.slug === _BITCOIN_CHAIN_SLUG;
+}
+
 export const _isSupportOrdinal = (chain: string) => {
   const chains = ['polkadot', 'astar', 'bifrost_dot', 'moonbeam'];
 
@@ -261,7 +265,7 @@ export function _getTokenTypesSupportedByChain (chainInfo: _ChainInfo): _AssetTy
   }
 
   if (chainInfo.bitcoinInfo) { // todo: check bitcoinInfo
-    result.push(... [_AssetType.RUNE, _AssetType.BRC20]);
+    result.push(...[_AssetType.RUNE, _AssetType.BRC20]);
   }
 
   return result;

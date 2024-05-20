@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainInfo } from '@subwallet/chain-list/types';
-import { _isChainSupportEvmERC20, _isChainSupportWasmPSP22 } from '@subwallet/extension-base/services/chain-service/utils';
+import { _isBitcoinMainnet, _isChainSupportEvmERC20, _isChainSupportWasmPSP22 } from '@subwallet/extension-base/services/chain-service/utils';
 import { useChainInfoData } from '@subwallet/extension-koni-ui/hooks';
 import { useMemo } from 'react';
 
@@ -10,7 +10,7 @@ function filterFungibleContractTypes (chainInfoMap: Record<string, _ChainInfo>) 
   const filteredChainInfoMap: Record<string, _ChainInfo> = {};
 
   Object.values(chainInfoMap).forEach((chainInfo) => {
-    if (_isChainSupportEvmERC20(chainInfo) || _isChainSupportWasmPSP22(chainInfo) || chainInfo.bitcoinInfo) { // noted: can also add support token field in bitcoinInfo
+    if (_isChainSupportEvmERC20(chainInfo) || _isChainSupportWasmPSP22(chainInfo) || _isBitcoinMainnet(chainInfo)) { // noted: can also add support token field in bitcoinInfo
       filteredChainInfoMap[chainInfo.slug] = chainInfo;
     }
   });
