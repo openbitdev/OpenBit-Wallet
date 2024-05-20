@@ -1786,12 +1786,13 @@ export class ChainService {
 
           const spacerList = decodeRuneSpacer(parseInt(spacer));
           const runeName = insertRuneSpacer(baseRuneName, spacerList);
+          const isContractError = (!baseRuneName)
 
           return {
             decimals: parseInt(runeCollection.divisibility) || 0,
             name: runeCollection.rune_name,
             symbol: runeName,
-            contractError: false
+            contractError: isContractError
           };
         }
       }
@@ -1801,7 +1802,7 @@ export class ChainService {
       decimals: -1,
       name: '',
       symbol: '',
-      contractError: false
+      contractError: true
     };
   }
 
@@ -1858,12 +1859,13 @@ export class ChainService {
   private async getBrc20Info (ticker: string, tokenType: _AssetType, originChain: string) {
     if ([_AssetType.BRC20].includes(tokenType) && originChain === _BITCOIN_CHAIN_SLUG) {
       const brc20Metdata = await getBrc20Metadata(ticker);
+      const isContractError = (!(brc20Metdata.decimals && brc20Metdata))
 
       return {
         decimals: brc20Metdata.decimals,
         name: brc20Metdata.ticker, // brc20 does not have a name
         symbol: brc20Metdata.ticker,
-        contractError: false
+        contractError: isContractError
       };
     }
 
