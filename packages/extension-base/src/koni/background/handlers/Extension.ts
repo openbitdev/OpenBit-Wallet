@@ -43,8 +43,8 @@ import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, create
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
-import { createPair, decodeAddress, getDerivePath } from '@subwallet/keyring';
-import { KeypairType, KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
+import { createPair, decodeAddress, getDerivePath, getKeypairTypeByAddress } from '@subwallet/keyring';
+import { BitcoinKeypairTypes, EthereumKeypairTypes, KeypairType, KeyringPair, KeyringPair$Json, KeyringPair$Meta, SubstrateKeypairTypes } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
 import { SingleAddress, SubjectInfo } from '@subwallet/ui-keyring/observable/types';
 import { KeyringAddress, KeyringJson$Meta } from '@subwallet/ui-keyring/types';
@@ -869,13 +869,15 @@ export default class KoniExtension {
   }
 
   private isAddressValidWithAuthType (address: string, accountAuthType?: AccountAuthType): boolean {
+    const type = getKeypairTypeByAddress(address);
+
     if (accountAuthType === 'substrate') {
-      return !isEthereumAddress(address);
+      return SubstrateKeypairTypes.includes(type);
     } else if (accountAuthType === 'evm') {
-      return isEthereumAddress(address);
+      return EthereumKeypairTypes.includes(type);
     }
 
-    return true;
+    return false;
   }
 
   private filterAccountsByAccountAuthType (accounts: string[], accountAuthType?: AccountAuthType): string[] {
@@ -2711,13 +2713,25 @@ export default class KoniExtension {
     isReadOnly,
     name }: RequestAccountCreateExternalV2): Promise<AccountExternalError[]> {
     try {
-      let result: KeyringPair;
+      const type = getKeypairTypeByAddress(address);
+      let noPublicKey = false;
+      let _genesisHash = '';
+
+      const newProxyId = generateAccountProxyId();
+      const isBitcoin = BitcoinKeypairTypes.includes(type);
+
+      const metadata: KeyringPair$Meta = {
+        name,
+        proxyId: newProxyId,
+        genesisHash,
+        isReadOnly
+      };
 
       try {
         const exists = keyring.getPair(address);
 
         if (exists) {
-          if (exists.type === (isEthereum ? 'ethereum' : 'sr25519')) {
+          if (exists.type === type) {
             return [{ code: AccountExternalErrorCode.INVALID_ADDRESS, message: t('Account exists') }];
           }
         }
@@ -2727,28 +2741,28 @@ export default class KoniExtension {
 
       if (isEthereum) {
         const chainInfoMap = this.#koniState.getChainInfoMap();
-        let _gen = '';
 
         if (genesisHash) {
           for (const network of Object.values(chainInfoMap)) {
             if (_getEvmChainId(network) === parseInt(genesisHash)) {
               // TODO: pure EVM chains do not have genesisHash
-              _gen = _getSubstrateGenesisHash(network);
+              _genesisHash = _getSubstrateGenesisHash(network);
             }
           }
         }
-
-        result = keyring.keyring.addFromAddress(address, {
-          name,
-          isExternal: true,
-          isReadOnly,
-          genesisHash: _gen
-        }, null, 'ethereum');
-
-        keyring.saveAccount(result);
+      } else if (isBitcoin) {
+        noPublicKey = true;
       } else {
-        result = keyring.addExternal(address, { genesisHash, name, isReadOnly }).pair;
+        _genesisHash = genesisHash || '';
       }
+
+      metadata.genesisHash = _genesisHash;
+
+      if (noPublicKey) {
+        metadata.noPublicKey = noPublicKey;
+      }
+
+      const result = keyring.addExternal(address, metadata).pair;
 
       const _address = result.address;
 
@@ -2758,11 +2772,11 @@ export default class KoniExtension {
         });
       });
 
+      await this.saveCurrentAccountProxy({ proxyId: newProxyId });
+
       await new Promise<void>((resolve) => {
-        this._saveCurrentAccountAddress(_address, () => {
-          this._addAddressToAuthList(_address, isAllowed);
-          resolve();
-        });
+        this._addAddressToAuthList(_address, isAllowed);
+        resolve();
       });
 
       return [];

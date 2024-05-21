@@ -6,6 +6,9 @@
  *
  * */
 
+export const SubstrateKeypairTypes = ['sr25519', 'ed25519', 'ecdsa'];
+export const EthereumKeypairTypes = ['ethereum'];
+export const BitcoinKeypairTypes = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86', 'bittest-44', 'bittest-84', 'bittest-86'];
 export let BitcoinAddressType;
 (function (BitcoinAddressType) {
   BitcoinAddressType["p2pkh"] = "p2pkh";
