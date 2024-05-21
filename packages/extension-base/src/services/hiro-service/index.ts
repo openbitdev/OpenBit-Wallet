@@ -7,7 +7,7 @@ import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-r
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const HIRO_ENDPOINT = 'https://api.hiro.so/ordinals/v1';
+const HIRO_ENDPOINT = 'https://ordinals-api.openbit.app/ordinals/v1';
 
 export class HiroService extends BaseApiRequestStrategy {
   private constructor () {
