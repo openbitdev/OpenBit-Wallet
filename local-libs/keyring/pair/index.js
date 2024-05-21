@@ -94,19 +94,31 @@ export function createPair({
   const encodeAddress = () => {
     const raw = TYPE_ADDRESS[type](publicKey);
     const bitNetwork = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86'].includes(type) ? bitcoin.networks.bitcoin : ['bittest-44', 'bittest-84', 'bittest-86'].includes(type) ? bitcoin.networks.testnet : bitcoin.networks.regtest;
+
+    /**
+     *  With bitcoin accounts, some attached account have no public key (only address).
+     *  In this case, public key is the hash of result after decoded address.
+     *  Add `noPublicKey` in metadata for this case.
+     */
+    let dataKey;
+    if (meta.noPublicKey) {
+      dataKey = 'hash';
+    } else {
+      dataKey = 'pubkey';
+    }
     switch (type) {
       case 'ethereum':
         return ethereumEncode(raw);
       case 'bitcoin-44':
       case 'bittest-44':
         return bitcoin.payments.p2pkh({
-          pubkey: Buffer.from(publicKey),
+          [dataKey]: Buffer.from(publicKey),
           network: bitNetwork
         }).address || '';
       case 'bitcoin-84':
       case 'bittest-84':
         return bitcoin.payments.p2wpkh({
-          pubkey: Buffer.from(publicKey),
+          [dataKey]: Buffer.from(publicKey),
           network: bitNetwork
         }).address || '';
       case 'bitcoin-86':
@@ -115,10 +127,14 @@ export function createPair({
       case 'bittest-86':
         {
           const internalPubkey = toXOnly(Buffer.from(publicKey));
-          return bitcoin.payments.p2tr({
-            internalPubkey,
-            network: bitNetwork
-          }).address || '';
+          if (meta.isReadOnly) {
+            return bitcoin.address.toBech32(Buffer.from(publicKey), 1, bitNetwork.bech32);
+          } else {
+            return bitcoin.payments.p2tr({
+              internalPubkey,
+              network: bitNetwork
+            }).address || '';
+          }
         }
       case 'ecdsa':
       case 'ed25519':
