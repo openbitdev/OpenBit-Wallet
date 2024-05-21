@@ -1,7 +1,7 @@
 // Copyright 2017-2022 @polkadot/ui-keyring authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { createPair } from '@subwallet/keyring';
+import { createPair, getKeypairTypeByAddress } from '@subwallet/keyring';
 import { chains } from '@polkadot/ui-settings';
 import { bnToBn, hexToU8a, isFunction, isHex, isString, noop, objectSpread, stringify, stringToU8a, u8aSorted, u8aToString } from '@polkadot/util';
 import { base64Decode, createKeyMulti, ethereumEncode, jsonDecrypt, jsonEncrypt } from '@polkadot/util-crypto';
@@ -24,9 +24,11 @@ export class Keyring extends Base {
     contract: () => this.contracts
   };
   addExternal(address, meta = {}) {
+    const _address = isString(address) ? address : this.encodeAddress(address);
+    const type = getKeypairTypeByAddress(_address);
     const pair = this.keyring.addFromAddress(address, objectSpread({}, meta, {
       isExternal: true
-    }), null);
+    }), null, type);
     return {
       json: this.saveAccount(pair, false),
       pair

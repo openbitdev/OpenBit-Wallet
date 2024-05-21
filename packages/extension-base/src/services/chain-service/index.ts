@@ -27,6 +27,20 @@ import Web3 from 'web3';
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
 
+const filterChainInfoMap = (data: Record<string, _ChainInfo>): Record<string, _ChainInfo> => {
+  return Object.fromEntries(
+    Object.entries(data)
+      .filter(([, info]) => !info.substrateInfo)
+  );
+};
+
+const filterAssetInfoMap = (chainInfo: Record<string, _ChainInfo>, assets: Record<string, _ChainAsset>): Record<string, _ChainAsset> => {
+  return Object.fromEntries(
+    Object.entries(assets)
+      .filter(([, info]) => chainInfo[info.originChain])
+  );
+};
+
 export class ChainService {
   private dataMap: _DataMap = {
     chainInfoMap: {},
@@ -706,7 +720,7 @@ export class ChainService {
         const latestAssetPatch = JSON.stringify(latestAssetInfo);
 
         if (this.assetMapPatch !== latestAssetPatch) {
-          const assetRegistry = { ...ChainAssetMap, ...latestAssetInfo };
+          const assetRegistry = filterAssetInfoMap(this.getChainInfoMap(), { ...ChainAssetMap, ...latestAssetInfo });
 
           this.assetMapPatch = latestAssetPatch;
           this.dataMap.assetRegistry = assetRegistry;
@@ -822,16 +836,16 @@ export class ChainService {
         .catch(console.error);
     }).catch(console.error);
 
-    this.fetchLatestRuneData().then((runesAssetMap) => {
-      this.eventService.waitAssetReady
-        .then(() => {
-          this.upsertBatchCustomToken(Object.values(runesAssetMap));
-
-          this.autoEnableRuneTokens()
-            .catch(console.error);
-        })
-        .catch(console.error);
-    }).catch(console.error);
+    // this.fetchLatestRuneData().then((runesAssetMap) => {
+    //   this.eventService.waitAssetReady
+    //     .then(() => {
+    //       this.upsertBatchCustomToken(Object.values(runesAssetMap));
+    //
+    //       this.autoEnableRuneTokens()
+    //         .catch(console.error);
+    //     })
+    //     .catch(console.error);
+    // }).catch(console.error);
 
     this.fetchLatestChainData().then((latestChainInfo) => {
       this.handleLatestChainData(latestChainInfo);
@@ -1151,7 +1165,7 @@ export class ChainService {
 
   private async initChains () {
     const storedChainSettings = await this.dbService.getAllChainStore();
-    const defaultChainInfoMap = ChainInfoMap;
+    const defaultChainInfoMap = filterChainInfoMap(ChainInfoMap);
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
@@ -1333,7 +1347,7 @@ export class ChainService {
 
   private async initAssetRegistry (deprecatedCustomChainMap: Record<string, string>) {
     const storedAssetRegistry = await this.dbService.getAllAssetStore();
-    const latestAssetRegistry = ChainAssetMap;
+    const latestAssetRegistry = filterAssetInfoMap(this.getChainInfoMap(), ChainAssetMap);
     const availableChains = Object.values(this.dataMap.chainInfoMap)
       .filter((info) => (info.chainStatus === _ChainStatus.ACTIVE))
       .map((chainInfo) => chainInfo.slug);
