@@ -1097,6 +1097,7 @@ export class ChainService {
     return await Promise.all([fetchPatchData<Record<string, _ChainAsset>>('ChainAsset.json'), fetchPatchData<Record<string, string>>('AssetLogoMap.json')]);
   }
 
+  // @ts-ignore
   private async fetchLatestRuneData () {
     const chainAssetMap: Record<string, _ChainAsset> = {};
     const pageSize = 2000;
