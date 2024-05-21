@@ -1130,33 +1130,34 @@ export class ChainService {
     return await Promise.all([fetchPatchData<Record<string, _ChainAsset>>('ChainAsset.json'), fetchPatchData<Record<string, string>>('AssetLogoMap.json')]);
   }
 
-  // private async fetchLatestRuneData () {
-  //   const chainAssetMap: Record<string, _ChainAsset> = {};
-  //   const allCollectionRunes = await getAllCollectionRunes();
-  //
-  //   allCollectionRunes.forEach((rune) => {
-  //     const chainAssetItem = {
-  //       originChain: `${_BITCOIN_CHAIN_SLUG}`,
-  //       slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
-  //       name: `${_BITCOIN_NAME}`,
-  //       symbol: rune.rune_name,
-  //       decimals: parseInt(rune.divisibility) || 0,
-  //       priceId: null,
-  //       minAmount: '0',
-  //       assetType: _AssetType.LOCAL,
-  //       metadata: {
-  //         runeId: rune.rune_id
-  //       },
-  //       multiChainAsset: null,
-  //       hasValue: true,
-  //       icon: '' // todo: update token logo if available
-  //     };
-  //
-  //     chainAssetMap[chainAssetItem.slug] = chainAssetItem;
-  //   });
-  //
-  //   return chainAssetMap;
-  // }
+  // @ts-ignore
+  private async fetchLatestRuneData () {
+    const chainAssetMap: Record<string, _ChainAsset> = {};
+    const allCollectionRunes = await getAllCollectionRunes();
+
+    allCollectionRunes.forEach((rune) => {
+      const chainAssetItem = {
+        originChain: `${_BITCOIN_CHAIN_SLUG}`,
+        slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
+        name: `${_BITCOIN_NAME}`,
+        symbol: rune.rune_name,
+        decimals: parseInt(rune.divisibility) || 0,
+        priceId: null,
+        minAmount: '0',
+        assetType: _AssetType.LOCAL,
+        metadata: {
+          runeId: rune.rune_id
+        },
+        multiChainAsset: null,
+        hasValue: true,
+        icon: '' // todo: update token logo if available
+      };
+
+      chainAssetMap[chainAssetItem.slug] = chainAssetItem;
+    });
+
+    return chainAssetMap;
+  }
 
   // @ts-ignore
   private async fetchLatestPriceIdsData () {
