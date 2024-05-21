@@ -259,7 +259,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [chainInfoMap, form]);
 
   const onSubmit: FormCallbacks<TokenImportFormType>['onFinish'] = useCallback((formValues: TokenImportFormType) => {
-    const { chain, decimals, contractAddress, priceId, symbol, tokenName, type } = formValues;
+    const { chain, contractAddress, decimals, priceId, symbol, tokenName, type } = formValues;
     let metadata: Record<string, string>;
 
     if (type === _AssetType.RUNE) {

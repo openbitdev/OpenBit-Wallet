@@ -5,7 +5,7 @@ import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, M
 import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { decodeRuneSpacer, insertRuneSpacer } from '@subwallet/extension-base/services/balance-service/utils/rune';
-import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
+import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/BitcoinChainHandler';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
@@ -1116,33 +1116,33 @@ export class ChainService {
     return await Promise.all([fetchPatchData<Record<string, _ChainAsset>>('ChainAsset.json'), fetchPatchData<Record<string, string>>('AssetLogoMap.json')]);
   }
 
-  private async fetchLatestRuneData () {
-    const chainAssetMap: Record<string, _ChainAsset> = {};
-    const allCollectionRunes = await getAllCollectionRunes();
-
-    allCollectionRunes.forEach((rune) => {
-      const chainAssetItem = {
-        originChain: `${_BITCOIN_CHAIN_SLUG}`,
-        slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
-        name: `${_BITCOIN_NAME}`,
-        symbol: rune.rune_name,
-        decimals: parseInt(rune.divisibility) || 0,
-        priceId: null,
-        minAmount: '0',
-        assetType: _AssetType.LOCAL,
-        metadata: {
-          runeId: rune.rune_id
-        },
-        multiChainAsset: null,
-        hasValue: true,
-        icon: '' // todo: update token logo if available
-      };
-
-      chainAssetMap[chainAssetItem.slug] = chainAssetItem;
-    });
-
-    return chainAssetMap;
-  }
+  // private async fetchLatestRuneData () {
+  //   const chainAssetMap: Record<string, _ChainAsset> = {};
+  //   const allCollectionRunes = await getAllCollectionRunes();
+  //
+  //   allCollectionRunes.forEach((rune) => {
+  //     const chainAssetItem = {
+  //       originChain: `${_BITCOIN_CHAIN_SLUG}`,
+  //       slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
+  //       name: `${_BITCOIN_NAME}`,
+  //       symbol: rune.rune_name,
+  //       decimals: parseInt(rune.divisibility) || 0,
+  //       priceId: null,
+  //       minAmount: '0',
+  //       assetType: _AssetType.LOCAL,
+  //       metadata: {
+  //         runeId: rune.rune_id
+  //       },
+  //       multiChainAsset: null,
+  //       hasValue: true,
+  //       icon: '' // todo: update token logo if available
+  //     };
+  //
+  //     chainAssetMap[chainAssetItem.slug] = chainAssetItem;
+  //   });
+  //
+  //   return chainAssetMap;
+  // }
 
   // @ts-ignore
   private async fetchLatestPriceIdsData () {
@@ -1786,7 +1786,7 @@ export class ChainService {
 
           const spacerList = decodeRuneSpacer(parseInt(spacer));
           const runeName = insertRuneSpacer(baseRuneName, spacerList);
-          const isContractError = (!baseRuneName)
+          const isContractError = (!baseRuneName);
 
           return {
             decimals: parseInt(runeCollection.divisibility) || 0,
@@ -1859,7 +1859,7 @@ export class ChainService {
   private async getBrc20Info (ticker: string, tokenType: _AssetType, originChain: string) {
     if ([_AssetType.BRC20].includes(tokenType) && originChain === _BITCOIN_CHAIN_SLUG) {
       const brc20Metdata = await getBrc20Metadata(ticker);
-      const isContractError = (!(brc20Metdata.decimals && brc20Metdata))
+      const isContractError = (!(brc20Metdata.decimals && brc20Metdata));
 
       return {
         decimals: brc20Metdata.decimals,
