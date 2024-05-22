@@ -70,7 +70,7 @@ export const fetchInfuraFeeData = async (chainId: number, infuraAuth?: string): 
   }
 };
 
-export const fetchSubWalletFeeData = async (chainId: number, networkKey: string): Promise<EvmFeeInfo | null> => {
+export const fetchOpenBitFeeData = async (chainId: number, networkKey: string): Promise<EvmFeeInfo | null> => {
   return await new Promise<EvmFeeInfo | null>((resolve) => {
     const baseUrl = 'https://api-cache.subwallet.app/sw-evm-gas/{{chain}}';
     const url = baseUrl.replaceAll('{{chain}}', networkKey);
@@ -92,7 +92,7 @@ export const fetchSubWalletFeeData = async (chainId: number, networkKey: string)
 
 export const fetchOnlineFeeData = async (chainId: number, networkKey: string, useInfura = false): Promise<EvmFeeInfo | null> => {
   return await new Promise<EvmFeeInfo | null>((resolve) => {
-    const fetchFunction = useInfura ? fetchInfuraFeeData : fetchSubWalletFeeData;
+    const fetchFunction = useInfura ? fetchInfuraFeeData : fetchOpenBitFeeData;
 
     fetchFunction(chainId, useInfura ? '' : networkKey)
       .then((info) => {

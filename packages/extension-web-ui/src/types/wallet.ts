@@ -25,5 +25,5 @@ type This = typeof globalThis;
 export interface InjectedWindow extends This {
   injectedWeb3?: Record<string, InjectedWindowProvider>;
   ethereum?: EvmProvider;
-  SubWallet?: OpenBitEvmProvider;
+  OpenBit?: OpenBitEvmProvider;
 }

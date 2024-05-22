@@ -48,7 +48,7 @@ interface DetailFormState {
 const instructionContents: InstructionContentType[] = [
   {
     title: 'Why do I need to enter a password?',
-    description: 'For your wallet protection, SubWallet locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.',
+    description: 'For your wallet protection, OpenBit locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.',
     type: 'warning'
   },
   {

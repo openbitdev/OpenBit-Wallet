@@ -349,7 +349,7 @@ mark {
   scrollbar-width: none;  /* Firefox */
 }
 
-/*SubWallet main css*/
+/*OpenBit main css*/
 *, :after, :before {
   -webkit-box-sizing: inherit;
   box-sizing: inherit

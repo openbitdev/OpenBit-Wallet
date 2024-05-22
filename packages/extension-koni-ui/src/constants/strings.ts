@@ -7,7 +7,7 @@ const strings = {
   ERROR_NO_NETWORK:
     'The demanded network is currently not available on this device',
   ERROR_SUPPORT_EVM:
-    'SubWallet does not currently support EVM transactions via QR-Signer account',
+    'OpenBit does not currently support EVM transactions via QR-Signer account',
   ERROR_NO_RAW_DATA: 'There is no raw data from the request',
   ERROR_NO_SENDER_FOUND: 'The chosen account has not been imported into this device. Please import the account and try again.',
   ERROR_NO_EXTERNAL_ACCOUNT: 'The signing feature is not available for this account type',

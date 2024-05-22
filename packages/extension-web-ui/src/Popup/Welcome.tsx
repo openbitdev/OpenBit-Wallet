@@ -137,7 +137,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       loading: loadingInject
     },
     {
-      description: t('Create a new account with SubWallet'),
+      description: t('Create a new account with OpenBit'),
       icon: PlusCircle,
       id: CREATE_ACCOUNT_MODAL,
       schema: 'secondary',
@@ -277,7 +277,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
             }
           </div>
           {
-            isWebUI && (<div className='title'>{t('Welcome to SubWallet!')}</div>)
+            isWebUI && (<div className='title'>{t('Welcome to OpenBit!')}</div>)
           }
           <div className='sub-title'>
             {t('Choose how you\'d like to set up your wallet')}

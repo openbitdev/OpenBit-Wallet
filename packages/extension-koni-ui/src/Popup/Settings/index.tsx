@@ -236,7 +236,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     //       rightIcon: ArrowSquareOut,
     //       title: t('Request a feature'),
     //       onClick: () => {
-    //         window.open(`${SUPPORT_MAIL}?subject=[SubWallet In-app Feedback]`, '_self');
+    //         window.open(`${SUPPORT_MAIL}?subject=[OpenBit In-app Feedback]`, '_self');
     //       }
     //     },
     //     {

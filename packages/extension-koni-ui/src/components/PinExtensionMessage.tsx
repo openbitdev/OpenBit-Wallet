@@ -48,7 +48,7 @@ const Component: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div className='message-content'>
-          {t('Pin SubWallet to toolbar for easier access')}
+          {t('Pin OpenBit to toolbar for easier access')}
         </div>
       </div>
       <div className='message-sub-content'>
@@ -59,7 +59,7 @@ const Component: React.FC<Props> = (props: Props) => {
               <Icon phosphorIcon={PushPinSimple} />
             )
           }}
-          i18nKey={detectTranslate('Click <extension/> select SubWallet and then <pin/>')}
+          i18nKey={detectTranslate('Click <extension/> select OpenBit and then <pin/>')}
         />
       </div>
     </div>

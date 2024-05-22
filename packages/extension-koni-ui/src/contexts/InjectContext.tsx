@@ -19,7 +19,7 @@ interface Props {
 export interface InjectedWindow extends This {
   injectedWeb3?: Record<string, InjectedWindowProvider>;
   ethereum?: EvmProvider;
-  SubWallet?: OpenBitEvmProvider;
+  OpenBit?: OpenBitEvmProvider;
 }
 
 interface InjectContextProps {
@@ -49,7 +49,7 @@ const evmConvertToInject = (address: string): InjectedAccountWithMeta => {
     address,
     type: 'ethereum',
     meta: {
-      source: 'SubWallet',
+      source: 'OpenBit',
       name: toShort(address, 4, 4)
     }
   };
@@ -122,7 +122,7 @@ export const InjectContextProvider: React.FC<Props> = ({ children }: Props) => {
   const { t } = useTranslation();
 
   const injected = useMemo(() => {
-    return !!win.injectedWeb3?.['subwallet-js'] || !!win.SubWallet;
+    return !!win.injectedWeb3?.['subwallet-js'] || !!win.OpenBit;
   }, []);
 
   const [substrateWallet, setSubstrateWallet] = useState<Injected | undefined>();
@@ -214,10 +214,10 @@ export const InjectContextProvider: React.FC<Props> = ({ children }: Props) => {
   }, [enabled, update, checkLoading, handleConnectFail]);
 
   useEffect(() => {
-    const wallet = win.SubWallet;
+    const wallet = win.OpenBit;
 
     if (wallet && enabled) {
-      promiseMapRef.current = { ...promiseMapRef.current, SubWallet: 'PENDING' };
+      promiseMapRef.current = { ...promiseMapRef.current, OpenBit: 'PENDING' };
       checkLoading();
 
       wallet.enable()
@@ -226,7 +226,7 @@ export const InjectContextProvider: React.FC<Props> = ({ children }: Props) => {
         })
         .catch((e) => {
           console.error(e);
-          promiseMapRef.current = { ...promiseMapRef.current, SubWallet: 'FAIL' };
+          promiseMapRef.current = { ...promiseMapRef.current, OpenBit: 'FAIL' };
           handleConnectFail();
           checkLoading();
         })
@@ -248,7 +248,7 @@ export const InjectContextProvider: React.FC<Props> = ({ children }: Props) => {
           meta: {
             genesisHash: account.genesisHash,
             name: account.name || toShort(account.address, 4, 4),
-            source: 'SubWallet'
+            source: 'OpenBit'
           },
           type: account.type
         }));
@@ -266,9 +266,9 @@ export const InjectContextProvider: React.FC<Props> = ({ children }: Props) => {
     const listener = (addresses: string[]) => {
       const newState: AccountArrayMap = { ...accountsRef.current };
 
-      newState.SubWallet = addresses.map((adr) => evmConvertToInject(adr));
+      newState.OpenBit = addresses.map((adr) => evmConvertToInject(adr));
       accountsRef.current = newState;
-      promiseMapRef.current = { ...promiseMapRef.current, SubWallet: 'SUCCESS' };
+      promiseMapRef.current = { ...promiseMapRef.current, OpenBit: 'SUCCESS' };
 
       updateState();
     };

@@ -14,10 +14,10 @@ export const DEFAULT_WALLET_CONNECT_OPTIONS: SignClientTypes.Options = {
   projectId: targetIsMobile ? PROJECT_ID_MOBILE : PROJECT_ID_EXTENSION,
   relayUrl: RELAY_URL,
   metadata: {
-    name: 'SubWallet',
-    description: 'React Wallet for WalletConnect',
-    url: 'https://www.subwallet.app/',
-    icons: ['https://raw.githubusercontent.com/Koniverse/SubWallet-Extension/master/packages/extension-koni/public/images/icon-128.png']
+    name: 'OpenBit',
+    description: 'OpenBit Wallet for WalletConnect',
+    url: 'https://www.openbit.app/',
+    icons: ['https://raw.githubusercontent.com/Koniverse/OpenBit-Extension/master/packages/extension-koni/public/images/icon-128.png']
   }
 };
 

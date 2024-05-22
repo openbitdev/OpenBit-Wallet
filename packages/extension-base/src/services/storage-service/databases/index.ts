@@ -6,7 +6,7 @@ import { CampaignData, ChainStakingMetadata, CrowdloanItem, MetadataItem, NftCol
 import { BalanceItem, YieldPoolInfo, YieldPositionInfo } from '@subwallet/extension-base/types';
 import Dexie, { Table, Transaction } from 'dexie';
 
-export const DEFAULT_DATABASE = 'SubWalletDB_v2';
+export const DEFAULT_DATABASE = 'OpenBitDB';
 
 export interface DefaultChainDoc {
   chain: string

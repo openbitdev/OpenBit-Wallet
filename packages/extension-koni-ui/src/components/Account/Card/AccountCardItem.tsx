@@ -82,7 +82,7 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
           value: Eye
         };
       case AccountSignMode.INJECTED:
-        // if (source === 'SubWallet') {
+        // if (source === 'OpenBit') {
         //   return {
         //     type: 'node',
         //     value: (

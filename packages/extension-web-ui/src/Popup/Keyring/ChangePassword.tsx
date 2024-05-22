@@ -49,7 +49,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const instructionContents: InstructionContentType[] = [
     {
       title: 'Why do I need to enter a password?',
-      description: 'For your wallet protection, SubWallet locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.',
+      description: 'For your wallet protection, OpenBit locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.',
       type: 'warning'
     },
     {
@@ -239,7 +239,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
                 <Checkbox
                   className={'checkbox'}
                 >
-                  {t('I understand that SubWallet can’t recover the password.')}
+                  {t('I understand that OpenBit can’t recover the password.')}
                   <a
                     href={TERMS_OF_SERVICE_URL}
                     rel='noreferrer'

@@ -18,7 +18,7 @@ const Component: React.FC<ThemeProps> = () => {
       deviceName={t('Keystone')}
       instructionUrl={'https://docs.subwallet.app/main/extension-user-guide/account-management/connect-keystone-device'}
       logoUrl={DefaultLogosMap.keystone}
-      subTitle={t('Open "Software Wallet" section on your Keystone and choose SubWallet')}
+      subTitle={t('Open "Software Wallet" section on your Keystone and choose OpenBit')}
       title={t('Connect Keystone device')}
     />
   );

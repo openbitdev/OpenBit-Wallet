@@ -46,7 +46,7 @@ const instructionContent: InstructionContentType[] = [
     type: 'warning'
   },
   {
-    title: 'Is it safe to enter it into SubWallet?',
+    title: 'Is it safe to enter it into OpenBit?',
     description: 'Yes. It will be stored locally and never leave your device without your explicit permission.',
     type: 'warning'
   }
