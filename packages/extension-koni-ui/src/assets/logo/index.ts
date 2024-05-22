@@ -6,7 +6,7 @@ export const DefaultLogosMap: Record<string, string> = {
   parity: './images/projects/parity.png',
   keystone: './images/projects/keystone.png',
   ledger: './images/projects/ledger.png',
-  default: './images/subwallet/default.png',
+  default: './images/openbit/default.png',
   transak: './images/projects/transak.png',
   moonpay: './images/projects/moonpay.png',
   onramper: './images/projects/onramper.png',
@@ -19,7 +19,7 @@ export const DefaultLogosMap: Record<string, string> = {
   ordinal: './images/projects/ordinal.png',
   rune: './images/projects/rune.png',
   ordinal_rune: './images/projects/ordinal_rune.png',
-  default_placeholder: './images/subwallet/default-image-placeholder.png'
+  default_placeholder: './images/openbit/default-image-placeholder.png'
 };
 
 export const IconMap = {

@@ -90,7 +90,7 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
         //         className='logo-image'
         //         height='var(--height)'
         //         shape='square'
-        //         src={'/images/subwallet/gradient-logo.png'}
+        //         src={'/images/openbit/gradient-logo.png'}
         //       />
         //     )
         //   };

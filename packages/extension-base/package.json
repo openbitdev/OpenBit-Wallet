@@ -1,16 +1,16 @@
 {
   "author": "Jaco Greeff <jacogr@gmail.com>",
-  "bugs": "https://github.com/Koniverse/Subwallet-V2/issues",
+  "bugs": "https://github.com/openbitdev/OpenBit-Wallet/issues",
   "contributors": [],
   "description": "Functions, classes and other utilities used in @subwallet/extension",
-  "homepage": "https://github.com/Koniverse/Subwallet-V2/tree/master/packages/extension-base#readme",
+  "homepage": "https://github.com/openbitdev/OpenBit-Wallet/tree/master/packages/extension-base#readme",
   "license": "Apache-2.0",
   "maintainers": [],
   "name": "@subwallet/extension-base",
   "repository": {
     "directory": "packages/extension-base",
     "type": "git",
-    "url": "https://github.com/Koniverse/Subwallet-V2.git"
+    "url": "https://github.com/openbitdev/OpenBit-Wallet.git"
   },
   "sideEffects": [
     "./detectPackage.js",

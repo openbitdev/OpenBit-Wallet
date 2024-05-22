@@ -83,7 +83,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
         <div className='body-container'>
           <div className='logo-container'>
             <Image
-              src='./images/openbit/openbit-logo.png'
+              src='./images/openbit/logo.png'
               width={88}
             />
           </div>
@@ -148,7 +148,7 @@ const Login = styled(Component)<Props>(({ theme }: Props) => {
     position: 'relative',
 
     '.bg-image': {
-      backgroundImage: 'url("./images/openbit/openbit-welcome-background.png")',
+      backgroundImage: 'url("./images/openbit/welcome-background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',

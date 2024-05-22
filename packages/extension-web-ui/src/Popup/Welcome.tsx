@@ -264,13 +264,13 @@ function Component ({ className }: Props): React.ReactElement<Props> {
               isWebUI
                 ? (
                   <Image
-                    src='/images/subwallet/gradient-logo.png'
+                    src='/images/openbit/gradient-logo.png'
                     width={80}
                   />
                 )
                 : (
                   <Image
-                    src={'./images/subwallet/welcome-logo.png'}
+                    src={'./images/openbit/welcome-logo.png'}
                     width={139}
                   />
                 )
@@ -382,7 +382,7 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
     },
 
     '.bg-image': {
-      backgroundImage: 'url("/images/subwallet/welcome-background.png")',
+      backgroundImage: 'url("/images/openbit/welcome-background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',

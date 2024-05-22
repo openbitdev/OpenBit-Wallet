@@ -17,7 +17,7 @@ export const DEFAULT_WALLET_CONNECT_OPTIONS: SignClientTypes.Options = {
     name: 'OpenBit',
     description: 'OpenBit Wallet for WalletConnect',
     url: 'https://www.openbit.app/',
-    icons: ['https://raw.githubusercontent.com/Koniverse/OpenBit-Extension/master/packages/extension-koni/public/images/icon-128.png']
+    icons: ['https://raw.githubusercontent.com/openbitdev/OpenBit-Wallet/openbit-dev/packages/extension-koni/public/images/icon-128.png']
   }
 };
 

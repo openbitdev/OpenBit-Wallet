@@ -44,7 +44,7 @@ const Component: React.FC<Props> = (props: Props) => {
           <Image
             height='var(--img-height)'
             shape='square'
-            src='/images/subwallet/gradient-logo.png'
+            src='/images/openbit/gradient-logo.png'
           />
         </div>
         <div className='message-content'>

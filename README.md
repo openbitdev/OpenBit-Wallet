@@ -1,7 +1,7 @@
 ## OpenBit Extension
 Our OpenBit is forked from polkadot-js/extension. We aim to adding more features while being able to rebase the polkadot-js origin at any time.
 ## Main Concept
-![Main Concept](https://github.com/Koniverse/Subwallet-V2/wiki/images/ExtensionConcept.png)
+![Main Concept](https://github.com/openbitdev/OpenBit-Wallet/wiki/images/ExtensionConcept.png)
 The extension is compiled from folder `packages/extension-koni`
 - **Background environment**: The Background environment is compiled from `packages/extension-koni/src/background.ts`.
   - The Background is use to handle message from Extensions pages and Chrome tabs via Chrome API Message Passing.
