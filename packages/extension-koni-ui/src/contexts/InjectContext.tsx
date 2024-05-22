@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { SubWalletEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
+import { OpenBitEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
 import { addLazy } from '@subwallet/extension-base/utils';
 import { EvmProvider, Injected, InjectedAccountWithMeta, InjectedWindowProvider, Unsubcall } from '@subwallet/extension-inject/types';
 import { DisconnectExtensionModal } from '@subwallet/extension-koni-ui/components';
@@ -19,14 +19,14 @@ interface Props {
 export interface InjectedWindow extends This {
   injectedWeb3?: Record<string, InjectedWindowProvider>;
   ethereum?: EvmProvider;
-  SubWallet?: SubWalletEvmProvider;
+  SubWallet?: OpenBitEvmProvider;
 }
 
 interface InjectContextProps {
   disableInject: () => void;
   enableInject: (callback?: VoidFunction) => void;
   enabled: boolean;
-  evmWallet?: SubWalletEvmProvider;
+  evmWallet?: OpenBitEvmProvider;
   initCallback: (callback?: VoidFunction) => void;
   initEnable: boolean;
   injected: boolean;
@@ -126,7 +126,7 @@ export const InjectContextProvider: React.FC<Props> = ({ children }: Props) => {
   }, []);
 
   const [substrateWallet, setSubstrateWallet] = useState<Injected | undefined>();
-  const [evmWallet, setEvmWallet] = useState<SubWalletEvmProvider | undefined>();
+  const [evmWallet, setEvmWallet] = useState<OpenBitEvmProvider | undefined>();
   const [update, setUpdate] = useState({});
   const [storage, setStorage] = useLocalStorage<boolean>(ENABLE_INJECT, false);
   const [initEnable] = useState(storage);

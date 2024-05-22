@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { SubWalletEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
+import { OpenBitEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
 import { EvmProvider, InjectedWindowProvider } from '@subwallet/extension-inject/types';
 
 export interface WalletInfo {
@@ -25,5 +25,5 @@ type This = typeof globalThis;
 export interface InjectedWindow extends This {
   injectedWeb3?: Record<string, InjectedWindowProvider>;
   ethereum?: EvmProvider;
-  SubWallet?: SubWalletEvmProvider;
+  SubWallet?: OpenBitEvmProvider;
 }

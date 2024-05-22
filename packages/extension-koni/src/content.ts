@@ -3,6 +3,7 @@
 
 import { TransportRequestMessage } from '@subwallet/extension-base/background/types';
 import { MESSAGE_ORIGIN_CONTENT, MESSAGE_ORIGIN_PAGE, PORT_CONTENT } from '@subwallet/extension-base/defaults';
+import { Message } from '@subwallet/extension-base/types';
 import { getId } from '@subwallet/extension-base/utils/getId';
 
 // connect to the extension
@@ -39,14 +40,14 @@ port.onMessage.addListener((data: {id: string, response: any}): void => {
 });
 
 // // all messages from the page, pass them to the extension
-// window.addEventListener('message', ({ data, source }: Message): void => {
-//   // only allow messages from our window, by the inject
-//   if (source !== window || data.origin !== MESSAGE_ORIGIN_PAGE) {
-//     return;
-//   }
-//
-//   port.postMessage(data);
-// });
+window.addEventListener('message', ({ data, source }: Message): void => {
+  // only allow messages from our window, by the inject
+  if (source !== window || data.origin !== MESSAGE_ORIGIN_PAGE) {
+    return;
+  }
+
+  port.postMessage(data);
+});
 
 redirectIfPhishingProm.then((gotRedirected) => {
   if (!gotRedirected) {

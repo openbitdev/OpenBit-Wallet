@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { SubWalletEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
+import { OpenBitEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
 import { addLazy, createPromiseHandler } from '@subwallet/extension-base/utils';
 import { Injected, InjectedAccountWithMeta, Unsubcall } from '@subwallet/extension-inject/types';
 import { DisconnectExtensionModal } from '@subwallet/extension-web-ui/components';
@@ -25,7 +25,7 @@ interface InjectContextProps {
   selectWallet: () => void;
   enableInject: (walletKey: string) => void;
   enabled: boolean;
-  evmWallet?: SubWalletEvmProvider;
+  evmWallet?: OpenBitEvmProvider;
   initCallback: (callback?: VoidFunction) => void;
   initEnable: boolean;
   injected: boolean;
@@ -99,8 +99,8 @@ class InjectHandler {
   substrateEnableCompleted = false;
 
   evmKey: string | null = null;
-  evmWallet?: SubWalletEvmProvider;
-  evmPromiseHandler = createPromiseHandler<SubWalletEvmProvider | undefined>();
+  evmWallet?: OpenBitEvmProvider;
+  evmPromiseHandler = createPromiseHandler<OpenBitEvmProvider | undefined>();
   evmAccounts: InjectedAccountWithMeta[] = [];
   evmAccountUnsubcall?: () => void;
   evmEnableCompleted = false;
@@ -274,7 +274,7 @@ class InjectHandler {
     }
 
     // @ts-ignore
-    const injectedWallet = win[this.evmKey] as SubWalletEvmProvider;
+    const injectedWallet = win[this.evmKey] as OpenBitEvmProvider;
 
     await injectedWallet?.enable();
     this.evmWallet = injectedWallet;
