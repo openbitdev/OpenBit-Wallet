@@ -15,32 +15,73 @@ interface Handler {
 }
 
 type Handlers = Record<string, Handler>;
-const port = chrome.runtime.connect({ name: PORT_EXTENSION });
+let port = chrome.runtime.connect({ name: PORT_EXTENSION });
 const handlers: Handlers = {};
 
-// setup a listener for messages, any incoming resolves the promise
-port.onMessage.addListener((data: Message['data']): void => {
-  const handler = handlers[data.id];
+onConnectPort();
 
-  if (!handler) {
-    console.error(`Unknown response: ${JSON.stringify(data)}`);
+function onConnectPort () {
+  if (!chrome.runtime) {
+    console.error('The connection to the SubWallet port will be disconnected. Please reload your wallet.');
 
     return;
   }
 
-  if (!handler.subscriber) {
-    delete handlers[data.id];
+  // connect to the extension
+  port = chrome.runtime.connect({ name: PORT_EXTENSION });
+
+  // setup a listener for messages, any incoming resolves the promise
+  port.onMessage.addListener((data: Message['data']): void => {
+    const handler = handlers[data.id];
+
+    if (!handler) {
+      console.error(`Unknown response: ${JSON.stringify(data)}.`);
+
+      return;
+    }
+
+    if (!handler.subscriber) {
+      delete handlers[data.id];
+    }
+
+    if (data.subscription) {
+      // eslint-disable-next-line @typescript-eslint/ban-types
+      (handler.subscriber as Function)(data.subscription);
+    } else if (data.error) {
+      handler.reject(new Error(data.error));
+    } else {
+      handler.resolve(data.response);
+    }
+  });
+
+  port.onDisconnect.addListener(onDisconnectPort);
+}
+
+function onDisconnectPort () {
+  const err = checkForLastError();
+
+  port.onDisconnect.removeListener(
+    onDisconnectPort
+  );
+
+  if (err) {
+    console.warn(`${err.message}, Reconnecting to the port.`);
+    setTimeout(onConnectPort, 1000);
+  } else {
+    console.error('The connection to the SubWallet port will be disconnected. Please reload your wallet.');
+  }
+}
+
+function checkForLastError () {
+  const { lastError } = chrome.runtime;
+
+  if (!lastError) {
+    return undefined;
   }
 
-  if (data.subscription) {
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    (handler.subscriber as Function)(data.subscription);
-  } else if (data.error) {
-    handler.reject(new Error(data.error));
-  } else {
-    handler.resolve(data.response);
-  }
-});
+  // repair incomplete error object (eg chromium v77)
+  return new Error(lastError.message);
+}
 
 export function sendMessage<TMessageType extends MessageTypesWithNullRequest> (message: TMessageType): Promise<ResponseTypes[TMessageType]>;
 export function sendMessage<TMessageType extends MessageTypesWithNoSubscriptions> (message: TMessageType, request: RequestTypes[TMessageType]): Promise<ResponseTypes[TMessageType]>;
