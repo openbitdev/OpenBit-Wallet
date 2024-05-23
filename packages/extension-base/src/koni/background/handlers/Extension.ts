@@ -573,7 +573,6 @@ export default class KoniExtension {
     const keyringService = this.#koniState.keyringService;
     const transformedAccountProxies = transformAccountProxies(keyringService.accounts);
 
-    // @ts-ignore
     const responseData: AccountProxiesWithCurrentProxy = {
       accountProxies: transformedAccountProxies?.length ? [{ ...ACCOUNT_PROXY_ALL_JSON }, ...transformedAccountProxies] : [],
       currentAccountProxyId: keyringService.currentAccountProxy?.proxyId
@@ -4921,6 +4920,8 @@ export default class KoniExtension {
     }
 
     switch (type) {
+      case 'pri(ping)':
+        return 'pong';
       /// Clone from PolkadotJs
       case 'pri(accounts.create.external)':
         return this.accountsCreateExternal(request as RequestAccountCreateExternal);
