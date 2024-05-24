@@ -4918,14 +4918,16 @@ export default class KoniExtension {
   // --------------------------------------------------------------
   // eslint-disable-next-line @typescript-eslint/require-await
   public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], port: chrome.runtime.Port): Promise<ResponseType<TMessageType>> {
-    clearTimeout(this.#lockTimeOut);
+    if (type !== 'pri(ping)') {
+      clearTimeout(this.#lockTimeOut);
 
-    if (this.#timeAutoLock > 0) {
-      this.#lockTimeOut = setTimeout(() => {
-        if (!this.#skipAutoLock) {
-          this.keyringLock();
-        }
-      }, this.#timeAutoLock * 60 * 1000);
+      if (this.#timeAutoLock > 0) {
+        this.#lockTimeOut = setTimeout(() => {
+          if (!this.#skipAutoLock) {
+            this.keyringLock();
+          }
+        }, this.#timeAutoLock * 60 * 1000);
+      }
     }
 
     switch (type) {
