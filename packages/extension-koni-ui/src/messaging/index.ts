@@ -8,6 +8,8 @@ import { SWTransactionResult } from '@subwallet/extension-base/services/transact
 import { sendMessage } from '@subwallet/extension-koni-ui/messaging/base';
 
 export async function ping () {
+  console.log('ping');
+
   return sendMessage('pri(ping)', null);
 }
 

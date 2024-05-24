@@ -185,7 +185,6 @@ export function initBasicData () {
 export const DataContext = React.createContext(_DataContext);
 
 export const DataContextProvider = ({ children }: DataContextProviderProps) => {
-
   // Start ping and and set interval to ping every 10 seconds
   ping().catch(console.error);
 
