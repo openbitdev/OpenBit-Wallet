@@ -712,7 +712,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               forceUpdateMaxValue={forceUpdateMaxValue}
               maxValue={transferInfo?.maxTransferable || '0'}
               onSetMax={onSetMaxTransferable}
-              // showMaxButton={!hideMaxButton && !!transferInfo}
+              showMaxButton={!hideMaxButton && !!transferInfo}
               tooltip={t('Amount')}
             />
           </Form.Item>
