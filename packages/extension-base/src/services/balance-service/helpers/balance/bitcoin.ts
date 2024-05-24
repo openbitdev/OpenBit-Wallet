@@ -3,78 +3,13 @@
 
 import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountJson } from '@subwallet/extension-base/background/types';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
-import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
+import { _getChainNativeTokenSlug, _getRuneId } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
-import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
-import keyring from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
-
-import { noop } from '@polkadot/util';
-
-import { subscribeEVMBalance } from './evm';
-import { subscribeSubstrateBalance } from './substrate';
-
-/**
- * @function getAccountJsonByAddress
- * @desc Get account info by address
- * <p>
- *   Note: Use on the background only
- * </p>
- * @param {string} address - Address
- * @returns {AccountJson|null}  - Account info or null if not found
- */
-export const getAccountJsonByAddress = (address: string): AccountJson | null => {
-  try {
-    const pair = keyring.getPair(address);
-
-    if (pair) {
-      return {
-        address: pair.address,
-        type: pair.type,
-        ...pair.meta
-      };
-    } else {
-      return null;
-    }
-  } catch (e) {
-    console.warn(e);
-
-    return null;
-  }
-};
-
-/** Filter addresses to subscribe by chain info */
-const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], string[]] => {
-  const isEvmChain = _isPureEvmChain(chainInfo);
-  const isBitcoinChain = _isPureBitcoinChain(chainInfo);
-  const useAddresses: string[] = [];
-  const notSupportAddresses: string[] = [];
-
-  if (isEvmChain) {
-    addresses.forEach((a) => {
-      getKeypairTypeByAddress(a) === 'ethereum' ? useAddresses.push(a) : notSupportAddresses.push(a);
-    });
-  } else if (isBitcoinChain) {
-    addresses.forEach((address) => {
-      const bitcoinAddressNetwork = isBitcoinAddress(address);
-
-      if ((bitcoinAddressNetwork === 'mainnet' && chainInfo.slug === 'bitcoin') || (bitcoinAddressNetwork === 'testnet' && chainInfo.slug === 'bitcoinTestnet')) {
-        useAddresses.push(address);
-      } else {
-        notSupportAddresses.push(address);
-      }
-    });
-  } else {
-    notSupportAddresses.push(...addresses);
-  }
-
-  return [useAddresses, notSupportAddresses];
-};
 
 // todo: update bitcoin params
 function subscribeRuneBalance (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
@@ -192,24 +127,36 @@ function subscribeBRC20Balance (bitcoinApi: _BitcoinApi, addresses: string[], as
   };
 }
 
+export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, address: string) => {
+  try {
+    const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
+      await bitcoinApi.api.getUtxos(address),
+      await bitcoinApi.api.getAddressTransaction(address),
+      await getRuneTxsUtxos(bitcoinApi, address),
+      await getInscriptionUtxos(bitcoinApi, address)
+    ]);
+
+    // filter out pending utxos
+    let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
+
+    // filter out rune utxos
+    filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
+
+    // filter out inscription utxos
+    filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
+
+    return filteredUtxos;
+  } catch (error) {
+    console.log('Error while fetching Bitcoin balances', error);
+
+    return [];
+  }
+};
+
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
   return await Promise.all(addresses.map(async (address) => {
     try {
-      const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
-        await bitcoinApi.api.getUtxos(address),
-        await bitcoinApi.api.getAddressTransaction(address),
-        await getRuneTxsUtxos(bitcoinApi, address),
-        await getInscriptionUtxos(bitcoinApi, address)
-      ]);
-
-      // filter out pending utxos
-      let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
-
-      // filter out rune utxos
-      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
-
-      // filter out inscription utxos
-      filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
+      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
 
       let balanceValue = new BigN(0);
 
@@ -226,7 +173,7 @@ async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) 
   }));
 }
 
-function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, assetMap: Record<string, _ChainAsset>, bitcoinApi: _BitcoinApi, callback: (rs: BalanceItem[]) => void): () => void {
+export function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, assetMap: Record<string, _ChainAsset>, bitcoinApi: _BitcoinApi, callback: (rs: BalanceItem[]) => void): () => void {
   const nativeSlug = _getChainNativeTokenSlug(chainInfo);
 
   const getBalance = () => {
@@ -272,86 +219,5 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, as
     clearInterval(interval);
     unsub && unsub();
     unsub2 && unsub2();
-  };
-}
-
-// main subscription, use for multiple chains, multiple addresses and multiple tokens
-export function subscribeBalance (
-  addresses: string[],
-  chains: string[],
-  tokens: string[],
-  _chainAssetMap: Record<string, _ChainAsset>,
-  _chainInfoMap: Record<string, _ChainInfo>,
-  substrateApiMap: Record<string, _SubstrateApi>,
-  evmApiMap: Record<string, _EvmApi>,
-  bitcoinApiMap: Record<string, _BitcoinApi>,
-  callback: (rs: BalanceItem[]) => void) {
-  // Filter chain and token
-  const chainAssetMap: Record<string, _ChainAsset> = Object.fromEntries(Object.entries(_chainAssetMap).filter(([token]) => tokens.includes(token)));
-  const chainInfoMap: Record<string, _ChainInfo> = Object.fromEntries(Object.entries(_chainInfoMap).filter(([chain]) => chains.includes(chain)));
-
-  // Looping over each chain
-  const unsubList = Object.values(chainInfoMap).map(async (chainInfo) => {
-    const chainSlug = chainInfo.slug;
-    const [useAddresses, notSupportAddresses] = filterAddress(addresses, chainInfo);
-
-    if (notSupportAddresses.length) {
-      const tokens = filterAssetsByChainAndType(chainAssetMap, chainSlug, [_AssetType.NATIVE, _AssetType.ERC20, _AssetType.PSP22, _AssetType.LOCAL]);
-
-      const now = new Date().getTime();
-
-      Object.values(tokens).forEach((token) => {
-        const items: BalanceItem[] = notSupportAddresses.map((address): BalanceItem => ({
-          address,
-          tokenSlug: token.slug,
-          free: '0',
-          locked: '0',
-          state: APIItemState.NOT_SUPPORT,
-          timestamp: now
-        }));
-
-        callback(items);
-      });
-    }
-
-    if (!useAddresses.length) {
-      return noop;
-    }
-
-    const evmApi = evmApiMap[chainSlug];
-
-    if (_isPureEvmChain(chainInfo)) {
-      return subscribeEVMBalance({
-        addresses: useAddresses,
-        assetMap: chainAssetMap,
-        callback,
-        chainInfo,
-        evmApi
-      });
-    }
-
-    const bitcoinApi = bitcoinApiMap[chainSlug];
-
-    if (_isPureBitcoinChain(chainInfo)) {
-      return subscribeBitcoinBalance(
-        useAddresses,
-        chainInfo,
-        chainAssetMap,
-        bitcoinApi,
-        callback
-      );
-    }
-
-    const substrateApi = await substrateApiMap[chainSlug].isReady;
-
-    return subscribeSubstrateBalance(useAddresses, chainInfo, chainAssetMap, substrateApi, evmApi, callback);
-  });
-
-  return () => {
-    unsubList.forEach((subProm) => {
-      subProm.then((unsub) => {
-        unsub && unsub();
-      }).catch(console.error);
-    });
   };
 }

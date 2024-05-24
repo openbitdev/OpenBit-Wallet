@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
+import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { BitcoinFeeInfo, BitcoinFeeRate, GetFeeFunction, TransactionFee } from '@subwallet/extension-base/types';
 import { combineBitcoinFee, determineUtxosForSpend, determineUtxosForSpendAll, getId } from '@subwallet/extension-base/utils';
@@ -33,7 +34,7 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
   const feeCustom = _feeCustom as BitcoinFeeRate;
   const feeInfo = await getChainFee(id, chain, 'bitcoin') as BitcoinFeeInfo;
   const bitcoinFee = combineBitcoinFee(feeInfo, feeOption, feeCustom);
-  const utxos = await bitcoinApi.api.getUtxos(from);
+  const utxos = await getTransferableBitcoinUtxos(bitcoinApi, from);
 
   try {
     const amountValue = parseFloat(value);
