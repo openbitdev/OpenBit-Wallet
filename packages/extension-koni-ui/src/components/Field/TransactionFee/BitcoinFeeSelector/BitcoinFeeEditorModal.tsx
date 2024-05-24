@@ -248,6 +248,14 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
     return BN_ZERO;
   }, [customValue, feeDetail.vSize]);
 
+  const canSubmitCustom = useMemo((): boolean => {
+    if (validateCustomValue(customValue)) {
+      return new BigN(customValue).gt(0);
+    } else {
+      return false;
+    }
+  }, [customValue]);
+
   const onSubmitCustomValue: FormCallbacks<FormProps>['onFinish'] = useCallback(({ customValue }: FormProps) => {
     inactiveModal(modalId);
     onSelectOption({
@@ -321,7 +329,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
 
             <Button
               block={true}
-              disabled={convertedCustomValue.lte(0)}
+              disabled={!canSubmitCustom}
               onClick={form.submit}
             >
               Use custom fee
