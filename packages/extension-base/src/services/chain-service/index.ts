@@ -36,8 +36,10 @@ const filterChainInfoMap = (data: Record<string, _ChainInfo>): Record<string, _C
   );
 };
 
-const availChainInfoMap = (() => {
-  const nativeEvmList = [
+const openbitChainInfoMap = (() => {
+  const nativeList = [
+    'bitcoin',
+    'bitcoinTestnet',
     'ethereum',
     'polygon',
     'arbitrum_one',
@@ -56,7 +58,7 @@ const availChainInfoMap = (() => {
     'botanixEvmTest',
     'bounceBitEvm'
   ];
-  const enableList = nativeEvmList.concat(bitcoinL2List);
+  const enableList = nativeList.concat(bitcoinL2List);
 
   return Object.fromEntries(enableList.map((slug) => {
     return [slug, ChainInfoMap[slug]];
@@ -1198,7 +1200,7 @@ export class ChainService {
 
   private async initChains () {
     const storedChainSettings = await this.dbService.getAllChainStore();
-    const defaultChainInfoMap = availChainInfoMap;
+    const defaultChainInfoMap = openbitChainInfoMap;
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
