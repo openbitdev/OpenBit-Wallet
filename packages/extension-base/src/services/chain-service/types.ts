@@ -153,6 +153,17 @@ export interface EnableMultiChainParams {
   enableTokens?: boolean
 }
 
+export interface _ValidateCustomBrc20Request {
+  ticker: string,
+  originChain: string,
+  type: _AssetType
+}
+
+export interface _ValidateCustomBrc20Response extends _SmartContractTokenInfo {
+  isExist: boolean,
+  existedSlug?: string
+}
+
 export interface _ValidateCustomAssetRequest {
   contractAddress: string,
   originChain: string,
@@ -168,6 +179,18 @@ export interface _SmartContractTokenInfo {
 }
 
 export interface _ValidateCustomAssetResponse extends _SmartContractTokenInfo {
+  isExist: boolean,
+  existedSlug?: string
+}
+
+export interface _ValidateCustomRuneRequest {
+  runeId: string,
+  originChain: string,
+  type: _AssetType,
+  contractCaller?: string // noted: can remove this later
+}
+
+export interface _ValidateCustomRuneResponse extends _SmartContractTokenInfo {
   isExist: boolean,
   existedSlug?: string
 }

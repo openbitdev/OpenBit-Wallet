@@ -3,7 +3,7 @@
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
 import { AssetSettingUpdateReq } from '@subwallet/extension-base/background/KoniTypes';
-import { _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
+import { _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse } from '@subwallet/extension-base/services/chain-service/types';
 
 import { sendMessage } from '../base';
 
@@ -17,6 +17,14 @@ export async function upsertCustomToken (data: _ChainAsset): Promise<boolean> {
 
 export async function deleteCustomAssets (assetSlug: string): Promise<boolean> {
   return sendMessage('pri(chainService.deleteCustomAsset)', assetSlug);
+}
+
+export async function validateCustomRune (data: _ValidateCustomRuneRequest): Promise<_ValidateCustomRuneResponse> {
+  return sendMessage('pri(chainService.validateCustomRune)', data);
+}
+
+export async function validateCustomBrc20 (data: _ValidateCustomBrc20Request): Promise<_ValidateCustomBrc20Response> {
+  return sendMessage('pri(chainService.validateCustomBrc20)', data);
 }
 
 export async function validateCustomToken (data: _ValidateCustomAssetRequest): Promise<_ValidateCustomAssetResponse> {

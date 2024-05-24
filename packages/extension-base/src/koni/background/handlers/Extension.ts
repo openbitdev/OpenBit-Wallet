@@ -27,7 +27,7 @@ import { YIELD_EXTRINSIC_TYPES } from '@subwallet/extension-base/koni/api/yield/
 import KoniState from '@subwallet/extension-base/koni/background/handlers/State';
 import { getBitcoinTransactionObject } from '@subwallet/extension-base/services/balance-service/helpers/transfer/bitcoin';
 import { _API_OPTIONS_CHAIN_GROUP, _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _ZK_ASSET_PREFIX } from '@subwallet/extension-base/services/chain-service/constants';
-import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
+import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenBasicInfo, _getContractAddressOfToken, _getEvmChainId, _getSubstrateGenesisHash, _getTokenMinAmount, _isAssetSmartContractNft, _isChainBitcoinCompatible, _isChainEvmCompatible, _isCustomAsset, _isLocalToken, _isMantaZkAsset, _isNativeToken, _isTokenEvmSmartContract, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-service/utils';
 import { EXTENSION_REQUEST_URL } from '@subwallet/extension-base/services/request-service/constants';
@@ -2218,8 +2218,16 @@ export default class KoniExtension {
     return false;
   }
 
+  private async validateCustomBrc20 (data: _ValidateCustomBrc20Request): Promise<_ValidateCustomBrc20Response> {
+    return await this.#koniState.validateCustomBrc20(data);
+  }
+
   private async validateCustomAsset (data: _ValidateCustomAssetRequest): Promise<_ValidateCustomAssetResponse> {
     return await this.#koniState.validateCustomAsset(data);
+  }
+
+  private async validateCustomRune (data: _ValidateCustomRuneRequest): Promise<_ValidateCustomRuneResponse> {
+    return await this.#koniState.validateCustomRune(data);
   }
 
   private async getAddressFreeBalance ({ address, networkKey, token }: RequestFreeBalance): Promise<AmountData> {
@@ -5259,8 +5267,12 @@ export default class KoniExtension {
         return await this.upsertCustomToken(request as _ChainAsset);
       case 'pri(chainService.deleteCustomAsset)':
         return this.deleteCustomAsset(request as string);
+      case 'pri(chainService.validateCustomBrc20)':
+        return await this.validateCustomBrc20(request as _ValidateCustomBrc20Request);
       case 'pri(chainService.validateCustomAsset)':
         return await this.validateCustomAsset(request as _ValidateCustomAssetRequest);
+      case 'pri(chainService.validateCustomRune)':
+        return await this.validateCustomRune(request as _ValidateCustomRuneRequest);
       case 'pri(assetSetting.getSubscription)':
         return this.subscribeAssetSetting(id, port);
       case 'pri(assetSetting.update)':

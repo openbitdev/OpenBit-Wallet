@@ -5,8 +5,9 @@ import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
+import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { _BitcoinApi, _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
-import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain, _isSupportRuneChain } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getChainNativeTokenSlug, _getRuneId, _isPureBitcoinChain, _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
 import { getKeypairTypeByAddress, isBitcoinAddress } from '@subwallet/keyring';
@@ -76,10 +77,9 @@ const filterAddress = (addresses: string[], chainInfo: _ChainInfo): [string[], s
 };
 
 // todo: update bitcoin params
-function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
-  // todo: currently set decimal of runes on chain list to zero because the amount api return is after decimal
+function subscribeRuneBalance (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
   const chain = chainInfo.slug;
-  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.LOCAL]);
+  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.RUNE]);
 
   // todo: check await asset ready before subscribe
   if (Object.keys(tokenList).length === 0) {
@@ -103,6 +103,10 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
 
         runes.forEach((rune) => {
           const runeId = rune.rune_id;
+
+          if (!Object.keys(runeIdToSlugMap).includes(runeId)) {
+            return;
+          }
 
           const item = {
             address: address,
@@ -135,6 +139,53 @@ function subscribeAddressesRuneInfo (bitcoinApi: _BitcoinApi, addresses: string[
 
   fetchRuneBalances();
   const interval = setInterval(fetchRuneBalances, COMMON_REFRESH_BALANCE_INTERVAL);
+
+  return () => {
+    clearInterval(interval);
+  };
+}
+
+function subscribeBRC20Balance (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
+  const chain = chainInfo.slug;
+  const tokenList = filterAssetsByChainAndType(assetMap, chain, [_AssetType.BRC20]);
+
+  const getBRC20Balance = () => {
+    Object.values(tokenList).map(async (token) => {
+      try {
+        const ticker = token.symbol;
+        const balances: Brc20BalanceItem[] = await Promise.all(addresses.map(async (address) => {
+          try {
+            return await bitcoinApi.api.getAddressBRC20FreeLockedBalance(address, ticker);
+          } catch (error) {
+            console.error(`Error on get BRC balance of account ${address} for token ${token.slug}`, error);
+
+            return {
+              free: '0',
+              locked: '0'
+            };
+          }
+        }));
+
+        const items: BalanceItem[] = balances.map((balance, index): BalanceItem => {
+          return {
+            address: addresses[index],
+            tokenSlug: token.slug,
+            free: balance.free || '0',
+            locked: balance.locked || '0',
+            state: APIItemState.READY
+          };
+        });
+
+        callback(items);
+      } catch (error) {
+        console.log(token.slug, error);
+      }
+    });
+  };
+
+  getBRC20Balance();
+
+  const interval = setInterval(getBRC20Balance, COMMON_REFRESH_BALANCE_INTERVAL);
 
   return () => {
     clearInterval(interval);
@@ -211,20 +262,17 @@ function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainInfo, as
   };
 
   getBalance();
+
   const interval = setInterval(getBalance, COMMON_REFRESH_BALANCE_INTERVAL);
 
-  if (_isSupportRuneChain(chainInfo.slug)) {
-    const unsub = subscribeAddressesRuneInfo(bitcoinApi, addresses, assetMap, chainInfo, callback);
+  const unsub = subscribeRuneBalance(bitcoinApi, addresses, assetMap, chainInfo, callback);
+  const unsub2 = subscribeBRC20Balance(bitcoinApi, addresses, assetMap, chainInfo, callback);
 
-    return () => {
-      clearInterval(interval);
-      unsub && unsub();
-    };
-  } else {
-    return () => {
-      clearInterval(interval);
-    };
-  }
+  return () => {
+    clearInterval(interval);
+    unsub && unsub();
+    unsub2 && unsub2();
+  };
 }
 
 // main subscription, use for multiple chains, multiple addresses and multiple tokens

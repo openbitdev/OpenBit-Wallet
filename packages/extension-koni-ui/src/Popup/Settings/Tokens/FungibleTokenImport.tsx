@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _AssetType, _ChainInfo } from '@subwallet/chain-list/types';
-import { _getTokenTypesSupportedByChain, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getTokenTypesSupportedByChain, _isChainTestNet, _parseMetadataForBrc20Asset, _parseMetadataForRuneAsset, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import { isValidSubstrateAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, ChainSelector, Layout, PageWrapper, TokenTypeSelector } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useChainChecker, useDefaultNavigate, useGetChainPrefixBySlug, useGetContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
-import { upsertCustomToken, validateCustomToken } from '@subwallet/extension-koni-ui/messaging';
+import { useChainChecker, useDefaultNavigate, useGetChainPrefixBySlug, useGetFungibleContractSupportedChains, useNotification, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { upsertCustomToken, validateCustomBrc20, validateCustomRune, validateCustomToken } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormRule, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToError, convertFieldToObject, reformatAddress, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
+import { isBitcoinAddress } from '@subwallet/keyring';
 import { Col, Field, Form, Icon, Input, Row } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { PlusCircle } from 'phosphor-react';
@@ -61,7 +62,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { token } = useTheme() as Theme;
   const showNotification = useNotification();
 
-  const chainInfoMap = useGetContractSupportedChains();
+  const chainInfoMap = useGetFungibleContractSupportedChains();
 
   const [form] = Form.useForm<TokenImportFormType>();
 
@@ -94,24 +95,101 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return getTokenTypeSupported(chainInfoMap[selectedChain]);
   }, [chainInfoMap, selectedChain]);
 
+  const isSelectRune = useMemo(() => {
+    return selectedTokenType === _AssetType.RUNE;
+  }, [selectedTokenType]);
+
+  const isSelectBRC20 = useMemo(() => {
+    return selectedTokenType === _AssetType.BRC20;
+  }, [selectedTokenType]);
+
   const contractRules = useMemo((): FormRule[] => {
     return [
       ({ getFieldValue }) => ({
-        validator: (_, contractAddress: string) => {
+        validator: (_, inputMetadata: string) => {
           return new Promise<void>((resolve, reject) => {
             const selectedTokenType = getFieldValue('type') as _AssetType;
-            const isValidEvmContract = [_AssetType.ERC20].includes(selectedTokenType) && isEthereumAddress(contractAddress);
-            const isValidWasmContract = [_AssetType.PSP22].includes(selectedTokenType) && isValidSubstrateAddress(contractAddress);
-            const reformattedAddress = reformatAddress(contractAddress, chainNetworkPrefix);
+            const isValidEvmContract = [_AssetType.ERC20].includes(selectedTokenType) && isEthereumAddress(inputMetadata);
+            const isValidWasmContract = [_AssetType.PSP22].includes(selectedTokenType) && isValidSubstrateAddress(inputMetadata);
+            const isValidRune = [_AssetType.RUNE].includes(selectedTokenType) && isBitcoinAddress(inputMetadata);
+            const isValidBrc20 = [_AssetType.BRC20].includes(selectedTokenType) && isBitcoinAddress(inputMetadata);
+            const reformattedContractAddress = reformatAddress(inputMetadata, chainNetworkPrefix);
 
             if (isValidEvmContract || isValidWasmContract) {
               setLoading(true);
               validateCustomToken({
-                contractAddress: reformattedAddress,
+                contractAddress: reformattedContractAddress,
                 originChain: selectedChain,
                 type: selectedTokenType
               })
                 .then((validationResult) => {
+                  setLoading(false);
+
+                  if (validationResult.isExist) {
+                    reject(new Error(t('Existed token')));
+                  }
+
+                  if (validationResult.contractError) {
+                    reject(new Error(t('Error validating this token')));
+                  }
+
+                  if (!validationResult.isExist && !validationResult.contractError) {
+                    form.setFieldValue('tokenName', validationResult.name);
+                    form.setFieldsValue({
+                      tokenName: validationResult.name,
+                      decimals: validationResult.decimals,
+                      symbol: validationResult.symbol
+                    });
+                    resolve();
+                  }
+                })
+                .catch(() => {
+                  setLoading(false);
+                  reject(new Error(t('Error validating this token')));
+                });
+            } else if (isValidRune) {
+              setLoading(true);
+              validateCustomRune({
+                runeId: inputMetadata,
+                originChain: selectedChain,
+                type: selectedTokenType
+              })
+                .then((validationResult) => {
+                  console.log('validationResult');
+                  setLoading(false);
+
+                  if (validationResult.isExist) {
+                    reject(new Error(t('Existed token')));
+                  }
+
+                  if (validationResult.contractError) {
+                    reject(new Error(t('Error validating this token')));
+                  }
+
+                  if (!validationResult.isExist && !validationResult.contractError) {
+                    form.setFieldValue('tokenName', validationResult.name);
+                    form.setFieldsValue({
+                      tokenName: validationResult.name,
+                      decimals: validationResult.decimals,
+                      symbol: validationResult.symbol
+                    });
+                    resolve();
+                  }
+                })
+                .catch(() => {
+                  setLoading(false);
+                  reject(new Error(t('Error validating this token')));
+                });
+            } else if (isValidBrc20) {
+              console.log('successfull passed brc20');
+              setLoading(true);
+              validateCustomBrc20({
+                ticker: inputMetadata,
+                originChain: selectedChain,
+                type: selectedTokenType
+              })
+                .then((validationResult) => {
+                  console.log('validationResultBRC20', validationResult);
                   setLoading(false);
 
                   if (validationResult.isExist) {
@@ -182,8 +260,17 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const onSubmit: FormCallbacks<TokenImportFormType>['onFinish'] = useCallback((formValues: TokenImportFormType) => {
     const { chain, contractAddress, decimals, priceId, symbol, tokenName, type } = formValues;
+    let metadata: Record<string, string>;
 
-    const reformattedAddress = reformatAddress(contractAddress, chainNetworkPrefix);
+    if (type === _AssetType.RUNE) {
+      metadata = _parseMetadataForRuneAsset(contractAddress);
+    } else if (type === _AssetType.BRC20) {
+      metadata = _parseMetadataForBrc20Asset(contractAddress);
+    } else {
+      const reformattedAddress = reformatAddress(contractAddress, chainNetworkPrefix);
+
+      metadata = _parseMetadataForSmartContractAsset(reformattedAddress);
+    }
 
     setLoading(true);
 
@@ -196,7 +283,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       priceId: priceId || null,
       minAmount: null,
       assetType: type,
-      metadata: _parseMetadataForSmartContractAsset(reformattedAddress),
+      metadata,
       multiChainAsset: null,
       hasValue: _isChainTestNet(chainInfoMap[formValues.chain]),
       icon: 'default.png'
@@ -306,7 +393,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
               <AddressInput
                 addressPrefix={chainNetworkPrefix}
                 disabled={!selectedTokenType}
-                label={t('Contract address')}
+                label={isSelectRune ? t('Rune ID') : isSelectBRC20 ? t('Ticker') : t('Contract address')}
                 showScanner={true}
               />
             </Form.Item>
