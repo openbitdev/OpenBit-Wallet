@@ -28,12 +28,40 @@ import Web3 from 'web3';
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
 
+// @ts-ignore
 const filterChainInfoMap = (data: Record<string, _ChainInfo>): Record<string, _ChainInfo> => {
   return Object.fromEntries(
     Object.entries(data)
       .filter(([, info]) => !info.substrateInfo)
   );
 };
+
+const availChainInfoMap = (() => {
+  const nativeEvmList = [
+    'ethereum',
+    'polygon',
+    'arbitrum_one',
+    'base_mainnet',
+    'optimism',
+    'avalanche_c'
+  ];
+  const bitcoinL2List = [
+    'bitlayer',
+    'bitlayerTest',
+    'bevm',
+    'bevmTest',
+    'b2',
+    'bobMainnet',
+    'merlinEvm',
+    'botanixEvmTest',
+    'bounceBitEvm'
+  ];
+  const enableList = nativeEvmList.concat(bitcoinL2List);
+
+  return Object.fromEntries(enableList.map((slug) => {
+    return [slug, ChainInfoMap[slug]];
+  }));
+})();
 
 const filterAssetInfoMap = (chainInfo: Record<string, _ChainInfo>, assets: Record<string, _ChainAsset>): Record<string, _ChainAsset> => {
   return Object.fromEntries(
@@ -1170,7 +1198,7 @@ export class ChainService {
 
   private async initChains () {
     const storedChainSettings = await this.dbService.getAllChainStore();
-    const defaultChainInfoMap = filterChainInfoMap(ChainInfoMap);
+    const defaultChainInfoMap = availChainInfoMap;
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
