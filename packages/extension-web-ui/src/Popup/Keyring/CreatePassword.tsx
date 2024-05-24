@@ -84,7 +84,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const instructionContents: InstructionContentType[] = useMemo(() => ([
     {
       title: 'Why do I need to enter a password?',
-      description: 'For your wallet protection, SubWallet locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.',
+      description: 'For your wallet protection, OpenBit locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.',
       type: isWebUI ? 'warning' : 'info'
     },
     {
@@ -191,7 +191,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
           })}
         >
           {!isWebUI && <div className='notify'>
-            {t('This password can only unlock your SubWallet on this browser')}
+            {t('This password can only unlock your OpenBit on this browser')}
           </div>
           }
 
@@ -255,7 +255,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
                 <Checkbox
                   className={'checkbox'}
                 >
-                  I understand that SubWallet can’t recover the password. <a
+                  I understand that OpenBit can’t recover the password. <a
                     href={TERMS_OF_SERVICE_URL}
                     rel='noreferrer'
                     style={{ textDecoration: 'underline' }}

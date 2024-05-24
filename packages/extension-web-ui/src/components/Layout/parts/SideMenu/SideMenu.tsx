@@ -176,10 +176,10 @@ function Component ({ className,
     >
       <div className='__logo-container'>
         <Image
-          alt={'SubWallet'}
+          alt={'OpenBit'}
           onClick={goHome}
           shape={'square'}
-          src='/images/subwallet/gradient-logo.png'
+          src='/images/openbit/gradient-logo.png'
           style={{ cursor: 'pointer' }}
         />
 

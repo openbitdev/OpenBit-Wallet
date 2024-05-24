@@ -84,7 +84,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
           <Image
             height={140}
             shape={'square'}
-            src={'./images/openbit/openbit-logo-and-text.png'}
+            src={'./images/openbit/welcome-logo.png'}
             width={120}
           />
         </div>
@@ -129,7 +129,7 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
     position: 'relative',
 
     '.bg-image': {
-      backgroundImage: 'url("./images/openbit/openbit-welcome-background.png")',
+      backgroundImage: 'url("./images/openbit/welcome-background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',

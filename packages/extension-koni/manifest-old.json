@@ -1,9 +1,9 @@
 {
-  "author": "SubWallet",
+  "author": "OpenBit",
   "description": "Comprehensive Web3 wallet solution for Polkadot, Substrate & Ethereum ecosystems",
   "homepage_url": "https://subwallet.app/",
-  "name": "SubWallet - Polkadot Wallet",
-  "short_name": "SubWallet",
+  "name": "OpenBit - Polkadot Wallet",
+  "short_name": "OpenBit",
   "manifest_version": 3,
   "permissions": [
     "notifications",
@@ -15,7 +15,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "SubWallet",
+    "default_title": "OpenBit",
     "default_popup": "index.html"
   },
   "content_scripts": [

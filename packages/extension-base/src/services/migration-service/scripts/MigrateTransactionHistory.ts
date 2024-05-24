@@ -32,7 +32,7 @@ export default class MigrateTransactionHistory extends BaseMigrationJob {
     const assetList = Object.values(state.getAssetRegistry());
 
     try {
-      const db = new Dexie('SubWalletDB_v2');
+      const db = new Dexie('OpenBitDB');
       const dexieDB = await db.open();
       const transactionTable = dexieDB.table('transactions');
       const oldTransactionData = (await transactionTable.toArray()) as OldTransactionItem[];

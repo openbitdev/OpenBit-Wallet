@@ -1,16 +1,16 @@
 {
   "author": "Jaco Greeff <jacogr@gmail.com>",
-  "bugs": "https://github.com/Koniverse/Subwallet-V2/issues",
+  "bugs": "https://github.com/openbitdev/OpenBit-Wallet/issues",
   "contributors": [],
   "description": "A generic injector (usable to any extension), that populates the base exposed interfaces to be used by dapps.",
-  "homepage": "https://github.com/Koniverse/Subwallet-V2/tree/master/packages/extension-inject#readme",
+  "homepage": "https://github.com/openbitdev/OpenBit-Wallet/tree/master/packages/extension-inject#readme",
   "license": "Apache-2.0",
   "maintainers": [],
   "name": "@subwallet/extension-inject",
   "repository": {
     "directory": "packages/extension-inject",
     "type": "git",
-    "url": "https://github.com/Koniverse/Subwallet-V2.git"
+    "url": "https://github.com/openbitdev/OpenBit-Wallet.git"
   },
   "sideEffects": true,
   "type": "module",

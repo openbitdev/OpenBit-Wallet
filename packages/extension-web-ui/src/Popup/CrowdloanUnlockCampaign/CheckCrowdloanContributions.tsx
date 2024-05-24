@@ -241,7 +241,7 @@ const Component: React.FC<Props> = ({ className = '' }: Props) => {
       <div className={'__footer-area'}>
         <NoteBox
           className={'__note-box'}
-          content={t('There\'re multiple ways you can play with your unlocked DOT, such as native staking, liquid staking, or lending. Check out SubWallet Dashboard for curated options with competitive APY to earn yield on your DOT.')}
+          content={t('There\'re multiple ways you can play with your unlocked DOT, such as native staking, liquid staking, or lending. Check out OpenBit Dashboard for curated options with competitive APY to earn yield on your DOT.')}
           title={t('Crowdloan unlock, then what?')}
         />
 
@@ -264,7 +264,7 @@ const Component: React.FC<Props> = ({ className = '' }: Props) => {
             <div className={'__footer-button-content'}>
               <div className={'__footer-button-title'}>{t('Rewards: 14.8% - 18.5 %')}</div>
 
-              <div className={'__footer-button-subtitle'}>{t('Earn with SubWallet Dashboard')}</div>
+              <div className={'__footer-button-subtitle'}>{t('Earn with OpenBit Dashboard')}</div>
             </div>
           </Button>
 

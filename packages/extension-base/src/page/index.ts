@@ -5,7 +5,7 @@ import type { MessageTypes, MessageTypesWithNoSubscriptions, MessageTypesWithNul
 
 import { ProviderError } from '@subwallet/extension-base/background/errors/ProviderError';
 import { ProviderErrorType } from '@subwallet/extension-base/background/KoniTypes';
-import { SubWalletEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
+import { OpenBitEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
 import { EvmProvider } from '@subwallet/extension-inject/types';
 
 import { MESSAGE_ORIGIN_PAGE } from '../defaults';
@@ -84,5 +84,5 @@ export function handleResponse<TMessageType extends MessageTypes> (data: Transpo
 }
 
 export function initEvmProvider (version: string): EvmProvider {
-  return new SubWalletEvmProvider(sendMessage, version);
+  return new OpenBitEvmProvider(sendMessage, version);
 }

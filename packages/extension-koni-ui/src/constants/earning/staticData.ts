@@ -109,7 +109,7 @@ export const EARNING_DATA_RAW = {
       icon: 'Eye',
       title: 'Track your APY',
       description:
-        'Keep an eye on your stake as APY can fluctuate over time. APY fluctuation is determined by the protocol beyond SubWallet’s control',
+        'Keep an eye on your stake as APY can fluctuate over time. APY fluctuation is determined by the protocol beyond OpenBit’s control',
       iconColor: '#008dff'
     }
   ],
@@ -144,7 +144,7 @@ export const EARNING_DATA_RAW = {
       icon: 'Eye',
       title: 'Track your APY',
       description:
-        'Keep an eye on your supply as APY can fluctuate over time. APY fluctuation is determined by the protocol beyond SubWallet’s control',
+        'Keep an eye on your supply as APY can fluctuate over time. APY fluctuation is determined by the protocol beyond OpenBit’s control',
       iconColor: '#008dff'
     }
   ],

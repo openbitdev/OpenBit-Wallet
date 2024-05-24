@@ -30,9 +30,11 @@ class Keyring extends _Base.Base {
   };
   addExternal(address) {
     let meta = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    const _address = (0, _util.isString)(address) ? address : this.encodeAddress(address);
+    const type = (0, _keyring.getKeypairTypeByAddress)(_address);
     const pair = this.keyring.addFromAddress(address, (0, _util.objectSpread)({}, meta, {
       isExternal: true
-    }), null);
+    }), null, type);
     return {
       json: this.saveAccount(pair, false),
       pair

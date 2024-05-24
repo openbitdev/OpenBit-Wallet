@@ -137,7 +137,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       loading: loadingInject
     },
     {
-      description: t('Create a new account with SubWallet'),
+      description: t('Create a new account with OpenBit'),
       icon: PlusCircle,
       id: CREATE_ACCOUNT_MODAL,
       schema: 'secondary',
@@ -264,20 +264,20 @@ function Component ({ className }: Props): React.ReactElement<Props> {
               isWebUI
                 ? (
                   <Image
-                    src='/images/subwallet/gradient-logo.png'
+                    src='/images/openbit/gradient-logo.png'
                     width={80}
                   />
                 )
                 : (
                   <Image
-                    src={'./images/subwallet/welcome-logo.png'}
+                    src={'./images/openbit/welcome-logo.png'}
                     width={139}
                   />
                 )
             }
           </div>
           {
-            isWebUI && (<div className='title'>{t('Welcome to SubWallet!')}</div>)
+            isWebUI && (<div className='title'>{t('Welcome to OpenBit!')}</div>)
           }
           <div className='sub-title'>
             {t('Choose how you\'d like to set up your wallet')}
@@ -382,7 +382,7 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
     },
 
     '.bg-image': {
-      backgroundImage: 'url("/images/subwallet/welcome-background.png")',
+      backgroundImage: 'url("/images/openbit/welcome-background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',

@@ -37,7 +37,7 @@ const instructionContents: InstructionContentType[] = [
     description: 'A private key is like a password — a string of letters and numbers — that can be used to restore your wallet.'
   },
   {
-    title: 'Is it safe to enter it into SubWallet?',
+    title: 'Is it safe to enter it into OpenBit?',
     description: 'Yes. It will be stored locally and never leave your device without your explicit permission.'
   }
 ];

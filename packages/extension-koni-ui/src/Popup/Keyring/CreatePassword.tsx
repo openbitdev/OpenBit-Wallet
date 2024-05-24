@@ -157,7 +157,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
       >
         <div className='body-container'>
           <div className='notify'>
-            {t('This password can only unlock your SubWallet on this browser')}
+            {t('This password can only unlock your OpenBit on this browser')}
           </div>
           <Form
             form={form}
@@ -236,7 +236,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
           >
             <div className='instruction-container'>
               <AlertBox
-                description={t('For your wallet protection, SubWallet locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.')}
+                description={t('For your wallet protection, OpenBit locks your wallet after 15 minutes of inactivity. You will need this password to unlock it.')}
                 title={t('Why do I need to enter a password?')}
               />
               <AlertBox

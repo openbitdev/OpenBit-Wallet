@@ -1,16 +1,16 @@
 {
   "author": "Koni Studio",
-  "bugs": "https://github.com/Koniverse/Subwallet-V2/issues",
+  "bugs": "https://github.com/openbitdev/OpenBit-Wallet/issues",
   "contributors": [],
   "description": "A sample signer extension for the @polkadot/api",
-  "homepage": "https://github.com/Koniverse/Subwallet-V2/tree/master/packages/extension-koni#readme",
+  "homepage": "https://github.com/openbitdev/OpenBit-Wallet/tree/master/packages/extension-koni#readme",
   "license": "Apache-2.0",
   "maintainers": [],
   "name": "@subwallet/extension-koni",
   "repository": {
     "directory": "packages/extension-koni",
     "type": "git",
-    "url": "https://github.com/Koniverse/Subwallet-V2.git"
+    "url": "https://github.com/openbitdev/OpenBit-Wallet.git"
   },
   "sideEffects": false,
   "type": "module",

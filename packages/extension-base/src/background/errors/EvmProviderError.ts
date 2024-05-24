@@ -28,11 +28,11 @@ const defaultErrorMap: Record<EvmProviderErrorType, { message: string, code?: nu
     code: 4901
   },
   INVALID_PARAMS: {
-    message: detectTranslate('Undefined error. Please contact SubWallet support'),
+    message: detectTranslate('Undefined error. Please contact OpenBit support'),
     code: -32602
   },
   INTERNAL_ERROR: {
-    message: detectTranslate('Undefined error. Please contact SubWallet support'),
+    message: detectTranslate('Undefined error. Please contact OpenBit support'),
     code: -32603
   }
 };

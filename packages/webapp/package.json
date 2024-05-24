@@ -1,17 +1,17 @@
 {
   "author": "Koni Studio",
-  "bugs": "https://github.com/Koniverse/Subwallet-V2/issues",
+  "bugs": "https://github.com/openbitdev/OpenBit-Wallet/issues",
   "buildNumber": "1131001",
   "contributors": [],
   "description": "A web runner simulate background.js can be use on mobile or environment support web view",
-  "homepage": "https://github.com/Koniverse/Subwallet-V2/tree/master/packages/webapp#readme",
+  "homepage": "https://github.com/openbitdev/OpenBit-Wallet/tree/master/packages/webapp#readme",
   "license": "Apache-2.0",
   "maintainers": [],
   "name": "@subwallet/webapp",
   "repository": {
     "directory": "packages/webapp",
     "type": "git",
-    "url": "https://github.com/Koniverse/Subwallet-V2.git"
+    "url": "https://github.com/openbitdev/OpenBit-Wallet.git"
   },
   "sideEffects": false,
   "type": "module",

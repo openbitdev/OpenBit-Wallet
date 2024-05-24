@@ -41,9 +41,9 @@ export const CMD = {
 };
 
 export const SUPPORT_WALLETS = [{
-  name: 'SubWallet',
+  name: 'OpenBit',
   substrate: 'subwallet-js',
-  evm: 'SubWallet',
+  evm: 'OpenBit',
   icon: '/images/subwallet.png'
 }, {
   name: 'Polkadot{.js}',

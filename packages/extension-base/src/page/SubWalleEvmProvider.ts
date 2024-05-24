@@ -15,8 +15,8 @@ export interface SendSyncJsonRpcRequest extends JsonRpcRequest<unknown> {
 
 let subscribeFlag = false;
 
-export class SubWalletEvmProvider extends SafeEventEmitter implements EvmProvider {
-  public readonly isSubWallet = true;
+export class OpenBitEvmProvider extends SafeEventEmitter implements EvmProvider {
+  public readonly isOpenBit = true;
   public readonly isMetaMask = false;
   public readonly version;
   protected sendMessage: SendRequest;
@@ -132,7 +132,7 @@ export class SubWalletEvmProvider extends SafeEventEmitter implements EvmProvide
 
     switch (payload.method) {
       case 'net_version':
-        result = this.version ? `SubWallet v${this.version}` : null;
+        result = this.version ? `OpenBit v${this.version}` : null;
         break;
       default:
         throw new Error(`Not support ${payload.method}`);

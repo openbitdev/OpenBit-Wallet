@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { SubWalletEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
+import { OpenBitEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
 import { addLazy, createPromiseHandler } from '@subwallet/extension-base/utils';
 import { Injected, InjectedAccountWithMeta, Unsubcall } from '@subwallet/extension-inject/types';
 import { DisconnectExtensionModal } from '@subwallet/extension-web-ui/components';
@@ -25,7 +25,7 @@ interface InjectContextProps {
   selectWallet: () => void;
   enableInject: (walletKey: string) => void;
   enabled: boolean;
-  evmWallet?: SubWalletEvmProvider;
+  evmWallet?: OpenBitEvmProvider;
   initCallback: (callback?: VoidFunction) => void;
   initEnable: boolean;
   injected: boolean;
@@ -43,7 +43,7 @@ const evmConvertToInject = (address: string): InjectedAccountWithMeta => {
     address,
     type: 'ethereum',
     meta: {
-      source: 'SubWallet',
+      source: 'OpenBit',
       name: toShort(address, 4, 4)
     }
   };
@@ -99,8 +99,8 @@ class InjectHandler {
   substrateEnableCompleted = false;
 
   evmKey: string | null = null;
-  evmWallet?: SubWalletEvmProvider;
-  evmPromiseHandler = createPromiseHandler<SubWalletEvmProvider | undefined>();
+  evmWallet?: OpenBitEvmProvider;
+  evmPromiseHandler = createPromiseHandler<OpenBitEvmProvider | undefined>();
   evmAccounts: InjectedAccountWithMeta[] = [];
   evmAccountUnsubcall?: () => void;
   evmEnableCompleted = false;
@@ -116,7 +116,7 @@ class InjectHandler {
     this.successSubject = new BehaviorSubject<number>(0);
     this.isInitEnable = this.enableSubject.value;
     this.loadingSubject = new BehaviorSubject<boolean>(true);
-    this.hasInjected = !!win.injectedWeb3 || !!win.SubWallet;
+    this.hasInjected = !!win.injectedWeb3 || !!win.OpenBit;
     this.evmKey = walletInfo?.evmKey || null;
     this.substrateKey = walletInfo?.substrateKey || null;
 
@@ -256,7 +256,7 @@ class InjectHandler {
         meta: {
           genesisHash: account.genesisHash,
           name: account.name || toShort(account.address, 4, 4),
-          source: 'SubWallet'
+          source: 'OpenBit'
         },
         type: account.type
       }));
@@ -274,7 +274,7 @@ class InjectHandler {
     }
 
     // @ts-ignore
-    const injectedWallet = win[this.evmKey] as SubWalletEvmProvider;
+    const injectedWallet = win[this.evmKey] as OpenBitEvmProvider;
 
     await injectedWallet?.enable();
     this.evmWallet = injectedWallet;
@@ -317,7 +317,7 @@ class InjectHandler {
     }
 
     accounts.forEach((a) => {
-      a.meta.source = this.selectedWallet || 'SubWallet';
+      a.meta.source = this.selectedWallet || 'OpenBit';
     });
 
     this.accountArrayMap = { ...this.accountArrayMap, [key]: accounts };

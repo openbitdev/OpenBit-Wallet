@@ -6,7 +6,7 @@ export const DefaultLogosMap: Record<string, string> = {
   parity: '/images/projects/parity.png',
   keystone: '/images/projects/keystone.png',
   ledger: '/images/projects/ledger.png',
-  default: '/images/subwallet/default.png',
+  default: '/images/openbit/default.png',
   transak: '/images/projects/transak.png',
   moonpay: '/images/projects/moonpay.png',
   onramper: '/images/projects/onramper.png',

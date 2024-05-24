@@ -78,10 +78,10 @@ const Component: React.FC<Props> = (props: Props) => {
           />
         </div>
         <div className='title'>
-          {t('Your SubWallet extension is updated to Manifest V3!')}
+          {t('Your OpenBit extension is updated to Manifest V3!')}
         </div>
         <div className='description'>
-          {t('This update is required by Google, and helps improve the privacy, security, and performance of SubWallet extension.\n You can learn more details on Chrome for Developers, or safely dismiss this message.')}
+          {t('This update is required by Google, and helps improve the privacy, security, and performance of OpenBit extension.\n You can learn more details on Chrome for Developers, or safely dismiss this message.')}
         </div>
       </div>
     </Layout.WithSubHeaderOnly>

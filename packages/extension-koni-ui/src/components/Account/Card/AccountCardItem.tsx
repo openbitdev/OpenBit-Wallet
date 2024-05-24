@@ -82,7 +82,7 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
           value: Eye
         };
       case AccountSignMode.INJECTED:
-        // if (source === 'SubWallet') {
+        // if (source === 'OpenBit') {
         //   return {
         //     type: 'node',
         //     value: (
@@ -90,7 +90,7 @@ function Component (props: _AccountCardItem): React.ReactElement<_AccountCardIte
         //         className='logo-image'
         //         height='var(--height)'
         //         shape='square'
-        //         src={'/images/subwallet/gradient-logo.png'}
+        //         src={'/images/openbit/gradient-logo.png'}
         //       />
         //     )
         //   };

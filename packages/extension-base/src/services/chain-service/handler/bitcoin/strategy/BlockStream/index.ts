@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
@@ -240,6 +240,35 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
       console.error(`Failed to get ${address} transactions`, error);
       throw error;
     }
+  }
+
+  async getAddressBRC20FreeLockedBalance (address: string, ticker: string): Promise<Brc20BalanceItem> {
+    const hiroService = HiroService.getInstance();
+
+    try {
+      const response = await hiroService.getAddressBRC20BalanceInfo(address, {
+        ticker: String(ticker)
+      });
+
+      const balanceInfo = response?.results[0];
+
+      if (balanceInfo) {
+        const rawFree = balanceInfo.transferrable_balance;
+        const rawLocked = balanceInfo.available_balance;
+
+        return {
+          free: rawFree.replace('.', ''),
+          locked: rawLocked.replace('.', '')
+        } as Brc20BalanceItem;
+      }
+    } catch (error) {
+      console.error(`Failed to get ${address} BRC20 balance for ticker ${ticker}`, error);
+    }
+
+    return {
+      free: '0',
+      locked: '0'
+    } as Brc20BalanceItem;
   }
 
   async getAddressInscriptions (address: string) {

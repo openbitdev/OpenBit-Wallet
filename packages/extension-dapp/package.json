@@ -1,16 +1,16 @@
 {
   "author": "Jaco Greeff <jacogr@gmail.com>",
-  "bugs": "https://github.com/Koniverse/Subwallet-V2/issues",
+  "bugs": "https://github.com/openbitdev/OpenBit-Wallet/issues",
   "contributors": [],
   "description": "Provides an interfaces around the injected globals for ease of access by dapp developers.",
-  "homepage": "https://github.com/Koniverse/Subwallet-V2/tree/master/packages/extension-dapp#readme",
+  "homepage": "https://github.com/openbitdev/OpenBit-Wallet/tree/master/packages/extension-dapp#readme",
   "license": "Apache-2.0",
   "maintainers": [],
   "name": "@subwallet/extension-dapp",
   "repository": {
     "directory": "packages/extension-dapp",
     "type": "git",
-    "url": "https://github.com/Koniverse/Subwallet-V2.git"
+    "url": "https://github.com/openbitdev/OpenBit-Wallet.git"
   },
   "sideEffects": [
     "./detectPackage.js",

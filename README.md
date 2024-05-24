@@ -1,7 +1,7 @@
-## SubWallet Extension
-Our SubWallet is forked from polkadot-js/extension. We aim to adding more features while being able to rebase the polkadot-js origin at any time.
+## OpenBit Extension
+Our OpenBit is forked from polkadot-js/extension. We aim to adding more features while being able to rebase the polkadot-js origin at any time.
 ## Main Concept
-![Main Concept](https://github.com/Koniverse/Subwallet-V2/wiki/images/ExtensionConcept.png)
+![Main Concept](https://github.com/openbitdev/OpenBit-Wallet/wiki/images/ExtensionConcept.png)
 The extension is compiled from folder `packages/extension-koni`
 - **Background environment**: The Background environment is compiled from `packages/extension-koni/src/background.ts`.
   - The Background is use to handle message from Extensions pages and Chrome tabs via Chrome API Message Passing.
@@ -100,7 +100,7 @@ Cronjob is define in folder `packages/extension-koni-base/src/cron`.
 ## Develop UI
 
 ### UI Structure
-- SubWallet Extension UI build with ReactJS.
+- OpenBit Extension UI build with ReactJS.
 - Popup: Main extension page, show when click into extension icon in browser extension list.
 - Portfolio (Coming soon): Display more complicated view like dashboard, transaction...
 - Another folders:

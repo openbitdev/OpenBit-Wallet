@@ -8,14 +8,14 @@ const currentOrigin = new URL(window.location.href).origin;
 const encodedOrigin = encodeURIComponent(currentOrigin);
 
 export const PREDEFINED_WALLETS: Record<string, WalletInfo> = {
-  SubWallet: {
+  OpenBit: {
     description: '',
-    evmKey: 'SubWallet',
+    evmKey: 'OpenBit',
     icon: DefaultLogosMap.subwallet_gradient,
     mcicon: DefaultLogosMap.subwallet_mc,
-    key: 'SubWallet',
-    name: 'SubWallet',
-    substrateKey: 'subwallet-js',
+    key: 'OpenBit',
+    name: 'OpenBit',
+    substrateKey: 'openbit',
     url: 'https://chrome.google.com/webstore/detail/subwallet-polkadot-wallet/onhogfjeacnfoofkfgppdlbmlmnplgbn',
     firefoxUrl: 'https://addons.mozilla.org/firefox/addon/subwallet/',
     googlePlayUrl: `https://mobile.subwallet.app/browser?url=${encodedOrigin}`,

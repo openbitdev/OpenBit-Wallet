@@ -4,18 +4,19 @@
 import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, MultiChainAssetMap } from '@subwallet/chain-list';
 import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { decodeRuneSpacer, insertRuneSpacer } from '@subwallet/extension-base/services/balance-service/utils/rune';
 import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/BitcoinChainHandler';
-import { RunesCollectionInfo, RunesCollectionInfoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
 import { MantaPrivateHandler } from '@subwallet/extension-base/services/chain-service/handler/manta/MantaPrivateHandler';
 import { SubstrateChainHandler } from '@subwallet/extension-base/services/chain-service/handler/SubstrateChainHandler';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
-import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse } from '@subwallet/extension-base/services/chain-service/types';
-import { _isAssetAutoEnable, _isAssetFungibleToken, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
+import { _ChainApiStatus, _ChainConnectionStatus, _ChainState, _CUSTOM_PREFIX, _DataMap, _EvmApi, _NetworkUpsertParams, _NFT_CONTRACT_STANDARDS, _SMART_CONTRACT_STANDARDS, _SmartContractTokenInfo, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse } from '@subwallet/extension-base/services/chain-service/types';
+import { _isAssetAutoEnable, _isAssetFungibleToken, _isBrc20Token, _isChainEnabled, _isCustomAsset, _isCustomChain, _isCustomProvider, _isEqualContractAddress, _isEqualSmartContractAsset, _isMantaZkAsset, _isNativeToken, _isPureBitcoinChain, _isPureEvmChain, _isPureSubstrateChain, _isRuneToken, _parseAssetRefKey, fetchPatchData, randomizeProvider, updateLatestChainInfo } from '@subwallet/extension-base/services/chain-service/utils';
 import { EventService } from '@subwallet/extension-base/services/event-service';
+import { getBrc20Metadata } from '@subwallet/extension-base/services/hiro-service/utils';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
-import { RunesService } from '@subwallet/extension-base/services/rune-service';
+import { getAllCollectionRunes } from '@subwallet/extension-base/services/rune-service/utils';
 import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storage-service/databases';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
@@ -26,6 +27,20 @@ import Web3 from 'web3';
 
 import { logger as createLogger } from '@polkadot/util/logger';
 import { Logger } from '@polkadot/util/types';
+
+const filterChainInfoMap = (data: Record<string, _ChainInfo>): Record<string, _ChainInfo> => {
+  return Object.fromEntries(
+    Object.entries(data)
+      .filter(([, info]) => !info.substrateInfo)
+  );
+};
+
+const filterAssetInfoMap = (chainInfo: Record<string, _ChainInfo>, assets: Record<string, _ChainAsset>): Record<string, _ChainAsset> => {
+  return Object.fromEntries(
+    Object.entries(assets)
+      .filter(([, info]) => chainInfo[info.originChain])
+  );
+};
 
 export class ChainService {
   private dataMap: _DataMap = {
@@ -170,6 +185,30 @@ export class ChainService {
 
   public getMultiChainAssetMap () {
     return MultiChainAssetMap;
+  }
+
+  public getRuneTokens () {
+    const filteredAssetRegistry: Record<string, _ChainAsset> = {};
+
+    Object.values(this.getAssetRegistry()).forEach((asset) => {
+      if (_isRuneToken(asset)) {
+        filteredAssetRegistry[asset.slug] = asset;
+      }
+    });
+
+    return filteredAssetRegistry;
+  }
+
+  public getBrc20Tokens () {
+    const filteredAssetRegistry: Record<string, _ChainAsset> = {};
+
+    Object.values(this.getAssetRegistry()).forEach((asset) => {
+      if (_isBrc20Token(asset)) {
+        filteredAssetRegistry[asset.slug] = asset;
+      }
+    });
+
+    return filteredAssetRegistry;
   }
 
   public getSmartContractTokens () {
@@ -511,8 +550,16 @@ export class ChainService {
 
   public upsertCustomToken (token: _ChainAsset) {
     if (token.slug.length === 0) { // new token
-      if (token.assetType === _AssetType.NATIVE) {
+      if (_isNativeToken(token)) {
         const defaultSlug = this.generateSlugForNativeToken(token.originChain, token.assetType, token.symbol);
+
+        token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
+      } else if (_isRuneToken(token)) {
+        const defaultSlug = this.generateSlugForRune(token.originChain, token.assetType, token.symbol, token.metadata?.runeId as string);
+
+        token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
+      } else if (_isBrc20Token(token)) {
+        const defaultSlug = this.generateSlugForBrc20Token(token.originChain, token.assetType, token.symbol);
 
         token.slug = `${_CUSTOM_PREFIX}${defaultSlug}`;
       } else {
@@ -706,7 +753,7 @@ export class ChainService {
         const latestAssetPatch = JSON.stringify(latestAssetInfo);
 
         if (this.assetMapPatch !== latestAssetPatch) {
-          const assetRegistry = { ...ChainAssetMap, ...latestAssetInfo };
+          const assetRegistry = filterAssetInfoMap(this.getChainInfoMap(), Object.assign({}, this.dataMap.assetRegistry, latestAssetInfo));
 
           this.assetMapPatch = latestAssetPatch;
           this.dataMap.assetRegistry = assetRegistry;
@@ -822,16 +869,16 @@ export class ChainService {
         .catch(console.error);
     }).catch(console.error);
 
-    this.fetchLatestRuneData().then((runesAssetMap) => {
-      this.eventService.waitAssetReady
-        .then(() => {
-          this.upsertBatchCustomToken(Object.values(runesAssetMap));
-
-          this.autoEnableRuneTokens()
-            .catch(console.error);
-        })
-        .catch(console.error);
-    }).catch(console.error);
+    // this.fetchLatestRuneData().then((runesAssetMap) => {
+    //   this.eventService.waitAssetReady
+    //     .then(() => {
+    //       this.upsertBatchCustomToken(Object.values(runesAssetMap));
+    //
+    //       this.autoEnableRuneTokens()
+    //         .catch(console.error);
+    //     })
+    //     .catch(console.error);
+    // }).catch(console.error);
 
     this.fetchLatestChainData().then((latestChainInfo) => {
       this.handleLatestChainData(latestChainInfo);
@@ -1083,61 +1130,33 @@ export class ChainService {
     return await Promise.all([fetchPatchData<Record<string, _ChainAsset>>('ChainAsset.json'), fetchPatchData<Record<string, string>>('AssetLogoMap.json')]);
   }
 
+  // @ts-ignore
   private async fetchLatestRuneData () {
     const chainAssetMap: Record<string, _ChainAsset> = {};
-    const pageSize = 2000;
-    let offset = 0;
+    const allCollectionRunes = await getAllCollectionRunes();
 
-    const runeService = RunesService.getInstance();
+    allCollectionRunes.forEach((rune) => {
+      const chainAssetItem = {
+        originChain: `${_BITCOIN_CHAIN_SLUG}`,
+        slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
+        name: `${_BITCOIN_NAME}`,
+        symbol: rune.rune_name,
+        decimals: parseInt(rune.divisibility) || 0,
+        priceId: null,
+        minAmount: '0',
+        assetType: _AssetType.LOCAL,
+        metadata: {
+          runeId: rune.rune_id
+        },
+        multiChainAsset: null,
+        hasValue: true,
+        icon: '' // todo: update token logo if available
+      };
 
-    try {
-      while (true) {
-        const response = await runeService.getRuneCollectionsByBatch({
-          limit: String(pageSize),
-          offset: String(offset)
-        }) as unknown as RunesCollectionInfoResponse;
+      chainAssetMap[chainAssetItem.slug] = chainAssetItem;
+    });
 
-        let runes: RunesCollectionInfo[] = [];
-
-        if (response.statusCode === 200) {
-          runes = response.data.runes;
-          runes.forEach((rune) => {
-            const chainAssetItem = {
-              originChain: `${_BITCOIN_CHAIN_SLUG}`,
-              slug: `${_BITCOIN_CHAIN_SLUG}-${_AssetType.LOCAL}-${rune.rune_name}-${rune.rune_id}`,
-              name: `${_BITCOIN_NAME}`,
-              symbol: rune.rune_name,
-              decimals: parseInt(rune.divisibility) || 0,
-              priceId: null,
-              minAmount: '0',
-              assetType: _AssetType.LOCAL,
-              metadata: {
-                runeId: rune.rune_id
-              },
-              multiChainAsset: null,
-              hasValue: true,
-              icon: '' // todo: update token logo if available
-            };
-
-            chainAssetMap[chainAssetItem.slug] = chainAssetItem;
-          });
-        } else {
-          console.log(`Error on request batch rune collection information with pageSize ${pageSize} and offset ${offset}`);
-          break;
-        }
-
-        if (runes.length !== 0) {
-          offset += pageSize;
-        } else {
-          break;
-        }
-      }
-
-      return chainAssetMap;
-    } catch (error) {
-      console.error('Failed to fetch all rune collection', error);
-      throw error;
-    }
+    return chainAssetMap;
   }
 
   // @ts-ignore
@@ -1151,7 +1170,7 @@ export class ChainService {
 
   private async initChains () {
     const storedChainSettings = await this.dbService.getAllChainStore();
-    const defaultChainInfoMap = ChainInfoMap;
+    const defaultChainInfoMap = filterChainInfoMap(ChainInfoMap);
     const storedChainSettingMap: Record<string, IChain> = {};
 
     storedChainSettings.forEach((chainStoredSetting) => {
@@ -1333,7 +1352,7 @@ export class ChainService {
 
   private async initAssetRegistry (deprecatedCustomChainMap: Record<string, string>) {
     const storedAssetRegistry = await this.dbService.getAllAssetStore();
-    const latestAssetRegistry = ChainAssetMap;
+    const latestAssetRegistry = filterAssetInfoMap(this.getChainInfoMap(), ChainAssetMap);
     const availableChains = Object.values(this.dataMap.chainInfoMap)
       .filter((info) => (info.chainStatus === _ChainStatus.ACTIVE))
       .map((chainInfo) => chainInfo.slug);
@@ -1771,6 +1790,72 @@ export class ChainService {
     return { error, conflictChainSlug, conflictChainName };
   }
 
+  private async getRuneInfo (runeId: string, tokenType: _AssetType, originChain: string, contractCaller?: string): Promise<_SmartContractTokenInfo> {
+    if (tokenType === _AssetType.RUNE && originChain === _BITCOIN_CHAIN_SLUG) {
+      const allCollectionRunes = await getAllCollectionRunes();
+
+      for (const runeCollection of allCollectionRunes) {
+        if (runeCollection.rune_id === runeId) {
+          const spacer = runeCollection.spacers;
+          const baseRuneName = runeCollection.rune_name;
+
+          const spacerList = decodeRuneSpacer(parseInt(spacer));
+          const runeName = insertRuneSpacer(baseRuneName, spacerList);
+          const isContractError = (!baseRuneName);
+
+          return {
+            decimals: parseInt(runeCollection.divisibility) || 0,
+            name: runeCollection.rune_name,
+            symbol: runeName,
+            contractError: isContractError
+          };
+        }
+      }
+    }
+
+    return {
+      decimals: -1,
+      name: '',
+      symbol: '',
+      contractError: true
+    };
+  }
+
+  public async validateCustomRune (data: _ValidateCustomRuneRequest): Promise<_ValidateCustomRuneResponse> {
+    const assetRegistry = this.getRuneTokens();
+    let existedToken: _ChainAsset | undefined;
+
+    for (const token of Object.values(assetRegistry)) {
+      const runeId = token?.metadata?.runeId as string;
+
+      if (runeId === data.runeId && token.assetType === data.type && token.originChain === data.originChain) {
+        existedToken = token;
+        break;
+      }
+    }
+
+    if (existedToken) {
+      return {
+        decimals: existedToken.decimals || 0,
+        name: existedToken.name,
+        symbol: existedToken.symbol,
+        isExist: !!existedToken,
+        existedSlug: existedToken?.slug,
+        contractError: false
+      };
+    }
+
+    const { contractError, decimals, name, symbol } = await this.getRuneInfo(data.runeId, data.type, data.originChain, data.contractCaller);
+
+    return {
+      name,
+      decimals,
+      symbol,
+      isExist: !!existedToken,
+      contractError
+    };
+  }
+
   private async getSmartContractTokenInfo (contractAddress: string, tokenType: _AssetType, originChain: string, contractCaller?: string): Promise<_SmartContractTokenInfo> {
     if ([_AssetType.ERC721, _AssetType.ERC20].includes(tokenType)) {
       return await this.evmChainHandler.getSmartContractTokenInfo(contractAddress, tokenType, originChain);
@@ -1783,6 +1868,62 @@ export class ChainService {
       name: '',
       symbol: '',
       contractError: false
+    };
+  }
+
+  private async getBrc20Info (ticker: string, tokenType: _AssetType, originChain: string) {
+    if ([_AssetType.BRC20].includes(tokenType) && originChain === _BITCOIN_CHAIN_SLUG) {
+      const brc20Metdata = await getBrc20Metadata(ticker);
+      const isContractError = (!(brc20Metdata.decimals && brc20Metdata));
+
+      return {
+        decimals: brc20Metdata.decimals,
+        name: brc20Metdata.ticker, // brc20 does not have a name
+        symbol: brc20Metdata.ticker,
+        contractError: isContractError
+      };
+    }
+
+    return {
+      decimals: -1,
+      name: '',
+      symbol: '',
+      contractError: false
+    };
+  }
+
+  public async validateCustomBrc20 (data: _ValidateCustomBrc20Request): Promise<_ValidateCustomBrc20Response> {
+    const assetRegistry = this.getBrc20Tokens();
+    let existedToken: _ChainAsset | undefined;
+
+    for (const token of Object.values(assetRegistry)) {
+      const ticker = token?.slug;
+
+      if (ticker === data.ticker && token.assetType === data.type && token.originChain === data.originChain) {
+        existedToken = token;
+        break;
+      }
+    }
+
+    if (existedToken) {
+      return {
+        decimals: existedToken.decimals || 0,
+        name: existedToken.name,
+        symbol: existedToken.symbol,
+        isExist: !!existedToken,
+        existedSlug: existedToken?.slug,
+        contractError: false
+      };
+    }
+
+    const { contractError, decimals, name, symbol } = await this.getBrc20Info(data.ticker, data.type, data.originChain);
+
+    return {
+      name,
+      decimals,
+      symbol,
+      isExist: !!existedToken,
+      contractError
     };
   }
 
@@ -1819,6 +1960,14 @@ export class ChainService {
       isExist: !!existedToken,
       contractError
     };
+  }
+
+  private generateSlugForRune (originChain: string, assetType: _AssetType, symbol: string, runeId: string) {
+    return `${originChain}-${assetType}-${symbol}-${runeId}`;
+  }
+
+  private generateSlugForBrc20Token (originChain: string, assetType: _AssetType, symbol: string) {
+    return `${originChain}-${assetType}-${symbol}`;
   }
 
   private generateSlugForSmartContractAsset (originChain: string, assetType: _AssetType, symbol: string, contractAddress: string) {

@@ -14,7 +14,7 @@ import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import { _DEFAULT_MANTA_ZK_CHAIN, _MANTA_ZK_CHAIN_GROUP, _PREDEFINED_SINGLE_MODES } from '@subwallet/extension-base/services/chain-service/constants';
-import { _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest } from '@subwallet/extension-base/services/chain-service/types';
+import { _ChainState, _NetworkUpsertParams, _ValidateCustomAssetRequest, _ValidateCustomBrc20Request, _ValidateCustomRuneRequest } from '@subwallet/extension-base/services/chain-service/types';
 import { _getEvmChainId, _getSubstrateGenesisHash, _getTokenOnChainAssetId, _isAssetFungibleToken, _isChainEnabled, _isChainTestNet, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
 import EarningService from '@subwallet/extension-base/services/earning-service/service';
 import { EventService } from '@subwallet/extension-base/services/event-service';
@@ -1040,8 +1040,16 @@ export default class KoniState {
     return this.chainService.getSupportedSmartContractTypes();
   }
 
+  public async validateCustomBrc20 (data: _ValidateCustomBrc20Request) {
+    return await this.chainService.validateCustomBrc20(data);
+  }
+
   public async validateCustomAsset (data: _ValidateCustomAssetRequest) {
     return await this.chainService.validateCustomToken(data);
+  }
+
+  public async validateCustomRune (data: _ValidateCustomRuneRequest) {
+    return await this.chainService.validateCustomRune(data);
   }
 
   // ------------------------------------------------
@@ -1693,6 +1701,11 @@ export default class KoniState {
 
   private async onMV3Install () {
     await SWStorage.instance.setItem('mv3_migration', 'done');
+
+    // Open expand page
+    const url = `${chrome.runtime.getURL('index.html')}#/welcome`;
+
+    withErrorLog(() => chrome.tabs.create({ url }));
   }
 
   public onInstallOrUpdate (details: chrome.runtime.InstalledDetails) {
@@ -1792,7 +1805,7 @@ export default class KoniState {
     this.waitSleeping = null;
   }
 
-  private async _start (isWakeup = false) {
+  private async _start () {
     // Wait sleep finish before start to avoid conflict
     this.generalStatus === ServiceStatus.STOPPING && this.waitSleeping && await this.waitSleeping;
 
@@ -1808,6 +1821,7 @@ export default class KoniState {
       return;
     }
 
+    const isWakeup = this.generalStatus === ServiceStatus.STOPPED;
     const starting = createPromiseHandler<void>();
 
     this.generalStatus = ServiceStatus.STARTING;
@@ -1829,7 +1843,7 @@ export default class KoniState {
   }
 
   public async wakeup () {
-    await this._start(true);
+    await this._start();
   }
 
   public cancelSubscription (id: string): boolean {

@@ -58,7 +58,7 @@ function Component ({ className = '', data, onCancel }: Props): React.ReactEleme
     let link;
 
     if (data.chainType === ChainType.BITCOIN) {
-      link = `${originChainInfo?.bitcoinInfo?.blockExplorer}/tx/${data.extrinsicHash}`;
+      link = `${originChainInfo?.bitcoinInfo?.blockExplorer || ''}/tx/${data.extrinsicHash}`;
     } else {
       link = (data.extrinsicHash && data.extrinsicHash !== '') && getExplorerLink(originChainInfo, data.extrinsicHash, 'tx');
     }

@@ -23,7 +23,9 @@ export declare enum _AssetType {
     ERC721 = "ERC721",
     PSP22 = "PSP22",
     PSP34 = "PSP34",
-    UNKNOWN = "UNKNOWN"
+    UNKNOWN = "UNKNOWN",
+    RUNE = "RUNE",
+    BRC20 = "BRC20"
 }
 export declare enum _SubstrateChainType {
     RELAYCHAIN = "RELAYCHAIN",

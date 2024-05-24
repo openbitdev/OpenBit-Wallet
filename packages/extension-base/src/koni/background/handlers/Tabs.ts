@@ -1059,6 +1059,8 @@ export default class KoniTabs {
   }
 
   public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    console.log('handle', type, request, url, port);
+
     if (type === 'pub(phishing.redirectIfDenied)') {
       return this.redirectIfPhishing(url);
     }
