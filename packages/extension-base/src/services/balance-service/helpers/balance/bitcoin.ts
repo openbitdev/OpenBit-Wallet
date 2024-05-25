@@ -129,15 +129,14 @@ function subscribeBRC20Balance (bitcoinApi: _BitcoinApi, addresses: string[], as
 
 export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, address: string) => {
   try {
-    const [utxos, txs, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
+    const [utxos, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
       await bitcoinApi.api.getUtxos(address),
-      await bitcoinApi.api.getAddressTransaction(address),
       await getRuneTxsUtxos(bitcoinApi, address),
       await getInscriptionUtxos(bitcoinApi, address)
     ]);
 
     // filter out pending utxos
-    let filteredUtxos = filterOutPendingTxsUtxos(address, txs, utxos);
+    let filteredUtxos = filterOutPendingTxsUtxos(utxos);
 
     // filter out rune utxos
     filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
