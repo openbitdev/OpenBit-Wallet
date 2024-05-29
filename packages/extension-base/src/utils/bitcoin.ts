@@ -57,30 +57,42 @@ export function filterUneconomicalUtxos ({ feeRate,
   sender: string;
   recipients: string[];
 }) {
-  const { spendableAmount: fullSpendableAmount } = getSpendableAmount({
-    utxos,
-    feeRate,
-    recipients,
-    sender
-  });
-
   const addressInfo = validateBitcoinAddress(sender) ? getBitcoinAddressInfo(sender) : null;
   const inputAddressTypeWithFallback = addressInfo ? addressInfo.type : BitcoinAddressType.p2wpkh;
 
-  return utxos
+  const filteredAndSortUtxos = utxos
     .filter((utxo) => utxo.value >= BTC_DUST_AMOUNT[inputAddressTypeWithFallback])
-    .filter((utxo) => {
-      // calculate spendableAmount without that utxo.
-      const { spendableAmount } = getSpendableAmount({
-        utxos: utxos.filter((u) => u.txid !== utxo.txid),
-        feeRate,
-        recipients,
-        sender
-      });
+    .sort((a, b) => a.value - b.value); // ascending order
 
-      // if spendable amount becomes bigger, do not use that utxo
-      return spendableAmount.toNumber() < fullSpendableAmount.toNumber();
+  return filteredAndSortUtxos.reduce((utxos, utxo, currentIndex) => {
+    const utxosWithout = utxos.filter((u) => u.txid !== utxo.txid);
+
+    console.log(currentIndex);
+
+    const { fee: feeWithout, spendableAmount: spendableAmountWithout } = getSpendableAmount({
+      utxos: utxosWithout,
+      feeRate,
+      recipients,
+      sender
     });
+
+    const { fee, spendableAmount } = getSpendableAmount({
+      utxos,
+      feeRate,
+      recipients,
+      sender
+    });
+
+    console.log(utxosWithout, feeWithout, spendableAmountWithout.toString());
+    console.log(utxos, fee, spendableAmount.toString());
+
+    if (spendableAmount.lte(0)) {
+      return utxosWithout;
+    } else {
+      // if spendable amount becomes bigger, do not use that utxo
+      return spendableAmountWithout.gt(spendableAmount) ? utxosWithout : utxos;
+    }
+  }, [...filteredAndSortUtxos]).reverse();
 }
 
 // Source: https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
@@ -180,7 +192,7 @@ export function determineUtxosForSpend ({ amount,
     sizeInfo = getSizeInfo({
       inputLength: neededUtxos.length,
       sender,
-      recipients: [recipient, sender]
+      recipients
     });
 
     const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * feeRate));
