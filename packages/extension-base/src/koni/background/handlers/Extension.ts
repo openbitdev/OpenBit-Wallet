@@ -2483,6 +2483,9 @@ export default class KoniExtension {
               utxos
             };
             const { fee: _estimatedFee, inputs, outputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
+
+            maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
+
             const recipients = outputs.filter((o) => o.address).map((o) => o.address || '');
             const { txVBytes: vSize } = getSizeInfo({
               inputLength: inputs.length,

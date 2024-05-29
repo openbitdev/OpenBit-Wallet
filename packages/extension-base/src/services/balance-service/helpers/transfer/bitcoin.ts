@@ -51,9 +51,14 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
       ? determineUtxosForSpendAll(determineUtxosArgs)
       : determineUtxosForSpend(determineUtxosArgs);
 
+    console.log(inputs, outputs);
+    console.log(inputs, inputs.reduce((v, i) => v + i.value, 0));
+    console.log(outputs, (outputs as Array<{value: number}>).reduce((v, i) => v + i.value, 0));
+    console.log(fee, bitcoinFee);
+
     const pair = keyring.getPair(from);
     const tx = new Psbt({ network });
-    const transferAmount = new BigN(0);
+    let transferAmount = new BigN(0);
 
     for (const input of inputs) {
       if (pair.type === 'bitcoin-44' || pair.type === 'bittest-44') {
@@ -74,8 +79,6 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
           }
         });
       }
-
-      transferAmount.plus(input.value);
     }
 
     for (const output of outputs) {
@@ -84,16 +87,14 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
         value: output.value
       });
 
-      if (output.address) {
-        transferAmount.minus(output.value);
+      if (output.address === to) {
+        transferAmount = transferAmount.plus(output.value);
       }
     }
 
     console.log(inputs, inputs.reduce((v, i) => v + i.value, 0));
     console.log(outputs, (outputs as Array<{value: number}>).reduce((v, i) => v + i.value, 0));
     console.log(fee, bitcoinFee);
-
-    transferAmount.minus(fee);
 
     console.log('Transfer Amount:', transferAmount.toString());
 
