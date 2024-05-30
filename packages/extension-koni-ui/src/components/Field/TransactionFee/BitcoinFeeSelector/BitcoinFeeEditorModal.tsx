@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BitcoinFeeDetail, FeeDefaultOption } from '@subwallet/extension-base/types';
-import { BN_ZERO } from '@subwallet/extension-base/utils';
+import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils';
 import { BasicInputEvent, RadioGroup } from '@subwallet/extension-koni-ui/components';
 import { FormCallbacks, PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BitcoinFeeOption } from '@subwallet/extension-koni-ui/types/fee';
@@ -237,8 +237,17 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return Promise.reject(t('Invalid value'));
     }
 
+    const low = feeDetail.options.slow.feeRate;
+    const val = parseFloat(value);
+
+    if (low > val) {
+      const minString = formatNumber(low, 0, balanceFormatter);
+
+      return Promise.reject(t('Custom fee should be greater than {{min}} sats/vB', { min: minString }));
+    }
+
     return Promise.resolve();
-  }, [t]);
+  }, [feeDetail, t]);
 
   const convertedCustomValue = useMemo<BigN>(() => {
     if (validateCustomValue(customValue)) {
