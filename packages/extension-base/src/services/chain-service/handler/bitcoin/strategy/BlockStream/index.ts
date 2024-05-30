@@ -49,10 +49,11 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
       }
 
       const blocks = (await rs.json()) as BlockStreamBlock[];
-      const lenght = blocks.length;
-      const time = (blocks[0].timestamp - blocks[lenght - 1].timestamp) * 1000;
+      const length = blocks.length;
+      const sortedBlocks = blocks.sort((a, b) => b.timestamp - a.timestamp);
+      const time = (sortedBlocks[0].timestamp - sortedBlocks[length - 1].timestamp) * 1000;
 
-      return time / lenght;
+      return time / length;
     }, 0);
   }
 
