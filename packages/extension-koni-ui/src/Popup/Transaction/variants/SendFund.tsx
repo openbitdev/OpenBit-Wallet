@@ -1,15 +1,15 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
+import { _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { ExtrinsicType, NotificationType } from '@subwallet/extension-base/background/KoniTypes';
 import { AbstractAddressJson, AccountJson } from '@subwallet/extension-base/background/types';
-import { _getAssetDecimals, _getOriginChainOfAsset, _getTokenMinAmount, _isAssetFungibleToken, _isChainEvmCompatible, _isNativeToken, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getAssetDecimals, _getTokenMinAmount, _isNativeToken, _isPureBitcoinChain, _isPureEvmChain, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
 import { BN_ZERO, detectTranslate } from '@subwallet/extension-base/utils';
 import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
-import { BITCOIN_CHAINS, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
+import { BITCOIN_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { FreeBalance } from '@subwallet/extension-koni-ui/Popup/Transaction/parts';
@@ -17,7 +17,6 @@ import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, formatBalance, noop, reformatAddress } from '@subwallet/extension-koni-ui/utils';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
-import { KeypairType } from '@subwallet/keyring/types';
 import { Button, Form, Icon, Number } from '@subwallet/react-ui';
 import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
@@ -34,27 +33,26 @@ import { TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
-function checkValidBetweenAddressTypeAndChain (addressType: KeypairType, chain: string): boolean {
-  if (chain === 'bitcoin') {
-    return ['bitcoin-44', 'bitcoin-84'].includes(addressType);
-  }
-
-  if (chain === 'bitcoinTestnet') {
-    return ['bittest-44', 'bittest-84'].includes(addressType);
-  }
-
-  return chain === 'ethereum' && addressType === 'ethereum';
-}
+// function checkValidBetweenAddressTypeAndChain (addressType: KeypairType, chain: string): boolean {
+//   if (chain === 'bitcoin') {
+//     return ['bitcoin-44', 'bitcoin-84'].includes(addressType);
+//   }
+//
+//   if (chain === 'bitcoinTestnet') {
+//     return ['bittest-44', 'bittest-84'].includes(addressType);
+//   }
+//
+//   return chain === 'ethereum' && addressType === 'ethereum';
+// }
 
 function getTokenItems (
-  address: string,
+  chainInfoMap: Record<string, _ChainInfo>,
   assetRegistry: Record<string, _ChainAsset>,
   multiChainAssetMap: Record<string, _MultiChainAsset>,
   tokenGroupSlug?: string // is ether a token slug or a multiChainAsset slug
 ): TokenItemType[] {
   const isSetTokenSlug = !!tokenGroupSlug && !!assetRegistry[tokenGroupSlug];
   const isSetMultiChainAssetSlug = !!tokenGroupSlug && !!multiChainAssetMap[tokenGroupSlug];
-  const addressType = getKeypairTypeByAddress(address);
 
   if (tokenGroupSlug) {
     if (!(isSetTokenSlug || isSetMultiChainAssetSlug)) {
@@ -65,10 +63,6 @@ function getTokenItems (
 
     if (isSetTokenSlug && chainAsset) {
       const { name, originChain, slug, symbol } = chainAsset;
-
-      if (!checkValidBetweenAddressTypeAndChain(addressType, originChain)) {
-        return [];
-      }
 
       return [
         {
@@ -84,18 +78,23 @@ function getTokenItems (
   const items: TokenItemType[] = [];
 
   Object.values(assetRegistry).forEach((chainAsset) => {
-    const isTokenFungible = _isAssetFungibleToken(chainAsset);
+    const chainInfo = chainInfoMap[chainAsset.originChain];
 
-    if (!(isTokenFungible && _isNativeToken(chainAsset) && SUPPORT_CHAINS.includes(chainAsset.originChain))) {
+    if (chainAsset.assetType === 'RUNE' || chainAsset.assetType === 'BRC20') {
       return;
     }
 
-    // if (!checkValidBetweenAddressTypeAndChain(addressType, chainAsset.originChain)) {
-    //   return;
-    // }
-
-    if (isSetMultiChainAssetSlug) {
-      if (chainAsset.multiChainAsset === tokenGroupSlug) {
+    if (_isPureBitcoinChain(chainInfo) || _isPureEvmChain(chainInfo)) {
+      if (isSetMultiChainAssetSlug) {
+        if (chainAsset.multiChainAsset === tokenGroupSlug) {
+          items.push({
+            name: chainAsset.name,
+            slug: chainAsset.slug,
+            symbol: chainAsset.symbol,
+            originChain: chainAsset.originChain
+          });
+        }
+      } else {
         items.push({
           name: chainAsset.name,
           slug: chainAsset.slug,
@@ -103,28 +102,42 @@ function getTokenItems (
           originChain: chainAsset.originChain
         });
       }
-    } else {
-      items.push({
-        name: chainAsset.name,
-        slug: chainAsset.slug,
-        symbol: chainAsset.symbol,
-        originChain: chainAsset.originChain
-      });
     }
   });
 
   return items.sort((a, b) => {
-    if (a.originChain.toLowerCase() === 'bitcoin' || a.originChain.toLowerCase() === 'bitcoinTestnet') {
-      return -1; // Place 'bitcoin' or 'BitcoinTestnet' at the top
-    } else if (b.originChain.toLowerCase() === 'bitcoin' || b.originChain.toLowerCase() === 'bitcoinTestnet') {
-      return 1;
-    } else {
-      return a.originChain.localeCompare(b.originChain);
+    const aChain = a.originChain.toLowerCase();
+    const bChain = b.originChain.toLowerCase();
+
+    if (aChain === 'bitcoin') {
+      return -1;
     }
+
+    if (bChain === 'bitcoin') {
+      return 1;
+    }
+
+    if (aChain === 'bitcointestnet') {
+      return -1;
+    }
+
+    if (bChain === 'bitcointestnet') {
+      return 1;
+    }
+
+    if (aChain === 'ethereum' && a.name.toLowerCase() === 'ethereum') {
+      return -1;
+    }
+
+    if (bChain === 'ethereum' && b.name.toLowerCase() === 'ethereum') {
+      return 1;
+    }
+
+    return a.originChain.localeCompare(b.originChain);
   });
 }
 
-const hiddenFields: Array<keyof TransferParams> = ['chain', 'fromProxyId'];
+const hiddenFields: Array<keyof TransferParams> = ['chain', 'fromProxyId', 'destChain'];
 const validateFields: Array<keyof TransferParams> = ['value', 'to'];
 const alertModalId = 'confirmation-alert-modal';
 
@@ -153,7 +166,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   const assetInfo = useFetchChainAssetInfo(assetValue);
   const { alertProps, closeAlert, openAlert } = useAlert(alertModalId);
-
   const { chainInfoMap, chainStatusMap } = useSelector((root) => root.chainStore);
   const { assetRegistry, multiChainAssetMap } = useSelector((root) => root.assetRegistry);
   const { accounts } = useSelector((state: RootState) => state.accountState);
@@ -169,7 +181,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const hideMaxButton = useMemo(() => {
     const chainInfo = chainInfoMap[chainValue];
 
-    return !!chainInfo && !!assetInfo && _isChainEvmCompatible(chainInfo) && destChainValue === chainValue && _isNativeToken(assetInfo);
+    return !!chainInfo && !!assetInfo && _isPureEvmChain(chainInfo) && destChainValue === chainValue && _isNativeToken(assetInfo);
   }, [chainInfoMap, chainValue, destChainValue, assetInfo]);
 
   const chainStatus = useMemo(() => chainStatusMap[chainValue]?.connectionStatus, [chainValue, chainStatusMap]);
@@ -202,12 +214,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   const tokenItems = useMemo<TokenItemType[]>(() => {
     return getTokenItems(
-      fromValue,
+      chainInfoMap,
       assetRegistry,
       multiChainAssetMap,
       sendFundSlug
     );
-  }, [assetRegistry, fromValue, multiChainAssetMap, sendFundSlug]);
+  }, [assetRegistry, chainInfoMap, multiChainAssetMap, sendFundSlug]);
 
   const [loading, setLoading] = useState(false);
   const [isTransferAll, setIsTransferAll] = useState(false);
@@ -293,13 +305,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
           setFeeResetTrigger({});
         }
-      }
-
-      if (part.from) {
-        setForceUpdateMaxValue(undefined);
-        form.resetFields(['asset']);
-        // Because cache data, so next data may be same with default data
-        form.setFields([{ name: 'asset', value: '' }]);
       }
 
       if (part.destChain) {
@@ -468,16 +473,18 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const addressBookFilter = useCallback((addressJson: AbstractAddressJson): boolean => {
     const addressType = getKeypairTypeByAddress(addressJson.address);
 
+    const chainInfo = chainInfoMap[chainValue];
+
     if (chainValue === 'bitcoin') {
       return 'bitcoin-84'.includes(addressType) && addressJson.address !== fromValue;
     } else if (chainValue === 'bitcoinTestnet') {
       return 'bittest-84'.includes(addressType) && addressJson.address !== fromValue;
-    } else if (chainValue === 'ethereum') {
+    } else if (!!chainInfo && _isPureEvmChain(chainInfo)) {
       return 'ethereum'.includes(addressType) && addressJson.address !== fromValue;
     }
 
-    return ['ethereum', 'bitcoin-84', 'bittest-84'].includes(addressType);
-  }, [chainValue, fromValue]);
+    return false;
+  }, [chainInfoMap, chainValue, fromValue]);
 
   // TODO: Need to review
   // Auto fill logic
@@ -576,17 +583,22 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
 
     const accountType = account.type || getKeypairTypeByAddress(account.address);
+    const chainInfo = chainInfoMap[chainValue];
 
     if (chainValue === 'bitcoin') {
       return 'bitcoin-84'.includes(accountType);
     } else if (chainValue === 'bitcoinTestnet') {
       return 'bittest-84'.includes(accountType);
-    } else if (chainValue === 'ethereum') {
+    } else if (!!chainInfo && _isPureEvmChain(chainInfo)) {
       return 'ethereum'.includes(accountType);
     }
 
-    return ['ethereum', 'bitcoin-84', 'bittest-84'].includes(accountType);
-  }, [chainValue, fromProxyId]);
+    return false;
+  }, [chainInfoMap, chainValue, fromProxyId]);
+
+  const accountList = useMemo(() => {
+    return accounts.filter(accountsFilter);
+  }, [accounts, accountsFilter]);
 
   useEffect(() => {
     const bnTransferAmount = new BigN(transferAmountValue || '0');
@@ -596,6 +608,14 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       setIsTransferAll(true);
     }
   }, [transferInfo, transferAmountValue]);
+
+  useEffect(() => {
+    if (accountList.length === 1) {
+      form.setFieldsValue({
+        from: accountList?.[0]?.address || ''
+      });
+    }
+  }, [accountList, form]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
@@ -629,7 +649,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             name={'from'}
           >
             <AccountSelector
-              filter={accountsFilter}
+              disabled={accountList.length === 1}
+              externalAccounts={accountList}
               label={t('Send from')}
             />
           </Form.Item>
