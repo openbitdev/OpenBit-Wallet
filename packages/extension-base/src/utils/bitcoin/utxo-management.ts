@@ -142,7 +142,7 @@ export function determineUtxosForSpend ({ amount,
     sizeInfo = getSizeInfo({
       inputLength: neededUtxos.length,
       sender,
-      recipients: [recipient, sender]
+      recipients
     });
   }
 

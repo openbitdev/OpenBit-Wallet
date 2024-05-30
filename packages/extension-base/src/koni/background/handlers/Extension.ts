@@ -2359,7 +2359,7 @@ export default class KoniExtension {
       const substrateApi = this.#koniState.chainService.getSubstrateApi(chain);
       let estimatedFee = '0';
       let estimatedFeeMax = '0';
-      let feeOptions: FeeDetail;
+      let feeOptions: FeeDetail | null = null;
       let tip = '0';
       let maxTransferable = new BigN(freeBalance.value);
 
@@ -2481,53 +2481,9 @@ export default class KoniExtension {
               utxos
             };
 
-            const recipients = to ? [to, address] : [address];
+            const recipients = transferAll ? [address] : [address, to || address];
 
-            try {
-              const { fee: _estimatedFee, inputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
-
-              maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
-
-              const { txVBytes: vSize } = getSizeInfo({
-                inputLength: inputs.length,
-                sender: address,
-                recipients
-              });
-
-              if (transferAll) {
-                estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
-              } else {
-                try {
-                  const { fee: estimateFeeMax, inputs } = determineUtxosForSpendAll(determineUtxosArgs);
-
-                  maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
-                  estimatedFeeMax = new BigN(estimateFeeMax).toFixed(0);
-                } catch (_e) {
-                  const utxos = filterUneconomicalUtxos({
-                    utxos: determineUtxosArgs.utxos,
-                    feeRate: determineUtxosArgs.feeRate,
-                    recipients,
-                    sender: determineUtxosArgs.sender
-                  });
-
-                  const { txVBytes: vSize } = getSizeInfo({
-                    inputLength: utxos.length,
-                    sender: address,
-                    recipients
-                  });
-
-                  maxTransferable = utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0));
-                  estimatedFeeMax = Math.ceil(determineUtxosArgs.feeRate * vSize).toString();
-                }
-              }
-
-              estimatedFee = new BigN(_estimatedFee).toFixed(0);
-              feeOptions = {
-                ..._fee,
-                estimatedFee,
-                vSize
-              };
-            } catch (_e) {
+            const fallbackCalculate = (recipients: string[]) => {
               const utxos = filterUneconomicalUtxos({
                 utxos: determineUtxosArgs.utxos,
                 feeRate: determineUtxosArgs.feeRate,
@@ -2541,19 +2497,63 @@ export default class KoniExtension {
                 recipients
               });
 
-              maxTransferable = utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0));
-              const _estimatedFee = Math.ceil(determineUtxosArgs.feeRate * vSize).toString();
+              return {
+                vSize,
+                maxTransferable: utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0)),
+                estimatedFee: Math.ceil(determineUtxosArgs.feeRate * vSize).toString()
+              };
+            };
 
-              estimatedFee = _estimatedFee;
-              estimatedFeeMax = _estimatedFee;
+            try {
+              const { fee: _estimatedFee, inputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
 
-              console.log('catch', maxTransferable.toString(), estimatedFeeMax.toString());
+              maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
 
+              const { txVBytes: vSize } = getSizeInfo({
+                inputLength: inputs.length,
+                sender: address,
+                recipients
+              });
+
+              estimatedFee = new BigN(_estimatedFee).toFixed(0);
               feeOptions = {
                 ..._fee,
                 estimatedFee,
                 vSize
               };
+
+              if (transferAll) {
+                estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
+              } else {
+                try {
+                  const { fee: estimateFeeMax, inputs } = determineUtxosForSpendAll(determineUtxosArgs);
+
+                  maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
+                  estimatedFeeMax = new BigN(estimateFeeMax).toFixed(0);
+                } catch (_e) {
+                  const fb = fallbackCalculate([to || address]);
+
+                  maxTransferable = fb.maxTransferable;
+                  estimatedFeeMax = fb.estimatedFee;
+                }
+              }
+            } catch (_e) {
+              const fb = fallbackCalculate([to || address]);
+
+              maxTransferable = fb.maxTransferable;
+              estimatedFeeMax = fb.estimatedFee;
+
+              if (!feeOptions) {
+                const fb = fallbackCalculate([address, to || address]);
+
+                estimatedFee = fb.estimatedFee;
+
+                feeOptions = {
+                  ..._fee,
+                  estimatedFee,
+                  vSize: fb.vSize
+                };
+              }
             }
           } else {
             const [mockTx] = await createTransferExtrinsic({
