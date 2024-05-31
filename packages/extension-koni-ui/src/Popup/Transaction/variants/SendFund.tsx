@@ -10,18 +10,18 @@ import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@su
 import { BN_ZERO, detectTranslate } from '@subwallet/extension-base/utils';
 import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
 import { BITCOIN_CHAINS } from '@subwallet/extension-koni-ui/constants';
-import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { FreeBalance } from '@subwallet/extension-koni-ui/Popup/Transaction/parts';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, formatBalance, noop, reformatAddress } from '@subwallet/extension-koni-ui/utils';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
-import { Button, Form, Icon, Number } from '@subwallet/react-ui';
+import { Button, Form, Icon } from '@subwallet/react-ui';
 import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
-import { PaperPlaneTilt } from 'phosphor-react';
+import { ArrowRight, PaperPlaneTilt } from 'phosphor-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
@@ -173,7 +173,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const destChainNetworkPrefix = useGetChainPrefixBySlug(destChainValue);
   const destChainGenesisHash = chainInfoMap[destChainValue]?.substrateInfo?.genesisHash || '';
   const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
-  const nativeTokenBasicInfo = useGetNativeTokenBasicInfo(chainValue);
 
   const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
 
@@ -231,8 +230,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransfer | undefined>();
   const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>(undefined);
 
-  const estimatedFee = useMemo((): string => transferInfo?.feeOptions.estimatedFee || '0', [transferInfo]);
-
   const handleTransferAll = useCallback((value: boolean) => {
     setForceUpdateMaxValue({});
     setIsTransferAll(value);
@@ -258,7 +255,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
     const addressType = getKeypairTypeByAddress(_recipientAddress);
 
-    if (addressType === 'ethereum' && chain === 'ethereum') {
+    const chainInfo = chainInfoMap[chainValue];
+
+    if (addressType === 'ethereum' && _isPureEvmChain(chainInfo)) {
       return Promise.resolve();
     }
 
@@ -271,7 +270,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
 
     return Promise.reject(t('Invalid recipient address'));
-  }, [form, t]);
+  }, [chainInfoMap, chainValue, form, t]);
 
   const validateAmount = useCallback((rule: Rule, amount: string): Promise<void> => {
     if (!amount) {
@@ -305,6 +304,10 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
           setFeeResetTrigger({});
         }
+      }
+
+      if (part.asset) {
+        form.setFields([{ name: 'to', value: '' }]);
       }
 
       if (part.destChain) {
@@ -645,42 +648,53 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               />
             </Form.Item>
           </div>
-          <Form.Item
-            name={'from'}
-          >
-            <AccountSelector
-              disabled={accountList.length === 1}
-              externalAccounts={accountList}
-              label={t('Send from')}
-            />
-          </Form.Item>
 
           <HiddenInput fields={hiddenFields} />
 
-          <Form.Item
-            name={'to'}
-            rules={[
-              {
-                validator: validateRecipientAddress
-              }
-            ]}
-            statusHelpAsTooltip={true}
-            validateTrigger='onBlur'
-          >
-            <AddressInput
-              addressBookFilter={addressBookFilter}
-              addressPrefix={destChainNetworkPrefix}
-              allowDomain={true}
-              chain={destChainValue}
-              fitNetwork={true}
-              label={t('Send to')}
-              networkGenesisHash={destChainGenesisHash}
-              placeholder={t('Account address')}
-              saveAddress={true}
-              showAddressBook={true}
-              showScanner={true}
+          <div className={'form-row from-to-value'}>
+            <Form.Item
+              name={'from'}
+            >
+              <AccountSelector
+                className={'__form-from-item'}
+                disabled={accountList.length === 1}
+                externalAccounts={accountList}
+                label={t('Send from')}
+              />
+            </Form.Item>
+
+            <Icon
+              className={'middle-item'}
+              phosphorIcon={ArrowRight}
+              size={'xs'}
             />
-          </Form.Item>
+
+            <Form.Item
+              className={'__form-to-value'}
+              name={'to'}
+              rules={[
+                {
+                  validator: validateRecipientAddress
+                }
+              ]}
+              statusHelpAsTooltip={true}
+              validateTrigger='onBlur'
+            >
+              <AddressInput
+                addressBookFilter={addressBookFilter}
+                addressPrefix={destChainNetworkPrefix}
+                allowDomain={true}
+                chain={destChainValue}
+                fitNetwork={true}
+                label={t('Send to')}
+                networkGenesisHash={destChainGenesisHash}
+                placeholder={t('Account address')}
+                saveAddress={true}
+                showAddressBook={true}
+                showScanner={true}
+              />
+            </Form.Item>
+          </div>
 
           <Form.Item
             name={'value'}
@@ -703,13 +717,13 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           </Form.Item>
         </Form>
 
-        <FreeBalance
+        {!!fromValue && <FreeBalance
           address={fromValue}
           chain={chainValue}
           className={'__free-balance-block'}
           onBalanceReady={setIsBalanceReady}
           tokenSlug={assetValue}
-        />
+        />}
 
         {
           BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
@@ -721,24 +735,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               resetTrigger={feeResetTrigger}
               tokenSlug={assetValue}
             />
-          )
-        }
-
-        {
-          chainValue === 'ethereum' && !!transferInfo && !isFetchingInfo && (
-            <div className={'__fee-display'}>
-              <div className={'__fee-display-label'}>
-                Estimated fee:&nbsp;
-              </div>
-
-              <div className={'__fee-display-value'}>
-                <Number
-                  decimal={nativeTokenBasicInfo.decimals}
-                  suffix={nativeTokenBasicInfo.symbol}
-                  value={estimatedFee}
-                />
-              </div>
-            </div>
           )
         }
 
@@ -812,6 +808,47 @@ const SendFund = styled(_SendFund)(({ theme }) => {
           color: `${token.colorError} !important`
         }
       }
+    },
+
+    '.__form-to-value': {
+      '.ant-input-wrapper': {
+        position: 'relative',
+        paddingTop: 10,
+        paddingBottom: 12
+      },
+      '.ant-input-suffix': {
+        position: 'absolute',
+        top: -32,
+        right: 6
+      },
+      '.__address': {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        paddingLeft: 0
+      },
+      '.__overlay': {
+        paddingRight: 0,
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        paddingTop: 12
+      }
+    },
+    '.__form-from-item': {
+      '.__selected-item': {
+        flexDirection: 'column'
+      },
+      '.ant-select-modal-input-wrapper': {
+        minHeight: 66
+      },
+      '.__selected-item-address': {
+        paddingLeft: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        'white-space': 'nowrap'
+      }
+    },
+    '.form-row.from-to-value': {
+      gap: 2
     },
 
     '.__free-balance-block + .__bitcoin-fee-selector': {
