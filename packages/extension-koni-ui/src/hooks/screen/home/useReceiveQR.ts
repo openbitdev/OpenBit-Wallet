@@ -5,9 +5,8 @@ import type { KeypairType } from '@subwallet/keyring/types';
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
 import { AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
-import { _getMultiChainAsset, _isAssetFungibleToken, _isNativeToken } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getMultiChainAsset, _isAssetFungibleToken, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { AccountSelectorModalId } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
-import { SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { RECEIVE_QR_MODAL, RECEIVE_TOKEN_SELECTOR_MODAL } from '@subwallet/extension-koni-ui/constants/modal';
 import { useChainAssets } from '@subwallet/extension-koni-ui/hooks/assets';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -24,69 +23,13 @@ type ReceiveSelectedResult = {
   selectedNetwork?: string;
 };
 
-function getTokenSelectorItem (asset: _ChainAsset, accountProxy: AccountProxy): ReceiveTokenItemType | null {
-  if (!_isAssetFungibleToken(asset) || !SUPPORT_CHAINS.includes(asset.originChain)) {
-    return null;
-  }
-
-  let targetAccount: AccountJson | undefined;
-
-  for (const account of accountProxy.accounts) {
-    const accountType = getKeypairTypeByAddress(account.address);
-
-    if ((accountType === 'ethereum' && asset.originChain === 'ethereum' && _isNativeToken(asset)) ||
-      (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') ||
-      (accountType === 'bitcoin-86' && asset.originChain === 'bitcoin' && asset.metadata?.runeId) ||
-      (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet')) {
-      targetAccount = {
-        ...account,
-        type: accountType
-      };
-
-      break;
-    }
-  }
-
-  if (!targetAccount) {
-    return null;
-  }
-
-  const isRune = !!asset.metadata?.runeId;
-  const order = (() => {
-    if (isRune) {
-      return 2;
-    }
-
-    if (asset.originChain === 'bitcoin') {
-      return 1;
-    }
-
-    if (asset.originChain === 'bitcoinTestnet') {
-      return 3;
-    }
-
-    if (asset.originChain === 'ethereum') {
-      return 4;
-    }
-
-    return 99;
-  })();
-
-  return {
-    ...asset,
-    address: targetAccount.address,
-    addressType: targetAccount.type as KeypairType,
-    isRune,
-    order
-  };
-}
-
 export default function useReceiveQR (tokenGroupSlug?: string) {
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const isAllAccount = useSelector((state: RootState) => state.accountState.isAllAccount);
   const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
   const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const assetRegistryMap = useChainAssets().getChainAssetRegistry();
+  const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
   const [tokenSelectorItems, setTokenSelectorItems] = useState<ReceiveTokenItemType[]>([]);
   const [{ selectedAccountProxyAddress, selectedAccountProxyId, selectedNetwork }, setReceiveSelectedResult] = useState<ReceiveSelectedResult>(
     { selectedAccountProxyId: isAllAccount ? undefined : currentAccountProxy?.proxyId }
@@ -99,6 +42,67 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
 
     return accountProxies.filter((ap) => !checkIsAccountAll(ap.proxyId));
   }, [isAllAccount, accountProxies]);
+
+  const evmChains = useMemo(() => {
+    return Object.values(chainInfoMap).filter((chain) => _isChainEvmCompatible(chain)).map((chain) => chain.slug);
+  }, [chainInfoMap]);
+
+  const getTokenSelectorItem = useCallback((asset: _ChainAsset, accountProxy: AccountProxy) => {
+    if (!_isAssetFungibleToken(asset)) {
+      return null;
+    }
+
+    let targetAccount: AccountJson | undefined;
+
+    for (const account of accountProxy.accounts) {
+      const accountType = getKeypairTypeByAddress(account.address);
+
+      if ((accountType === 'ethereum' && evmChains.includes(asset.originChain)) ||
+      (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') ||
+      (accountType === 'bitcoin-86' && asset.originChain === 'bitcoin' && asset.metadata?.runeId) ||
+      (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet')) {
+        targetAccount = {
+          ...account,
+          type: accountType
+        };
+
+        break;
+      }
+    }
+
+    if (!targetAccount) {
+      return null;
+    }
+
+    const isRune = !!asset.metadata?.runeId;
+    const order = (() => {
+      if (isRune) {
+        return 2;
+      }
+
+      if (asset.originChain === 'bitcoin') {
+        return 1;
+      }
+
+      if (asset.originChain === 'bitcoinTestnet') {
+        return 3;
+      }
+
+      if (asset.originChain === 'ethereum') {
+        return 4;
+      }
+
+      return 99;
+    })();
+
+    return {
+      ...asset,
+      address: targetAccount.address,
+      addressType: targetAccount.type as KeypairType,
+      isRune,
+      order
+    };
+  }, [evmChains]);
 
   const getTokenSelectorItems = useCallback((accountProxy: AccountProxy) => {
     // if tokenGroupSlug is token slug
@@ -139,7 +143,7 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
     result.sort((a, b) => a.order - b.order);
 
     return result;
-  }, [tokenGroupSlug, assetRegistryMap]);
+  }, [tokenGroupSlug, assetRegistryMap, getTokenSelectorItem]);
 
   const onOpenReceive = useCallback(() => {
     if (!currentAccountProxy) {
