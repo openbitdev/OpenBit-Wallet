@@ -651,12 +651,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
           <HiddenInput fields={hiddenFields} />
 
-          <div className={'form-row from-to-value'}>
+          <div className={'form-row sender-receiver-row'}>
             <Form.Item
               name={'from'}
+              className={'__sender-field'}
             >
               <AccountSelector
-                className={'__form-from-item'}
                 disabled={accountList.length === 1}
                 externalAccounts={accountList}
                 label={t('Send from')}
@@ -664,13 +664,13 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             </Form.Item>
 
             <Icon
-              className={'middle-item'}
+              className={'middle-icon'}
               phosphorIcon={ArrowRight}
               size={'xs'}
             />
 
             <Form.Item
-              className={'__form-to-value'}
+              className={'__receiver-field'}
               name={'to'}
               rules={[
                 {
@@ -794,7 +794,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       gap: 8
     },
 
-    '.middle-item': {
+    '.middle-icon': {
       marginBottom: token.marginSM
     },
 
@@ -810,7 +810,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       }
     },
 
-    '.__form-to-value': {
+    '.__receiver-field': {
       '.ant-input-wrapper': {
         position: 'relative',
         paddingTop: 10,
@@ -833,7 +833,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         paddingTop: 12
       }
     },
-    '.__form-from-item': {
+    '.__sender-field': {
       '.__selected-item': {
         flexDirection: 'column'
       },
@@ -847,7 +847,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         'white-space': 'nowrap'
       }
     },
-    '.form-row.from-to-value': {
+    '.form-row.sender-receiver-row': {
       gap: 2
     },
 
