@@ -40,7 +40,7 @@ import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectN
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
 import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
-import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, generateAccountProxyId, getSizeInfo, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
+import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
@@ -2357,9 +2357,9 @@ export default class KoniExtension {
 
     const convertData = async (freeBalance: AmountData, fee: FeeInfo): Promise<ResponseSubscribeTransfer> => {
       const substrateApi = this.#koniState.chainService.getSubstrateApi(chain);
-      let estimatedFee: string;
-      let estimatedFeeMax: string;
-      let feeOptions: FeeDetail;
+      let estimatedFee = '0';
+      let estimatedFeeMax = '0';
+      let feeOptions: FeeDetail | null = null;
       let tip = '0';
       let maxTransferable = new BigN(freeBalance.value);
 
@@ -2370,8 +2370,6 @@ export default class KoniExtension {
           if (!destinationTokenInfo) {
             const _fee = fee as SubstrateFeeInfo;
 
-            estimatedFee = '0';
-            estimatedFeeMax = '0';
             feeOptions = {
               ..._fee,
               estimatedFee
@@ -2482,26 +2480,81 @@ export default class KoniExtension {
               sender: address,
               utxos
             };
-            const { fee: _estimatedFee, inputs, outputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
-            const recipients = outputs.filter((o) => o.address).map((o) => o.address || '');
-            const { txVBytes: vSize } = getSizeInfo({
-              inputLength: inputs.length,
-              sender: address,
-              recipients: recipients
-            });
 
-            if (transferAll) {
-              estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
-            } else {
-              estimatedFeeMax = new BigN(determineUtxosForSpendAll(determineUtxosArgs).fee).toFixed(0);
-            }
+            const recipients = transferAll ? [address] : [address, to || address];
 
-            estimatedFee = new BigN(_estimatedFee).toFixed(0);
-            feeOptions = {
-              ..._fee,
-              estimatedFee,
-              vSize
+            const fallbackCalculate = (recipients: string[]) => {
+              const utxos = filterUneconomicalUtxos({
+                utxos: determineUtxosArgs.utxos,
+                feeRate: determineUtxosArgs.feeRate,
+                recipients,
+                sender: determineUtxosArgs.sender
+              });
+
+              const { txVBytes: vSize } = getSizeInfo({
+                inputLength: utxos.length,
+                sender: address,
+                recipients
+              });
+
+              return {
+                vSize,
+                maxTransferable: utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0)),
+                estimatedFee: Math.ceil(determineUtxosArgs.feeRate * vSize).toString()
+              };
             };
+
+            try {
+              const { fee: _estimatedFee, inputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
+
+              maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
+
+              const { txVBytes: vSize } = getSizeInfo({
+                inputLength: inputs.length,
+                sender: address,
+                recipients
+              });
+
+              estimatedFee = new BigN(_estimatedFee).toFixed(0);
+              feeOptions = {
+                ..._fee,
+                estimatedFee,
+                vSize
+              };
+
+              if (transferAll) {
+                estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
+              } else {
+                try {
+                  const { fee: estimateFeeMax, inputs } = determineUtxosForSpendAll(determineUtxosArgs);
+
+                  maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
+                  estimatedFeeMax = new BigN(estimateFeeMax).toFixed(0);
+                } catch (_e) {
+                  const fb = fallbackCalculate([to || address]);
+
+                  maxTransferable = fb.maxTransferable;
+                  estimatedFeeMax = fb.estimatedFee;
+                }
+              }
+            } catch (_e) {
+              const fb = fallbackCalculate([to || address]);
+
+              maxTransferable = fb.maxTransferable;
+              estimatedFeeMax = fb.estimatedFee;
+
+              if (!feeOptions) {
+                const fb = fallbackCalculate([address, to || address]);
+
+                estimatedFee = fb.estimatedFee;
+
+                feeOptions = {
+                  ..._fee,
+                  estimatedFee,
+                  vSize: fb.vSize
+                };
+              }
+            }
           } else {
             const [mockTx] = await createTransferExtrinsic({
               from: address,
@@ -2533,9 +2586,6 @@ export default class KoniExtension {
           }
         }
       } catch (e) {
-        estimatedFee = '0';
-        estimatedFeeMax = '0';
-
         if (fee.type === 'substrate') {
           feeOptions = {
             ...fee,
