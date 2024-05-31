@@ -3,46 +3,12 @@
 
 import { BITCOIN_DECIMAL, BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
-import { BitcoinFeeInfo, BitcoinFeeRate, DetermineUtxosForSpendArgs, FeeOption, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
+import { DetermineUtxosForSpendArgs, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { BitcoinAddressType } from '@subwallet/keyring/types';
-import { BtcSizeFeeEstimator, getBitcoinAddressInfo, validateBitcoinAddress } from '@subwallet/keyring/utils';
+import { getBitcoinAddressInfo, validateBitcoinAddress } from '@subwallet/keyring/utils';
 import BigN from 'bignumber.js';
 
-export const combineBitcoinFee = (feeInfo: BitcoinFeeInfo, feeOptions?: FeeOption, feeCustom?: BitcoinFeeRate): BitcoinFeeRate => {
-  if (feeOptions && feeOptions !== 'custom') {
-    return feeInfo.options?.[feeOptions];
-  } else if (feeOptions === 'custom' && feeCustom) {
-    return feeCustom;
-  } else {
-    return feeInfo.options?.[feeInfo.options.default];
-  }
-};
-
-// https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
-export function getSpendableAmount ({ feeRate,
-  recipients,
-  sender,
-  utxos }: {
-  utxos: UtxoResponseItem[];
-  feeRate: number;
-  recipients: string[];
-  sender: string;
-}) {
-  const balance = utxos.map((utxo) => utxo.value).reduce((prevVal, curVal) => prevVal + curVal, 0);
-
-  const size = getSizeInfo({
-    inputLength: utxos.length,
-    recipients,
-    sender
-  });
-  const fee = Math.ceil(size.txVBytes * feeRate);
-  const bigNumberBalance = new BigN(balance);
-
-  return {
-    spendableAmount: BigN.max(0, bigNumberBalance.minus(fee)),
-    fee
-  };
-}
+import { getSizeInfo, getSpendableAmount } from './common';
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
 // Check if the spendable amount drops when adding a utxo. If it drops, don't use that utxo.
@@ -57,62 +23,42 @@ export function filterUneconomicalUtxos ({ feeRate,
   sender: string;
   recipients: string[];
 }) {
-  const { spendableAmount: fullSpendableAmount } = getSpendableAmount({
-    utxos,
-    feeRate,
-    recipients,
-    sender
-  });
-
   const addressInfo = validateBitcoinAddress(sender) ? getBitcoinAddressInfo(sender) : null;
   const inputAddressTypeWithFallback = addressInfo ? addressInfo.type : BitcoinAddressType.p2wpkh;
 
-  return utxos
+  const filteredAndSortUtxos = utxos
     .filter((utxo) => utxo.value >= BTC_DUST_AMOUNT[inputAddressTypeWithFallback])
-    .filter((utxo) => {
-      // calculate spendableAmount without that utxo.
-      const { spendableAmount } = getSpendableAmount({
-        utxos: utxos.filter((u) => u.txid !== utxo.txid),
-        feeRate,
-        recipients,
-        sender
-      });
+    .sort((a, b) => a.value - b.value); // ascending order
 
-      // if spendable amount becomes bigger, do not use that utxo
-      return spendableAmount.toNumber() < fullSpendableAmount.toNumber();
+  return filteredAndSortUtxos.reduce((utxos, utxo, currentIndex) => {
+    const utxosWithout = utxos.filter((u) => u.txid !== utxo.txid);
+
+    console.log(currentIndex);
+
+    const { fee: feeWithout, spendableAmount: spendableAmountWithout } = getSpendableAmount({
+      utxos: utxosWithout,
+      feeRate,
+      recipients,
+      sender
     });
-}
 
-// Source: https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/utils.ts
-export function getSizeInfo (payload: {
-  inputLength: number;
-  recipients: string[];
-  sender: string;
-}) {
-  const { inputLength, recipients, sender } = payload;
-  const senderInfo = validateBitcoinAddress(sender) ? getBitcoinAddressInfo(sender) : null;
-  const inputAddressTypeWithFallback = senderInfo ? senderInfo.type : BitcoinAddressType.p2wpkh;
-  const outputMap: Record<string, number> = {};
+    const { fee, spendableAmount } = getSpendableAmount({
+      utxos,
+      feeRate,
+      recipients,
+      sender
+    });
 
-  for (const recipient of recipients) {
-    const recipientInfo = validateBitcoinAddress(recipient) ? getBitcoinAddressInfo(recipient) : null;
-    const outputAddressTypeWithFallback = recipientInfo ? recipientInfo.type : BitcoinAddressType.p2wpkh;
-    const outputKey = outputAddressTypeWithFallback + '_output_count';
+    console.log(utxosWithout, feeWithout, spendableAmountWithout.toString());
+    console.log(utxos, fee, spendableAmount.toString());
 
-    if (outputMap[outputKey]) {
-      outputMap[outputKey]++;
+    if (spendableAmount.lte(0)) {
+      return utxosWithout;
     } else {
-      outputMap[outputKey] = 1;
+      // if spendable amount becomes bigger, do not use that utxo
+      return spendableAmountWithout.gt(spendableAmount) ? utxosWithout : utxos;
     }
-  }
-
-  const txSizer = new BtcSizeFeeEstimator();
-
-  return txSizer.calcTxSize({
-    input_script: inputAddressTypeWithFallback,
-    input_count: inputLength,
-    ...outputMap
-  });
+  }, [...filteredAndSortUtxos]).reverse();
 }
 
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/coinselect/local-coin-selection.ts
@@ -180,7 +126,7 @@ export function determineUtxosForSpend ({ amount,
     sizeInfo = getSizeInfo({
       inputLength: neededUtxos.length,
       sender,
-      recipients: [recipient, sender]
+      recipients
     });
 
     const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * feeRate));
@@ -196,7 +142,7 @@ export function determineUtxosForSpend ({ amount,
     sizeInfo = getSizeInfo({
       inputLength: neededUtxos.length,
       sender,
-      recipients: [recipient, sender]
+      recipients
     });
   }
 
