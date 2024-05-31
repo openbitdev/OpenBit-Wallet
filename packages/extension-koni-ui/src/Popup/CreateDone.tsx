@@ -80,7 +80,7 @@ const CreateDone = styled(Component)<Props>(({ theme: { token } }: Props) => {
       fontWeight: token.fontWeightStrong,
       fontSize: token.fontSizeHeading3,
       lineHeight: token.lineHeightHeading3,
-      color: token.colorTextBase
+      color: token.colorTextLight2
     },
 
     '.description': {
@@ -89,7 +89,7 @@ const CreateDone = styled(Component)<Props>(({ theme: { token } }: Props) => {
       marginBottom: token.margin * 2,
       fontSize: token.fontSizeHeading5,
       lineHeight: token.lineHeightHeading5,
-      color: token.colorTextDescription,
+      color: token.colorTextLight3,
       textAlign: 'center'
     }
   };

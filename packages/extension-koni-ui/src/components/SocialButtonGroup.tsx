@@ -55,12 +55,14 @@ const Component: React.FC<Props> = (props: Props) => {
               <Icon
                 iconColor={'#fff'}
                 phosphorIcon={item.icon}
-                weight='fill'
+                size={'md'}
+                weight={(item.type !== SocialType.TWITTER) ? 'fill' : undefined}
               />
             )}
             key={item.type}
             onClick={openInNewTab(item.url)}
             shape='squircle'
+            size={'sm'}
           />
         ))
       }
