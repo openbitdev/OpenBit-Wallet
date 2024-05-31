@@ -653,13 +653,13 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
           <div className={'form-row sender-receiver-row'}>
             <Form.Item
-              name={'from'}
               className={'__sender-field'}
+              name={'from'}
             >
               <AccountSelector
                 disabled={accountList.length === 1}
                 externalAccounts={accountList}
-                label={t('Send from')}
+                label={t('From')}
               />
             </Form.Item>
 
@@ -667,6 +667,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               className={'middle-icon'}
               phosphorIcon={ArrowRight}
               size={'xs'}
+              weight={'fill'}
             />
 
             <Form.Item
@@ -686,7 +687,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 allowDomain={true}
                 chain={destChainValue}
                 fitNetwork={true}
-                label={t('Send to')}
+                label={t('To')}
                 networkGenesisHash={destChainGenesisHash}
                 placeholder={t('Account address')}
                 saveAddress={true}
@@ -818,8 +819,21 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       },
       '.ant-input-suffix': {
         position: 'absolute',
-        top: -32,
-        right: 6
+        top: -18,
+        right: 16,
+        height: 24
+      },
+      '.ant-input-suffix .anticon': {
+        fontSize: `${token.fontSizeLG}px !important`
+      },
+      '.ant-input-suffix .ant-btn': {
+        minWidth: 24
+      },
+      '.ant-input-status-icon': {
+        display: 'none'
+      },
+      '.ant-input': {
+        borderBottomWidth: 0
       },
       '.__address': {
         overflow: 'hidden',
@@ -830,7 +844,10 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         paddingRight: 0,
         flexDirection: 'column',
         alignItems: 'flex-start',
-        paddingTop: 12
+        justifyContent: 'center'
+      },
+      '.__name': {
+        maxWidth: 124
       }
     },
     '.__sender-field': {
@@ -839,6 +856,14 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       },
       '.ant-select-modal-input-wrapper': {
         minHeight: 66
+      },
+      '.ant-select-modal-input-label': {
+        position: 'relative'
+      },
+      '.ant-select-modal-input-suffix': {
+        position: 'absolute',
+        top: 8,
+        right: 6
       },
       '.__selected-item-address': {
         paddingLeft: 0,
