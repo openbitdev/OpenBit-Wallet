@@ -22,7 +22,7 @@ import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
 import { ArrowRight, PaperPlaneTilt } from 'phosphor-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useIsFirstRender } from 'usehooks-ts';
@@ -175,6 +175,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
 
   const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
+  const assetRef = useRef<string | undefined>('');
+  const proxyIdRef = useRef<string | undefined>('');
 
   // @ts-ignore
   const hideMaxButton = useMemo(() => {
@@ -304,10 +306,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
           setFeeResetTrigger({});
         }
-      }
-
-      if (part.asset) {
-        form.setFields([{ name: 'to', value: '' }]);
       }
 
       if (part.destChain) {
@@ -614,11 +612,43 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   useEffect(() => {
     if (accountList.length === 1) {
+      const addressType = accountList?.[0]?.type;
+
       form.setFieldsValue({
         from: accountList?.[0]?.address || ''
       });
+
+      const oldToAccount = accounts.find((item) => item.address === toValue);
+
+      if (oldToAccount?.type !== addressType) {
+        const newToAccount = accounts.find((item) => item.proxyId === oldToAccount?.proxyId && item.type === addressType);
+
+        form.setFieldsValue({
+          to: newToAccount?.address || ''
+        });
+      }
     }
-  }, [accountList, form]);
+
+    if (accountList.length > 1 && !!fromValue && !!assetValue && assetRef.current !== assetValue) {
+      assetRef.current = assetValue;
+      const currentFromAccount = accountList.find((item) => (item.address === fromValue) || (item.proxyId === proxyIdRef.current));
+
+      proxyIdRef.current = currentFromAccount?.proxyId;
+
+      form.setFieldsValue({
+        from: currentFromAccount?.address || ''
+      });
+
+      if (toValue) {
+        const currentToAccount = accounts.find((item) => item.address === toValue);
+        const newToAccount = accountList.find((item) => item.proxyId === currentToAccount?.proxyId);
+
+        form.setFieldsValue({
+          to: newToAccount?.address || ''
+        });
+      }
+    }
+  }, [accountList, accounts, assetValue, form, fromProxyId, fromValue, toValue]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
@@ -870,6 +900,10 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         'white-space': 'nowrap'
+      },
+      '.ant-select-modal-input-placeholder': {
+        color: token.colorTextTertiary,
+        fontWeight: 300
       }
     },
     '.form-row.sender-receiver-row': {
