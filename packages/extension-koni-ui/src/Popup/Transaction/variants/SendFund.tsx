@@ -1,29 +1,28 @@
 // Copyright 2019-2022 @polkadot/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
+import { _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { ExtrinsicType, NotificationType } from '@subwallet/extension-base/background/KoniTypes';
 import { AbstractAddressJson, AccountJson } from '@subwallet/extension-base/background/types';
-import { _getAssetDecimals, _getOriginChainOfAsset, _getTokenMinAmount, _isAssetFungibleToken, _isChainEvmCompatible, _isNativeToken, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getAssetDecimals, _getTokenMinAmount, _isNativeToken, _isPureBitcoinChain, _isPureEvmChain, _isTokenTransferredByEvm } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
 import { BN_ZERO, detectTranslate } from '@subwallet/extension-base/utils';
-import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, ChainSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
-import { BITCOIN_CHAINS, SUPPORT_CHAINS } from '@subwallet/extension-koni-ui/constants';
-import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useGetNativeTokenBasicInfo, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
+import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
+import { BITCOIN_CHAINS } from '@subwallet/extension-koni-ui/constants';
+import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { FreeBalance } from '@subwallet/extension-koni-ui/Popup/Transaction/parts';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { ChainItemType, FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
+import { FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, formatBalance, noop, reformatAddress } from '@subwallet/extension-koni-ui/utils';
 import { getKeypairTypeByAddress } from '@subwallet/keyring';
-import { KeypairType } from '@subwallet/keyring/types';
-import { Button, Form, Icon, Number } from '@subwallet/react-ui';
+import { Button, Form, Icon } from '@subwallet/react-ui';
 import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
-import { PaperPlaneRight, PaperPlaneTilt } from 'phosphor-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowRight, PaperPlaneTilt } from 'phosphor-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useIsFirstRender } from 'usehooks-ts';
@@ -34,31 +33,26 @@ import { TransactionContent, TransactionFooter } from '../parts';
 
 type Props = ThemeProps;
 
-function checkValidBetweenAddressTypeAndChain (addressType: KeypairType, chain: string): boolean {
-  if (chain === 'bitcoin') {
-    return ['bitcoin-44', 'bitcoin-84'].includes(addressType);
-  }
-
-  if (chain === 'bitcoinTestnet') {
-    return ['bittest-44', 'bittest-84'].includes(addressType);
-  }
-
-  return chain === 'ethereum' && addressType === 'ethereum';
-}
+// function checkValidBetweenAddressTypeAndChain (addressType: KeypairType, chain: string): boolean {
+//   if (chain === 'bitcoin') {
+//     return ['bitcoin-44', 'bitcoin-84'].includes(addressType);
+//   }
+//
+//   if (chain === 'bitcoinTestnet') {
+//     return ['bittest-44', 'bittest-84'].includes(addressType);
+//   }
+//
+//   return chain === 'ethereum' && addressType === 'ethereum';
+// }
 
 function getTokenItems (
-  address: string,
+  chainInfoMap: Record<string, _ChainInfo>,
   assetRegistry: Record<string, _ChainAsset>,
   multiChainAssetMap: Record<string, _MultiChainAsset>,
   tokenGroupSlug?: string // is ether a token slug or a multiChainAsset slug
 ): TokenItemType[] {
-  if (!address) {
-    return [];
-  }
-
   const isSetTokenSlug = !!tokenGroupSlug && !!assetRegistry[tokenGroupSlug];
   const isSetMultiChainAssetSlug = !!tokenGroupSlug && !!multiChainAssetMap[tokenGroupSlug];
-  const addressType = getKeypairTypeByAddress(address);
 
   if (tokenGroupSlug) {
     if (!(isSetTokenSlug || isSetMultiChainAssetSlug)) {
@@ -69,10 +63,6 @@ function getTokenItems (
 
     if (isSetTokenSlug && chainAsset) {
       const { name, originChain, slug, symbol } = chainAsset;
-
-      if (!checkValidBetweenAddressTypeAndChain(addressType, originChain)) {
-        return [];
-      }
 
       return [
         {
@@ -88,18 +78,23 @@ function getTokenItems (
   const items: TokenItemType[] = [];
 
   Object.values(assetRegistry).forEach((chainAsset) => {
-    const isTokenFungible = _isAssetFungibleToken(chainAsset);
+    const chainInfo = chainInfoMap[chainAsset.originChain];
 
-    if (!(isTokenFungible && _isNativeToken(chainAsset) && SUPPORT_CHAINS.includes(chainAsset.originChain))) {
+    if (chainAsset.assetType === 'RUNE' || chainAsset.assetType === 'BRC20') {
       return;
     }
 
-    if (!checkValidBetweenAddressTypeAndChain(addressType, chainAsset.originChain)) {
-      return;
-    }
-
-    if (isSetMultiChainAssetSlug) {
-      if (chainAsset.multiChainAsset === tokenGroupSlug) {
+    if (_isPureBitcoinChain(chainInfo) || _isPureEvmChain(chainInfo)) {
+      if (isSetMultiChainAssetSlug) {
+        if (chainAsset.multiChainAsset === tokenGroupSlug) {
+          items.push({
+            name: chainAsset.name,
+            slug: chainAsset.slug,
+            symbol: chainAsset.symbol,
+            originChain: chainAsset.originChain
+          });
+        }
+      } else {
         items.push({
           name: chainAsset.name,
           slug: chainAsset.slug,
@@ -107,56 +102,42 @@ function getTokenItems (
           originChain: chainAsset.originChain
         });
       }
-    } else {
-      items.push({
-        name: chainAsset.name,
-        slug: chainAsset.slug,
-        symbol: chainAsset.symbol,
-        originChain: chainAsset.originChain
-      });
     }
   });
 
   return items.sort((a, b) => {
-    if (a.originChain.toLowerCase() === 'bitcoin' || a.originChain.toLowerCase() === 'bitcoinTestnet') {
-      return -1; // Place 'bitcoin' or 'BitcoinTestnet' at the top
-    } else if (b.originChain.toLowerCase() === 'bitcoin' || b.originChain.toLowerCase() === 'bitcoinTestnet') {
+    const aChain = a.originChain.toLowerCase();
+    const bChain = b.originChain.toLowerCase();
+
+    if (aChain === 'bitcoin') {
+      return -1;
+    }
+
+    if (bChain === 'bitcoin') {
       return 1;
-    } else {
-      return a.originChain.localeCompare(b.originChain);
     }
+
+    if (aChain === 'bitcointestnet') {
+      return -1;
+    }
+
+    if (bChain === 'bitcointestnet') {
+      return 1;
+    }
+
+    if (aChain === 'ethereum' && a.name.toLowerCase() === 'ethereum') {
+      return -1;
+    }
+
+    if (bChain === 'ethereum' && b.name.toLowerCase() === 'ethereum') {
+      return 1;
+    }
+
+    return a.originChain.localeCompare(b.originChain);
   });
 }
 
-function getTokenAvailableDestinations (tokenSlug: string, xcmRefMap: Record<string, _AssetRef>, chainInfoMap: Record<string, _ChainInfo>): ChainItemType[] {
-  if (!tokenSlug) {
-    return [];
-  }
-
-  const result: ChainItemType[] = [];
-  const originChain = chainInfoMap[_getOriginChainOfAsset(tokenSlug)];
-
-  // Firstly, push the originChain of token
-  result.push({
-    name: originChain.name,
-    slug: originChain.slug
-  });
-
-  Object.values(xcmRefMap).forEach((xcmRef) => {
-    if (xcmRef.srcAsset === tokenSlug) {
-      const destinationChain = chainInfoMap[xcmRef.destChain];
-
-      result.push({
-        name: destinationChain.name,
-        slug: destinationChain.slug
-      });
-    }
-  });
-
-  return result;
-}
-
-const hiddenFields: Array<keyof TransferParams> = ['chain', 'fromProxyId'];
+const hiddenFields: Array<keyof TransferParams> = ['chain', 'fromProxyId', 'destChain'];
 const validateFields: Array<keyof TransferParams> = ['value', 'to'];
 const alertModalId = 'confirmation-alert-modal';
 
@@ -185,30 +166,26 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   const assetInfo = useFetchChainAssetInfo(assetValue);
   const { alertProps, closeAlert, openAlert } = useAlert(alertModalId);
-
   const { chainInfoMap, chainStatusMap } = useSelector((root) => root.chainStore);
-  const { assetRegistry, multiChainAssetMap, xcmRefMap } = useSelector((root) => root.assetRegistry);
+  const { assetRegistry, multiChainAssetMap } = useSelector((root) => root.assetRegistry);
   const { accounts } = useSelector((state: RootState) => state.accountState);
 
   const destChainNetworkPrefix = useGetChainPrefixBySlug(destChainValue);
   const destChainGenesisHash = chainInfoMap[destChainValue]?.substrateInfo?.genesisHash || '';
   const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
-  const nativeTokenBasicInfo = useGetNativeTokenBasicInfo(chainValue);
 
   const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
+  const assetRef = useRef<string | undefined>('');
+  const proxyIdRef = useRef<string | undefined>('');
 
   // @ts-ignore
   const hideMaxButton = useMemo(() => {
     const chainInfo = chainInfoMap[chainValue];
 
-    return !!chainInfo && !!assetInfo && _isChainEvmCompatible(chainInfo) && destChainValue === chainValue && _isNativeToken(assetInfo);
+    return !!chainInfo && !!assetInfo && _isPureEvmChain(chainInfo) && destChainValue === chainValue && _isNativeToken(assetInfo);
   }, [chainInfoMap, chainValue, destChainValue, assetInfo]);
 
   const chainStatus = useMemo(() => chainStatusMap[chainValue]?.connectionStatus, [chainValue, chainStatusMap]);
-
-  const destChainItems = useMemo<ChainItemType[]>(() => {
-    return getTokenAvailableDestinations(assetValue, xcmRefMap, chainInfoMap);
-  }, [chainInfoMap, assetValue, xcmRefMap]);
 
   const currentChainAsset = useMemo(() => {
     const _asset = isFirstRender ? defaultData.asset : assetValue;
@@ -238,12 +215,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   const tokenItems = useMemo<TokenItemType[]>(() => {
     return getTokenItems(
-      fromValue,
+      chainInfoMap,
       assetRegistry,
       multiChainAssetMap,
       sendFundSlug
     );
-  }, [assetRegistry, fromValue, multiChainAssetMap, sendFundSlug]);
+  }, [assetRegistry, chainInfoMap, multiChainAssetMap, sendFundSlug]);
 
   const [loading, setLoading] = useState(false);
   const [isTransferAll, setIsTransferAll] = useState(false);
@@ -254,8 +231,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
   const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransfer | undefined>();
   const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>(undefined);
-
-  const estimatedFee = useMemo((): string => transferInfo?.feeOptions.estimatedFee || '0', [transferInfo]);
 
   const handleTransferAll = useCallback((value: boolean) => {
     setForceUpdateMaxValue({});
@@ -282,7 +257,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
     const addressType = getKeypairTypeByAddress(_recipientAddress);
 
-    if (addressType === 'ethereum' && chain === 'ethereum') {
+    const chainInfo = chainInfoMap[chainValue];
+
+    if (addressType === 'ethereum' && _isPureEvmChain(chainInfo)) {
       return Promise.resolve();
     }
 
@@ -295,7 +272,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
 
     return Promise.reject(t('Invalid recipient address'));
-  }, [form, t]);
+  }, [chainInfoMap, chainValue, form, t]);
 
   const validateAmount = useCallback((rule: Rule, amount: string): Promise<void> => {
     if (!amount) {
@@ -329,13 +306,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
           setFeeResetTrigger({});
         }
-      }
-
-      if (part.from) {
-        setForceUpdateMaxValue(undefined);
-        form.resetFields(['asset']);
-        // Because cache data, so next data may be same with default data
-        form.setFields([{ name: 'asset', value: '' }]);
       }
 
       if (part.destChain) {
@@ -504,8 +474,18 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const addressBookFilter = useCallback((addressJson: AbstractAddressJson): boolean => {
     const addressType = getKeypairTypeByAddress(addressJson.address);
 
-    return ['ethereum', 'bitcoin-84', 'bittest-84'].includes(addressType);
-  }, []);
+    const chainInfo = chainInfoMap[chainValue];
+
+    if (chainValue === 'bitcoin') {
+      return 'bitcoin-84'.includes(addressType) && addressJson.address !== fromValue;
+    } else if (chainValue === 'bitcoinTestnet') {
+      return 'bittest-84'.includes(addressType) && addressJson.address !== fromValue;
+    } else if (!!chainInfo && _isPureEvmChain(chainInfo)) {
+      return 'ethereum'.includes(addressType) && addressJson.address !== fromValue;
+    }
+
+    return false;
+  }, [chainInfoMap, chainValue, fromValue]);
 
   // TODO: Need to review
   // Auto fill logic
@@ -604,9 +584,22 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
 
     const accountType = account.type || getKeypairTypeByAddress(account.address);
+    const chainInfo = chainInfoMap[chainValue];
 
-    return ['ethereum', 'bitcoin-84', 'bittest-84'].includes(accountType);
-  }, [fromProxyId]);
+    if (chainValue === 'bitcoin') {
+      return 'bitcoin-84'.includes(accountType);
+    } else if (chainValue === 'bitcoinTestnet') {
+      return 'bittest-84'.includes(accountType);
+    } else if (!!chainInfo && _isPureEvmChain(chainInfo)) {
+      return 'ethereum'.includes(accountType);
+    }
+
+    return false;
+  }, [chainInfoMap, chainValue, fromProxyId]);
+
+  const accountList = useMemo(() => {
+    return accounts.filter(accountsFilter);
+  }, [accounts, accountsFilter]);
 
   useEffect(() => {
     const bnTransferAmount = new BigN(transferAmountValue || '0');
@@ -616,6 +609,46 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       setIsTransferAll(true);
     }
   }, [transferInfo, transferAmountValue]);
+
+  useEffect(() => {
+    if (accountList.length === 1) {
+      const addressType = accountList?.[0]?.type;
+
+      form.setFieldsValue({
+        from: accountList?.[0]?.address || ''
+      });
+
+      const oldToAccount = accounts.find((item) => item.address === toValue);
+
+      if (oldToAccount?.type !== addressType) {
+        const newToAccount = accounts.find((item) => item.proxyId === oldToAccount?.proxyId && item.type === addressType);
+
+        form.setFieldsValue({
+          to: newToAccount?.address || ''
+        });
+      }
+    }
+
+    if (accountList.length > 1 && !!fromValue && !!assetValue && assetRef.current !== assetValue) {
+      assetRef.current = assetValue;
+      const currentFromAccount = accountList.find((item) => (item.address === fromValue) || (item.proxyId === proxyIdRef.current));
+
+      proxyIdRef.current = currentFromAccount?.proxyId;
+
+      form.setFieldsValue({
+        from: currentFromAccount?.address || ''
+      });
+
+      if (toValue) {
+        const currentToAccount = accounts.find((item) => item.address === toValue);
+        const newToAccount = accountList.find((item) => item.proxyId === currentToAccount?.proxyId);
+
+        form.setFieldsValue({
+          to: newToAccount?.address || ''
+        });
+      }
+    }
+  }, [accountList, accounts, assetValue, form, fromProxyId, fromValue, toValue]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
@@ -634,15 +667,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           onFinish={onSubmit}
           onValuesChange={onValuesChange}
         >
-          <Form.Item
-            name={'from'}
-          >
-            <AccountSelector
-              filter={accountsFilter}
-              label={t('Send from')}
-            />
-          </Form.Item>
-
           <div className={'form-row'}>
             <Form.Item name={'asset'}>
               <TokenSelector
@@ -653,49 +677,55 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 tooltip={t('Select token')}
               />
             </Form.Item>
-
-            <Icon
-              className={'middle-item'}
-              phosphorIcon={PaperPlaneRight}
-              size={'md'}
-            />
-
-            <Form.Item name={'destChain'}>
-              <ChainSelector
-                disabled={!destChainItems.length}
-                items={destChainItems}
-                title={t('Select destination chain')}
-                tooltip={t('Select destination chain')}
-              />
-            </Form.Item>
           </div>
 
           <HiddenInput fields={hiddenFields} />
 
-          <Form.Item
-            name={'to'}
-            rules={[
-              {
-                validator: validateRecipientAddress
-              }
-            ]}
-            statusHelpAsTooltip={true}
-            validateTrigger='onBlur'
-          >
-            <AddressInput
-              addressBookFilter={addressBookFilter}
-              addressPrefix={destChainNetworkPrefix}
-              allowDomain={true}
-              chain={destChainValue}
-              fitNetwork={true}
-              label={t('Send to')}
-              networkGenesisHash={destChainGenesisHash}
-              placeholder={t('Account address')}
-              saveAddress={true}
-              showAddressBook={true}
-              showScanner={true}
+          <div className={'form-row sender-receiver-row'}>
+            <Form.Item
+              className={'__sender-field'}
+              name={'from'}
+            >
+              <AccountSelector
+                disabled={accountList.length === 1}
+                externalAccounts={accountList}
+                label={t('From')}
+              />
+            </Form.Item>
+
+            <Icon
+              className={'middle-icon'}
+              phosphorIcon={ArrowRight}
+              size={'xs'}
+              weight={'fill'}
             />
-          </Form.Item>
+
+            <Form.Item
+              className={'__receiver-field'}
+              name={'to'}
+              rules={[
+                {
+                  validator: validateRecipientAddress
+                }
+              ]}
+              statusHelpAsTooltip={true}
+              validateTrigger='onBlur'
+            >
+              <AddressInput
+                addressBookFilter={addressBookFilter}
+                addressPrefix={destChainNetworkPrefix}
+                allowDomain={true}
+                chain={destChainValue}
+                fitNetwork={true}
+                label={t('To')}
+                networkGenesisHash={destChainGenesisHash}
+                placeholder={t('Account address')}
+                saveAddress={true}
+                showAddressBook={true}
+                showScanner={true}
+              />
+            </Form.Item>
+          </div>
 
           <Form.Item
             name={'value'}
@@ -718,13 +748,13 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           </Form.Item>
         </Form>
 
-        <FreeBalance
+        {!!fromValue && <FreeBalance
           address={fromValue}
           chain={chainValue}
           className={'__free-balance-block'}
           onBalanceReady={setIsBalanceReady}
           tokenSlug={assetValue}
-        />
+        />}
 
         {
           BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
@@ -736,24 +766,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               resetTrigger={feeResetTrigger}
               tokenSlug={assetValue}
             />
-          )
-        }
-
-        {
-          chainValue === 'ethereum' && !!transferInfo && !isFetchingInfo && (
-            <div className={'__fee-display'}>
-              <div className={'__fee-display-label'}>
-                Estimated fee:&nbsp;
-              </div>
-
-              <div className={'__fee-display-value'}>
-                <Number
-                  decimal={nativeTokenBasicInfo.decimals}
-                  suffix={nativeTokenBasicInfo.symbol}
-                  value={estimatedFee}
-                />
-              </div>
-            </div>
           )
         }
 
@@ -813,7 +825,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       gap: 8
     },
 
-    '.middle-item': {
+    '.middle-icon': {
       marginBottom: token.marginSM
     },
 
@@ -827,6 +839,75 @@ const SendFund = styled(_SendFund)(({ theme }) => {
           color: `${token.colorError} !important`
         }
       }
+    },
+
+    '.__receiver-field': {
+      '.ant-input-wrapper': {
+        position: 'relative',
+        paddingTop: 10,
+        paddingBottom: 12
+      },
+      '.ant-input-suffix': {
+        position: 'absolute',
+        top: -18,
+        right: 16,
+        height: 24
+      },
+      '.ant-input-suffix .anticon': {
+        fontSize: `${token.fontSizeLG}px !important`
+      },
+      '.ant-input-suffix .ant-btn': {
+        minWidth: 24
+      },
+      '.ant-input-status-icon': {
+        display: 'none'
+      },
+      '.ant-input': {
+        borderBottomWidth: 0
+      },
+      '.__address': {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        paddingLeft: 0
+      },
+      '.__overlay': {
+        paddingRight: 0,
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        justifyContent: 'center'
+      },
+      '.__name': {
+        maxWidth: 124
+      }
+    },
+    '.__sender-field': {
+      '.__selected-item': {
+        flexDirection: 'column'
+      },
+      '.ant-select-modal-input-wrapper': {
+        minHeight: 66
+      },
+      '.ant-select-modal-input-label': {
+        position: 'relative'
+      },
+      '.ant-select-modal-input-suffix': {
+        position: 'absolute',
+        top: 8,
+        right: 6
+      },
+      '.__selected-item-address': {
+        paddingLeft: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        'white-space': 'nowrap'
+      },
+      '.ant-select-modal-input-placeholder': {
+        color: token.colorTextTertiary,
+        fontWeight: 300
+      }
+    },
+    '.form-row.sender-receiver-row': {
+      gap: 2
     },
 
     '.__free-balance-block + .__bitcoin-fee-selector': {
