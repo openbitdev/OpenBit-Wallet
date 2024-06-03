@@ -245,11 +245,12 @@ function Component (): React.ReactElement {
 
     setStorage({
       ...DEFAULT_TRANSFER_PARAMS,
+      defaultSlug: tokenGroupSlug || '',
       fromProxyId
     });
     navigate('/transaction/send-fund');
   },
-  [currentAccountProxy, navigate, setStorage]
+  [currentAccountProxy, navigate, setStorage, tokenGroupSlug]
   );
 
   const onOpenBuyTokens = useCallback(() => {

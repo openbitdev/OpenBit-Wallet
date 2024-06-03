@@ -1,12 +1,12 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { DiscordLogo, PaperPlaneTilt, XLogo } from '@phosphor-icons/react';
 import { DISCORD_URL, TELEGRAM_URL, TWITTER_URL } from '@subwallet/extension-koni-ui/constants';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { openInNewTab } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { DiscordLogo, PaperPlaneTilt, TwitterLogo } from 'phosphor-react';
 import React from 'react';
 import styled from 'styled-components';
 
@@ -26,7 +26,7 @@ interface SocialItem {
 
 const items: SocialItem[] = [
   {
-    icon: TwitterLogo,
+    icon: XLogo,
     type: SocialType.TWITTER,
     url: TWITTER_URL
   },
@@ -53,13 +53,16 @@ const Component: React.FC<Props> = (props: Props) => {
             className={CN(`type-${item.type}`)}
             icon={(
               <Icon
+                iconColor={'#fff'}
                 phosphorIcon={item.icon}
-                weight='fill'
+                size={'md'}
+                weight={(item.type !== SocialType.TWITTER) ? 'fill' : undefined}
               />
             )}
             key={item.type}
             onClick={openInNewTab(item.url)}
             shape='squircle'
+            size={'sm'}
           />
         ))
       }
@@ -78,26 +81,26 @@ const SocialButtonGroup = styled(Component)<Props>(({ theme: { token } }: Props)
     },
 
     [`.type-${SocialType.TWITTER}`]: {
-      backgroundColor: token['blue-7'],
+      backgroundColor: token.colorBgInput,
 
       '&:hover': {
-        backgroundColor: token['blue-8']
+        backgroundColor: token.colorWarning
       }
     },
 
     [`.type-${SocialType.DISCORD}`]: {
-      backgroundColor: token['geekblue-8'],
+      backgroundColor: token.colorBgInput,
 
       '&:hover': {
-        backgroundColor: token['geekblue-9']
+        backgroundColor: token.colorWarning
       }
     },
 
     [`.type-${SocialType.TELEGRAM}`]: {
-      backgroundColor: token['blue-5'],
+      backgroundColor: token.colorBgInput,
 
       '&:hover': {
-        backgroundColor: token['blue-6']
+        backgroundColor: token.colorWarning
       }
     }
   };

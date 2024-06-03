@@ -4242,6 +4242,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@phosphor-icons/react@npm:^2.1.5":
+  version: 2.1.5
+  resolution: "@phosphor-icons/react@npm:2.1.5"
+  peerDependencies:
+    react: ">= 16.8"
+    react-dom: ">= 16.8"
+  checksum: 60faa55d62c6800dbd0418a9063d8a9a6610e39ef2e2ba9ce7e321425e59a1e501361b9651aa5fc310c25e19f4deca1fa0112cb2b9868b61e429ed6ae6e40e7d
+  languageName: node
+  linkType: hard
+
 "@polkadot/api-augment@npm:10.11.1":
   version: 10.11.1
   resolution: "@polkadot/api-augment@npm:10.11.1"
@@ -24139,6 +24149,7 @@ __metadata:
   dependencies:
     "@babel/cli": ^7.19.3
     "@babel/core": ^7.19.3
+    "@phosphor-icons/react": ^2.1.5
     "@polkadot/dev": ^0.65.23
     "@types/jest": ^29.5.0
     "@types/node": ^17.0.10
