@@ -7,7 +7,7 @@ import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/const
 import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId } from '@subwallet/extension-base/services/chain-service/utils';
-import { BalanceItem } from '@subwallet/extension-base/types';
+import { BalanceItem, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 
@@ -135,8 +135,14 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
       await getInscriptionUtxos(bitcoinApi, address)
     ]);
 
+    let filteredUtxos: UtxoResponseItem[];
+
+    if (!utxos || !utxos.length) {
+      return [];
+    }
+
     // filter out pending utxos
-    let filteredUtxos = filterOutPendingTxsUtxos(utxos);
+    filteredUtxos = filterOutPendingTxsUtxos(utxos);
 
     // filter out rune utxos
     filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
