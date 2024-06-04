@@ -23,6 +23,19 @@ export interface DetermineUtxosForSpendArgs {
   utxos: UtxoResponseItem[];
 }
 
+interface DetermineUtxosOutput {
+  value: number;
+  address?: string;
+}
+
+export interface DetermineUtxosForSpendResult {
+  filteredUtxos: UtxoResponseItem[];
+  inputs: UtxoResponseItem[];
+  outputs: DetermineUtxosOutput[],
+  size: number;
+  fee: number;
+}
+
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/coinselect/local-coin-selection.ts
 export class InsufficientFundsError extends Error {
   constructor () {
