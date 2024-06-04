@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
+import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
@@ -21,7 +22,8 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
     super(context);
 
-    this.baseUrl = url;
+    // this.baseUrl = url;
+    this.baseUrl = 'https://api.openbit.app'; // update on chainlist when enough API
 
     this.getBlockTime()
       .then((rs) => {
@@ -31,6 +33,11 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
       });
   }
+
+  private headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${_BEAR_TOKEN}`
+  };
 
   isRateLimited (): boolean {
     return false;
@@ -42,7 +49,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getBlockTime (): Promise<number> {
     return this.addRequest<number>(async () => {
-      const rs = await getRequest(this.getUrl('blocks'));
+      const rs = await getRequest(this.getUrl('blocks'), undefined, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getBlockTime', await rs.text());
@@ -59,7 +66,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`address/${address}`));
+      const rs = await getRequest(this.getUrl(`address/${address}`), undefined, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getAddressSummaryInfo', await rs.text());
@@ -71,9 +78,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getAddressTransaction (address: string, limit = 100): Promise<BitcoinTx[]> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`address/${address}/txs`), {
-        limit: `${limit}`
-      });
+      const rs = await getRequest(this.getUrl(`address/${address}/txs`), { limit: `${limit}` }, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getAddressTransaction', await rs.text());
@@ -85,7 +90,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getTransactionStatus (txHash: string): Promise<boolean> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`tx/${txHash}/status`));
+      const rs = await getRequest(this.getUrl(`tx/${txHash}/status`), undefined, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', await rs.text());
@@ -99,7 +104,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getFeeRate (): Promise<BitcoinFeeInfo> {
     return this.addRequest<BitcoinFeeInfo>(async (): Promise<BitcoinFeeInfo> => {
-      const rs = await getRequest(this.getUrl('fee-estimates'));
+      const rs = await getRequest(this.getUrl('fee-estimates'), undefined, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getFeeRate', await rs.text());
@@ -122,7 +127,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getUtxos (address: string): Promise<UtxoResponseItem[]> {
     return this.addRequest<UtxoResponseItem[]>(async (): Promise<UtxoResponseItem[]> => {
-      const rs = await getRequest(this.getUrl(`address/${address}/utxo`));
+      const rs = await getRequest(this.getUrl(`address/${address}/utxo`), undefined, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getUtxos', await rs.text());
@@ -306,7 +311,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getTxHex (txHash: string): Promise<string> {
     return this.addRequest<string>(async (): Promise<string> => {
-      const rs = await getRequest(this.getUrl(`tx/${txHash}/hex`));
+      const rs = await getRequest(this.getUrl(`tx/${txHash}/hex`), undefined, this.headers);
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getTxHex', await rs.text());

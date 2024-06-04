@@ -7,7 +7,7 @@ import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-r
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const HIRO_ENDPOINT = 'https://ordinals-api.openbit.app/ordinals/v1';
+const OPENBIT_URL = 'https://api.openbit.app';
 
 export class HiroService extends BaseApiRequestStrategy {
   private constructor () {
@@ -22,7 +22,7 @@ export class HiroService extends BaseApiRequestStrategy {
 
   getUrl (isTestnet: boolean, path: string): string {
     if (!isTestnet) {
-      return `${HIRO_ENDPOINT}/${path}`;
+      return `${OPENBIT_URL}/${path}`;
     } else {
       // todo: update testnet url
       return '';
@@ -31,7 +31,7 @@ export class HiroService extends BaseApiRequestStrategy {
 
   getBRC20Metadata (ticker: string, isTestnet = false): Promise<Brc20MetadataFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `brc-20/tokens/${ticker}`);
+      const url = this.getUrl(isTestnet, `brc-20/tokens/${ticker}`); // missing api
 
       const rs = await getRequest(url);
 

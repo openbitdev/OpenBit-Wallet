@@ -7,7 +7,8 @@ import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-r
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz';
+const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz'; // todo: need update later
+// const OPENBIT_URL = 'https://api.openbit.app';
 
 export class RunesService extends BaseApiRequestStrategy {
   private constructor () {
