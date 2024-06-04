@@ -5,6 +5,8 @@ import { DefaultLogosMap } from '@subwallet/extension-koni-ui/assets/logo';
 
 const SwLogosMap: Record<string, string> = {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  openbit: require('./openbit.png'),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   subwallet: require('./subwallet.png'),
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   avatar_placeholder: require('./avatar_placeholder.png'),

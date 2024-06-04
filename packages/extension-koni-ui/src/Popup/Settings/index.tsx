@@ -140,37 +140,37 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         }
       ]
     },
-    // {
-    //   key: 'website-access',
-    //   label: t('Website access'),
-    //   items: [
-    //     {
-    //       key: 'manage-website-access',
-    //       leftIcon: GlobeHemisphereEast,
-    //       leftIconBgColor: token['blue-7'],
-    //       rightIcon: CaretRight,
-    //       title: t('Manage website access'),
-    //       onClick: () => {
-    //         navigate('/settings/dapp-access');
-    //       }
-    //     },
-    //     {
-    //       key: 'wallet-connect',
-    //       leftIcon: (
-    //         <WalletConnect
-    //           height='1em'
-    //           width='1em'
-    //         />
-    //       ),
-    //       leftIconBgColor: token['geekblue-6'],
-    //       rightIcon: CaretRight,
-    //       title: t('WalletConnect'),
-    //       onClick: () => {
-    //         navigate('/wallet-connect/list');
-    //       }
-    //     }
-    //   ]
-    // },
+    {
+      key: 'website-access',
+      label: t('Website access'),
+      items: [
+        {
+          key: 'manage-website-access',
+          leftIcon: GlobeHemisphereEast,
+          leftIconBgColor: token['blue-7'],
+          rightIcon: CaretRight,
+          title: t('Manage website access'),
+          onClick: () => {
+            navigate('/settings/dapp-access');
+          }
+        }
+        // {
+        //   key: 'wallet-connect',
+        //   leftIcon: (
+        //     <WalletConnect
+        //       height='1em'
+        //       width='1em'
+        //     />
+        //   ),
+        //   leftIconBgColor: token['geekblue-6'],
+        //   rightIcon: CaretRight,
+        //   title: t('WalletConnect'),
+        //   onClick: () => {
+        //     navigate('/wallet-connect/list');
+        //   }
+        // }
+      ]
+    },
     {
       key: 'assets-&-addresses',
       label: t('Assets & addresses'),
@@ -246,7 +246,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     //           className='__subwallet-logo'
     //           height={24}
     //           shape='squircle'
-    //           src={DefaultLogosMap.subwallet}
+    //           src={DefaultLogosMap.openbit}
     //           width={24}
     //         />
     //       ),

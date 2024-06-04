@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const DefaultLogosMap: Record<string, string> = {
+  openbit: './images/openbit/logo.png',
   subwallet: './images/projects/subwallet.png',
   parity: './images/projects/parity.png',
   keystone: './images/projects/keystone.png',

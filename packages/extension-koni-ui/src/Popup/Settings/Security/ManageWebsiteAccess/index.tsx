@@ -100,6 +100,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [t]);
 
   const websiteAccessItems = useMemo<AuthUrlInfo[]>(() => {
+    console.log('authUrlMap', authUrlMap);
+
     return getWebsiteItems(authUrlMap);
   }, [authUrlMap]);
 

@@ -3,7 +3,7 @@
 
 import { ping } from '@subwallet/extension-koni-ui/messaging';
 import { persistor, store, StoreName } from '@subwallet/extension-koni-ui/stores';
-import { getLogoMaps, subscribeAccountProxiesData, subscribeAddressBook, subscribeAssetRegistry, subscribeAssetSettings, subscribeAuthorizeRequests, subscribeBalance, subscribeBitcoinConfirmationRequests, subscribeBuyServices, subscribeBuyTokens, subscribeChainInfoMap, subscribeChainStakingMetadata, subscribeChainStateMap, subscribeChainStatusMap, subscribeConfirmationRequests, subscribeConnectWCRequests, subscribeCrowdloan, subscribeKeyringState, subscribeMantaPayConfig, subscribeMantaPaySyncingState, subscribeMetadataRequests, subscribeMultiChainAssetMap, subscribeNftCollections, subscribeNftItems, subscribePrice, subscribeProcessingCampaign, subscribeSigningRequests, subscribeStaking, subscribeStakingNominatorMetadata, subscribeStakingReward, subscribeTransactionRequests, subscribeTxHistory, subscribeUiSettings, subscribeWalletConnectSessions, subscribeWCNotSupportRequests, subscribeXcmRefMap } from '@subwallet/extension-koni-ui/stores/utils';
+import { getLogoMaps, subscribeAccountProxiesData, subscribeAddressBook, subscribeAssetRegistry, subscribeAssetSettings, subscribeAuthorizeRequests, subscribeAuthUrls, subscribeBalance, subscribeBitcoinConfirmationRequests, subscribeBuyServices, subscribeBuyTokens, subscribeChainInfoMap, subscribeChainStakingMetadata, subscribeChainStateMap, subscribeChainStatusMap, subscribeConfirmationRequests, subscribeConnectWCRequests, subscribeCrowdloan, subscribeKeyringState, subscribeMantaPayConfig, subscribeMantaPaySyncingState, subscribeMetadataRequests, subscribeMultiChainAssetMap, subscribeNftCollections, subscribeNftItems, subscribePrice, subscribeProcessingCampaign, subscribeSigningRequests, subscribeStaking, subscribeStakingNominatorMetadata, subscribeStakingReward, subscribeTransactionRequests, subscribeTxHistory, subscribeUiSettings, subscribeWalletConnectSessions, subscribeWCNotSupportRequests, subscribeXcmRefMap } from '@subwallet/extension-koni-ui/stores/utils';
 import Bowser from 'bowser';
 import React from 'react';
 import { Provider } from 'react-redux';
@@ -220,8 +220,7 @@ export const DataContextProvider = ({ children }: DataContextProviderProps) => {
   // Settings
   _DataContext.addHandler({ ...subscribeUiSettings, name: 'subscribeUiSettings', relatedStores: ['settings'], isStartImmediately: true });
   _DataContext.addHandler({ ...getLogoMaps, name: 'getLogoMaps', relatedStores: ['settings'], isStartImmediately: true });
-  // todo: will add later, after supporting connect dApp
-  // _DataContext.addHandler({ ...subscribeAuthUrls, name: 'subscribeAuthUrls', relatedStores: ['settings'], isStartImmediately: true });
+  _DataContext.addHandler({ ...subscribeAuthUrls, name: 'subscribeAuthUrls', relatedStores: ['settings'], isStartImmediately: true });
 
   // Confirmations
   _DataContext.addHandler({ ...subscribeAuthorizeRequests, name: 'subscribeAuthorizeRequests', relatedStores: ['requestState'], isStartImmediately: true });
