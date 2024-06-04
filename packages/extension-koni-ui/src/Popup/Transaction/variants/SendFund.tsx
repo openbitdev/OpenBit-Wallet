@@ -487,6 +487,14 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     return false;
   }, [chainInfoMap, chainValue, fromValue]);
 
+  const onSelectTransactionFeeInfo = useCallback((value: TransactionFee | undefined) => {
+    if (value) {
+      setForceUpdateMaxValue(isTransferAll ? {} : undefined);
+    }
+
+    setTransactionFeeInfo(value);
+  }, [isTransferAll]);
+
   // TODO: Need to review
   // Auto fill logic
   useEffect(() => {
@@ -570,7 +578,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption, transferAmountValue, isTransferAll]);
+  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo, transferAmountValue, isTransferAll]);
 
   const accountsFilter = useCallback((account: AccountJson) => {
     if (fromProxyId) {
@@ -762,7 +770,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               className={'__bitcoin-fee-selector'}
               feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
               isLoading={isFetchingInfo}
-              onSelect={setTransactionFeeInfo}
+              onSelect={onSelectTransactionFeeInfo}
               resetTrigger={feeResetTrigger}
               tokenSlug={assetValue}
             />
