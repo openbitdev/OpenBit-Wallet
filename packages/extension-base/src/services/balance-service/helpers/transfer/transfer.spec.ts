@@ -43,6 +43,8 @@ const sortAsc = (a: UtxoResponseItem, b: UtxoResponseItem) => a.value - b.value;
 const to = 'tb1qutykdlta72j3k4r9m9ng54hgwdrkgjfr5hhckf';
 const sender = 'tb1q4vgvwexhn745qn404thq6a8mua3un899n2rhrl';
 
+const accountUtxo = [1000, 1000, 1000, 1000, 1000, 1000, 2990, 3245, 3990, 3990, 4990, 5765, 10000, 11149, 12082, 13808, 15928]
+
 describe('bitcoin utxo', () => {
   const fitlerUtxoTestcases: TestCase[] = [
     {
@@ -120,6 +122,21 @@ describe('bitcoin utxo', () => {
         maxTransfer: 0
       }
     },
+    {
+      input:{
+        utxos: accountUtxo,
+        feeRate: 121,
+        isTransferAll: true,
+        transferAmount: 0
+      },
+      output: {
+        utxos: [10000, 11149, 12082, 13808,15928],
+        vSize: 380.5,
+        fee: 46041,
+        amountLeft: 0,
+        maxTransfer: 0
+      }
+    }
   ];
   test.each(fitlerUtxoTestcases)('filter utxo %j', (testCase) => {
     const { input, output } = testCase;
@@ -205,9 +222,24 @@ describe('bitcoin utxo', () => {
         amountLeft: 0,
         maxTransfer: 0
       }
+    },
+    {
+      input:{
+        utxos: accountUtxo,
+        feeRate: 121,
+        isTransferAll: true,
+        transferAmount: 0
+      },
+      output: {
+        utxos: [10000, 11149, 12082, 13808,15928],
+        vSize: 380.5,
+        fee: 46041,
+        amountLeft: 0,
+        maxTransfer: 16926
+      }
     }
   ];
-  test.each(determineSendAllTestCases)('determine utxo for spend all %#', (testCase) => {
+  test.each(determineSendAllTestCases)('determine utxo for spend all %j', (testCase) => {
     const { input, output } = testCase;
 
     const determineUtxosArgs: DetermineUtxosForSpendArgs = {
@@ -346,9 +378,68 @@ describe('bitcoin utxo', () => {
         maxTransfer: 0
       }
     },
-
+    {
+      input:{
+        utxos: accountUtxo,
+        feeRate: 121,
+        isTransferAll: false,
+        transferAmount: 3000
+      },
+      output: {
+        utxos: [13808,15928],
+        vSize: 208.25,
+        fee: 25199,
+        amountLeft: 1537,
+        maxTransfer: 0
+      }
+    },
+    {
+      input:{
+        utxos: accountUtxo,
+        feeRate: 500,
+        isTransferAll: false,
+        transferAmount: 3000
+      },
+      output: {
+        utxos: [],
+        vSize: 72.75,
+        fee: 36375,
+        amountLeft: 0,
+        maxTransfer: 0
+      }
+    },
+    {
+      input:{
+        utxos: accountUtxo,
+        feeRate: 121,
+        isTransferAll: false,
+        transferAmount: 13175
+      },
+      output: {
+        utxos: [],
+        vSize: 72.75,
+        fee: 8803,
+        amountLeft: 0,
+        maxTransfer: 0
+      }
+    },
+    {
+      input:{
+        utxos: accountUtxo,
+        feeRate: 121,
+        isTransferAll: false,
+        transferAmount: 15175
+      },
+      output: {
+        utxos: [],
+        vSize: 72.75,
+        fee: 8803,
+        amountLeft: 0,
+        maxTransfer: 0
+      }
+    }
   ];
-  test.each(determineSendAmountTestcase)('determine utxo for spend amount %#', (testCase) => {
+  test.each(determineSendAmountTestcase)('determine utxo for spend amount %j', (testCase) => {
     const { input, output } = testCase;
 
     const determineUtxosArgs: DetermineUtxosForSpendArgs = {

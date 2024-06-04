@@ -1980,29 +1980,33 @@ export default class KoniExtension {
         }
       }
 
-      const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey: chain, token: tokenSlug });
+      // Split logic if the chain is not compatible with Bitcoin
+      if (!_isChainBitcoinCompatible(chainInfo)) {
+        const { value: receiverBalance } = await this.getAddressFreeBalance({ address: to, networkKey: chain, token: tokenSlug });
 
-      // Check ed for receiver
-      if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
-        const atLeast = new BigN(minAmount).minus(receiverBalance).plus((tokenInfo.decimals || 0) === 0 ? 0 : 1);
+        // Check ed for receiver
+        if (new BigN(receiverBalance).plus(transferAmount.value).lt(minAmount)) {
+          const atLeast = new BigN(minAmount).minus(receiverBalance).plus((tokenInfo.decimals || 0) === 0 ? 0 : 1);
 
-        const atLeastStr = formatNumber(atLeast, tokenInfo.decimals || 0, balanceFormatter, { maxNumberFormat: tokenInfo.decimals || 6 });
-
-        inputTransaction.errors.push(new TransactionError(TransferTxErrorType.RECEIVER_NOT_ENOUGH_EXISTENTIAL_DEPOSIT, t('You must transfer at least {{amount}} {{symbol}} to keep the destination account alive', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
-      }
-
-      /**
-       * TODO: Add handler for rune and brc-20 token after
-       */
-      if (_isChainBitcoinCompatible(chainInfo) && isTransferNativeToken) {
-        const recipientInfo = validateBitcoinAddress(to) ? getBitcoinAddressInfo(to) : null;
-        const inputAddressTypeWithFallback = recipientInfo ? recipientInfo.type : BitcoinAddressType.p2wpkh;
-        const atLeast = BTC_DUST_AMOUNT[inputAddressTypeWithFallback];
-
-        if (new BigN(transferAmount.value).lt(atLeast)) {
           const atLeastStr = formatNumber(atLeast, tokenInfo.decimals || 0, balanceFormatter, { maxNumberFormat: tokenInfo.decimals || 6 });
 
-          inputTransaction.errors.push(new TransactionError(TransferTxErrorType.NOT_ENOUGH_VALUE, t('You must transfer at least {{amount}} {{symbol}}', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
+          inputTransaction.errors.push(new TransactionError(TransferTxErrorType.RECEIVER_NOT_ENOUGH_EXISTENTIAL_DEPOSIT, t('You must transfer at least {{amount}} {{symbol}} to keep the destination account alive', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
+        }
+      } else {
+        /**
+         * TODO: Add handler for rune and brc-20 token after
+         */
+        if (isTransferNativeToken) {
+          const recipientInfo = validateBitcoinAddress(to) ? getBitcoinAddressInfo(to) : null;
+          const inputAddressTypeWithFallback = recipientInfo ? recipientInfo.type : BitcoinAddressType.p2wpkh;
+          const atLeast = BTC_DUST_AMOUNT[inputAddressTypeWithFallback];
+
+          if (new BigN(transferAmount.value).lt(atLeast)) {
+            const maxDisplay = tokenInfo.decimals || 6;
+            const atLeastStr = formatNumber(atLeast, tokenInfo.decimals || 0, balanceFormatter, { maxNumberFormat: maxDisplay, minNumberFormat: maxDisplay });
+
+            inputTransaction.errors.push(new TransactionError(TransferTxErrorType.NOT_ENOUGH_VALUE, t('You must transfer at least {{amount}} {{symbol}}', { replace: { amount: atLeastStr, symbol: tokenInfo.symbol } })));
+          }
         }
       }
     };
