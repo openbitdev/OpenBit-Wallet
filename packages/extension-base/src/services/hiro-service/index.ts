@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
+import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
 import { Brc20BalanceFetchedData, Brc20MetadataFetchedData, InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
@@ -15,6 +17,11 @@ export class HiroService extends BaseApiRequestStrategy {
 
     super(context);
   }
+
+  private headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${_BEAR_TOKEN}`
+  };
 
   isRateLimited (): boolean {
     return false;
@@ -31,41 +38,40 @@ export class HiroService extends BaseApiRequestStrategy {
 
   getBRC20Metadata (ticker: string, isTestnet = false): Promise<Brc20MetadataFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `brc-20/tokens/${ticker}`); // missing api
+      const _rs = await getRequest(this.getUrl(isTestnet, `brc-20/tokens/${ticker}`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<Brc20MetadataFetchedData>;
 
-      const rs = await getRequest(url);
-
-      if (rs.status !== 200) {
-        throw new SWError('HiroService.getBRC20Metadata', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('HiroService.getBRC20Metadata', rs.message);
       }
 
-      return (await rs.json()) as Brc20MetadataFetchedData;
+      return rs.result;
     }, 0);
   }
 
   getAddressBRC20BalanceInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<Brc20BalanceFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `brc-20/balances/${address}`);
-      const rs = await getRequest(url, params);
+      const _rs = await getRequest(this.getUrl(isTestnet, `brc-20/balances/${address}`), params, this.headers);
+      const rs = await _rs.json() as OBResponse<Brc20BalanceFetchedData>;
 
-      if (rs.status !== 200) {
-        throw new SWError('HiroService.getAddressBRC20BalanceInfo', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('HiroService.getAddressBRC20BalanceInfo', rs.message);
       }
 
-      return (await rs.json()) as Brc20BalanceFetchedData;
+      return rs.result;
     }, 0);
   }
 
   getAddressInscriptionsInfo (params: Record<string, string>, isTestnet = false): Promise<InscriptionFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, 'inscriptions');
-      const rs = await getRequest(url, params);
+      const _rs = await getRequest(this.getUrl(isTestnet, 'inscriptions'), params, this.headers);
+      const rs = await _rs.json() as OBResponse<InscriptionFetchedData>;
 
-      if (rs.status !== 200) {
-        throw new SWError('HiroService.getAddressInscriptionsInfo', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('HiroService.getAddressInscriptionsInfo', rs.message);
       }
 
-      return (await rs.json()) as InscriptionFetchedData;
+      return rs.result;
     }, 0);
   }
 
