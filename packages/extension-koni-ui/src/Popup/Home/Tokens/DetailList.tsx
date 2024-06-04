@@ -61,6 +61,7 @@ function Component (): React.ReactElement {
   const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const accounts = useSelector((state: RootState) => state.accountState.accounts);
   const { tokens } = useSelector((state: RootState) => state.buyService);
+  const assetRegistry = useSelector((root) => root.assetRegistry.assetRegistry);
   const [, setStorage] = useLocalStorage(TRANSFER_TRANSACTION, DEFAULT_TRANSFER_PARAMS);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,6 +116,35 @@ function Component (): React.ReactElement {
 
     return result;
   }, [accounts, currentAccount?.address, tokenGroupMap, tokenGroupSlug, tokens]);
+
+  const tokenLists = useMemo(() => {
+    const slug = tokenGroupSlug || '';
+    const isSetTokenSlug = !!tokenGroupSlug && !!assetRegistry[tokenGroupSlug];
+    const isSetMultiChainAssetSlug = !!tokenGroupSlug && !!multiChainAssetMap[tokenGroupSlug];
+
+    if (slug) {
+      if (!(isSetTokenSlug || isSetMultiChainAssetSlug)) {
+        return [];
+      }
+
+      const chainAsset = assetRegistry[tokenGroupSlug] || multiChainAssetMap[tokenGroupSlug];
+
+      if (!!chainAsset && (chainAsset.assetType !== 'RUNE' && chainAsset.assetType !== 'BRC20')) {
+        const { name, originChain, slug, symbol } = chainAsset;
+
+        return [
+          {
+            name,
+            slug,
+            symbol,
+            originChain
+          }
+        ];
+      }
+    }
+
+    return [];
+  }, [assetRegistry, multiChainAssetMap, tokenGroupSlug]);
 
   const tokenBalanceValue = useMemo<SwNumberProps['value']>(() => {
     if (tokenGroupSlug) {
@@ -312,6 +342,7 @@ function Component (): React.ReactElement {
           className={'__static-block'}
           isShrink={isShrink}
           isSupportBuyTokens={!!buyInfos.length}
+          isSupportSendFund={!!tokenLists.length}
           onClickBack={goHome}
           onOpenBuyTokens={onOpenBuyTokens}
           onOpenReceive={onOpenReceive}
