@@ -103,5 +103,11 @@ export const staticDataRaw = {
     '\n' +
     'If you have any questions, concerns, or complaints regarding this Agreement, we encourage you to contact us using the details below:\n' +
     '\n' +
-    '**Email:** [**agent@openbit.app**](mailto:agent@openbit.app)\n'
+    '**Email:** [**agent@openbit.app**](mailto:agent@openbit.app)\n',
+
+  beta: 'You’re using the beta version of OpenBit which is in the process of being tested before its official release. Please read the following carefully:\n' +
+    '\n' +
+    '1. The OpenBit browser extension, all content, and all functionalities found on it are provided on an “as is” and “as available” basis without any warranty of any kind. OpenBit does not give any warranties, whether expressed, implied, statutory, or otherwise, as to the suitability or usability of the browser extension or any of its content.\n' +
+    '2. OpenBit will not be liable for any loss, whether such loss is direct, indirect, special, or consequential, suffered by any party as a result of their use of the OpenBit browser extension, its content, and its functionalities. Any action is done at your own risk. We recommend restricting your use of mainnets with this version.\n' +
+    '3. Should you encounter any bugs, glitches, lack of functionality, or other problems with the beta application, please email us at agent@openbit.app. We appreciate your comments, suggestions, and feedback.'
 };
