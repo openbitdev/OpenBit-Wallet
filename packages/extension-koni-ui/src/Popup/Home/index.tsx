@@ -81,8 +81,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   useEffect(() => {
     if (isConfirmedDisclaimer.includes('nonConfirmed')) {
       activeModal(TERM_AND_CONDITION_DISCLAIMER_MODAL);
+    } else if (isConfirmedDisclaimer.includes('confirmed')) {
+      inactiveModal(TERM_AND_CONDITION_DISCLAIMER_MODAL);
     }
-  }, [activeModal, isConfirmedDisclaimer]);
+  }, [activeModal, inactiveModal, isConfirmedDisclaimer]);
 
   return (
     <>
