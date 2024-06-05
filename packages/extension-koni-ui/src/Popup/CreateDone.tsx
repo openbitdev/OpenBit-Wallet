@@ -7,12 +7,13 @@ import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Icon, ModalContext, PageIcon } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { ArrowCircleRight, CheckCircle, X } from 'phosphor-react';
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { Layout, SocialButtonGroup } from '../components';
+import useDefaultNavigate from '../hooks/router/useDefaultNavigate';
 
 type Props = ThemeProps;
 
@@ -22,6 +23,15 @@ const Component: React.FC<Props> = (props: Props) => {
   const [isConfirmedDisclaimer, setIsConfirmedDisclaimer] = useLocalStorage(CONFIRM_DISCLAIMER, 'nonConfirmed');
 
   const { t } = useTranslation();
+  const { goHome } = useDefaultNavigate();
+
+  const isShowDisclaimerModal = useMemo(() => {
+    if (isConfirmedDisclaimer.includes('nonConfirmed')) {
+      return true;
+    }
+
+    return false;
+  }, [isConfirmedDisclaimer]);
 
   const onClickGoHome = useCallback(() => {
     if (isConfirmedDisclaimer.includes('nonConfirmed')) {
@@ -36,7 +46,7 @@ const Component: React.FC<Props> = (props: Props) => {
     <Layout.WithSubHeaderOnly
       rightFooterButton={{
         children: t('Go to home'),
-        onClick: onClickGoHome,
+        onClick: isShowDisclaimerModal ? onClickGoHome : goHome,
         icon: <Icon
           phosphorIcon={ArrowCircleRight}
           weight={'fill'}

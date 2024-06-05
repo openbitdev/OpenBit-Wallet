@@ -4,8 +4,9 @@
 import { CampaignBanner } from '@subwallet/extension-base/background/KoniTypes';
 import { CampaignBannerModal, Layout } from '@subwallet/extension-koni-ui/components';
 import { GlobalSearchTokenModal } from '@subwallet/extension-koni-ui/components/Modal/GlobalSearchTokenModal';
+import { DisclaimerModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/DisclaimerModal';
 import { GeneralTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/GeneralTermModal';
-import { CONFIRM_GENERAL_TERM, EARNING_MIGRATION_ANNOUNCEMENT, GENERAL_TERM_AND_CONDITION_MODAL, HOME_CAMPAIGN_BANNER_MODAL } from '@subwallet/extension-koni-ui/constants';
+import { CONFIRM_DISCLAIMER, CONFIRM_GENERAL_TERM, EARNING_MIGRATION_ANNOUNCEMENT, GENERAL_TERM_AND_CONDITION_MODAL, HOME_CAMPAIGN_BANNER_MODAL, TERM_AND_CONDITION_DISCLAIMER_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { HomeContext } from '@subwallet/extension-koni-ui/contexts/screen/HomeContext';
 import { useAccountProxyBalance, useGetBannerByScreen, useGetMantaPayConfig, useHandleMantaPaySync, useTokenGroup } from '@subwallet/extension-koni-ui/hooks';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
@@ -28,6 +29,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
   const [isConfirmedTermGeneral, setIsConfirmedTermGeneral] = useLocalStorage(CONFIRM_GENERAL_TERM, 'nonConfirmed');
+  const [isConfirmedDisclaimer, setIsConfirmedDisclaimer] = useLocalStorage(CONFIRM_DISCLAIMER, 'nonConfirmed');
   const [isReadEarningMigrationAnnouncement] = useLocalStorage<boolean>(EARNING_MIGRATION_ANNOUNCEMENT, false);
   const isReadEarningMigrationAnnouncementRef = useRef(isReadEarningMigrationAnnouncement);
 
@@ -51,6 +53,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     setIsConfirmedTermGeneral('confirmed');
   }, [setIsConfirmedTermGeneral]);
 
+  const onAfterConfirmDisclaimerModal = useCallback(() => {
+    setIsConfirmedDisclaimer('confirmed');
+  }, [setIsConfirmedDisclaimer]);
+
   useEffect(() => {
     if (mantaPayConfig && mantaPayConfig.enabled && !mantaPayConfig.isInitialSync && !isZkModeSyncing) {
       handleMantaPaySync(mantaPayConfig.address);
@@ -70,7 +76,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     if (isConfirmedTermGeneral.includes('nonConfirmed')) {
       activeModal(GENERAL_TERM_AND_CONDITION_MODAL);
     }
-  }, [activeModal, isConfirmedTermGeneral, setIsConfirmedTermGeneral]);
+  }, [activeModal, isConfirmedTermGeneral]);
+
+  useEffect(() => {
+    if (isConfirmedDisclaimer.includes('nonConfirmed')) {
+      activeModal(TERM_AND_CONDITION_DISCLAIMER_MODAL);
+    }
+  }, [activeModal, isConfirmedDisclaimer]);
 
   return (
     <>
@@ -87,6 +99,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           >
             <Outlet />
             <GeneralTermModal onOk={onAfterConfirmTermModal} />
+            <DisclaimerModal onOk={onAfterConfirmDisclaimerModal} />
           </Layout.Home>
         </div>
       </HomeContext.Provider>
