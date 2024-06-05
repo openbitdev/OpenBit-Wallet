@@ -15,6 +15,7 @@ export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest
   getAddressInscriptions (address: string): Promise<Inscription[]>
   getAddressTransaction (address: string, limit?: number): Promise<BitcoinTx[]>;
   getTransactionStatus (txHash: string): Promise<boolean>;
+  getTransactionDetail (txHash: string): Promise<BitcoinTx>;
   getFeeRate (): Promise<BitcoinFeeInfo>;
   getUtxos (address: string): Promise<UtxoResponseItem[]>;
   getTxHex (txHash: string): Promise<string>;

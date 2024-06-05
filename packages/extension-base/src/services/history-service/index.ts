@@ -241,6 +241,7 @@ export class HistoryService implements StoppableServiceInterface, PersistDataSer
 
       switch (recoverResult.status) {
         case HistoryRecoverStatus.API_INACTIVE:
+        case HistoryRecoverStatus.TX_PENDING:
           break;
         case HistoryRecoverStatus.FAILED:
         case HistoryRecoverStatus.SUCCESS:

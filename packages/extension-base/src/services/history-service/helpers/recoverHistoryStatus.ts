@@ -14,7 +14,8 @@ export enum HistoryRecoverStatus {
   API_INACTIVE = 'API_INACTIVE',
   LACK_INFO = 'LACK_INFO',
   FAIL_DETECT = 'FAIL_DETECT',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
+  TX_PENDING = 'TX_PENDING',
 }
 
 export interface TransactionRecoverResult {
@@ -206,9 +207,14 @@ const bitcoinRecover = async (history: TransactionHistoryItem, chainService: Cha
       const api = bitcoinApi.api;
 
       if (extrinsicHash) {
-        const transactionConfirmed = await api.getTransactionStatus(extrinsicHash);
+        try {
+          const transactionConfirmed = await api.getTransactionDetail(extrinsicHash);
 
-        return { ...result, status: transactionConfirmed ? HistoryRecoverStatus.SUCCESS : HistoryRecoverStatus.FAILED };
+          return { ...result, status: transactionConfirmed ? HistoryRecoverStatus.SUCCESS : HistoryRecoverStatus.TX_PENDING };
+        } catch (e) {
+          // Fail when cannot find transaction
+          return { ...result, status: HistoryRecoverStatus.FAILED };
+        }
       }
 
       return { status: HistoryRecoverStatus.FAIL_DETECT };
