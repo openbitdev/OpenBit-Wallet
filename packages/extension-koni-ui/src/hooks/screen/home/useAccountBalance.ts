@@ -74,7 +74,7 @@ export function getDefaultTokenGroupBalance (
     const asset = assetRegistryMap[tokenGroupKey];
 
     symbol = _getAssetSymbol(asset);
-    logoKey = asset.metadata?.runeId ? 'rune' : asset.slug;
+    logoKey = asset.metadata?.runeId && !asset.icon ? 'rune' : asset.slug;
   }
 
   return getDefaultBalanceItem(tokenGroupKey, symbol, logoKey.toLowerCase());
@@ -86,7 +86,7 @@ export function getDefaultTokenBalance (
 ): TokenBalanceItemType {
   const symbol = _getAssetSymbol(chainAsset);
 
-  return getDefaultBalanceItem(tokenSlug, symbol, chainAsset.metadata?.runeId ? 'rune' : chainAsset.slug.toLowerCase());
+  return getDefaultBalanceItem(tokenSlug, symbol, chainAsset.metadata?.runeId && !chainAsset.icon ? 'rune' : chainAsset.slug.toLowerCase());
 }
 
 function getAccountBalance (

@@ -39,7 +39,7 @@ const Component: React.FC<Props> = (props: Props) => {
       isShowSubLogo={true}
       key={tokenInfo.slug}
       leftItem={
-        tokenInfo.metadata?.runeId
+        tokenInfo.metadata?.runeId && !tokenInfo.icon
           ? (
             <Logo
               isShowSubLogo
