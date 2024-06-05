@@ -460,6 +460,7 @@ export default class TransactionService {
       status: transaction.status,
       transactionId: transaction.id,
       extrinsicHash: transaction.extrinsicHash,
+      blockTime: undefined,
       time: transaction.createdAt,
       fee: transaction.estimateFee,
       blockNumber: 0, // Will be added in next step
@@ -1046,7 +1047,10 @@ export default class TransactionService {
               emitter.emit('extrinsicHash', eventData);
             });
 
-            event.on('success', () => {
+            event.on('success', (transactionStatus) => {
+              eventData.blockHash = transactionStatus.block_hash || undefined;
+              eventData.blockNumber = transactionStatus.block_height || undefined;
+              eventData.blockTime = transactionStatus.block_time || undefined;
               emitter.emit('success', eventData);
             });
 

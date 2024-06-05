@@ -44,6 +44,11 @@ const Component: React.FC<Props> = (props: Props) => {
       {isValidExtrinsicHash && <MetaInfo.Default label={t('Transaction id')}>{toShort(data.extrinsicHash, 8, 9)}</MetaInfo.Default>}
 
       {
+        !!data.blockTime && (
+          <MetaInfo.Default label={t('Block time')}>{formatHistoryDate(data.blockTime, language, 'detail')}</MetaInfo.Default>
+        )
+      }
+      {
         !!data.time && (
           <MetaInfo.Default label={t('Transaction time')}>{formatHistoryDate(data.time, language, 'detail')}</MetaInfo.Default>
         )

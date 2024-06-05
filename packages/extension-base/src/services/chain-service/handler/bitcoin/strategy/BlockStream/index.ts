@@ -83,17 +83,15 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }, 1);
   }
 
-  getTransactionStatus (txHash: string): Promise<boolean> {
-    return this.addRequest(async () => {
+  getTransactionStatus (txHash: string): Promise<BlockStreamTransactionStatus> {
+    return this.addRequest<BlockStreamTransactionStatus>(async () => {
       const rs = await getRequest(this.getUrl(`tx/${txHash}/status`));
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', await rs.text());
       }
 
-      const result = (await rs.json()) as BlockStreamTransactionStatus;
-
-      return result.confirmed;
+      return (await rs.json()) as BlockStreamTransactionStatus;
     }, 1);
   }
 
@@ -162,10 +160,10 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         // Check transaction status
         const interval = setInterval(() => {
           this.getTransactionStatus(value)
-            .then((confirmed) => {
-              if (confirmed) {
+            .then((transactionStatus) => {
+              if (transactionStatus.confirmed) {
                 clearInterval(interval);
-                eventEmitter.emit('success');
+                eventEmitter.emit('success', transactionStatus);
               }
             })
             .catch(console.error);

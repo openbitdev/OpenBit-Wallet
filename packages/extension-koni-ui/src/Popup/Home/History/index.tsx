@@ -64,7 +64,8 @@ function getIcon (item: TransactionHistoryItem): SwIconProps['phosphorIcon'] {
 
 function getDisplayData (item: TransactionHistoryItem, nameMap: Record<string, string>, titleMap: Record<string, string>): TransactionHistoryDisplayData {
   let displayData: TransactionHistoryDisplayData;
-  const time = customFormatDate(item.time, '#hhhh#:#mm#');
+  const displayTime = item.blockTime || item.time;
+  const time = customFormatDate(displayTime, '#hhhh#:#mm#');
 
   const displayStatus = item.status === ExtrinsicStatus.FAIL ? 'fail' : '';
 
@@ -353,13 +354,16 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     rawHistoryList.forEach((item: TransactionHistoryItem) => {
       // Format display name for account by address
-      const fromName = accountMap[item.from]?.name;
-      const fromProxyId = accountMap[item.from]?.proxyId;
-      const toName = accountMap[item.to]?.name;
-      const toProxyId = accountMap[item.to]?.proxyId;
+      const from = item.from.toLowerCase();
+      const fromName = accountMap[from]?.name;
+      const fromProxyId = accountMap[from]?.proxyId;
+      const to = item.to.toLowerCase();
+      const toName = accountMap[to]?.name;
+      const toProxyId = accountMap[to]?.proxyId;
       const key = getHistoryItemKey(item);
+      const displayTime = item.blockTime || item.time;
 
-      finalHistoryMap[key] = { ...item, fromName, fromProxyId, toName, toProxyId, displayData: getDisplayData(item, typeNameMap, typeTitleMap) };
+      finalHistoryMap[key] = { ...item, fromName, fromProxyId, toName, toProxyId, displayData: getDisplayData(item, typeNameMap, typeTitleMap), displayTime };
     });
 
     return finalHistoryMap;
@@ -464,12 +468,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     [onOpenDetail]
   );
 
-  const groupBy = useCallback((item: TransactionHistoryItem) => {
+  const groupBy = useCallback((item: TransactionHistoryDisplayItem) => {
     if (PROCESSING_STATUSES.includes(item.status)) {
       return t('Processing');
     }
 
-    return formatHistoryDate(item.time, language, 'list');
+    return formatHistoryDate(item.displayTime, language, 'list');
   }, [language, t]);
 
   const groupSeparator = useCallback((group: TransactionHistoryItem[], idx: number, groupLabel: string) => {

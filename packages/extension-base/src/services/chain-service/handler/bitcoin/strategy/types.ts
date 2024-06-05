@@ -3,7 +3,7 @@
 
 import { BitcoinAddressSummaryInfo, Brc20BalanceItem, Inscription, RunesInfoByAddress, RuneTxs } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { ApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy/types';
-import { BitcoinFeeInfo, BitcoinTx, UtxoResponseItem } from '@subwallet/extension-base/types';
+import { BitcoinFeeInfo, BitcoinTransactionStatus, BitcoinTx, UtxoResponseItem } from '@subwallet/extension-base/types';
 import EventEmitter from 'eventemitter3';
 
 export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest'> {
@@ -14,7 +14,7 @@ export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest
   getAddressBRC20FreeLockedBalance (address: string, ticker: string): Promise<Brc20BalanceItem>;
   getAddressInscriptions (address: string): Promise<Inscription[]>
   getAddressTransaction (address: string, limit?: number): Promise<BitcoinTx[]>;
-  getTransactionStatus (txHash: string): Promise<boolean>;
+  getTransactionStatus (txHash: string): Promise<BitcoinTransactionStatus>;
   getTransactionDetail (txHash: string): Promise<BitcoinTx>;
   getFeeRate (): Promise<BitcoinFeeInfo>;
   getUtxos (address: string): Promise<UtxoResponseItem[]>;
@@ -25,5 +25,5 @@ export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest
 export interface BitcoinTransactionEventMap {
   extrinsicHash: (txHash: string) => void;
   error: (error: string) => void;
-  success: () => void;
+  success: (data: BitcoinTransactionStatus) => void;
 }
