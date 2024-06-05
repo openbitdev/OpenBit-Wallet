@@ -342,7 +342,12 @@ function Component ({ className }: Props): React.ReactElement<Props> {
             weight={'bold'}
           />
         )}
-        title={t('Select account')}
+        title={
+          <div className={'__title-wrapper'}>
+            <div>{t('Select account')}</div>
+            <div className={'__beta-version'}>Beta version</div>
+          </div>
+        }
       />
 
       <ConnectWebsiteModal
@@ -463,6 +468,20 @@ const SelectAccount = styled(Component)<Props>(({ theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8
+    },
+
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
     },
 
     '.connect-icon': {

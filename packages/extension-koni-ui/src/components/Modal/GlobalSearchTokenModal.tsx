@@ -91,7 +91,12 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
       destroyOnClose={true}
       id={id}
       onCancel={onCancel}
-      title={t('Select token')}
+      title={
+        <div className={'__title-wrapper'}>
+          <div>{t('Select token')}</div>
+          <div className={'__beta-version'}>Beta version</div>
+        </div>
+      }
     >
       <SwList.Section
         displayRow
@@ -123,6 +128,20 @@ export const GlobalSearchTokenModal = styled(Component)<Props>(({ theme: { token
 
     '.ant-sw-list-search-input': {
       paddingBottom: token.paddingXS
+    },
+
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
     },
 
     '.ant-sw-list': {
