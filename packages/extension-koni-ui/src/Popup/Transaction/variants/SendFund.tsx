@@ -61,7 +61,7 @@ function getTokenItems (
 
     const chainAsset = assetRegistry[tokenGroupSlug];
 
-    if (isSetTokenSlug && chainAsset) {
+    if (isSetTokenSlug && chainAsset && (chainAsset.assetType !== 'RUNE' && chainAsset.assetType !== 'BRC20')) {
       const { name, originChain, slug, symbol } = chainAsset;
 
       return [
