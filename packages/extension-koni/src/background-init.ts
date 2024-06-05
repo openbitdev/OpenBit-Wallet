@@ -27,4 +27,4 @@ chrome.runtime.onInstalled.addListener(function (details) {
 });
 
 // Setup uninstall URL every background start
-chrome.runtime.setUninstallURL('https://slink.subwallet.app/uninstall-feedback');
+chrome.runtime.setUninstallURL('https://slink.subwallet.app/openbit-uninstall-feedback');
