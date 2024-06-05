@@ -1,52 +1,31 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { DisclaimerModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/DisclaimerModal';
-import { CONFIRM_DISCLAIMER, TERM_AND_CONDITION_DISCLAIMER_MODAL } from '@subwallet/extension-koni-ui/constants';
+import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Icon, ModalContext, PageIcon } from '@subwallet/react-ui';
+import { Icon, PageIcon } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { ArrowCircleRight, CheckCircle, X } from 'phosphor-react';
-import React, { useCallback, useContext, useMemo } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
-import { useLocalStorage } from 'usehooks-ts';
 
 import { Layout, SocialButtonGroup } from '../components';
-import useDefaultNavigate from '../hooks/router/useDefaultNavigate';
 
 type Props = ThemeProps;
 
 const Component: React.FC<Props> = (props: Props) => {
   const { className } = props;
-  const { activeModal } = useContext(ModalContext);
-  const [isConfirmedDisclaimer, setIsConfirmedDisclaimer] = useLocalStorage(CONFIRM_DISCLAIMER, 'nonConfirmed');
 
-  const { t } = useTranslation();
   const { goHome } = useDefaultNavigate();
 
-  const isShowDisclaimerModal = useMemo(() => {
-    if (isConfirmedDisclaimer.includes('nonConfirmed')) {
-      return true;
-    }
-
-    return false;
-  }, [isConfirmedDisclaimer]);
-
-  const onClickGoHome = useCallback(() => {
-    if (isConfirmedDisclaimer.includes('nonConfirmed')) {
-      activeModal(TERM_AND_CONDITION_DISCLAIMER_MODAL);
-    }
-  }, [activeModal, isConfirmedDisclaimer]);
-  const onAfterConfirmTermModal = useCallback(() => {
-    setIsConfirmedDisclaimer('confirmed');
-  }, [setIsConfirmedDisclaimer]);
+  const { t } = useTranslation();
 
   return (
     <Layout.WithSubHeaderOnly
       rightFooterButton={{
         children: t('Go to home'),
-        onClick: isShowDisclaimerModal ? onClickGoHome : goHome,
+        onClick: goHome,
         icon: <Icon
           phosphorIcon={ArrowCircleRight}
           weight={'fill'}
@@ -78,7 +57,6 @@ const Component: React.FC<Props> = (props: Props) => {
           {t('Follow along with product updates or reach out if you have any questions.')}
         </div>
         <SocialButtonGroup />
-        <DisclaimerModal onOk={onAfterConfirmTermModal} />
       </div>
     </Layout.WithSubHeaderOnly>
   );
