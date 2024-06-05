@@ -130,7 +130,7 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
     position: 'relative',
 
     '.bg-image': {
-      backgroundImage: 'url("./images/openbit/welcome-background.png")',
+      backgroundImage: 'url("./images/openbit/welcome_account_background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',

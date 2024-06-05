@@ -440,6 +440,10 @@ const SelectAccount = styled(Component)<Props>(({ theme }) => {
       }
     },
 
+    '.ant-select-modal-input-wrapper': {
+      maxHeight: 40
+    },
+
     '.all-account-item': {
       display: 'flex',
       padding: `${token.paddingSM + 2}px ${token.paddingSM}px`,

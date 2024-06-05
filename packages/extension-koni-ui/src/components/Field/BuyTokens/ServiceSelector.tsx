@@ -111,7 +111,12 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         renderSelected={renderSelected}
         selected={value || ''}
         statusHelp={statusHelp}
-        title={label || placeholder || t('Select service')}
+        title={
+          <div className={'__title-wrapper'}>
+            <div>{t(label || placeholder || t('Select service'))}</div>
+            <div className={'__beta-version'}>Beta version</div>
+          </div>
+        }
       />
     </>
   );
@@ -152,6 +157,23 @@ export const ServiceSelector = styled(forwardRef(Component))<Props>(({ theme: { 
         justifyContent: 'center',
         color: token.colorSuccess
       }
+    },
+
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
     },
 
     '&.service-selector-input': {
