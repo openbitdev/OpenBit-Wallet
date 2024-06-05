@@ -328,7 +328,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           rightButtons={headerIcons}
           showLeftButton={true}
         >
-          {t('Settings')}
+          <div className={'__title-wrapper'}>
+            <div>{t('Settings')}</div>
+            <div className={'__beta-version'}>Beta version</div>
+          </div>
         </SwHeader>
 
         <div className={'__scroll-container'}>
@@ -428,6 +431,23 @@ export const Settings = styled(Component)<Props>(({ theme: { token } }: Props) =
         height: 52,
         display: 'flex',
         alignItems: 'center'
+      },
+
+      '.__beta-version': {
+        color: token.colorTextTertiary,
+        fontSize: token.fontSizeSM,
+        lineHeight: token.lineHeightSM,
+        fontWeight: token.bodyFontWeight,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      },
+
+      '.__title-wrapper': {
+        fontSize: token.fontSizeXL,
+        lineHeight: token.lineHeightHeading4,
+        fontWeight: token.fontWeightStrong
+
       },
 
       '.ant-sw-header-center-part': {
