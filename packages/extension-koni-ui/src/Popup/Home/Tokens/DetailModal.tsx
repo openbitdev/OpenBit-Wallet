@@ -291,8 +291,16 @@ export const DetailModal = styled(Component)<Props>(({ theme: { token } }: Props
       marginBottom: token.marginSM
     },
 
-    '.__label': {
-      paddingRight: token.paddingSM
+    '.ant-number': {
+      display: 'flex',
+      overflow: 'hidden'
+    },
+
+    '.ant-number-suffix': {
+      maxWidth: 60,
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap'
     }
   });
 });

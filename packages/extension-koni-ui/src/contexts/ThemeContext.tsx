@@ -274,6 +274,20 @@ const GlobalStyle = createGlobalStyle<ThemeProps>(({ theme }) => {
 
     '.ant-sw-avatar': {
       borderColor: token.colorSecondary
+    },
+
+    // balance item
+
+    '.ant-balance-item-name.ant-balance-item-name': {
+      lineHeight: token.lineHeight,
+      fontSize: token.fontSize
+    },
+
+    '.ant-balance-item-balance-info-wrapper': {
+      '.__value': {
+        lineHeight: token.lineHeight,
+        fontSize: token.fontSize
+      }
     }
   });
 });
