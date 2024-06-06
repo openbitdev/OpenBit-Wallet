@@ -186,7 +186,11 @@ const Component: React.FC<Props> = (props: Props) => {
             disabled: deriving
           }
         ]}
-        title={t('Account details')}
+        title={
+          <div className={'__title-wrapper'}>
+            <div>{t(t('Account details'))}</div>
+            <div className={'__beta-version'}>Beta version</div>
+          </div>}
       >
         <div className='body-container'>
           <Form
@@ -324,6 +328,23 @@ const AccountProxyDetail = styled(Component)<Props>(({ theme: { extendToken, tok
     '.ant-sw-screen-layout-body': {
       display: 'flex',
       flexDirection: 'column'
+    },
+
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
     },
 
     '.body-container': {
