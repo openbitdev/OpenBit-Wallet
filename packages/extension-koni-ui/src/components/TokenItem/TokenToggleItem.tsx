@@ -1,8 +1,9 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _ChainAsset } from '@subwallet/chain-list/types';
+import { _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { AssetSetting } from '@subwallet/extension-base/background/KoniTypes';
+import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import TokenItemFooter from '@subwallet/extension-koni-ui/Popup/Settings/Tokens/component/TokenItemFooter';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Logo } from '@subwallet/react-ui';
@@ -13,11 +14,12 @@ import styled from 'styled-components';
 
 type Props = ThemeProps & {
   assetSettingMap: Record<string, AssetSetting>,
-  tokenInfo: _ChainAsset
+  tokenInfo: _ChainAsset,
+  chainInfoMap: Record<string, _ChainInfo>
 }
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { assetSettingMap, className, tokenInfo } = props;
+  const { assetSettingMap, chainInfoMap, className, tokenInfo } = props;
   const navigate = useNavigate();
 
   const renderTokenRightItem = useCallback((tokenInfo: _ChainAsset) => {
@@ -32,6 +34,16 @@ const Component: React.FC<Props> = (props: Props) => {
     );
   }, [assetSettingMap, navigate]);
 
+  let logoKey: string | undefined;
+
+  if (tokenInfo.icon) {
+    // do nothing
+  } else if (tokenInfo.metadata?.runeId) {
+    logoKey = 'default_rune';
+  } else if (chainInfoMap[tokenInfo.originChain] && _isChainEvmCompatible(chainInfoMap[tokenInfo.originChain])) {
+    logoKey = 'default_evm';
+  }
+
   return (
     <TokenItem
       className={className}
@@ -39,7 +51,7 @@ const Component: React.FC<Props> = (props: Props) => {
       isShowSubLogo={true}
       key={tokenInfo.slug}
       leftItem={
-        tokenInfo.metadata?.runeId && !tokenInfo.icon
+        logoKey
           ? (
             <Logo
               isShowSubLogo
@@ -47,7 +59,7 @@ const Component: React.FC<Props> = (props: Props) => {
               size={36}
               subLogoShape={'circle'}
               subNetwork={tokenInfo.originChain}
-              token={'rune'}
+              token={logoKey}
             />
           )
           : undefined

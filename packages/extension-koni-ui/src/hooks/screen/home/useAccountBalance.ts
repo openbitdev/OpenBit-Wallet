@@ -3,7 +3,7 @@
 
 import { _ChainAsset, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
-import { _getAssetDecimals, _getAssetOriginChain, _getAssetPriceId, _getAssetSymbol, _getChainName, _getMultiChainAssetPriceId, _getMultiChainAssetSymbol, _isAssetValuable } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getAssetDecimals, _getAssetOriginChain, _getAssetPriceId, _getAssetSymbol, _getChainName, _getMultiChainAssetPriceId, _getMultiChainAssetSymbol, _isAssetValuable, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { SubstrateBalance } from '@subwallet/extension-base/types';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { AssetRegistryStore, BalanceStore, ChainStore, PriceStore } from '@subwallet/extension-koni-ui/stores/types';
@@ -28,7 +28,7 @@ export function getConvertedBalanceValue (balance: BigN, price: number): BigN {
 export function getDefaultBalanceItem (
   slug: string,
   symbol: string,
-  logoKey: string
+  logoKey = 'default'
 ): TokenBalanceItemType {
   return {
     free: {
@@ -60,33 +60,55 @@ export function getDefaultBalanceItem (
 export function getDefaultTokenGroupBalance (
   tokenGroupKey: string,
   assetRegistryMap: AssetRegistryStore['assetRegistry'],
+  chainInfoMap: ChainStore['chainInfoMap'],
   multiChainAsset?: _MultiChainAsset
 ): TokenBalanceItemType {
   let symbol: string;
-  let logoKey: string;
+  let logoKey: string | undefined;
 
   // note: tokenGroupKey is either multiChainAsset or a tokenSlug
   // Thus, multiChainAsset may be undefined
   if (multiChainAsset) {
     symbol = _getMultiChainAssetSymbol(multiChainAsset);
-    logoKey = multiChainAsset.slug;
+
+    if (multiChainAsset.icon) {
+      logoKey = multiChainAsset.slug;
+    }
   } else {
     const asset = assetRegistryMap[tokenGroupKey];
 
     symbol = _getAssetSymbol(asset);
-    logoKey = asset.metadata?.runeId && !asset.icon ? 'rune' : asset.slug;
+
+    if (asset.icon) {
+      logoKey = asset.slug;
+    } else if (asset.metadata?.runeId) {
+      logoKey = 'default_rune';
+    } else if (chainInfoMap[asset.originChain] && _isChainEvmCompatible(chainInfoMap[asset.originChain])) {
+      logoKey = 'default_evm';
+    }
   }
 
-  return getDefaultBalanceItem(tokenGroupKey, symbol, logoKey.toLowerCase());
+  return getDefaultBalanceItem(tokenGroupKey, symbol, logoKey?.toLowerCase());
 }
 
 export function getDefaultTokenBalance (
   tokenSlug: string,
-  chainAsset: _ChainAsset
+  chainAsset: _ChainAsset,
+  chainInfoMap: ChainStore['chainInfoMap']
 ): TokenBalanceItemType {
   const symbol = _getAssetSymbol(chainAsset);
 
-  return getDefaultBalanceItem(tokenSlug, symbol, chainAsset.metadata?.runeId && !chainAsset.icon ? 'rune' : chainAsset.slug.toLowerCase());
+  let logoKey: string | undefined;
+
+  if (chainAsset.icon) {
+    logoKey = chainAsset.slug;
+  } else if (chainAsset.metadata?.runeId) {
+    logoKey = 'default_rune';
+  } else if (chainInfoMap[chainAsset.originChain] && _isChainEvmCompatible(chainInfoMap[chainAsset.originChain])) {
+    logoKey = 'default_evm';
+  }
+
+  return getDefaultBalanceItem(tokenSlug, symbol, logoKey);
 }
 
 function getAccountBalance (
@@ -116,7 +138,7 @@ function getAccountBalance (
     const tokenGroupNotSupport: boolean[] = [];
     // note: multiChainAsset may be undefined due to tokenGroupKey may be a tokenSlug
     const multiChainAsset: _MultiChainAsset | undefined = multiChainAssetMap[tokenGroupKey];
-    const tokenGroupBalance = getDefaultTokenGroupBalance(tokenGroupKey, assetRegistryMap, multiChainAsset);
+    const tokenGroupBalance = getDefaultTokenGroupBalance(tokenGroupKey, assetRegistryMap, chainInfoMap, multiChainAsset);
 
     tokenGroupMap[tokenGroupKey].forEach((tokenSlug) => {
       const chainAsset = assetRegistryMap[tokenSlug];
@@ -127,7 +149,7 @@ function getAccountBalance (
         return;
       }
 
-      const tokenBalance = getDefaultTokenBalance(tokenSlug, chainAsset);
+      const tokenBalance = getDefaultTokenBalance(tokenSlug, chainAsset, chainInfoMap);
       const originChain = _getAssetOriginChain(chainAsset);
       const balanceItem = balanceMap[address]?.[tokenSlug];
       const decimals = _getAssetDecimals(chainAsset);
