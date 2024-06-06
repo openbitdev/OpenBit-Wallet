@@ -245,11 +245,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Recipient address is required'));
     }
 
-    const { chain, from, to } = form.getFieldsValue();
-
-    console.log('chain', chain);
-    console.log('from', from);
-    console.log('to', to);
+    const { chain, from } = form.getFieldsValue();
 
     if (!chain || !from) {
       return Promise.resolve();
@@ -303,6 +299,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const onValuesChange: FormCallbacks<TransferParams>['onValuesChange'] = useCallback(
     (part: Partial<TransferParams>, values: TransferParams) => {
       const validateField: string[] = [];
+
+      if (part.from) {
+        form.validateFields(['to']).catch((e) => {
+          console.log('Error when validating', e);
+        });
+      }
 
       if (part.from || part.asset || part.destChain) {
         setTransactionFeeInfo(undefined);
@@ -893,7 +895,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         justifyContent: 'center'
       },
       '.__name': {
-        maxWidth: 124
+        maxWidth: 116
       }
     },
     '.__sender-field': {
