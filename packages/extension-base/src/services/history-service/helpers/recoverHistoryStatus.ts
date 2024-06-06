@@ -23,6 +23,7 @@ export interface TransactionRecoverResult {
   extrinsicHash?: string;
   blockHash?: string;
   blockNumber?: number;
+  blockTime?: number;
 }
 
 const BLOCK_LIMIT = 6;
@@ -209,6 +210,10 @@ const bitcoinRecover = async (history: TransactionHistoryItem, chainService: Cha
       if (extrinsicHash) {
         try {
           const transactionConfirmed = await api.getTransactionDetail(extrinsicHash);
+
+          result.blockHash = transactionConfirmed.status.block_hash || undefined;
+          result.blockNumber = transactionConfirmed.status.block_height || undefined;
+          result.blockTime = transactionConfirmed.status.block_time || undefined;
 
           return { ...result, status: transactionConfirmed ? HistoryRecoverStatus.SUCCESS : HistoryRecoverStatus.TX_PENDING };
         } catch (e) {
