@@ -1050,7 +1050,7 @@ export default class TransactionService {
             event.on('success', (transactionStatus) => {
               eventData.blockHash = transactionStatus.block_hash || undefined;
               eventData.blockNumber = transactionStatus.block_height || undefined;
-              eventData.blockTime = transactionStatus.block_time || undefined;
+              eventData.blockTime = transactionStatus.block_time ? (transactionStatus.block_time * 1000) : undefined;
               emitter.emit('success', eventData);
             });
 

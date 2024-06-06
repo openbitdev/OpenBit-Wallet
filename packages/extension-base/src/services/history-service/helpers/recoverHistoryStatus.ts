@@ -209,13 +209,13 @@ const bitcoinRecover = async (history: TransactionHistoryItem, chainService: Cha
 
       if (extrinsicHash) {
         try {
-          const transactionConfirmed = await api.getTransactionDetail(extrinsicHash);
+          const transactionDetail = await api.getTransactionDetail(extrinsicHash);
 
-          result.blockHash = transactionConfirmed.status.block_hash || undefined;
-          result.blockNumber = transactionConfirmed.status.block_height || undefined;
-          result.blockTime = transactionConfirmed.status.block_time || undefined;
+          result.blockHash = transactionDetail.status.block_hash || undefined;
+          result.blockNumber = transactionDetail.status.block_height || undefined;
+          result.blockTime = transactionDetail.status.block_time ? (transactionDetail.status.block_time * 1000) : undefined;
 
-          return { ...result, status: transactionConfirmed ? HistoryRecoverStatus.SUCCESS : HistoryRecoverStatus.TX_PENDING };
+          return { ...result, status: transactionDetail ? HistoryRecoverStatus.SUCCESS : HistoryRecoverStatus.TX_PENDING };
         } catch (e) {
           // Fail when cannot find transaction
           return { ...result, status: HistoryRecoverStatus.FAILED };
