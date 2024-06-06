@@ -23,8 +23,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
     super(context);
 
-    // this.baseUrl = url;
-    this.baseUrl = 'https://api.openbit.app'; // update on chainlist when enough API
+    this.baseUrl = url;
 
     this.getBlockTime()
       .then((rs) => {
@@ -284,7 +283,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   async getAddressInscriptions (address: string) {
     const inscriptionsFullList: Inscription[] = [];
-    const pageSize = 50;
+    const pageSize = 60;
     let offset = 0;
 
     const hiroService = HiroService.getInstance();
