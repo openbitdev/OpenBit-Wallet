@@ -245,7 +245,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       return Promise.reject(t('Recipient address is required'));
     }
 
-    const { chain, from } = form.getFieldsValue();
+    const { chain, from, to } = form.getFieldsValue();
+
+    console.log('chain', chain);
+    console.log('from', from);
+    console.log('to', to);
 
     if (!chain || !from) {
       return Promise.resolve();
@@ -628,7 +632,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
       const oldToAccount = accounts.find((item) => item.address === toValue);
 
-      if (oldToAccount?.type !== addressType) {
+      if (!!oldToAccount && oldToAccount?.type !== addressType) {
         const newToAccount = accounts.find((item) => item.proxyId === oldToAccount?.proxyId && item.type === addressType);
 
         form.setFieldsValue({
@@ -646,9 +650,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       form.setFieldsValue({
         from: currentFromAccount?.address || ''
       });
+      const currentToAccount = accounts.find((item) => item.address === toValue);
 
-      if (toValue) {
-        const currentToAccount = accounts.find((item) => item.address === toValue);
+      if (toValue && !!currentToAccount) {
         const newToAccount = accountList.find((item) => item.proxyId === currentToAccount?.proxyId);
 
         form.setFieldsValue({
@@ -657,6 +661,10 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       }
     }
   }, [accountList, accounts, assetValue, form, fromProxyId, fromValue, toValue]);
+
+  const isShowBitcoinFeeModal = useMemo(() => {
+    return BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue;
+  }, [assetValue, chainValue, transferInfo]);
 
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
@@ -765,7 +773,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         />}
 
         {
-          BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
+          isShowBitcoinFeeModal && !!transferInfo && (
             <BitcoinFeeSelector
               className={'__bitcoin-fee-selector'}
               feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
@@ -801,7 +809,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         className={`${className} -transaction-footer`}
       >
         <Button
-          disabled={!fromValue || isFetchingInfo || !isBalanceReady}
+          disabled={!fromValue || isFetchingInfo || !isBalanceReady || !isShowBitcoinFeeModal}
           icon={(
             <Icon
               phosphorIcon={PaperPlaneTilt}

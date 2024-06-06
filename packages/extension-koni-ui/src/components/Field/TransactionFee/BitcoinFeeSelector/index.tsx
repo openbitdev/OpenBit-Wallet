@@ -31,7 +31,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
   const { t } = useTranslation();
   const { activeModal } = useContext(ModalContext);
   const assetRegistry = useSelector((root) => root.assetRegistry.assetRegistry);
-  const [selectedOption, setSelectedOption] = useState<BitcoinFeeOption>({ option: feeDetail.options.default });
+  const [selectedOption, setSelectedOption] = useState<BitcoinFeeOption>({ option: feeDetail?.options?.default });
   const priceMap = useSelector((state) => state.price.priceMap);
   const resetTriggerRef = useRef<unknown>(resetTrigger);
   const [modalRenderKey, setModalRenderKey] = useState<string>(modalId);
@@ -75,7 +75,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
 
   useEffect(() => {
     if (resetTrigger !== resetTriggerRef.current) {
-      setSelectedOption({ option: feeDetail.options.default });
+      setSelectedOption({ option: feeDetail?.options?.default });
       resetTriggerRef.current = resetTrigger;
     }
   }, [feeDetail, resetTrigger]);

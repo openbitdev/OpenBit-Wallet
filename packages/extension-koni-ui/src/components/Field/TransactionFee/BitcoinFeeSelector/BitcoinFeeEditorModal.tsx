@@ -162,9 +162,9 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return null;
     }
 
-    const feeRate = feeDetail.options[o.option].feeRate;
+    const feeRate = feeDetail?.options?.[o?.option]?.feeRate;
     const iconOption = IconMap[o.option];
-    const timeOption = feeDetail.options[o.option].time;
+    const timeOption = feeDetail?.options?.[o?.option]?.time;
     const name = (() => {
       if (o.option === 'slow') {
         return t('Low');
@@ -237,7 +237,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return Promise.reject(t('Invalid value'));
     }
 
-    const low = feeDetail.options.slow.feeRate;
+    const low = feeDetail?.options?.slow?.feeRate;
     const val = parseFloat(value);
 
     if (low > val) {
