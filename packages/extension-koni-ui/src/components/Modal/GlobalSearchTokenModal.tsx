@@ -37,7 +37,6 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
   const navigate = useNavigate();
 
   const { chainInfoMap } = useSelector((state) => state.chainStore);
-  const { multiChainAssetMap } = useSelector((state) => state.assetRegistry);
   const assetRegistry = useChainAssets({ isActive: true }).getChainAssetRegistry();
 
   const tokenBalances = useMemo<TokenBalanceItemType[]>(() => {
@@ -56,7 +55,7 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
   const renderItem = useCallback(
     (tokenBalance: TokenBalanceItemType) => {
       const slug = tokenBalance.slug;
-      const tokenName = assetRegistry[slug]?.name || multiChainAssetMap[slug]?.name || '';
+      const tokenName = assetRegistry[slug]?.metadata?.runeId ? undefined : assetRegistry[slug]?.name;
 
       return (
         <TokenBalanceSelectionItem
@@ -67,7 +66,7 @@ function Component ({ className = '', id, onCancel, sortedTokenSlugs, tokenBalan
         />
       );
     },
-    [assetRegistry, multiChainAssetMap, onClickItem]
+    [assetRegistry, onClickItem]
   );
 
   const searchFunc = useCallback((item: TokenBalanceItemType, searchText: string) => {

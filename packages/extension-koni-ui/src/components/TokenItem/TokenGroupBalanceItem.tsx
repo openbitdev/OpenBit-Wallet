@@ -108,8 +108,8 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { extend
     },
 
     '.__value': {
-      lineHeight: token.lineHeightLG,
-      fontSize: token.fontSizeLG
+      lineHeight: token.lineHeight,
+      fontSize: token.fontSize
     },
 
     '.__converted-value': {
@@ -148,7 +148,8 @@ export const TokenGroupBalanceItem = styled(Component)<Props>(({ theme: { extend
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       overflow: 'hidden',
-      paddingRight: token.paddingXS
+      paddingRight: token.paddingXS,
+      maxWidth: 150
     },
     '.ant-balance-item-content:hover': {
       '.__icon-wrapper': {

@@ -274,6 +274,20 @@ const GlobalStyle = createGlobalStyle<ThemeProps>(({ theme }) => {
 
     '.ant-sw-avatar': {
       borderColor: token.colorSecondary
+    },
+
+    // balance item
+
+    '.ant-balance-item-name.ant-balance-item-name': {
+      lineHeight: token.lineHeight,
+      fontSize: token.fontSize
+    },
+
+    '.ant-balance-item-balance-info-wrapper': {
+      '.__value': {
+        lineHeight: token.lineHeight,
+        fontSize: token.fontSize
+      }
     }
   });
 });
@@ -317,7 +331,11 @@ export function ThemeProvider ({ children }: ThemeProviderProps): React.ReactEle
     const config = SW_THEME_CONFIGS[themeName];
 
     Object.assign(config.logoMap.network, logoMaps.chainLogoMap);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    config.logoMap.network.default = config.logoMap.default;
     Object.assign(config.logoMap.symbol, logoMaps.assetLogoMap);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    config.logoMap.symbol.default = config.logoMap.default;
 
     return config;
   }, [logoMaps, themeName]);

@@ -71,7 +71,7 @@ function getAccountProxyBalance (
     const tokenGroupNotSupport: boolean[] = [];
     // note: multiChainAsset may be undefined due to tokenGroupKey may be a tokenSlug
     const multiChainAsset: _MultiChainAsset | undefined = multiChainAssetMap[tokenGroupKey];
-    const tokenGroupBalance = getDefaultTokenGroupBalance(tokenGroupKey, assetRegistryMap, multiChainAsset);
+    const tokenGroupBalance = getDefaultTokenGroupBalance(tokenGroupKey, assetRegistryMap, chainInfoMap, multiChainAsset);
 
     tokenGroupMap[tokenGroupKey].forEach((tokenSlug) => {
       const chainAsset = assetRegistryMap[tokenSlug];
@@ -82,7 +82,7 @@ function getAccountProxyBalance (
         return;
       }
 
-      const tokenBalance = getDefaultTokenBalance(tokenSlug, chainAsset);
+      const tokenBalance = getDefaultTokenBalance(tokenSlug, chainAsset, chainInfoMap);
       const originChain = _getAssetOriginChain(chainAsset);
       const decimals = _getAssetDecimals(chainAsset);
 

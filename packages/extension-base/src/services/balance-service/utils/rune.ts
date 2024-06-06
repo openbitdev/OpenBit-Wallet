@@ -24,7 +24,7 @@
 //   return slugSplit.join('-');
 // }
 
-export function insertRuneSpacer (runeName: string, spacerList: number[], char = '*') {
+export function insertRuneSpacer (runeName: string, spacerList: number[], char = '•') {
   function insertCharAtIndex (str: string, index: number, char: string): string {
     return str.slice(0, index) + char + str.slice(index);
   }
