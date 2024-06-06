@@ -4,7 +4,7 @@
 import { CloseIcon, Layout, PageWrapper, WordPhrase } from '@subwallet/extension-koni-ui/components';
 import { SeedPhraseTermModal } from '@subwallet/extension-koni-ui/components/Modal/TermsAndConditions/SeedPhraseTermModal';
 import { CONFIRM_TERM_SEED_PHRASE, CREATE_ACCOUNT_MODAL, DEFAULT_ACCOUNT_TYPES, DEFAULT_ROUTER_PATH, SEED_PREVENT_MODAL, TERM_AND_CONDITION_SEED_PHRASE_MODAL } from '@subwallet/extension-koni-ui/constants';
-import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useGetDefaultAccountProxyName, useIsPopup, useNotification, useTranslation, useUnlockChecker, useWaitForSeedPhrase } from '@subwallet/extension-koni-ui/hooks';
+import { useAutoNavigateToCreatePassword, useCompleteCreateAccount, useDefaultNavigate, useGetDefaultAccountProxyName, useIsPopup, useNotification, useTranslation, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
 import { createAccountProxySuri, createSeedV2, windowOpen } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -52,7 +52,6 @@ const Component: React.FC<Props> = ({ className }: Props) => {
   const [loading, setLoading] = useState(false);
 
   const noAccount = useMemo(() => isNoAccount(accounts), [accounts]);
-  const waitReady = useWaitForSeedPhrase(seedPhrase);
 
   const onBack = useCallback(() => {
     navigate(DEFAULT_ROUTER_PATH);
@@ -122,6 +121,14 @@ const Component: React.FC<Props> = ({ className }: Props) => {
       windowOpen({ allowedPath: '/accounts/new-seed-phrase' }).then(window.close).catch(console.log);
     }
   }, [isPopup, hasMasterPassword]);
+
+  const waitReady = useMemo(() => {
+    return new Promise((resolve) => {
+      if (seedPhrase) {
+        resolve(true);
+      }
+    });
+  }, [seedPhrase]);
 
   return (
     <PageWrapper
