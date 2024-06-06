@@ -108,7 +108,7 @@ export function getDefaultTokenBalance (
     logoKey = 'default_evm';
   }
 
-  return getDefaultBalanceItem(tokenSlug, symbol, logoKey);
+  return getDefaultBalanceItem(tokenSlug, symbol, logoKey?.toLowerCase());
 }
 
 function getAccountBalance (

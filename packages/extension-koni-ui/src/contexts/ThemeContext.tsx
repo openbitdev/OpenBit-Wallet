@@ -331,7 +331,11 @@ export function ThemeProvider ({ children }: ThemeProviderProps): React.ReactEle
     const config = SW_THEME_CONFIGS[themeName];
 
     Object.assign(config.logoMap.network, logoMaps.chainLogoMap);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    config.logoMap.network.default = config.logoMap.default;
     Object.assign(config.logoMap.symbol, logoMaps.assetLogoMap);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    config.logoMap.symbol.default = config.logoMap.default;
 
     return config;
   }, [logoMaps, themeName]);
