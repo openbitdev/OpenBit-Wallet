@@ -175,6 +175,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             {!isInscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
+                fallbackSrc={DefaultLogosMap.default_placeholder}
                 height={358}
                 modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
                 onClick={onImageClick}
