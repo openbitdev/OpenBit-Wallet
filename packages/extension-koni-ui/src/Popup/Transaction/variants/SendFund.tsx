@@ -929,7 +929,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
     },
 
     '.__free-balance-block + .__bitcoin-fee-selector': {
-      marginTop: token.marginSM
+      marginTop: 11
     },
 
     '.__fee-display': {
