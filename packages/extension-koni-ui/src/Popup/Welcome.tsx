@@ -118,6 +118,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
             ))
           }
         </div>
+        <div className={'__beta-version'}>Beta version</div>
       </div>
       <GeneralTermModal onOk={openModal(modalIdAfterConfirm)} />
     </Layout.Base>
@@ -129,7 +130,7 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
     position: 'relative',
 
     '.bg-image': {
-      backgroundImage: 'url("./images/openbit/welcome-background.png")',
+      backgroundImage: 'url("./images/openbit/welcome_account_background.png")',
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'top',
       backgroundSize: 'contain',
@@ -140,8 +141,16 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
       top: 0
     },
 
+    '.__beta-version': {
+      color: token.colorWhite,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      marginTop: -token.marginXS
+    },
+
     '.body-container': {
-      padding: `${token.sizeLG * 3}px ${token.padding}px ${token.sizeXL}px`,
+      padding: `132px ${token.padding}px ${token.paddingLG}px`,
       textAlign: 'center',
       opacity: 0.999, // Hot fix show wrong opacity in browser
       height: '100%',
@@ -166,7 +175,8 @@ const Welcome = styled(Component)<Props>(({ theme: { token } }: Props) => {
         fontSize: token.fontSizeHeading5,
         lineHeight: token.lineHeightHeading5,
         color: token.colorTextLight3,
-        flex: 1
+        flex: 1,
+        paddingTop: token.padding
       }
     },
 

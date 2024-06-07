@@ -1,3 +1,26 @@
+diff --git a/node_modules/@subwallet/react-ui/es/number/index.js b/node_modules/@subwallet/react-ui/es/number/index.js
+index 895129b..0081551 100644
+--- a/node_modules/@subwallet/react-ui/es/number/index.js
++++ b/node_modules/@subwallet/react-ui/es/number/index.js
+@@ -2,7 +2,7 @@ import classNames from 'classnames';
+ import React, { useMemo } from 'react';
+ import { ConfigContext } from '../config-provider';
+ import useStyle from './style';
+-import { balanceFormatter, formatNumber } from '../_util/number';
++import { toBNString, balanceFormatter, formatNumber } from '../_util/number';
+ import Typography from '../typography';
+ import { useToken } from '../theme/internal';
+ const intToLocaleString = (str, separator) => str.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+@@ -99,7 +99,8 @@ const Number = props => {
+   }, [formatted]);
+   const hideContent = useMemo(() => new Array(showHideLength).fill('*').join(''), [showHideLength]);
+   return wrapSSR( /*#__PURE__*/React.createElement("div", {
+-    className: classNames(classNameExtend)
++    className: classNames(classNameExtend),
++    'attr-value': toBNString(value, decimal)
+   }, hide && /*#__PURE__*/React.createElement(Typography.Text, {
+     className: classNames(`${prefixCls}-hide-content`),
+     style: Object.assign(Object.assign({}, intStyle), {
 diff --git a/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js b/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js
 index 1e4a5c2..8e4cf50 100644
 --- a/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js

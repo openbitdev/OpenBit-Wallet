@@ -654,7 +654,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             title={t('History')}
           />
 
-          <div className={'__page-background'}></div>
+          {/* <div className={'__page-background'}></div> */}
 
           <div className={'__page-tool-area'}>
             {historySelectorsNode}

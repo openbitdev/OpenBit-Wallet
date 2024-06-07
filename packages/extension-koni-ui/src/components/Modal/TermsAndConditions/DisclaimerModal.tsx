@@ -1,0 +1,187 @@
+// [object Object]
+// SPDX-License-Identifier: Apache-2.0
+
+// eslint-disable-next-line header/header
+import { staticDataRaw } from '@subwallet/extension-base/constants/staticData';
+import { TERM_AND_CONDITION_DISCLAIMER_MODAL } from '@subwallet/extension-koni-ui/constants';
+import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
+import { ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { Button, Checkbox, Icon, ModalContext, SwModal, Typography } from '@subwallet/react-ui';
+import { CheckboxChangeEvent } from '@subwallet/react-ui/es/checkbox';
+import CN from 'classnames';
+import { ArrowCircleRight, CaretDown } from 'phosphor-react';
+import React, { useCallback, useContext, useRef, useState } from 'react';
+import Markdown from 'react-markdown';
+import styled from 'styled-components';
+
+import useDefaultNavigate from '../../../hooks/router/useDefaultNavigate';
+
+interface Props extends ThemeProps {
+  onOk: () => void
+}
+
+const modalId = TERM_AND_CONDITION_DISCLAIMER_MODAL;
+
+interface StaticDataInterface {
+  md: string,
+  beta: string,
+}
+
+const Component = ({ className, onOk }: Props) => {
+  const { inactiveModal } = useContext(ModalContext);
+  const { t } = useTranslation();
+  const { goHome } = useDefaultNavigate();
+
+  const [staticData] = useState<StaticDataInterface>(staticDataRaw);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isScrollEnd, setIsScrollEnd] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // useEffect(() => {
+  //   fetchStaticData<string>('term-and-condition', 'index.md', false)
+  //     .then((md) => setStaticData({ md }))
+  //     .catch((e) => console.log('fetch _termAndCondition error:', e));
+  // }, []);
+
+  const onCheckedInput = useCallback((e: CheckboxChangeEvent) => {
+    setIsChecked(e.target.checked);
+  }, []);
+
+  const onScrollToAcceptButton = useCallback(() => {
+    if (!scrollRef?.current) {
+      return;
+    }
+
+    setIsScrollEnd(scrollRef.current.scrollTop >= scrollRef.current.scrollHeight - 300);
+  }, []);
+
+  const onScrollContent = useCallback(() => {
+    if (scrollRef && scrollRef?.current && scrollRef?.current?.scrollHeight <= 294) {
+      setIsScrollEnd(true);
+    }
+
+    scrollRef?.current?.scroll({ top: scrollRef?.current?.scrollHeight, left: 0 });
+  }, [scrollRef]);
+
+  const onConfirm = useCallback(() => {
+    inactiveModal(modalId);
+    goHome();
+    onOk();
+  }, [goHome, inactiveModal, onOk]);
+
+  return (
+    <SwModal
+      className={CN(className)}
+      closable={false}
+      id={modalId}
+      title={t('Beta Disclaimer')}
+    >
+      <div
+        className={'term-body'}
+        onScroll={onScrollToAcceptButton}
+        ref={scrollRef}
+      >
+        <Typography.Text>
+          <Markdown>{staticData.beta}</Markdown>
+        </Typography.Text>
+        {!isScrollEnd && <Button
+          className={'term-body-caret-button'}
+          icon={<Icon phosphorIcon={CaretDown} />}
+          onClick={onScrollContent}
+          schema={'secondary'}
+          shape={'circle'}
+          size={'xs'}
+        />}
+      </div>
+      <div className={'term-footer'}>
+        <Checkbox
+          checked={isChecked}
+          className={'term-footer-checkbox'}
+          onChange={onCheckedInput}
+        >{t('I understand the associated risk and will act under caution')}</Checkbox>
+        <div className={'term-footer-button-group'}>
+          <Button
+            block={true}
+            className={'term-footer-button'}
+            disabled={!isChecked || !isScrollEnd}
+            icon={ (
+              <Icon
+                phosphorIcon={ArrowCircleRight}
+                weight='fill'
+              />
+            )}
+            onClick={onConfirm}
+          >
+            {t('Continue')}
+          </Button>
+          <span className={'term-footer-annotation'}>{t('Scroll to read all sections')}</span>
+        </div>
+
+      </div>
+    </SwModal>
+  );
+};
+
+export const DisclaimerModal = styled(Component)<Props>(({ theme: { token } }: Props) => {
+  return {
+    '.ant-sw-modal-content': {
+      overflow: 'hidden',
+      maxHeight: 600,
+      paddingBottom: 0
+    },
+
+    '.term-body': {
+      maxHeight: 294,
+      h3: {
+        color: token.colorWhite,
+        fontSize: token.fontSize,
+        gap: token.margin
+      },
+      'p, li': {
+        color: token.colorTextLight4,
+        fontSize: token.fontSizeSM
+      },
+
+      '.term-body-caret-button': {
+        position: 'absolute',
+        top: 338,
+        left: 334
+      },
+      display: 'block',
+      overflowY: 'scroll',
+      scrollBehavior: 'smooth'
+
+    },
+
+    '.term-footer': {
+      display: 'flex',
+      alignItems: 'center',
+      flexDirection: 'column',
+      marginTop: token.marginXS,
+      gap: token.margin
+
+    },
+
+    '.term-footer-checkbox': {
+      alignItems: 'center'
+    },
+
+    '.term-footer-button-group': {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      paddingLeft: token.padding,
+      paddingRight: token.padding,
+      width: 390,
+      height: 80,
+      justifyContent: 'space-between'
+
+    },
+
+    '.term-footer-annotation': {
+      color: token.colorTextLight4,
+      fontSize: token.fontSizeSM
+    }
+
+  };
+});

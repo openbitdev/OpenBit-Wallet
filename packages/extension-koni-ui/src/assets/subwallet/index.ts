@@ -19,7 +19,9 @@ const SwLogosMap: Record<string, string> = {
   stellaswap: DefaultLogosMap.stellaswap,
   rune: DefaultLogosMap.rune,
   ordinal_rune: DefaultLogosMap.ordinal_rune,
-  default_placeholder: DefaultLogosMap.default_placeholder
+  default_placeholder: DefaultLogosMap.default_placeholder,
+  default_evm: DefaultLogosMap.default_evm,
+  default_rune: DefaultLogosMap.default_rune
 };
 
 export default SwLogosMap;
