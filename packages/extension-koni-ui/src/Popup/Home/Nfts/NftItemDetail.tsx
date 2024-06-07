@@ -1,13 +1,14 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
 import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
 import { AccountProxyAvatar, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
-import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
+import { CAMERA_CONTROLS_MODEL_VIEWER_PROPS, DEFAULT_MODEL_VIEWER_PROPS, DEFAULT_NFT_PARAMS, DEFAULT_TRANSACTION_PARAMS, NFT_TRANSACTION, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useNavigateOnChangeAccount, useSelector } from '@subwallet/extension-koni-ui/hooks';
+import { useNavigateOnChangeAccount, useNotification, useSelector } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
@@ -15,14 +16,15 @@ import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/scree
 import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
 import { INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
-import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
+import { SendNftParams, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { BackgroundIcon, Button, ButtonProps, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
 import { getAlphaColor } from '@subwallet/react-ui/lib/theme/themes/default/colorAlgorithm';
 import CN from 'classnames';
-import { CaretLeft, Info } from 'phosphor-react';
+import { CaretLeft, Info, PaperPlaneTilt } from 'phosphor-react';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
+import { useLocalStorage } from 'usehooks-ts';
 
 type Props = ThemeProps
 
@@ -42,18 +44,56 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { collectionInfo, nftItem } = location.state as INftItemDetail;
 
   const { t } = useTranslation();
+  const notify = useNotification();
+
+  const navigate = useNavigate();
   const { goBack } = useDefaultNavigate();
   const { token } = useTheme() as Theme;
 
   const dataContext = useContext(DataContext);
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
+  const accounts = useSelector((state: RootState) => state.accountState.accounts);
 
   const originChainInfo = useGetChainInfo(nftItem.chain);
   const ownerAccountInfo = useGetAccountInfoByAddress(nftItem.owner || '');
   const accountExternalUrl = getExplorerLink(originChainInfo, nftItem.owner, 'account');
+  const [, setStorage] = useLocalStorage<SendNftParams>(NFT_TRANSACTION, DEFAULT_NFT_PARAMS);
 
   useNavigateOnChangeAccount('/home/nfts/collections');
+
+  const onClickSend = useCallback(() => {
+    if (nftItem && nftItem.owner) {
+      const owner = accounts.find((a) => a.address === nftItem.owner);
+
+      if (owner?.isReadOnly) {
+        notify({
+          message: t('The NFT owner is a watch-only account, you cannot send the NFT with it'),
+          type: 'info',
+          duration: 3
+        });
+
+        return;
+      }
+    }
+
+    setStorage({
+      ...DEFAULT_TRANSACTION_PARAMS,
+      collectionId: nftItem.collectionId,
+      from: nftItem.owner,
+      itemId: nftItem.id,
+      to: '',
+      chain: nftItem.chain
+    });
+    navigate('/transaction/send-nft');
+  }, [accounts, navigate, nftItem, notify, setStorage, t]);
+
+  const subHeaderRightButton: ButtonProps[] = [
+    {
+      children: t<string>('Send'),
+      onClick: onClickSend
+    }
+  ];
 
   const ownerPrefix = useCallback(() => {
     if (nftItem.owner) {
@@ -161,6 +201,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         showSubHeader={true}
         subHeaderBackground={'transparent'}
         subHeaderCenter={false}
+        subHeaderIcons={subHeaderRightButton}
         subHeaderPaddingVertical={true}
         title={nftItem.name || nftItem.id}
       >
@@ -265,6 +306,24 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
               }
             </div>
           </div>
+
+          {
+            _isPureEvmChain(originChainInfo) && (
+              <Button
+                block
+                icon={(
+                  <Icon
+                    phosphorIcon={PaperPlaneTilt}
+                    type='phosphor'
+                    weight={'fill'}
+                  />
+                )}
+                onClick={onClickSend}
+              >
+                <span className={'nft_item_detail__send_text'}>{t('Send')}</span>
+              </Button>
+            )
+          }
         </div>
 
         <SwModal
@@ -340,8 +399,7 @@ const NftItemDetail = styled(Component)<Props>(({ theme: { token } }: Props) => 
 
     '.nft_item_detail__send_text': {
       fontSize: token.fontSizeLG,
-      lineHeight: token.lineHeightLG,
-      color: token.colorTextLight1
+      lineHeight: token.lineHeightLG
     },
 
     '.nft_item_detail__prop_section': {
