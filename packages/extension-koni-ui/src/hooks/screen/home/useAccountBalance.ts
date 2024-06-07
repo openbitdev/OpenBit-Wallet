@@ -9,6 +9,7 @@ import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { AssetRegistryStore, BalanceStore, ChainStore, PriceStore } from '@subwallet/extension-koni-ui/stores/types';
 import { TokenBalanceItemType } from '@subwallet/extension-koni-ui/types/balance';
 import { AccountBalanceHookType } from '@subwallet/extension-koni-ui/types/hook';
+import { getLogoKey } from '@subwallet/extension-koni-ui/utils';
 import BigN from 'bignumber.js';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -72,23 +73,16 @@ export function getDefaultTokenGroupBalance (
     symbol = _getMultiChainAssetSymbol(multiChainAsset);
 
     if (multiChainAsset.icon) {
-      logoKey = multiChainAsset.slug;
+      logoKey = multiChainAsset.slug.toLowerCase();
     }
   } else {
     const asset = assetRegistryMap[tokenGroupKey];
 
     symbol = _getAssetSymbol(asset);
-
-    if (asset.icon) {
-      logoKey = asset.slug;
-    } else if (asset.metadata?.runeId) {
-      logoKey = 'default_rune';
-    } else if (chainInfoMap[asset.originChain] && _isChainEvmCompatible(chainInfoMap[asset.originChain])) {
-      logoKey = 'default_evm';
-    }
+    logoKey = getLogoKey(asset, chainInfoMap);
   }
 
-  return getDefaultBalanceItem(tokenGroupKey, symbol, logoKey?.toLowerCase());
+  return getDefaultBalanceItem(tokenGroupKey, symbol, logoKey);
 }
 
 export function getDefaultTokenBalance (
@@ -98,17 +92,7 @@ export function getDefaultTokenBalance (
 ): TokenBalanceItemType {
   const symbol = _getAssetSymbol(chainAsset);
 
-  let logoKey: string | undefined;
-
-  if (chainAsset.icon) {
-    logoKey = chainAsset.slug;
-  } else if (chainAsset.metadata?.runeId) {
-    logoKey = 'default_rune';
-  } else if (chainInfoMap[chainAsset.originChain] && _isChainEvmCompatible(chainInfoMap[chainAsset.originChain])) {
-    logoKey = 'default_evm';
-  }
-
-  return getDefaultBalanceItem(tokenSlug, symbol, logoKey?.toLowerCase());
+  return getDefaultBalanceItem(tokenSlug, symbol, getLogoKey(chainAsset, chainInfoMap));
 }
 
 function getAccountBalance (

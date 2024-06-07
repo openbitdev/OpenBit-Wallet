@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { _getContractAddressOfToken, _isBrc20Token, _isChainEvmCompatible, _isCustomAsset, _isRuneToken, _isSmartContractToken } from '@subwallet/extension-base/services/chain-service/utils';
+import { _getContractAddressOfToken, _isBrc20Token, _isCustomAsset, _isRuneToken, _isSmartContractToken } from '@subwallet/extension-base/services/chain-service/utils';
 import { Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import useNotification from '@subwallet/extension-koni-ui/hooks/common/useNotification';
@@ -14,6 +14,7 @@ import useGetChainAssetInfo from '@subwallet/extension-koni-ui/hooks/screen/comm
 import { deleteCustomAssets, upsertCustomToken } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { getLogoKey } from '@subwallet/extension-koni-ui/utils';
 import { Button, ButtonProps, Col, Field, Icon, Input, Logo, Row, Tooltip } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { CheckCircle, Copy, Trash } from 'phosphor-react';
@@ -211,15 +212,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [isSubmitDisabled, loading, onSubmit, t, tokenInfo.slug]);
 
   const logoKey = (() => {
-    if (tokenInfo.icon) {
-      return tokenInfo.slug.toLowerCase();
-    } else if (tokenInfo.metadata?.runeId) {
-      return 'default_rune';
-    } else if (chainInfoMap[tokenInfo.originChain] && _isChainEvmCompatible(chainInfoMap[tokenInfo.originChain])) {
-      return 'default_evm';
-    }
-
-    return 'default';
+    return getLogoKey(tokenInfo, chainInfoMap);
   })();
 
   return (
@@ -286,7 +279,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                       prefix={(
                         <Logo
                           size={20}
-                          token={tokenInfo.slug.toLowerCase()}
+                          token={getLogoKey(tokenInfo, chainInfoMap)}
                         />
                       )}
                     />
