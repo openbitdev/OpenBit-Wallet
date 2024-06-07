@@ -2512,7 +2512,7 @@ export default class KoniExtension {
               });
 
               const { txVBytes: vSize } = getSizeInfo({
-                inputLength: utxos.length,
+                inputLength: utxos.length || 1,
                 sender: address,
                 recipients
               });
