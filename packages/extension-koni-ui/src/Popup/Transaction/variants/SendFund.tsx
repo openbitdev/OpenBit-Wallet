@@ -664,10 +664,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
   }, [accountList, accounts, assetValue, form, fromProxyId, fromValue, toValue]);
 
-  const isShowBitcoinFeeModal = useMemo(() => {
-    return BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue;
-  }, [assetValue, chainValue, transferInfo]);
-
   useRestoreTransaction(form);
   useInitValidateTransaction(validateFields, form, defaultData);
 
@@ -775,7 +771,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         />}
 
         {
-          isShowBitcoinFeeModal && !!transferInfo && (
+          BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
             <BitcoinFeeSelector
               className={'__bitcoin-fee-selector'}
               feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
@@ -811,7 +807,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         className={`${className} -transaction-footer`}
       >
         <Button
-          disabled={!fromValue || isFetchingInfo || !isBalanceReady || !isShowBitcoinFeeModal}
+          disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}
           icon={(
             <Icon
               phosphorIcon={PaperPlaneTilt}
@@ -881,7 +877,8 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         display: 'none'
       },
       '.ant-input': {
-        borderBottomWidth: 0
+        borderBottomWidth: 0,
+        paddingBottom: 9
       },
       '.__address': {
         overflow: 'hidden',
@@ -896,6 +893,9 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       },
       '.__name': {
         maxWidth: 116
+      },
+      '.ant-input-prefix': {
+        marginBottom: -3
       }
     },
     '.__sender-field': {
