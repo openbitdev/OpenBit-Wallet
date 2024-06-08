@@ -30,7 +30,8 @@ export function parseBitcoinTransferData (address: string, transferItem: Bitcoin
   return {
     address,
     origin: 'blockstream',
-    time: (transferItem.status.block_time || 0) * 1000,
+    time: 0, // From api, cannot get time submit transaction
+    blockTime: transferItem.status.block_time ? transferItem.status.block_time * 1000 : undefined,
     chainType,
     type: ExtrinsicType.TRANSFER_BALANCE,
     extrinsicHash: transferItem.txid,

@@ -212,3 +212,41 @@ export interface BlockStreamFeeEstimates {
   504: number;
   1008: number;
 }
+
+export interface BlockStreamTransactionVectorOutput {
+  scriptpubkey: string;
+  scriptpubkey_asm: string;
+  scriptpubkey_type: string;
+  scriptpubkey_address: string;
+  value: number;
+}
+
+export interface BlockStreamTransactionVectorInput {
+  is_coinbase: boolean;
+  prevout: BlockStreamTransactionVectorOutput;
+  scriptsig: string;
+  scriptsig_asm: string;
+  sequence: number;
+  txid: string;
+  vout: number;
+  witness: string[];
+}
+
+export interface BlockStreamTransactionDetail {
+  txid: string;
+  version: number;
+  locktime: number;
+  totalVin: number;
+  totalVout: number;
+  size: number;
+  weight: number;
+  fee: number;
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash?: string;
+    block_time?: number;
+  }
+  vin: BlockStreamTransactionVectorInput[];
+  vout: BlockStreamTransactionVectorOutput[];
+}
