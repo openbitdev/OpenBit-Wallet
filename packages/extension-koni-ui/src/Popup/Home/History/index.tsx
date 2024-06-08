@@ -379,7 +379,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         } else if (PROCESSING_STATUSES.includes(b.status) && !PROCESSING_STATUSES.includes(a.status)) {
           return 1;
         } else {
-          return b.time - a.time;
+          return b.displayTime - a.displayTime;
         }
       })
       .slice(0, count);
