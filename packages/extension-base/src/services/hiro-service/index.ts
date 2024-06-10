@@ -40,7 +40,7 @@ export class HiroService extends BaseApiRequestStrategy {
       }
 
       return (await rs.json()) as Brc20MetadataFetchedData;
-    }, 0);
+    }, 3);
   }
 
   getAddressBRC20BalanceInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<Brc20BalanceFetchedData> {
@@ -53,7 +53,7 @@ export class HiroService extends BaseApiRequestStrategy {
       }
 
       return (await rs.json()) as Brc20BalanceFetchedData;
-    }, 0);
+    }, 3);
   }
 
   getAddressInscriptionsInfo (params: Record<string, string>, isTestnet = false): Promise<InscriptionFetchedData> {
