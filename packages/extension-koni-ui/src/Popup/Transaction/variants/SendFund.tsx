@@ -697,13 +697,16 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
           <div className={'form-row sender-receiver-row'}>
             <Form.Item
-              className={'__sender-field'}
+              className={CN('__sender-field', {
+                hidden: accountList.length === 1
+              })}
               name={'from'}
             >
               <AccountSelector
                 disabled={accountList.length === 1}
                 externalAccounts={accountList}
                 label={t('From:')}
+                labelStyle={'horizontal'}
               />
             </Form.Item>
 
@@ -725,6 +728,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 chain={destChainValue}
                 fitNetwork={true}
                 label={t('To:')}
+                labelStyle={'horizontal'}
                 networkGenesisHash={destChainGenesisHash}
                 placeholder={t('Account address')}
                 saveAddress={true}
@@ -851,56 +855,6 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       marginBottom: token.marginXS
     },
 
-    '.__sender-field': {
-      '.ant-select-modal-input-container': {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 4,
-        height: 48
-      },
-      '.ant-select-modal-input-label': {
-        top: 0,
-        display: 'flex',
-        alignItems: 'center',
-        paddingRight: 0
-      },
-      '.ant-select-modal-input-wrapper': {
-        flex: 1,
-        paddingLeft: 0
-      }
-    },
-
-    '.__receiver-field': {
-      '.ant-input-container': {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 4
-      },
-      '.ant-input-label': {
-        top: 0,
-        display: 'flex',
-        alignItems: 'center',
-        paddingTop: 0,
-        paddingRight: 0,
-        minWidth: 45
-      },
-      '.ant-input-wrapper': {
-        flex: 1
-      },
-      '.ant-input-affix-wrapper': {
-        paddingLeft: 0
-      },
-      '.__overlay': {
-        paddingLeft: 26,
-        top: 2
-      },
-      '.-status-error .ant-input-label': {
-        paddingRight: 32
-      },
-      '.-status-error .ant-input': {
-        maxWidth: 160
-      }
-    },
     '.form-row.sender-receiver-row': {
       flexDirection: 'column',
       gap: 0
@@ -910,7 +864,12 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       marginTop: 11
     },
     '.__free-balance-block': {
-      marginBottom: 8
+      marginBottom: 8,
+      justifyContent: 'end'
+    },
+
+    '.max-btn-text': {
+      color: '#F0D030'
     },
 
     '.__fee-display': {
