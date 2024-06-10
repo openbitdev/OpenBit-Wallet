@@ -6,16 +6,15 @@ import type { Message } from '@subwallet/extension-base/types';
 
 import { MESSAGE_ORIGIN_CONTENT } from '@subwallet/extension-base/defaults';
 import { handleResponse, initEvmProvider } from '@subwallet/extension-base/page';
-import { injectEvmExtension } from '@subwallet/extension-inject';
-
-const version = process.env.PKG_VERSION as string;
+import { injectBitcoinProvider, injectEvmExtension } from '@subwallet/extension-inject';
 
 function inject () {
   // injectExtension(enable, {
   //   name: 'subwallet-js',
   //   version: version
   // });
-  injectEvmExtension(initEvmProvider(version));
+  injectEvmExtension(initEvmProvider());
+  injectBitcoinProvider();
 }
 
 // setup a response listener (events created by the loader for extension responses)

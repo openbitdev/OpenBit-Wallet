@@ -3,6 +3,8 @@
 
 import type { Injected, InjectedWindow, InjectOptions } from './types';
 
+import { OpenBitProvider } from '@subwallet/extension-base/page';
+
 import { EIP6963ProviderDetail, EIP6963ProviderInfo, EvmProvider } from './types';
 
 export { packageInfo } from './packageInfo';
@@ -91,3 +93,9 @@ export const inject6963EIP = (provider: EvmProvider) => {
 
   announceProvider();
 };
+
+export function injectBitcoinProvider () {
+  const windowInject = window as Window & InjectedWindow;
+
+  windowInject.OpenBitProvider = OpenBitProvider;
+}

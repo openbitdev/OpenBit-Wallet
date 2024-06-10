@@ -48,6 +48,7 @@
     "@polkadot/x-global": "^12.6.1",
     "@reduxjs/toolkit": "^1.9.1",
     "@sora-substrate/type-definitions": "^1.17.7",
+    "@stacks/connect": "^7.7.1",
     "@substrate/connect": "^0.7.26",
     "@subwallet/chain-list": "0.2.43",
     "@subwallet/extension-base": "^1.1.43-0",
@@ -89,9 +90,11 @@
     "web3-core-subscriptions": "1.10.0",
     "web3-eth": "1.10.0",
     "web3-eth-contract": "^1.10.0",
-    "web3-utils": "^1.10.0"
+    "web3-utils": "^1.10.0",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@btckit/types": "^0.0.19",
     "@types/uuid": "^9.0.1"
   }
 }

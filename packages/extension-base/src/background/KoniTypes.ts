@@ -1287,6 +1287,16 @@ export enum EvmProviderErrorType {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
 }
 
+export enum BitcoinProviderErrorType {
+  USER_REJECTED_REQUEST = 'USER_REJECTED_REQUEST',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  UNSUPPORTED_METHOD = 'UNSUPPORTED_METHOD',
+  DISCONNECTED = 'DISCONNECTED',
+  CHAIN_DISCONNECTED = 'CHAIN_DISCONNECTED',
+  INVALID_PARAMS = 'INVALID_PARAMS',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+}
+
 export interface EvmSendTransactionParams {
   from: string;
   to?: string;
@@ -2496,6 +2506,8 @@ export interface KoniRequestSignatures {
   // External account request
   'pri(account.external.reject)': [RequestRejectExternalRequest, ResponseRejectExternalRequest];
   'pri(account.external.resolve)': [RequestResolveExternalRequest, ResponseResolveExternalRequest];
+
+  'bitcoin(request)': [RequestArguments, unknown];
 
   // Evm
   'evm(events.subscribe)': [RequestEvmEvents, boolean, EvmEvent];

@@ -4,11 +4,12 @@
 import type { InjectedAccount } from '@subwallet/extension-inject/types';
 
 import { _AssetType } from '@subwallet/chain-list/types';
+import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
 import { createSubscription, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AddNetworkRequestExternal, AddTokenRequestExternal, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { AddNetworkRequestExternal, AddTokenRequestExternal, BitcoinProviderErrorType, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import RequestBytesSign from '@subwallet/extension-base/background/RequestBytesSign';
 import RequestExtrinsicSign from '@subwallet/extension-base/background/RequestExtrinsicSign';
 import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestTypes, ResponseRpcListProviders, ResponseSigning, ResponseTypes, SubscriptionMessageTypes } from '@subwallet/extension-base/background/types';
@@ -1058,25 +1059,73 @@ export default class KoniTabs {
     return await this.#koniState.addTokenConfirm(id, url, tokenInfo);
   }
 
-  public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
-    console.log('handle', type, request, url, port);
+  async bitcoinGetAddress (url: string, request: RequestArguments): Promise<unknown> {
+    try {
+      const result = this.#koniState.authorizeUrlV2(url, {
+        origin: '',
+        accountAuthType: 'bitcoin'
+      });
 
-    if (type === 'pub(phishing.redirectIfDenied)') {
-      return this.redirectIfPhishing(url);
+      return result;
+    } catch (e) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
     }
+  }
 
-    // Wait for account ready and chain ready
-    await Promise.all([this.#koniState.eventService.waitAccountReady, this.#koniState.eventService.waitChainReady]);
+  private async handleBitcoinRequest (id: string, url: string, request: RequestArguments, port: chrome.runtime.Port): Promise<unknown> {
+    const { method } = request;
 
-    if (type !== 'pub(authorize.tabV2)' && !this.isEvmPublicRequest(type, request as RequestArguments)) {
+    try {
+      switch (method) {
+        case 'getAddress':
+          return await this.bitcoinGetAddress(url, request);
+
+        default:
+          return this.performWeb3Method(id, url, request);
+      }
+    } catch (e) {
+      // @ts-ignore
+      if (e.code) {
+        throw e;
+      } else {
+        console.error(e);
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR, e?.toString());
+      }
+    }
+  }
+
+  public async handleBitcoin<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    switch (type) {
+      case 'bitcoin(request)':
+        return await this.handleBitcoinRequest(id, url, request as RequestArguments, port);
+      default:
+        throw new Error(`Unable to handle message of type ${type}`);
+    }
+  }
+
+  public async handleEvm<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    if (!this.isEvmPublicRequest(type, request as RequestArguments)) {
       await this.#koniState.ensureUrlAuthorizedV2(url)
         .catch((e: Error) => {
-          if (type.startsWith('evm')) {
-            throw new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR, e.message);
-          } else {
-            throw e;
-          }
+          throw new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR, e.message);
         });
+    }
+
+    switch (type) {
+      case 'evm(events.subscribe)':
+        return await this.evmSubscribeEvents(url, id, port);
+      case 'evm(request)':
+        return await this.handleEvmRequest(id, url, request as RequestArguments);
+      case 'evm(provider.send)':
+        return await this.handleEvmSend(id, url, port, request as RequestEvmProviderSend);
+      default:
+        throw new Error(`Unable to handle message of type ${type}`);
+    }
+  }
+
+  public async handleSubstrate<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    if (type !== 'pub(authorize.tabV2)' && !this.isEvmPublicRequest(type, request as RequestArguments)) {
+      await this.#koniState.ensureUrlAuthorizedV2(url);
     }
 
     switch (type) {
@@ -1117,23 +1166,39 @@ export default class KoniTabs {
       case 'pub(token.add)':
         return this.addPspToken(id, url, request as RequestAddPspToken);
 
-      ///
       case 'pub(authorize.tabV2)':
         return this.authorizeV2(url, request as RequestAuthorizeTab);
+
       case 'pub(accounts.listV2)':
         return this.accountsListV2(url, request as RequestAccountList);
+
       case 'pub(accounts.subscribeV2)':
         return this.accountsSubscribeV2(url, request as RequestAccountSubscribe, id, port);
+
       case 'pub(accounts.unsubscribe)':
         return this.accountsUnsubscribe(url, request as RequestAccountUnsubscribe);
-      case 'evm(events.subscribe)':
-        return await this.evmSubscribeEvents(url, id, port);
-      case 'evm(request)':
-        return await this.handleEvmRequest(id, url, request as RequestArguments);
-      case 'evm(provider.send)':
-        return await this.handleEvmSend(id, url, port, request as RequestEvmProviderSend);
+
       default:
         throw new Error(`Unable to handle message of type ${type}`);
+    }
+  }
+
+  public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    if (type === 'pub(phishing.redirectIfDenied)') {
+      return this.redirectIfPhishing(url);
+    }
+
+    // Wait for account ready and chain ready
+    await Promise.all([this.#koniState.eventService.waitAccountReady, this.#koniState.eventService.waitChainReady]);
+
+    if (type.startsWith('bitcoin(')) {
+      return this.handleBitcoin(id, type, request, url, port);
+    } else if (type.startsWith('evm(')) {
+      return this.handleEvm(id, type, request, url, port);
+    } else if (type.startsWith('pub(')) {
+      return this.handleSubstrate(id, type, request, url, port);
+    } else {
+      throw new Error(`Unable to handle message of type ${type}`);
     }
   }
 }

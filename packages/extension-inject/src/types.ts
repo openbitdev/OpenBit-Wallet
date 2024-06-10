@@ -5,6 +5,7 @@ import type { Signer as InjectedSigner } from '@polkadot/api/types';
 import type { ProviderInterface } from '@polkadot/rpc-provider/types';
 import type { ExtDef } from '@polkadot/types/extrinsic/signedExtensions/types';
 
+import { OpenBitProviderType } from '@subwallet/extension-base/page';
 import { KeypairType } from '@subwallet/keyring/types';
 
 // eslint-disable-next-line no-undef
@@ -115,6 +116,7 @@ export interface InjectedWindow extends This {
   injectedWeb3: Record<string, InjectedWindowProvider>;
   ethereum: EvmProvider;
   OpenBit: EvmProvider;
+  OpenBitProvider: OpenBitProviderType;
 }
 
 export type InjectedExtension = InjectedExtensionInfo & Injected;
