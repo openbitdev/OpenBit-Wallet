@@ -21,7 +21,7 @@ import { Button, Form, Icon } from '@subwallet/react-ui';
 import { Rule } from '@subwallet/react-ui/es/form';
 import BigN from 'bignumber.js';
 import CN from 'classnames';
-import { ArrowRight, PaperPlaneTilt } from 'phosphor-react';
+import { PaperPlaneTilt } from 'phosphor-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
@@ -703,16 +703,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               <AccountSelector
                 disabled={accountList.length === 1}
                 externalAccounts={accountList}
-                label={t('From')}
+                label={t('From:')}
               />
             </Form.Item>
-
-            <Icon
-              className={'middle-icon'}
-              phosphorIcon={ArrowRight}
-              size={'xs'}
-              weight={'fill'}
-            />
 
             <Form.Item
               className={'__receiver-field'}
@@ -731,7 +724,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 allowDomain={true}
                 chain={destChainValue}
                 fitNetwork={true}
-                label={t('To')}
+                label={t('To:')}
                 networkGenesisHash={destChainGenesisHash}
                 placeholder={t('Account address')}
                 saveAddress={true}
@@ -740,6 +733,14 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               />
             </Form.Item>
           </div>
+
+          {!!fromValue && <FreeBalance
+            address={fromValue}
+            chain={chainValue}
+            className={'__free-balance-block'}
+            onBalanceReady={setIsBalanceReady}
+            tokenSlug={assetValue}
+          />}
 
           <Form.Item
             name={'value'}
@@ -761,14 +762,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             />
           </Form.Item>
         </Form>
-
-        {!!fromValue && <FreeBalance
-          address={fromValue}
-          chain={chainValue}
-          className={'__free-balance-block'}
-          onBalanceReady={setIsBalanceReady}
-          tokenSlug={assetValue}
-        />}
 
         {
           BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
@@ -854,82 +847,70 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         }
       }
     },
+    '.ant-form-item': {
+      marginBottom: token.marginXS
+    },
+
+    '.__sender-field': {
+      '.ant-select-modal-input-container': {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 4,
+        height: 48
+      },
+      '.ant-select-modal-input-label': {
+        top: 0,
+        display: 'flex',
+        alignItems: 'center',
+        paddingRight: 0
+      },
+      '.ant-select-modal-input-wrapper': {
+        flex: 1,
+        paddingLeft: 0
+      }
+    },
 
     '.__receiver-field': {
+      '.ant-input-container': {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 4
+      },
+      '.ant-input-label': {
+        top: 0,
+        display: 'flex',
+        alignItems: 'center',
+        paddingTop: 0,
+        paddingRight: 0,
+        minWidth: 45
+      },
       '.ant-input-wrapper': {
-        position: 'relative',
-        paddingTop: 10,
-        paddingBottom: 12
+        flex: 1
       },
-      '.ant-input-suffix': {
-        position: 'absolute',
-        top: -18,
-        right: 16,
-        height: 24
-      },
-      '.ant-input-suffix .anticon': {
-        fontSize: `${token.fontSizeLG}px !important`
-      },
-      '.ant-input-suffix .ant-btn': {
-        minWidth: 24
-      },
-      '.ant-input-status-icon': {
-        display: 'none'
-      },
-      '.ant-input': {
-        borderBottomWidth: 0,
-        paddingBottom: 9
-      },
-      '.__address': {
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
+      '.ant-input-affix-wrapper': {
         paddingLeft: 0
       },
       '.__overlay': {
-        paddingRight: 0,
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        justifyContent: 'center'
+        paddingLeft: 26,
+        top: 2
       },
-      '.__name': {
-        maxWidth: 116
+      '.-status-error .ant-input-label': {
+        paddingRight: 32
       },
-      '.ant-input-prefix': {
-        marginBottom: -3
-      }
-    },
-    '.__sender-field': {
-      '.__selected-item': {
-        flexDirection: 'column'
-      },
-      '.ant-select-modal-input-wrapper': {
-        minHeight: 66
-      },
-      '.ant-select-modal-input-label': {
-        position: 'relative'
-      },
-      '.ant-select-modal-input-suffix': {
-        position: 'absolute',
-        top: 8,
-        right: 6
-      },
-      '.__selected-item-address': {
-        paddingLeft: 0,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        'white-space': 'nowrap'
-      },
-      '.ant-select-modal-input-placeholder': {
-        color: token.colorTextTertiary,
-        fontWeight: 300
+      '.-status-error .ant-input': {
+        maxWidth: 160
       }
     },
     '.form-row.sender-receiver-row': {
-      gap: 2
+      flexDirection: 'column',
+      gap: 0
     },
 
     '.__free-balance-block + .__bitcoin-fee-selector': {
       marginTop: 11
+    },
+    '.__free-balance-block': {
+      marginBottom: 8
     },
 
     '.__fee-display': {
