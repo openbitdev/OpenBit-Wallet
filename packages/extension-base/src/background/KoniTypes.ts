@@ -73,6 +73,13 @@ export interface AuthRequestV2 extends Resolver<ResultResolver> {
   accountAuthType: AccountAuthType;
 }
 
+export type AuthAddress = {
+  address: string;
+  publicKey?: string;
+  isTestnet?: boolean;
+  addressType: 'p2tr' | 'p2wpkh' | 'p2sh' | 'ethereum' | 'unknown';
+}
+
 /// Manage Auth
 
 // Get Auth

@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AbstractAddressJson } from '@subwallet/extension-base/background/types';
-import { AccountProxyAvatar } from '@subwallet/extension-koni-ui/components';
-import AvatarGroup from '@subwallet/extension-koni-ui/components/Account/Info/AvatarGroup';
+import { AccountProxyAvatar, AccountProxyAvatarGroup } from '@subwallet/extension-koni-ui/components';
 import AccountItemBase, { AccountItemBaseProps } from '@subwallet/extension-koni-ui/components/Account/Item/AccountItemBase';
 import { isAccountAll, toShort } from '@subwallet/extension-koni-ui/utils';
 import CN from 'classnames';
@@ -23,6 +22,26 @@ const Component: React.FC<Props> = (props: Props) => {
   const isAll = isAccountAll(address);
   const { t } = useTranslation();
 
+  const accountProxies = useMemo(() => {
+    if (!accounts) {
+      return undefined;
+    }
+
+    const proxies: string[] = [];
+
+    accounts.forEach((a) => {
+      if (a.proxyId && !proxies.includes(a.proxyId)) {
+        proxies.push(a.proxyId);
+      }
+    });
+
+    return proxies.map((p) => ({
+      proxyId: p
+    }));
+  }, [accounts]);
+
+  console.log('accountProxies', accountProxies, isAll);
+
   const showFallback = useMemo(() => {
     if (isAll) {
       return false;
@@ -41,7 +60,7 @@ const Component: React.FC<Props> = (props: Props) => {
       address={address}
       className={CN('account-item-with-name', props.className)}
       leftItem={isAll
-        ? <AvatarGroup accounts={accounts} />
+        ? <AccountProxyAvatarGroup accountProxies={accountProxies} />
         : <AccountProxyAvatar
           size={24}
           value={proxyId}

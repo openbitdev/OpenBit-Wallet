@@ -37,14 +37,16 @@ async function handleBlock ({ id }: AuthorizeRequest) {
 }
 
 export const filterAuthorizeAccounts = (accounts: AccountJson[], accountAuthType: AccountAuthType) => {
-  let rs = [...accounts];
+  let rs = [...accounts.filter((a) => !a.isReadOnly)];
 
   // rs = rs.filter((acc) => acc.isReadOnly !== true);
 
   if (accountAuthType === 'evm') {
     rs = rs.filter((acc) => (!isAccountAll(acc.address) && acc.type === 'ethereum'));
   } else if (accountAuthType === 'substrate') {
-    rs = rs.filter((acc) => (!isAccountAll(acc.address) && acc.type !== 'ethereum'));
+    rs = rs.filter((acc) => (!isAccountAll(acc.address) && acc.type && ['ed25519', 'sr25519', 'ecdsa'].includes(acc.type)));
+  } else if (accountAuthType === 'bitcoin') {
+    rs = rs.filter((acc) => (!isAccountAll(acc.address) && acc.type && ['bitcoin-86', 'bitcoin-84', 'bittest-84', 'bittest-86'].includes(acc.type)));
   } else {
     rs = rs.filter((acc) => !isAccountAll(acc.address));
   }
@@ -229,6 +231,7 @@ function Component ({ className, request }: Props) {
                   isSelected={selectedMap[item.address]}
                   key={item.address}
                   onClick={onAccountSelect(item.address)}
+                  proxyId={item.proxyId}
                   showUnselectIcon
                 />
               ))}
