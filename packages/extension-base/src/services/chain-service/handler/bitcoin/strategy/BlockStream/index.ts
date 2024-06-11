@@ -227,6 +227,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }
   }
 
+  // * Deprecated
   async getRuneTxsUtxos (address: string) {
     const txsFullList: RuneTxs[] = [];
     const pageSize = 10;

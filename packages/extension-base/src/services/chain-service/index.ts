@@ -4,7 +4,6 @@
 import { AssetLogoMap, AssetRefMap, ChainAssetMap, ChainInfoMap, ChainLogoMap, MultiChainAssetMap } from '@subwallet/chain-list';
 import { _AssetRef, _AssetRefPath, _AssetType, _BitcoinInfo, _ChainAsset, _ChainInfo, _ChainStatus, _EvmInfo, _MultiChainAsset, _SubstrateChainType, _SubstrateInfo } from '@subwallet/chain-list/types';
 import { AssetSetting, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
-import { decodeRuneSpacer, insertRuneSpacer } from '@subwallet/extension-base/services/balance-service/utils/rune';
 import { _ALWAYS_ACTIVE_CHAINS, _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _DEFAULT_ACTIVE_CHAINS, _ZK_ASSET_PREFIX, LATEST_CHAIN_DATA_FETCHING_INTERVAL } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinChainHandler } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/BitcoinChainHandler';
 import { EvmChainHandler } from '@subwallet/extension-base/services/chain-service/handler/EvmChainHandler';
@@ -16,7 +15,7 @@ import { _isAssetAutoEnable, _isAssetFungibleToken, _isBrc20Token, _isChainEnabl
 import { EventService } from '@subwallet/extension-base/services/event-service';
 import { getBrc20Metadata } from '@subwallet/extension-base/services/hiro-service/utils';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
-import { getAllCollectionRunes } from '@subwallet/extension-base/services/rune-service/utils';
+import { getAllCollectionRunes, getRuneMetadata } from '@subwallet/extension-base/services/rune-service/utils';
 import { IChain, IMetadataItem } from '@subwallet/extension-base/services/storage-service/databases';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
 import AssetSettingStore from '@subwallet/extension-base/stores/AssetSetting';
@@ -1822,25 +1821,18 @@ export class ChainService {
 
   private async getRuneInfo (runeId: string, tokenType: _AssetType, originChain: string, contractCaller?: string): Promise<_SmartContractTokenInfo> {
     if (tokenType === _AssetType.RUNE && originChain === _BITCOIN_CHAIN_SLUG) {
-      const allCollectionRunes = await getAllCollectionRunes();
+      const runeMetadata = await getRuneMetadata(runeId);
 
-      for (const runeCollection of allCollectionRunes) {
-        if (runeCollection.rune_id === runeId) {
-          const spacer = runeCollection.spacers;
-          const baseRuneName = runeCollection.rune_name;
+      const decimals = runeMetadata.entry.divisibility;
+      const runeName = runeMetadata.entry.spaced_rune;
+      const isContractError = !runeName;
 
-          const spacerList = decodeRuneSpacer(parseInt(spacer));
-          const runeName = insertRuneSpacer(baseRuneName, spacerList);
-          const isContractError = (!baseRuneName);
-
-          return {
-            decimals: parseInt(runeCollection.divisibility) || 0,
-            name: runeCollection.rune_name,
-            symbol: runeName,
-            contractError: isContractError
-          };
-        }
-      }
+      return {
+        decimals: decimals || 0,
+        name: runeName.replaceAll('•', ''),
+        symbol: runeName,
+        contractError: isContractError
+      };
     }
 
     return {

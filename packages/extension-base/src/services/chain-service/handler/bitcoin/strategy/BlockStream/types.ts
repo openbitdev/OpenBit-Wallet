@@ -42,7 +42,7 @@ export interface RunesInfoByAddressResponse {
   data: RunesInfoByAddressFetchedData
 }
 
-interface RunesInfoByAddressFetchedData {
+export interface RunesInfoByAddressFetchedData {
   limit: number,
   offset: number,
   total: number,
@@ -275,4 +275,24 @@ interface RuneInject {
   amount: string,
   symbol: string,
   divisibility: number
+}
+
+export interface RuneMetadata {
+  id: string,
+  mintable: boolean,
+  parent: string,
+  entry: {
+    block: number,
+    burned: number,
+    divisibility: number,
+    etching: string,
+    mints: number,
+    number: number,
+    premine: number,
+    spaced_rune: string,
+    symbol: string,
+    // terms:
+    timestamp: number,
+    turbo: boolean
+  }
 }

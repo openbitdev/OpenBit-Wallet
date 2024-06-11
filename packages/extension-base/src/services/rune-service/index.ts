@@ -3,13 +3,12 @@
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
-import { RunesCollectionInfoResponse, RunesInfoByAddressResponse, RuneTxsResponse, RuneUtxoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { RuneMetadata, RunesCollectionInfoResponse, RunesInfoByAddressFetchedData, RuneTxsResponse, RuneUtxoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-// const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz'; // todo: need update later
 const OPENBIT_URL = 'https://api.openbit.app';
 
 export class RunesService extends BaseApiRequestStrategy {
@@ -37,19 +36,20 @@ export class RunesService extends BaseApiRequestStrategy {
     }
   }
 
-  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddressResponse> {
+  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddressFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `address/${address}/runes`);
-      const rs = await getRequest(url, params);
+      const _rs = await getRequest(this.getUrl(isTestnet, `rune/address/${address}`), params, this.headers);
+      const rs = await _rs.json() as OBResponse<RunesInfoByAddressFetchedData>;
 
-      if (rs.status !== 200) {
-        throw new SWError('RuneScanService.getAddressRunesInfo', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('RuneScanService.getAddressRunesInfo', rs.message);
       }
 
-      return (await rs.json()) as RunesInfoByAddressResponse;
+      return rs.result;
     }, 1);
   }
 
+  // * Deprecated
   getRuneCollectionsByBatch (params: Record<string, string>, isTestnet = false): Promise<RunesCollectionInfoResponse> {
     return this.addRequest(async () => {
       const url = this.getUrl(isTestnet, 'rune');
@@ -63,6 +63,7 @@ export class RunesService extends BaseApiRequestStrategy {
     }, 1);
   }
 
+  // * Deprecated
   getAddressRuneTxs (address: string, params: Record<string, string>, isTestnet = false): Promise<RuneTxsResponse> {
     return this.addRequest(async () => {
       const url = this.getUrl(isTestnet, `address/${address}/txs`);
@@ -73,6 +74,19 @@ export class RunesService extends BaseApiRequestStrategy {
       }
 
       return (await rs.json()) as RuneTxsResponse;
+    }, 0);
+  }
+
+  getRuneMetadata (runeid: string, isTestnet = false): Promise<RuneMetadata> {
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(isTestnet, `rune/metadata/${runeid}`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<RuneMetadata>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('RuneScanService.getRuneMetadata', rs.message);
+      }
+
+      return rs.result;
     }, 0);
   }
 
