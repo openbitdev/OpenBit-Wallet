@@ -31,7 +31,7 @@ function defaultFiler (account: AccountJson): boolean {
 }
 
 const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> => {
-  const { className = '', disabled, doFilter = true, externalAccounts, filter, id = 'account-selector', label, labelStyle = 'default', placeholder, readOnly, statusHelp, value } = props;
+  const { className = '', disabled, doFilter = true, externalAccounts, filter, id = 'account-selector', label, labelStyle = 'default', placeholder, readOnly, statusHelp, title, value } = props;
   const accounts = useSelector((state) => state.accountState.accounts);
 
   const items = useMemo(() => {
@@ -114,7 +114,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         searchPlaceholder={t<string>('Account name')}
         selected={value || ''}
         statusHelp={statusHelp}
-        title={label || placeholder || t('Select account')}
+        title={title || label || placeholder || t('Select account')}
       />
     </>
   );

@@ -706,6 +706,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 disabled={accountList.length === 1}
                 externalAccounts={accountList}
                 label={t('From:')}
+                title={t('From')}
                 labelStyle={'horizontal'}
               />
             </Form.Item>
@@ -830,6 +831,10 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       paddingLeft: token.padding,
       paddingRight: token.padding,
       marginBottom: token.marginMD
+    },
+
+    '.transaction-footer .ant-btn-content-wrapper': {
+      fontWeight: token.fontWeightStrong
     },
 
     '.form-row': {

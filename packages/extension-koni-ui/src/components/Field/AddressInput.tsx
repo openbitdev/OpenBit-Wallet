@@ -381,7 +381,8 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
       '.ant-input-container': {
         display: 'flex',
         flexDirection: 'row',
-        gap: 4
+        gap: 4,
+        borderTopWidth: 2
       },
       '.ant-input-label': {
         top: 0,

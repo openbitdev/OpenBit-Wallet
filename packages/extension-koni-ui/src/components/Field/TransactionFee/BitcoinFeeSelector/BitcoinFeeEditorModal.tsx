@@ -322,6 +322,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
                     validator: customValueValidator
                   }
                 ]}
+                statusHelpAsTooltip={true}
               >
                 <Input
                   label={'sats/vB'}
@@ -342,6 +343,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
 
             <Button
               block={true}
+              className={'__custom-fee-button'}
               disabled={!canSubmitCustom}
               onClick={form.submit}
             >
@@ -365,6 +367,21 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       borderRadius: 8,
       overflow: 'hidden'
     },
+
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
+
+    '.__custom-mode .ant-input-suffix': {
+      position: 'absolute',
+      right: token.sizeSM,
+      bottom: -40
+    },
+
+    '.__custom-fee-button': {
+      marginTop: token.marginLG
+    },
+
     '.__fee-option-item: hover': {
       backgroundColor: token.colorBgInput,
       transition: 'backgroundColor 0.2s ease-in-out'
@@ -381,7 +398,6 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       fontWeight: token.headingFontWeight,
       color: token.colorTextTertiary,
       paddingLeft: 8,
-      paddingRight: 8,
 
       '.ant-number-integer': {
         color: 'inherit !important',
