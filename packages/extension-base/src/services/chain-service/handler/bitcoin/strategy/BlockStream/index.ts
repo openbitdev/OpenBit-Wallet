@@ -3,7 +3,7 @@
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
@@ -191,7 +191,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   async getRunes (address: string) {
     const runesFullList: RunesInfoByAddress[] = [];
-    const pageSize = 10;
+    const pageSize = 60;
     let offset = 0;
 
     const runeService = RunesService.getInstance();
@@ -201,16 +201,9 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         const response = await runeService.getAddressRunesInfo(address, {
           limit: String(pageSize),
           offset: String(offset)
-        }) as unknown as RunesInfoByAddressResponse;
+        }) as unknown as RunesInfoByAddressFetchedData;
 
-        let runes: RunesInfoByAddress[] = [];
-
-        if (response.statusCode === 200) {
-          runes = response.data.runes;
-        } else {
-          console.log(`Error on request runes data for address ${address}`);
-          break;
-        }
+        const runes = response.runes;
 
         if (runes.length !== 0) {
           runesFullList.push(...runes);
