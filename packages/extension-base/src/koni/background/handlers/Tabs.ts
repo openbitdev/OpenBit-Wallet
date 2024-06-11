@@ -23,7 +23,7 @@ import { AuthUrls } from '@subwallet/extension-base/services/request-service/typ
 import { DEFAULT_CHAIN_PATROL_ENABLE } from '@subwallet/extension-base/services/setting-service/constants';
 import { canDerive, getEVMChainInfo, stripUrl } from '@subwallet/extension-base/utils';
 import { InjectedMetadataKnown, MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
-import { getKeypairTypeByAddress } from '@subwallet/keyring';
+import { getDerivePath, getKeypairTypeByAddress } from '@subwallet/keyring';
 import { KeypairType, KeyringPair } from '@subwallet/keyring/types';
 import keyring from '@subwallet/ui-keyring';
 import { SingleAddress, SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -97,11 +97,14 @@ const getAuthAddresses = (addresses: string[]) => {
       return;
     }
 
-    result.push({
+    const deriFunc = getDerivePath(keypairType);
+    const index = parseInt((pair.meta.suri as string)?.split('//')[1]) || 0;
+
+    const item: AuthAddress = {
       address,
+      derivationPath: deriFunc(index),
       publicKey: hexStripPrefix(u8aToHex(pair.publicKey)),
-      isTestnet: ['bittest-84', 'bittest-86'].includes(keypairType),
-      addressType: (() => {
+      type: (() => {
         if (keypairType === 'ethereum') {
           return 'ethereum';
         }
@@ -116,7 +119,17 @@ const getAuthAddresses = (addresses: string[]) => {
 
         return 'unknown';
       })()
-    });
+    };
+
+    if (['bittest-84', 'bittest-86'].includes(keypairType)) {
+      item.isTestnet = true;
+    }
+
+    if (pair.publicKey.length !== 32) {
+      item.tweakedPublicKey = hexStripPrefix(u8aToHex(pair.publicKey.slice(1, 33)));
+    }
+
+    result.push(item);
   });
 
   return result;

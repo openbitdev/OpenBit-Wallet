@@ -76,8 +76,10 @@ export interface AuthRequestV2 extends Resolver<ResultResolver> {
 export type AuthAddress = {
   address: string;
   publicKey?: string;
+  tweakedPublicKey?: string;
+  derivationPath?: string;
   isTestnet?: boolean;
-  addressType: 'p2tr' | 'p2wpkh' | 'p2sh' | 'ethereum' | 'unknown';
+  type: 'p2tr' | 'p2wpkh' | 'p2sh' | 'ethereum' | 'unknown';
 }
 
 /// Manage Auth
