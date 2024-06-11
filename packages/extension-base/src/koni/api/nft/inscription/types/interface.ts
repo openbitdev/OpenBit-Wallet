@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+// * Deprecated
 export interface Inscription {
   id: string;
   number: number;
@@ -20,7 +21,7 @@ export interface Inscription {
   content: any;
 }
 
-// all metadata return from Hiro
+// * Deprecated
 export interface InscriptionResponseItem {
   address: string;
   content_length: number;

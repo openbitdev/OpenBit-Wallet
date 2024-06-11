@@ -75,6 +75,24 @@ export class HiroService extends BaseApiRequestStrategy {
     }, 0);
   }
 
+  getInscriptionContent (inscriptionId: string, isTestnet = false): Promise<Record<string, any>> {
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(isTestnet, `inscriptions/${inscriptionId}/content`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<Record<string, any>>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('HiroService.getInscriptionContent', rs.message);
+      }
+
+      return rs.result;
+    }, 0);
+  }
+
+  // todo: handle token authen for url preview
+  getPreviewUrl (inscriptionId: string) {
+    return `${OPENBIT_URL}/inscriptions/${inscriptionId}/content`;
+  }
+
   // Singleton
   private static _instance: HiroService;
 
