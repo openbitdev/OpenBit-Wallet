@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { RunesCollectionInfoResponse, RunesInfoByAddressResponse, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
+import { RunesCollectionInfoResponse, RunesInfoByAddressResponse, RuneTxsResponse, RuneUtxoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz'; // todo: need update later
-// const OPENBIT_URL = 'https://api.openbit.app';
+// const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz'; // todo: need update later
+const OPENBIT_URL = 'https://api.openbit.app';
 
 export class RunesService extends BaseApiRequestStrategy {
   private constructor () {
@@ -17,13 +19,18 @@ export class RunesService extends BaseApiRequestStrategy {
     super(context);
   }
 
+  private headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${_BEAR_TOKEN}`
+  };
+
   isRateLimited (): boolean {
     return false;
   }
 
   getUrl (isTestnet: boolean, path: string): string {
     if (!isTestnet) {
-      return `${RUNE_ALPHA_ENDPOINT}/${path}`;
+      return `${OPENBIT_URL}/${path}`;
     } else {
       // todo: update testnet url
       return '';
@@ -66,6 +73,19 @@ export class RunesService extends BaseApiRequestStrategy {
       }
 
       return (await rs.json()) as RuneTxsResponse;
+    }, 0);
+  }
+
+  getAddressRuneUtxos (address: string, isTestnet = false): Promise<RuneUtxoResponse> {
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(isTestnet, `rune/address/${address}/utxo`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<RuneUtxoResponse>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('RuneScanService.getAddressRuneUtxos', rs.message);
+      }
+
+      return rs.result;
     }, 0);
   }
 

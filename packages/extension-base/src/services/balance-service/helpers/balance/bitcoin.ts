@@ -8,7 +8,7 @@ import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-servi
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem, UtxoResponseItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType, filteredOutTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, getInscriptionUtxos, getRuneUtxos } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 
 // todo: update bitcoin params
@@ -131,7 +131,7 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
   try {
     const [utxos, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
       await bitcoinApi.api.getUtxos(address),
-      await getRuneTxsUtxos(bitcoinApi, address),
+      await getRuneUtxos(bitcoinApi, address),
       await getInscriptionUtxos(bitcoinApi, address)
     ]);
 

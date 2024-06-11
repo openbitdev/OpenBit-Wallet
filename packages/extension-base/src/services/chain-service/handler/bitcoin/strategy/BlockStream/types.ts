@@ -250,3 +250,29 @@ export interface BlockStreamTransactionDetail {
   vin: BlockStreamTransactionVectorInput[];
   vout: BlockStreamTransactionVectorOutput[];
 }
+
+export interface RuneUtxoResponse {
+  start: number,
+  total: number,
+  utxo: RuneUtxo[]
+}
+
+export interface RuneUtxo {
+  height: number,
+  confirmations: number,
+  address: string,
+  satoshi: number,
+  scriptPk: string,
+  txid: string,
+  vout: number,
+  runes: RuneInject[]
+}
+
+interface RuneInject {
+  rune: string,
+  runeid: string,
+  spacedRune: string,
+  amount: string,
+  symbol: string,
+  divisibility: number
+}

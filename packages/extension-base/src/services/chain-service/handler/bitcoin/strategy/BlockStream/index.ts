@@ -265,6 +265,19 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }
   }
 
+  async getRuneUtxos (address: string) {
+    const runeService = RunesService.getInstance();
+
+    try {
+      const responseRuneUtxos = await runeService.getAddressRuneUtxos(address);
+
+      return responseRuneUtxos.utxo;
+    } catch (error) {
+      console.error(`Failed to get ${address} rune utxos`, error);
+      throw error;
+    }
+  }
+
   async getAddressBRC20FreeLockedBalance (address: string, ticker: string): Promise<Brc20BalanceItem> {
     const hiroService = HiroService.getInstance();
 
