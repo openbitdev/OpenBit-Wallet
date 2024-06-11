@@ -328,16 +328,16 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
                   label={'sats/vB'}
                   min={1}
                   placeholder={'Enter sats/vB'}
-                  suffix={(
-                    <Number
-                      className={'__converted-value'}
-                      decimal={8} // decimals of bitcoin is 8, will update dynamic value later
-                      suffix={'BTC'} // will update dynamic value later
-                      value={convertedCustomValue}
-                    />
-                  )}
                   type={'number'}
                 />
+                <div className={'__custom-value'}>
+                  <Number
+                    className={'__converted-value'}
+                    decimal={8} // decimals of bitcoin is 8, will update dynamic value later
+                    suffix={'BTC'} // will update dynamic value later
+                    value={convertedCustomValue}
+                  />
+                </div>
               </Form.Item>
             </Form>
 
@@ -372,14 +372,10 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       borderBottomColor: token.colorBgSecondary
     },
 
-    '.__custom-mode .ant-input-suffix': {
-      position: 'absolute',
-      right: token.sizeSM,
-      bottom: -40
-    },
-
-    '.__custom-fee-button': {
-      marginTop: token.marginLG
+    '.__custom-value': {
+      display: 'flex',
+      justifyContent: 'end',
+      marginTop: 4
     },
 
     '.__fee-option-item: hover': {
