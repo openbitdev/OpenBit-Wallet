@@ -162,9 +162,9 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return null;
     }
 
-    const feeRate = feeDetail.options[o.option].feeRate;
+    const feeRate = feeDetail?.options?.[o?.option]?.feeRate;
     const iconOption = IconMap[o.option];
-    const timeOption = feeDetail.options[o.option].time;
+    const timeOption = feeDetail?.options?.[o?.option]?.time;
     const name = (() => {
       if (o.option === 'slow') {
         return t('Low');
@@ -237,7 +237,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return Promise.reject(t('Invalid value'));
     }
 
-    const low = feeDetail.options.slow.feeRate;
+    const low = feeDetail?.options?.slow?.feeRate;
     const val = parseFloat(value);
 
     if (low > val) {
@@ -284,7 +284,11 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       )}
       id={modalId}
       onCancel={onCancelModal}
-      title={t('Choose fee')}
+      title={
+        <div className={'__title-wrapper'}>
+          <div>{t(t('Choose fee'))}</div>
+          <div className={'__beta-version'}>Beta version</div>
+        </div>}
     >
       <div className={'__switcher-box'}>
         <RadioGroup
@@ -399,6 +403,22 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       fontWeight: token.fontWeightStrong,
       lineHeight: token.lineHeightLG,
       'white-space': 'nowrap'
+    },
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
     },
     '.__line-2 .__label, .__line-3 .__label': {
       minWidth: 68,

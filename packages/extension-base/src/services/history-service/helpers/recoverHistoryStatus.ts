@@ -14,7 +14,8 @@ export enum HistoryRecoverStatus {
   API_INACTIVE = 'API_INACTIVE',
   LACK_INFO = 'LACK_INFO',
   FAIL_DETECT = 'FAIL_DETECT',
-  UNKNOWN = 'UNKNOWN'
+  UNKNOWN = 'UNKNOWN',
+  TX_PENDING = 'TX_PENDING',
 }
 
 export interface TransactionRecoverResult {
@@ -22,6 +23,7 @@ export interface TransactionRecoverResult {
   extrinsicHash?: string;
   blockHash?: string;
   blockNumber?: number;
+  blockTime?: number;
 }
 
 const BLOCK_LIMIT = 6;
@@ -193,6 +195,46 @@ const evmRecover = async (history: TransactionHistoryItem, chainService: ChainSe
   }
 };
 
+const bitcoinRecover = async (history: TransactionHistoryItem, chainService: ChainService): Promise<TransactionRecoverResult> => {
+  const { chain, extrinsicHash } = history;
+  const result: TransactionRecoverResult = {
+    status: HistoryRecoverStatus.UNKNOWN
+  };
+
+  try {
+    const bitcoinApi = chainService.getBitcoinApi(chain);
+
+    if (bitcoinApi) {
+      const api = bitcoinApi.api;
+
+      if (extrinsicHash) {
+        try {
+          const transactionDetail = await api.getTransactionDetail(extrinsicHash);
+
+          result.blockHash = transactionDetail.status.block_hash || undefined;
+          result.blockNumber = transactionDetail.status.block_height || undefined;
+          result.blockTime = transactionDetail.status.block_time ? (transactionDetail.status.block_time * 1000) : undefined;
+
+          return { ...result, status: transactionDetail ? HistoryRecoverStatus.SUCCESS : HistoryRecoverStatus.TX_PENDING };
+        } catch (e) {
+          // Fail when cannot find transaction
+          return { ...result, status: HistoryRecoverStatus.FAILED };
+        }
+      }
+
+      return { status: HistoryRecoverStatus.FAIL_DETECT };
+    } else {
+      console.error(`Fail to update history ${chain}-${extrinsicHash}: Api not active`);
+
+      return { status: HistoryRecoverStatus.API_INACTIVE };
+    }
+  } catch (e) {
+    console.error(`Fail to update history ${chain}-${extrinsicHash}:`, (e as Error).message);
+
+    return { status: HistoryRecoverStatus.UNKNOWN };
+  }
+};
+
 // undefined: Cannot check status
 // true: Transaction success
 // false: Transaction failed
@@ -200,7 +242,12 @@ export const historyRecover = async (history: TransactionHistoryItem, chainServi
   const { chainType } = history;
 
   if (chainType) {
-    const checkFunction = chainType === 'substrate' ? substrateRecover : evmRecover;
+    const checkFunction =
+      chainType === 'substrate'
+        ? substrateRecover
+        : chainType === 'evm'
+          ? evmRecover
+          : bitcoinRecover;
 
     return await checkFunction(history, chainService);
   } else {

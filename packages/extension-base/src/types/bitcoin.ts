@@ -23,6 +23,19 @@ export interface DetermineUtxosForSpendArgs {
   utxos: UtxoResponseItem[];
 }
 
+interface DetermineUtxosOutput {
+  value: number;
+  address?: string;
+}
+
+export interface DetermineUtxosForSpendResult {
+  filteredUtxos: UtxoResponseItem[];
+  inputs: UtxoResponseItem[];
+  outputs: DetermineUtxosOutput[],
+  size: number;
+  fee: number;
+}
+
 // https://github.com/leather-wallet/extension/blob/dev/src/app/common/transactions/bitcoin/coinselect/local-coin-selection.ts
 export class InsufficientFundsError extends Error {
   constructor () {
@@ -50,7 +63,7 @@ interface BitcoinTransactionPegOut {
   scriptpubkey_address: string;
 }
 
-interface BitcoinTransactionStatus {
+export interface BitcoinTransactionStatus {
   confirmed: boolean;
   block_height?: number | null;
   block_hash?: string | null;

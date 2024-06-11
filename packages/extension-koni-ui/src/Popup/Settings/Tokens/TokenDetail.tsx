@@ -12,11 +12,14 @@ import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDef
 import useFetchChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetChainAssetInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useGetChainAssetInfo';
 import { deleteCustomAssets, upsertCustomToken } from '@subwallet/extension-koni-ui/messaging';
+import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { getLogoKey } from '@subwallet/extension-koni-ui/utils';
 import { Button, ButtonProps, Col, Field, Icon, Input, Logo, Row, Tooltip } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { CheckCircle, Copy, Trash } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
@@ -31,6 +34,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const goBack = useDefaultNavigate().goBack;
   const location = useLocation();
   const showNotification = useNotification();
+
+  const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
 
   const tokenSlug = useMemo(() => {
     return location.state as string;
@@ -206,6 +211,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       : undefined;
   }, [isSubmitDisabled, loading, onSubmit, t, tokenInfo.slug]);
 
+  const logoKey = (() => {
+    return getLogoKey(tokenInfo, chainInfoMap);
+  })();
+
   return (
     <PageWrapper
       className={`token_detail ${className}`}
@@ -228,7 +237,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             <div className={'token_detail__header_icon_wrapper'}>
               <Logo
                 size={112}
-                token={tokenInfo.metadata?.runeId ? 'rune' : tokenInfo.slug.toLowerCase()}
+                token={logoKey}
               />
             </div>
 
@@ -270,7 +279,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                       prefix={(
                         <Logo
                           size={20}
-                          token={tokenInfo.slug.toLowerCase()}
+                          token={getLogoKey(tokenInfo, chainInfoMap)}
                         />
                       )}
                     />

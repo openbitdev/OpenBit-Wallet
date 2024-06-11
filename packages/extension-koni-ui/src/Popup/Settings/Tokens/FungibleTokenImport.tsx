@@ -286,7 +286,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       metadata,
       multiChainAsset: null,
       hasValue: _isChainTestNet(chainInfoMap[formValues.chain]),
-      icon: 'default.png'
+      icon: ''
     })
       .then((result) => {
         if (result) {

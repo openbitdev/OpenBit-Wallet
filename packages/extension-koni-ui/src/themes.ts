@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ThemeNames } from '@subwallet/extension-base/background/KoniTypes';
-import defaultImagePlaceholder from '@subwallet/extension-koni-ui/assets/default-image-placeholder.png';
-import { IconMap } from '@subwallet/extension-koni-ui/assets/logo';
+import DefaultLogosMap, { IconMap } from '@subwallet/extension-koni-ui/assets/logo';
 import subWalletLogo from '@subwallet/extension-koni-ui/assets/sub-wallet-logo.svg';
 import SwLogosMap from '@subwallet/extension-koni-ui/assets/subwallet';
 import { theme as SwReactUI } from '@subwallet/react-ui';
@@ -54,7 +53,7 @@ function genDefaultExtraTokens (token: AliasToken): ExtraToken {
   return {
     bodyBackgroundColor: token.colorBgDefault,
     logo: subWalletLogo,
-    defaultImagePlaceholder,
+    defaultImagePlaceholder: DefaultLogosMap.default_placeholder,
     tokensScreenSuccessBackgroundColor: 'linear-gradient(180deg, rgba(76, 234, 172, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
     tokensScreenDangerBackgroundColor: 'linear-gradient(180deg, rgba(234, 76, 76, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',
     tokensScreenInfoBackgroundColor: 'linear-gradient(180deg, rgba(0, 75, 255, 0.1) 16.47%, rgba(217, 217, 217, 0) 94.17%)',

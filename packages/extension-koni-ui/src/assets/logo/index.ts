@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const DefaultLogosMap: Record<string, string> = {
+  openbit: './images/openbit/logo.png',
   subwallet: './images/projects/subwallet.png',
   parity: './images/projects/parity.png',
   keystone: './images/projects/keystone.png',
@@ -19,7 +20,9 @@ export const DefaultLogosMap: Record<string, string> = {
   ordinal: './images/projects/ordinal.png',
   rune: './images/projects/rune.png',
   ordinal_rune: './images/projects/ordinal_rune.png',
-  default_placeholder: './images/openbit/default-image-placeholder.png'
+  default_placeholder: './images/openbit/default-image-placeholder.png',
+  default_evm: './images/openbit/default-evm.png',
+  default_rune: './images/openbit/default-rune.png'
 };
 
 export const IconMap = {

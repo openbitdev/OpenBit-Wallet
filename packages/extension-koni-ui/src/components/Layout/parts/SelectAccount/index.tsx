@@ -4,19 +4,21 @@
 import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { AccountProxyBriefInfo, AccountProxySelectorAllItem, AccountProxySelectorItem, AddressQrSelectorModal } from '@subwallet/extension-koni-ui/components';
 import { SELECT_ACCOUNT_MODAL } from '@subwallet/extension-koni-ui/constants';
-import { useDefaultNavigate, useGetCurrentAuth, useGetCurrentTab, useGoBackSelectAccount, useTranslation } from '@subwallet/extension-koni-ui/hooks';
+import { useDefaultNavigate, useGetCurrentAuth, useGetCurrentTab, useGoBackSelectAccount, useIsPopup, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { saveCurrentAccountProxy } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { funcSortByProxyName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
-import { Icon, ModalContext, SelectModal } from '@subwallet/react-ui';
+import { BackgroundIcon, Icon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { CaretDown } from 'phosphor-react';
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import { CaretDown, Plug, Plugs, PlugsConnected } from 'phosphor-react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+
+import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { GeneralEmptyList } from '../../../EmptyList';
 import { ConnectWebsiteModal } from '../ConnectWebsiteModal';
@@ -32,6 +34,14 @@ enum ConnectionStatement {
   BLOCKED='blocked'
 }
 
+const iconMap = {
+  [ConnectionStatement.NOT_CONNECTED]: Plug,
+  [ConnectionStatement.CONNECTED]: PlugsConnected,
+  [ConnectionStatement.PARTIAL_CONNECTED]: PlugsConnected,
+  [ConnectionStatement.DISCONNECTED]: Plugs,
+  [ConnectionStatement.BLOCKED]: Plugs
+};
+
 const ConnectWebsiteId = 'connectWebsiteId';
 
 const renderEmpty = () => <GeneralEmptyList />;
@@ -45,12 +55,16 @@ function Component ({ className }: Props): React.ReactElement<Props> {
   const navigate = useNavigate();
   const location = useLocation();
   const { goHome } = useDefaultNavigate();
+  const isPopup = useIsPopup();
 
-  const { accountProxies: _accountProxies, currentAccountProxy } = useSelector((state: RootState) => state.accountState);
+  const { accountProxies: _accountProxies, currentAccountProxy, isAllAccount } = useSelector((state: RootState) => state.accountState);
 
-  const [connectionState] = useState<ConnectionStatement>(ConnectionStatement.NOT_CONNECTED);
+  const [connected, setConnected] = useState(0);
+  const [canConnect, setCanConnect] = useState(0);
+  const [connectionState, setConnectionState] = useState<ConnectionStatement>(ConnectionStatement.NOT_CONNECTED);
   const currentTab = useGetCurrentTab();
   const currentAuth = useGetCurrentAuth();
+  const isCurrentTabFetched = !!currentTab;
   const [selectedQrAccountProxyId, setSelectedQrAccountProxyId] = useState<string | undefined>();
 
   const accountProxies = useMemo((): AccountProxy[] => {
@@ -172,12 +186,135 @@ function Component ({ className }: Props): React.ReactElement<Props> {
     );
   }, []);
 
+  useEffect(() => {
+    if (currentAuth) {
+      if (!currentAuth.isAllowed) {
+        setCanConnect(0);
+        setConnected(0);
+        setConnectionState(ConnectionStatement.BLOCKED);
+      } else {
+        const type = currentAuth.accountAuthType;
+        const allowedMap = currentAuth.isAllowedMap;
+
+        const filterType = (address: string) => {
+          if (type === 'both') {
+            return true;
+          }
+
+          const _type = type || 'substrate';
+
+          return _type === 'substrate' ? !isEthereumAddress(address) : isEthereumAddress(address);
+        };
+
+        if (!isAllAccount) {
+          const _allowedMap: Record<string, boolean> = {};
+
+          Object.entries(allowedMap)
+            .filter(([address]) => filterType(address))
+            .forEach(([address, value]) => {
+              _allowedMap[address] = value;
+            });
+
+          const evmAccount = currentAccountProxy?.accounts.find(({ address }) => isEthereumAddress(address));
+
+          const isAllowed = _allowedMap[evmAccount?.address || ''];
+
+          setCanConnect(0);
+          setConnected(0);
+
+          if (isAllowed === undefined) {
+            setConnectionState(ConnectionStatement.NOT_CONNECTED);
+          } else {
+            setConnectionState(isAllowed ? ConnectionStatement.CONNECTED : ConnectionStatement.DISCONNECTED);
+          }
+        } else {
+          const numberAccounts = noAllAccountProxies.reduce((numAccount, currentValue) => {
+            currentValue.accounts.find(({ address }) => filterType(address)) && numAccount++;
+
+            return numAccount;
+          }, 0);
+          const numberAllowedAccounts = Object.entries(allowedMap)
+            .filter(([address]) => filterType(address))
+            .filter(([, value]) => value)
+            .length;
+
+          setConnected(numberAllowedAccounts);
+          setCanConnect(numberAccounts);
+
+          if (numberAllowedAccounts === 0) {
+            setConnectionState(ConnectionStatement.DISCONNECTED);
+          } else {
+            if (numberAllowedAccounts > 0 && numberAllowedAccounts < numberAccounts) {
+              setConnectionState(ConnectionStatement.PARTIAL_CONNECTED);
+            } else {
+              setConnectionState(ConnectionStatement.CONNECTED);
+            }
+          }
+        }
+      }
+    } else {
+      setCanConnect(0);
+      setConnected(0);
+      setConnectionState(ConnectionStatement.NOT_CONNECTED);
+    }
+  }, [currentAccountProxy?.accounts, currentAuth, isAllAccount, noAllAccountProxies]);
+
+  const visibleText = useMemo((): string => {
+    switch (connectionState) {
+      case ConnectionStatement.CONNECTED:
+      // eslint-disable-next-line padding-line-between-statements, no-fallthrough
+      case ConnectionStatement.PARTIAL_CONNECTED:
+        if (isAllAccount) {
+          return t('Connected {{connected}}/{{canConnect}}', { replace: { connected, canConnect } });
+        } else {
+          return t('Connected');
+        }
+
+      case ConnectionStatement.DISCONNECTED:
+        return t('Disconnected');
+
+      case ConnectionStatement.BLOCKED:
+        return t('Blocked');
+
+      case ConnectionStatement.NOT_CONNECTED:
+      default:
+        return t('Not connected');
+    }
+  }, [canConnect, connected, connectionState, isAllAccount, t]);
+
+  const onOpenConnectWebsiteModal = useCallback(() => {
+    if (isCurrentTabFetched) {
+      activeModal(ConnectWebsiteId);
+    }
+  }, [activeModal, isCurrentTabFetched]);
+
   const onCloseConnectWebsiteModal = useCallback(() => {
     inactiveModal(ConnectWebsiteId);
   }, [inactiveModal]);
 
   return (
     <div className={CN(className, 'container')}>
+
+      {isPopup && (
+        <Tooltip
+          placement={'bottomLeft'}
+          title={visibleText}
+        >
+          <div
+            className={CN('connect-icon', `-${connectionState}`)}
+            onClick={onOpenConnectWebsiteModal}
+          >
+            <BackgroundIcon
+              backgroundColor='var(--bg-color)'
+              phosphorIcon={iconMap[connectionState]}
+              shape='circle'
+              size='sm'
+              type='phosphor'
+              weight={'fill'}
+            />
+          </div>
+        </Tooltip>
+      )}
 
       <SelectModal
         background={'default'}
@@ -205,7 +342,12 @@ function Component ({ className }: Props): React.ReactElement<Props> {
             weight={'bold'}
           />
         )}
-        title={t('Select account')}
+        title={
+          <div className={'__title-wrapper'}>
+            <div>{t('Select account')}</div>
+            <div className={'__beta-version'}>Beta version</div>
+          </div>
+        }
       />
 
       <ConnectWebsiteModal
@@ -298,6 +440,10 @@ const SelectAccount = styled(Component)<Props>(({ theme }) => {
       }
     },
 
+    '.ant-select-modal-input-wrapper': {
+      maxHeight: 40
+    },
+
     '.all-account-item': {
       display: 'flex',
       padding: `${token.paddingSM + 2}px ${token.paddingSM}px`,
@@ -326,6 +472,20 @@ const SelectAccount = styled(Component)<Props>(({ theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8
+    },
+
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
     },
 
     '.connect-icon': {

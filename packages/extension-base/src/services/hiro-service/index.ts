@@ -46,7 +46,7 @@ export class HiroService extends BaseApiRequestStrategy {
       }
 
       return rs.result;
-    }, 0);
+    }, 3);
   }
 
   getAddressBRC20BalanceInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<Brc20BalanceFetchedData> {
@@ -59,7 +59,7 @@ export class HiroService extends BaseApiRequestStrategy {
       }
 
       return rs.result;
-    }, 0);
+    }, 3);
   }
 
   getAddressInscriptionsInfo (params: Record<string, string>, isTestnet = false): Promise<InscriptionFetchedData> {

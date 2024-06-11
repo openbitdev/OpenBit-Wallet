@@ -45,8 +45,8 @@ function Component ({ className, linkIcon, linkIconBg, request }: Props) {
       <DualLogo
         leftLogo={(
           <Logo
-            network={'subwallet'}
-            shape='squircle'
+            network={'openbit'}
+            shape='none'
             size={56}
           />
         )}

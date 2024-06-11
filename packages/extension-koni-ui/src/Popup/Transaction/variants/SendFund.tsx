@@ -61,7 +61,7 @@ function getTokenItems (
 
     const chainAsset = assetRegistry[tokenGroupSlug];
 
-    if (isSetTokenSlug && chainAsset) {
+    if (isSetTokenSlug && chainAsset && (chainAsset.assetType !== 'RUNE' && chainAsset.assetType !== 'BRC20')) {
       const { name, originChain, slug, symbol } = chainAsset;
 
       return [
@@ -300,6 +300,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     (part: Partial<TransferParams>, values: TransferParams) => {
       const validateField: string[] = [];
 
+      if (part.from) {
+        form.validateFields(['to']).catch((e) => {
+          console.log('Error when validating', e);
+        });
+      }
+
       if (part.from || part.asset || part.destChain) {
         setTransactionFeeInfo(undefined);
 
@@ -487,6 +493,14 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     return false;
   }, [chainInfoMap, chainValue, fromValue]);
 
+  const onSelectTransactionFeeInfo = useCallback((value: TransactionFee | undefined) => {
+    if (value) {
+      setForceUpdateMaxValue(isTransferAll ? {} : undefined);
+    }
+
+    setTransactionFeeInfo(value);
+  }, [isTransferAll]);
+
   // TODO: Need to review
   // Auto fill logic
   useEffect(() => {
@@ -570,7 +584,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption, transferAmountValue, isTransferAll]);
+  }, [assetRegistry, assetValue, chainValue, destChainValue, chainStatus, form, fromValue, toValue, transactionFeeInfo, transferAmountValue, isTransferAll]);
 
   const accountsFilter = useCallback((account: AccountJson) => {
     if (fromProxyId) {
@@ -620,7 +634,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
       const oldToAccount = accounts.find((item) => item.address === toValue);
 
-      if (oldToAccount?.type !== addressType) {
+      if (!!oldToAccount && oldToAccount?.type !== addressType) {
         const newToAccount = accounts.find((item) => item.proxyId === oldToAccount?.proxyId && item.type === addressType);
 
         form.setFieldsValue({
@@ -638,9 +652,9 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       form.setFieldsValue({
         from: currentFromAccount?.address || ''
       });
+      const currentToAccount = accounts.find((item) => item.address === toValue);
 
-      if (toValue) {
-        const currentToAccount = accounts.find((item) => item.address === toValue);
+      if (toValue && !!currentToAccount) {
         const newToAccount = accountList.find((item) => item.proxyId === currentToAccount?.proxyId);
 
         form.setFieldsValue({
@@ -762,7 +776,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
               className={'__bitcoin-fee-selector'}
               feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
               isLoading={isFetchingInfo}
-              onSelect={setTransactionFeeInfo}
+              onSelect={onSelectTransactionFeeInfo}
               resetTrigger={feeResetTrigger}
               tokenSlug={assetValue}
             />
@@ -793,7 +807,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         className={`${className} -transaction-footer`}
       >
         <Button
-          disabled={!fromValue || isFetchingInfo || !isBalanceReady}
+          disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}
           icon={(
             <Icon
               phosphorIcon={PaperPlaneTilt}
@@ -863,7 +877,8 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         display: 'none'
       },
       '.ant-input': {
-        borderBottomWidth: 0
+        borderBottomWidth: 0,
+        paddingBottom: 9
       },
       '.__address': {
         overflow: 'hidden',
@@ -877,7 +892,10 @@ const SendFund = styled(_SendFund)(({ theme }) => {
         justifyContent: 'center'
       },
       '.__name': {
-        maxWidth: 124
+        maxWidth: 116
+      },
+      '.ant-input-prefix': {
+        marginBottom: -3
       }
     },
     '.__sender-field': {
@@ -911,7 +929,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
     },
 
     '.__free-balance-block + .__bitcoin-fee-selector': {
-      marginTop: token.marginSM
+      marginTop: 11
     },
 
     '.__fee-display': {

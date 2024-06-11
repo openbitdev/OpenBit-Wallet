@@ -140,37 +140,37 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         }
       ]
     },
-    // {
-    //   key: 'website-access',
-    //   label: t('Website access'),
-    //   items: [
-    //     {
-    //       key: 'manage-website-access',
-    //       leftIcon: GlobeHemisphereEast,
-    //       leftIconBgColor: token['blue-7'],
-    //       rightIcon: CaretRight,
-    //       title: t('Manage website access'),
-    //       onClick: () => {
-    //         navigate('/settings/dapp-access');
-    //       }
-    //     },
-    //     {
-    //       key: 'wallet-connect',
-    //       leftIcon: (
-    //         <WalletConnect
-    //           height='1em'
-    //           width='1em'
-    //         />
-    //       ),
-    //       leftIconBgColor: token['geekblue-6'],
-    //       rightIcon: CaretRight,
-    //       title: t('WalletConnect'),
-    //       onClick: () => {
-    //         navigate('/wallet-connect/list');
-    //       }
-    //     }
-    //   ]
-    // },
+    {
+      key: 'website-access',
+      label: t('Website access'),
+      items: [
+        {
+          key: 'manage-website-access',
+          leftIcon: GlobeHemisphereEast,
+          leftIconBgColor: token['blue-7'],
+          rightIcon: CaretRight,
+          title: t('Manage website access'),
+          onClick: () => {
+            navigate('/settings/dapp-access');
+          }
+        }
+        // {
+        //   key: 'wallet-connect',
+        //   leftIcon: (
+        //     <WalletConnect
+        //       height='1em'
+        //       width='1em'
+        //     />
+        //   ),
+        //   leftIconBgColor: token['geekblue-6'],
+        //   rightIcon: CaretRight,
+        //   title: t('WalletConnect'),
+        //   onClick: () => {
+        //     navigate('/wallet-connect/list');
+        //   }
+        // }
+      ]
+    },
     {
       key: 'assets-&-addresses',
       label: t('Assets & addresses'),
@@ -246,7 +246,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     //           className='__subwallet-logo'
     //           height={24}
     //           shape='squircle'
-    //           src={DefaultLogosMap.subwallet}
+    //           src={DefaultLogosMap.openbit}
     //           width={24}
     //         />
     //       ),
@@ -328,7 +328,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           rightButtons={headerIcons}
           showLeftButton={true}
         >
-          {t('Settings')}
+          <div className={'__title-wrapper'}>
+            <div>{t('Settings')}</div>
+            <div className={'__beta-version'}>Beta version</div>
+          </div>
         </SwHeader>
 
         <div className={'__scroll-container'}>
@@ -428,6 +431,23 @@ export const Settings = styled(Component)<Props>(({ theme: { token } }: Props) =
         height: 52,
         display: 'flex',
         alignItems: 'center'
+      },
+
+      '.__beta-version': {
+        color: token.colorTextTertiary,
+        fontSize: token.fontSizeSM,
+        lineHeight: token.lineHeightSM,
+        fontWeight: token.bodyFontWeight,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      },
+
+      '.__title-wrapper': {
+        fontSize: token.fontSizeXL,
+        lineHeight: token.lineHeightHeading4,
+        fontWeight: token.fontWeightStrong
+
       },
 
       '.ant-sw-header-center-part': {

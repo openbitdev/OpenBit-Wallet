@@ -32,6 +32,7 @@ const Component: React.FC<Props> = ({ accountProxy, className }: Props) => {
         ellipsis={true}
       >
         { isAll ? t('All accounts') : accountProxy.name}
+        <div className={'__beta-version'}>Beta version</div>
       </Typography.Text>
     </div>
   );
@@ -61,6 +62,14 @@ const AccountProxyBriefInfo = styled(Component)<Props>(({ theme: { token } }: Pr
       lineHeight: token.lineHeightHeading6,
       color: token.colorTextDescription,
       'white-space': 'nowrap'
+    },
+
+    '.__beta-version': {
+      marginTop: -2,
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeXS,
+      lineHeight: token.lineHeightXS,
+      fontWeight: token.bodyFontWeight
     }
   };
 });

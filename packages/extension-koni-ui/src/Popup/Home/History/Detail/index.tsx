@@ -56,11 +56,14 @@ function Component ({ className = '', data, onCancel }: Props): React.ReactEleme
     }
 
     let link;
+    const isValidExtrinsicHash = data.extrinsicHash && data.extrinsicHash !== '' && !data.extrinsicHash.startsWith('internal.');
 
-    if (data.chainType === ChainType.BITCOIN) {
-      link = `${originChainInfo?.bitcoinInfo?.blockExplorer || ''}/tx/${data.extrinsicHash}`;
-    } else {
-      link = (data.extrinsicHash && data.extrinsicHash !== '') && getExplorerLink(originChainInfo, data.extrinsicHash, 'tx');
+    if (isValidExtrinsicHash) {
+      if (data.chainType === ChainType.BITCOIN) {
+        link = `${originChainInfo?.bitcoinInfo?.blockExplorer || ''}/tx/${data.extrinsicHash}`;
+      } else {
+        link = getExplorerLink(originChainInfo, data.extrinsicHash, 'tx');
+      }
     }
 
     return (

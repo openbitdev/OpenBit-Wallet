@@ -3,7 +3,7 @@
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
@@ -91,7 +91,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }, 1);
   }
 
-  getTransactionStatus (txHash: string): Promise<boolean> {
+  getTransactionStatus (txHash: string): Promise<BlockStreamTransactionStatus> {
     return this.addRequest(async () => {
       const _rs = await getRequest(this.getUrl(`tx/${txHash}/status`), undefined, this.headers);
       const rs = await _rs.json() as OBResponse<BlockStreamTransactionStatus>;
@@ -100,7 +100,20 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', rs.message);
       }
 
-      return rs.result.confirmed;
+      return rs.result;
+    }, 1);
+  }
+
+  getTransactionDetail (txHash: string): Promise<BlockStreamTransactionDetail> {
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(`tx/${txHash}`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<BlockStreamTransactionDetail>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getTransactionDetail', rs.message);
+      }
+
+      return rs.result;
     }, 1);
   }
 
@@ -159,10 +172,10 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         // Check transaction status
         const interval = setInterval(() => {
           this.getTransactionStatus(value)
-            .then((confirmed) => {
-              if (confirmed) {
+            .then((transactionStatus) => {
+              if (transactionStatus.confirmed) {
                 clearInterval(interval);
-                eventEmitter.emit('success');
+                eventEmitter.emit('success', transactionStatus);
               }
             })
             .catch(console.error);
