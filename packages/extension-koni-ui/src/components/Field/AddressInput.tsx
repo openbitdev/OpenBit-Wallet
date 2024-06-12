@@ -378,6 +378,7 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
 
     '&.-label-horizontal': {
       display: 'flex',
+      gap: 4,
       '&.-has-label .ant-input': {
         borderTopWidth: 2
       },
@@ -402,13 +403,17 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
       },
       '.__overlay': {
         paddingLeft: 0,
-        top: 2
+        top: 2,
+        left: 0
       },
       '&.-status-error .ant-input': {
         borderTopWidth: 2
       },
       '.__avatar-account': {
         display: 'none'
+      },
+      '.ant-input-prefix': {
+        paddingRight: 0
       }
 
     },

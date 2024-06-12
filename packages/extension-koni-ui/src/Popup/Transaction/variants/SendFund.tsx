@@ -831,7 +831,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
     '.__brief': {
       paddingLeft: token.padding,
       paddingRight: token.padding,
-      marginBottom: token.marginMD
+      marginBottom: token.marginSM
     },
 
     '.__transfer-button': {

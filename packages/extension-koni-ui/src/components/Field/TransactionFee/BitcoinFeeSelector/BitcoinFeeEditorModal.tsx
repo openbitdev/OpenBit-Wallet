@@ -72,10 +72,6 @@ const OPTIONS: BitcoinFeeOption[] = [
   }
 ];
 
-function validateCustomValue (value: string) {
-  return /^\d+$/.test(value) && !value.includes('e');
-}
-
 const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOption }: Props): React.ReactElement<Props> => {
   const { t } = useTranslation();
   const { inactiveModal } = useContext(ModalContext);
@@ -234,10 +230,10 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
   };
 
   const customValueValidator = useCallback((rule: Rule, value: string): Promise<void> => {
-    if (value && !validateCustomValue(value)) {
+    if (!value || !/^[0-9]*\.?[0-9]+$/.test(value)) {
       setInvalidForm(true);
 
-      return Promise.reject(t('Invalid value'));
+      return Promise.reject(t('Please enter a valid number with optional decimal.'));
     }
 
     const low = feeDetail?.options?.slow?.feeRate;
@@ -257,7 +253,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
   }, [feeDetail, t]);
 
   const convertedCustomValue = useMemo<BigN>(() => {
-    if (validateCustomValue(customValue)) {
+    if (customValue) {
       return new BigN(customValue).multipliedBy(feeDetail.vSize);
     }
 
@@ -265,7 +261,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
   }, [customValue, feeDetail.vSize]);
 
   const canSubmitCustom = useMemo((): boolean => {
-    if (validateCustomValue(customValue)) {
+    if (customValue) {
       return new BigN(customValue).gt(0);
     } else {
       return false;
@@ -333,7 +329,6 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
               >
                 <Input
                   label={'sats/vB'}
-                  min={1}
                   placeholder={'Enter sats/vB'}
                   type={'number'}
                 />

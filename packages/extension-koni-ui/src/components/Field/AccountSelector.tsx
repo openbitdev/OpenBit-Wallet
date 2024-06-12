@@ -139,6 +139,9 @@ export const AccountSelector = styled(forwardRef(Component))<Props>(({ theme: { 
         paddingLeft: token.sizeXXS
       }
     },
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
     '&.-label-horizontal': {
       display: 'flex',
       flexDirection: 'row',
