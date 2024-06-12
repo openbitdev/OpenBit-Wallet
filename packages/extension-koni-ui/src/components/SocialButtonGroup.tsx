@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { GithubLogo, PaperPlaneTilt, XLogo } from '@phosphor-icons/react';
+import { GithubLogoSVG } from '@subwallet/extension-koni-ui/components/Logo';
 import { GITHUB_URL, TELEGRAM_URL, TWITTER_URL } from '@subwallet/extension-koni-ui/constants';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { openInNewTab } from '@subwallet/extension-koni-ui/utils';
@@ -49,21 +50,47 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <div className={CN(className, 'button-group')}>
       {
-        items.map((item) => (
-          <Button
-            className={CN(`type-${item.type}`)}
-            icon={(
-              <Icon
-                iconColor={'#fff'}
-                phosphorIcon={item.icon}
-                size={'md'}
+        items.map((item, index) => (
+          item.type === SocialType.GITHUB
+            ? (
+              <Button
+                className={CN(`type-${item.type}`)}
+                icon={(
+                  <Icon
+                    customIcon={(
+                      <GithubLogoSVG
+                        height='1em'
+                        width='1em'
+                      />
+                    )}
+                    type='customIcon'
+                    iconColor={'#fff'}
+                  />
+
+                )}
+                key={item.type}
+                onClick={openInNewTab(item.url)}
+                shape='squircle'
+                size={'sm'}
               />
-            )}
-            key={item.type}
-            onClick={openInNewTab(item.url)}
-            shape='squircle'
-            size={'sm'}
-          />
+            )
+            : (
+              <Button
+                className={CN(`type-${item.type}`)}
+                icon={(
+                  <Icon
+                    iconColor={'#fff'}
+                    phosphorIcon={item.icon}
+                    size={'md'}
+                    weight={(item.type === SocialType.TELEGRAM) ? 'fill' : undefined}
+                  />
+                )}
+                key={item.type}
+                onClick={openInNewTab(item.url)}
+                shape='squircle'
+                size={'sm'}
+              />
+            )
         ))
       }
     </div>
