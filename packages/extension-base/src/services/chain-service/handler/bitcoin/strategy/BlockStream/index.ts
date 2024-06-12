@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
@@ -83,17 +83,27 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }, 1);
   }
 
-  getTransactionStatus (txHash: string): Promise<boolean> {
-    return this.addRequest(async () => {
+  getTransactionStatus (txHash: string): Promise<BlockStreamTransactionStatus> {
+    return this.addRequest<BlockStreamTransactionStatus>(async () => {
       const rs = await getRequest(this.getUrl(`tx/${txHash}/status`));
 
       if (rs.status !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', await rs.text());
       }
 
-      const result = (await rs.json()) as BlockStreamTransactionStatus;
+      return (await rs.json()) as BlockStreamTransactionStatus;
+    }, 1);
+  }
 
-      return result.confirmed;
+  getTransactionDetail (txHash: string): Promise<BlockStreamTransactionDetail> {
+    return this.addRequest(async () => {
+      const rs = await getRequest(this.getUrl(`tx/${txHash}`));
+
+      if (rs.status !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getTransactionDetail', await rs.text());
+      }
+
+      return (await rs.json()) as BlockStreamTransactionDetail;
     }, 1);
   }
 
@@ -150,10 +160,10 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         // Check transaction status
         const interval = setInterval(() => {
           this.getTransactionStatus(value)
-            .then((confirmed) => {
-              if (confirmed) {
+            .then((transactionStatus) => {
+              if (transactionStatus.confirmed) {
                 clearInterval(interval);
-                eventEmitter.emit('success');
+                eventEmitter.emit('success', transactionStatus);
               }
             })
             .catch(console.error);

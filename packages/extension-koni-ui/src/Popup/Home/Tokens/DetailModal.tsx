@@ -153,7 +153,12 @@ function Component ({ className = '', currentTokenInfo, id, onCancel, tokenBalan
       className={CN(className, { 'fix-height': isAllAccount })}
       id={id}
       onCancel={onCancel}
-      title={t('Token details')}
+      title={
+        <div className={'__title-wrapper'}>
+          <div>{t('Token details')}</div>
+          <div className={'__beta-version'}>Beta version</div>
+        </div>
+      }
     >
       <Form
         form={form}
@@ -263,14 +268,39 @@ export const DetailModal = styled(Component)<Props>(({ theme: { token } }: Props
       padding: '12px 12px 4px'
     },
 
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
+    },
+
     '.__row': {
       display: 'flex',
       justifyContent: 'space-between',
       marginBottom: token.marginSM
     },
 
-    '.__label': {
-      paddingRight: token.paddingSM
+    '.ant-number': {
+      display: 'flex',
+      overflow: 'hidden'
+    },
+
+    '.ant-number-suffix': {
+      maxWidth: 60,
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap'
     }
   });
 });

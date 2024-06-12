@@ -460,6 +460,7 @@ export default class TransactionService {
       status: transaction.status,
       transactionId: transaction.id,
       extrinsicHash: transaction.extrinsicHash,
+      blockTime: undefined,
       time: transaction.createdAt,
       fee: transaction.estimateFee,
       blockNumber: 0, // Will be added in next step
@@ -838,7 +839,7 @@ export default class TransactionService {
     }
   }
 
-  private onSuccess ({ blockHash, blockNumber, extrinsicHash, id }: TransactionEventResponse) {
+  private onSuccess ({ blockHash, blockNumber, blockTime, extrinsicHash, id }: TransactionEventResponse) {
     const transaction = this.getTransaction(id);
 
     this.updateTransaction(id, { status: ExtrinsicStatus.SUCCESS, extrinsicHash });
@@ -848,7 +849,8 @@ export default class TransactionService {
       extrinsicHash,
       status: ExtrinsicStatus.SUCCESS,
       blockNumber: blockNumber || 0,
-      blockHash: blockHash || ''
+      blockHash: blockHash || '',
+      blockTime
     }).catch(console.error);
 
     const info = isHex(extrinsicHash) ? extrinsicHash : getBaseTransactionInfo(transaction, this.state.chainService.getChainInfoMap());
@@ -1046,7 +1048,11 @@ export default class TransactionService {
               emitter.emit('extrinsicHash', eventData);
             });
 
-            event.on('success', () => {
+            event.on('success', (transactionStatus) => {
+              console.log(transactionStatus);
+              eventData.blockHash = transactionStatus.block_hash || undefined;
+              eventData.blockNumber = transactionStatus.block_height || undefined;
+              eventData.blockTime = transactionStatus.block_time ? (transactionStatus.block_time * 1000) : undefined;
               emitter.emit('success', eventData);
             });
 

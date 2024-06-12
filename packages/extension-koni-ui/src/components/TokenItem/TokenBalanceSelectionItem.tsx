@@ -13,7 +13,7 @@ import styled from 'styled-components';
 
 type Props = TokenBalanceItemType & ThemeProps & {
   onPressItem?: BalanceItemProps['onPressItem'],
-  tokenName: string;
+  tokenName?: string;
 };
 
 function Component (
@@ -45,7 +45,7 @@ function Component (
           (
             <>
               <div className='token-info'>
-                <span>{symbol}</span>
+                <span className={'__symbol'}>{symbol}</span>
                 {
                   tokenName && (
                     <span className='__token-name'>
@@ -128,6 +128,13 @@ export const TokenBalanceSelectionItem = styled(Component)<Props>(({ theme: { to
       lineHeight: 'inherit'
     },
 
+    '.__symbol': {
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      maxWidth: 150
+    },
+
     '.__value': {
       lineHeight: token.lineHeightLG,
       fontSize: token.fontSizeLG
@@ -147,9 +154,8 @@ export const TokenBalanceSelectionItem = styled(Component)<Props>(({ theme: { to
       flexDirection: 'row',
       overflow: 'hidden',
       paddingRight: token.paddingXS,
-
-      fontSize: token.fontSizeHeading5,
-      lineHeight: token.lineHeightHeading5,
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
       fontWeight: token.fontWeightStrong,
       color: token.colorWhite,
       'white-space': 'nowrap',

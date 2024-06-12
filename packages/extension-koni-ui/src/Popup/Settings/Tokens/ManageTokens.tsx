@@ -36,6 +36,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const { activeModal } = useContext(ModalContext);
 
   const { assetSettingMap } = useSelector((state: RootState) => state.assetRegistry);
+  const chainInfoMap = useSelector((state: RootState) => state.chainStore.chainInfoMap);
 
   const chainAssetRegistry = useChainAssets().getChainAssetRegistry();
   const { filterSelectionMap, onApplyFilter, onChangeFilterOption, onCloseFilterModal, selectedFilters } = useFilterModal(FILTER_MODAL_ID);
@@ -84,11 +85,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return (
       <TokenToggleItem
         assetSettingMap={assetSettingMap}
+        chainInfoMap={chainInfoMap}
         key={tokenInfo.slug}
         tokenInfo={tokenInfo}
       />
     );
-  }, [assetSettingMap]);
+  }, [assetSettingMap, chainInfoMap]);
 
   const subHeaderButton: ButtonProps[] = useMemo(() => {
     return [

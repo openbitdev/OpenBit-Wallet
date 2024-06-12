@@ -1,6 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { GeneralEmptyList } from '@subwallet/extension-koni-ui/components';
 import { RECEIVE_QR_MODAL, RECEIVE_TOKEN_SELECTOR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
@@ -63,6 +64,16 @@ function Component ({ className = '', items, onSelectItem }: Props): React.React
   }, [isActive]);
 
   const renderItem = useCallback((item: ReceiveTokenItemType) => {
+    let logoKey: string | undefined;
+
+    if (item.icon) {
+      logoKey = item.slug.toLowerCase();
+    } else if (item.isRune) {
+      logoKey = 'rune';
+    } else if (chainInfoMap[item.originChain] && _isChainEvmCompatible(chainInfoMap[item.originChain])) {
+      logoKey = 'default_evm';
+    }
+
     return (
       <TokenSelectionItem
         address={item.address}
@@ -74,23 +85,23 @@ function Component ({ className = '', items, onSelectItem }: Props): React.React
           })
           : item}
         key={item.slug}
-        leftItem={!item.isRune
+        leftItem={!logoKey
           ? undefined
           : (
             <Logo
               isShowSubLogo
-              network={'rune'}
               shape={'squircle'}
               size={40}
               subLogoShape={'circle'}
               subNetwork={item.originChain}
+              token={logoKey}
             />
           )}
         onClickQrBtn={onClickQrBtn(item)}
         onPressItem={onClickQrBtn(item)}
       />
     );
-  }, [onClickQrBtn]);
+  }, [chainInfoMap, onClickQrBtn]);
 
   return (
     <SwModal

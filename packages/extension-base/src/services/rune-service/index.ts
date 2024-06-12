@@ -39,7 +39,7 @@ export class RunesService extends BaseApiRequestStrategy {
       }
 
       return (await rs.json()) as RunesInfoByAddressResponse;
-    }, 0);
+    }, 1);
   }
 
   getRuneCollectionsByBatch (params: Record<string, string>, isTestnet = false): Promise<RunesCollectionInfoResponse> {
@@ -52,7 +52,7 @@ export class RunesService extends BaseApiRequestStrategy {
       }
 
       return (await rs.json()) as RunesCollectionInfoResponse;
-    }, 0);
+    }, 1);
   }
 
   getAddressRuneTxs (address: string, params: Record<string, string>, isTestnet = false): Promise<RuneTxsResponse> {

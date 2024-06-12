@@ -134,6 +134,7 @@ const Component: React.FC<Props> = ({ className }: Props) => {
               </div>
             </Form.Item>
           </Form>
+          <div className={'__beta-version'}>Beta version</div>
           <ResetWalletModal />
         </div>
       </Layout.Base>
@@ -165,7 +166,7 @@ const Login = styled(Component)<Props>(({ theme }: Props) => {
       opacity: 0.999,
 
       '.logo-container': {
-        marginTop: 100,
+        marginTop: 122,
         color: token.colorTextBase
       },
 
@@ -193,7 +194,14 @@ const Login = styled(Component)<Props>(({ theme }: Props) => {
         fontSize: token.fontSizeHeading5,
         lineHeight: token.lineHeightHeading5,
         color: token.colorTextLight4,
-        marginTop: 27
+        marginTop: token.margin
+      },
+      '.__beta-version': {
+        marginTop: -2,
+        color: token.colorWhite,
+        fontSize: token.fontSizeSM,
+        lineHeight: token.lineHeightSM,
+        fontWeight: token.bodyFontWeight
       }
     }
   };

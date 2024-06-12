@@ -8,7 +8,7 @@ import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-servi
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 
 // todo: update bitcoin params
@@ -136,10 +136,10 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
     ]);
 
     // filter out pending utxos
-    let filteredUtxos = filterOutPendingTxsUtxos(utxos);
+    // let filteredUtxos = filterOutPendingTxsUtxos(utxos);
 
     // filter out rune utxos
-    filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
+    let filteredUtxos = filteredOutTxsUtxos(utxos, runeTxsUtxos);
 
     // filter out inscription utxos
     filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);
