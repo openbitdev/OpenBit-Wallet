@@ -392,7 +392,7 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
         alignItems: 'center',
         paddingTop: 0,
         paddingRight: 0,
-        minWidth: 49
+        minWidth: 45
       },
       '.ant-input-wrapper': {
         flex: 1
@@ -401,14 +401,13 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
         paddingLeft: 0
       },
       '.__overlay': {
-        paddingLeft: 26,
+        paddingLeft: 0,
         top: 2
       },
       '&.-status-error .ant-input': {
-        maxWidth: 160,
         borderTopWidth: 2
       },
-      '.ant-input-prefix': {
+      '.__avatar-account': {
         display: 'none'
       }
 

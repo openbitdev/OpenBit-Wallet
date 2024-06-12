@@ -706,8 +706,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
                 disabled={accountList.length === 1}
                 externalAccounts={accountList}
                 label={t('From:')}
-                title={t('From')}
                 labelStyle={'horizontal'}
+                title={t('From')}
               />
             </Form.Item>
 
@@ -805,6 +805,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         className={`${className} -transaction-footer`}
       >
         <Button
+          className={'__transfer-button'}
           disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}
           icon={(
             <Icon
@@ -833,7 +834,7 @@ const SendFund = styled(_SendFund)(({ theme }) => {
       marginBottom: token.marginMD
     },
 
-    '.transaction-footer .ant-btn-content-wrapper': {
+    '.__transfer-button': {
       fontWeight: token.fontWeightStrong
     },
 

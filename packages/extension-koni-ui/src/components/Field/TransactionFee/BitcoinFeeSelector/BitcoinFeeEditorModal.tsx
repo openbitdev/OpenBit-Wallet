@@ -80,6 +80,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
   const { t } = useTranslation();
   const { inactiveModal } = useContext(ModalContext);
   const [currentViewMode, setViewMode] = useState<ViewMode>(selectedOption.option === 'custom' ? ViewMode.CUSTOM : ViewMode.RECOMMENDED);
+  const [invalidForm, setInvalidForm] = useState(false);
 
   const [form] = Form.useForm<FormProps>();
 
@@ -234,6 +235,8 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
 
   const customValueValidator = useCallback((rule: Rule, value: string): Promise<void> => {
     if (value && !validateCustomValue(value)) {
+      setInvalidForm(true);
+
       return Promise.reject(t('Invalid value'));
     }
 
@@ -243,8 +246,12 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
     if (low > val) {
       const minString = formatNumber(low, 0, balanceFormatter);
 
+      setInvalidForm(true);
+
       return Promise.reject(t('Custom fee should be greater than {{min}} sats/vB', { min: minString }));
     }
+
+    setInvalidForm(false);
 
     return Promise.resolve();
   }, [feeDetail, t]);
@@ -344,7 +351,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
             <Button
               block={true}
               className={'__custom-fee-button'}
-              disabled={!canSubmitCustom}
+              disabled={!canSubmitCustom || invalidForm}
               onClick={form.submit}
             >
               Use custom fee
@@ -372,10 +379,17 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       borderBottomColor: token.colorBgSecondary
     },
 
+    '.ant-form-item-has-error': {
+      marginBottom: 11
+    },
+
+    '.ant-form-item': {
+      marginBottom: 4
+    },
+
     '.__converted-value-wrapper': {
       display: 'flex',
       justifyContent: 'end',
-      marginTop: -token.marginSM,
       paddingBottom: token.padding
     },
 
@@ -513,6 +527,9 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
     '.__selection-ite': {
       display: 'flex',
       alignItems: 'center'
+    },
+    '.-status-error .ant-input-suffix': {
+      display: 'none'
     }
   });
 });
