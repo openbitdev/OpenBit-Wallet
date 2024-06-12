@@ -10,7 +10,7 @@ import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-re
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
 const OPENBIT_URL = 'https://api.openbit.app';
-const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app/';
+const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app';
 
 export class HiroService extends BaseApiRequestStrategy {
   baseUrl: string;

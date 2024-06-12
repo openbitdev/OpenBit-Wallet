@@ -163,6 +163,11 @@ export interface Inscription {
   // content: any
 }
 
+export interface UpdateOpenBitUtxo {
+  totalUtxo: number,
+  utxoItems: BlockStreamUtxo[]
+}
+
 export interface BlockStreamUtxo {
   txid: string;
   vout: number;

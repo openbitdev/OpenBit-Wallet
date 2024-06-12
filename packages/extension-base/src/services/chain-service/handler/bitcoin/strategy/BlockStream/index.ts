@@ -3,7 +3,7 @@
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse, UpdateOpenBitUtxo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
@@ -146,13 +146,13 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
   getUtxos (address: string): Promise<UtxoResponseItem[]> {
     return this.addRequest<UtxoResponseItem[]>(async (): Promise<UtxoResponseItem[]> => {
       const _rs = await getRequest(this.getUrl(`address/${address}/utxo`), undefined, this.headers);
-      const rs = await _rs.json() as OBResponse<BlockStreamUtxo[]>;
+      const rs = await _rs.json() as OBResponse<UpdateOpenBitUtxo>;
 
       if (rs.status_code !== 200) {
         throw new SWError('BlockStreamRequestStrategy.getUtxos', rs.message);
       }
 
-      return rs.result;
+      return rs.result.utxoItems;
     }, 0);
   }
 
