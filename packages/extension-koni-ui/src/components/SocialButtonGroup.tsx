@@ -1,8 +1,9 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { DiscordLogo, PaperPlaneTilt, XLogo } from '@phosphor-icons/react';
-import { DISCORD_URL, TELEGRAM_URL, TWITTER_URL } from '@subwallet/extension-koni-ui/constants';
+import { GithubLogo, PaperPlaneTilt, XLogo } from '@phosphor-icons/react';
+import { GithubLogoSVG } from '@subwallet/extension-koni-ui/components/Logo';
+import { GITHUB_URL, TELEGRAM_URL, TWITTER_URL } from '@subwallet/extension-koni-ui/constants';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { openInNewTab } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon } from '@subwallet/react-ui';
@@ -16,6 +17,7 @@ enum SocialType {
   TWITTER = 'twitter',
   DISCORD = 'discord',
   TELEGRAM = 'telegram',
+  GITHUB = 'github',
 }
 
 interface SocialItem {
@@ -31,9 +33,9 @@ const items: SocialItem[] = [
     url: TWITTER_URL
   },
   {
-    icon: DiscordLogo,
-    type: SocialType.DISCORD,
-    url: DISCORD_URL
+    icon: GithubLogo,
+    type: SocialType.GITHUB,
+    url: GITHUB_URL
   },
   {
     icon: PaperPlaneTilt,
@@ -48,22 +50,47 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <div className={CN(className, 'button-group')}>
       {
-        items.map((item) => (
-          <Button
-            className={CN(`type-${item.type}`)}
-            icon={(
-              <Icon
-                iconColor={'#fff'}
-                phosphorIcon={item.icon}
-                size={'md'}
-                weight={(item.type !== SocialType.TWITTER) ? 'fill' : undefined}
+        items.map((item, index) => (
+          item.type === SocialType.GITHUB
+            ? (
+              <Button
+                className={CN(`type-${item.type}`)}
+                icon={(
+                  <Icon
+                    customIcon={(
+                      <GithubLogoSVG
+                        height='24'
+                        width='24'
+                      />
+                    )}
+                    iconColor={'#fff'}
+                    type='customIcon'
+                  />
+
+                )}
+                key={item.type}
+                onClick={openInNewTab(item.url)}
+                shape='squircle'
+                size={'sm'}
               />
-            )}
-            key={item.type}
-            onClick={openInNewTab(item.url)}
-            shape='squircle'
-            size={'sm'}
-          />
+            )
+            : (
+              <Button
+                className={CN(`type-${item.type}`)}
+                icon={(
+                  <Icon
+                    iconColor={'#fff'}
+                    phosphorIcon={item.icon}
+                    size={'md'}
+                    weight={(item.type === SocialType.TELEGRAM) ? 'fill' : undefined}
+                  />
+                )}
+                key={item.type}
+                onClick={openInNewTab(item.url)}
+                shape='squircle'
+                size={'sm'}
+              />
+            )
         ))
       }
     </div>
@@ -88,7 +115,7 @@ const SocialButtonGroup = styled(Component)<Props>(({ theme: { token } }: Props)
       }
     },
 
-    [`.type-${SocialType.DISCORD}`]: {
+    [`.type-${SocialType.GITHUB}`]: {
       backgroundColor: token.colorBgInput,
 
       '&:hover': {
