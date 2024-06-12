@@ -59,12 +59,12 @@ const Component: React.FC<Props> = (props: Props) => {
                   <Icon
                     customIcon={(
                       <GithubLogoSVG
-                        height='1em'
-                        width='1em'
+                        height='24'
+                        width='24'
                       />
                     )}
-                    type='customIcon'
                     iconColor={'#fff'}
+                    type='customIcon'
                   />
 
                 )}
