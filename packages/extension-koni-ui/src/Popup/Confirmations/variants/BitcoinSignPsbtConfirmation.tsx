@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { BitcoinSignatureRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinSignPsbtRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountItemWithName, ConfirmationGeneralInfo, MetaInfo, ViewDetailIcon } from '@subwallet/extension-koni-ui/components';
 import { useOpenDetailModal } from '@subwallet/extension-koni-ui/hooks';
 import { BitcoinSignArea } from '@subwallet/extension-koni-ui/Popup/Confirmations/parts';
@@ -16,7 +16,7 @@ import { BaseDetailModal } from '../parts';
 
 interface Props extends ThemeProps {
   type: BitcoinSignatureSupportType
-  request: ConfirmationsQueueItem<BitcoinSignatureRequest>
+  request: ConfirmationsQueueItem<BitcoinSignPsbtRequest>
 }
 
 function Component ({ className, request, type }: Props) {
@@ -64,14 +64,14 @@ function Component ({ className, request, type }: Props) {
         title={t('Message details')}
       >
         <MetaInfo.Data>
-          {request.payload.payload as string}
+
         </MetaInfo.Data>
       </BaseDetailModal>
     </>
   );
 }
 
-const BitcoinSignatureConfirmation = styled(Component)<Props>(({ theme: { token } }: ThemeProps) => ({
+const BitcoinSignPsbtConfirmation = styled(Component)<Props>(({ theme: { token } }: ThemeProps) => ({
   '.account-list': {
     '.__prop-label': {
       marginRight: token.marginMD,
@@ -85,4 +85,4 @@ const BitcoinSignatureConfirmation = styled(Component)<Props>(({ theme: { token 
   }
 }));
 
-export default BitcoinSignatureConfirmation;
+export default BitcoinSignPsbtConfirmation;

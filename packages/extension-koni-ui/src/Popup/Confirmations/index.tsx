@@ -18,7 +18,7 @@ import styled from 'styled-components';
 import { SignerPayloadJSON } from '@polkadot/types/types';
 
 import { ConfirmationHeader } from './parts';
-import { AddNetworkConfirmation, AddTokenConfirmation, AuthorizeConfirmation, BitcoinSignatureConfirmation, ConnectWalletConnectConfirmation, EvmSignatureConfirmation, EvmTransactionConfirmation, MetadataConfirmation, NotSupportConfirmation, NotSupportWCConfirmation, SignConfirmation, TransactionConfirmation } from './variants';
+import { AddNetworkConfirmation, AddTokenConfirmation, AuthorizeConfirmation, BitcoinSignatureConfirmation, BitcoinSignPsbtConfirmation, ConnectWalletConnectConfirmation, EvmSignatureConfirmation, EvmTransactionConfirmation, MetadataConfirmation, NotSupportConfirmation, NotSupportWCConfirmation, SignConfirmation, TransactionConfirmation } from './variants';
 
 type Props = ThemeProps
 
@@ -146,6 +146,13 @@ const Component = function ({ className }: Props) {
         return (
           <BitcoinSignatureConfirmation
             request={confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]}
+            type={confirmation.type}
+          />
+        );
+      case 'bitcoinSignPsbtRequest':
+        return (
+          <BitcoinSignPsbtConfirmation
+            request={confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]}
             type={confirmation.type}
           />
         );
