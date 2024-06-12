@@ -30,6 +30,7 @@ const initialState: RequestState = {
   bitcoinSignatureRequest: {},
   bitcoinSendTransactionRequest: {},
   bitcoinWatchTransactionRequest: {},
+  bitcoinSignPsbtRequest: {},
 
   // Summary Info
   reduxStatus: ReduxStatus.INIT,
@@ -51,6 +52,7 @@ export const CONFIRMATIONS_FIELDS: Array<keyof RequestState> = [
   'bitcoinSignatureRequest',
   'bitcoinSendTransactionRequest',
   'bitcoinWatchTransactionRequest',
+  'bitcoinSignPsbtRequest',
   'connectWCRequest',
   'notSupportWCRequest'
 ];

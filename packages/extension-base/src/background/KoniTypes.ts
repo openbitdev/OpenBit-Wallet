@@ -1355,6 +1355,7 @@ export type BitcoinSendTransactionRequest = BitcoinSignRequest
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
+export type BitcoinSignPsbtRequest = BitcoinSendTransactionRequest;
 
 export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
@@ -1433,7 +1434,8 @@ export interface ConfirmationDefinitions {
 export interface ConfirmationDefinitionsBitcoin {
   bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<SignMessageBitcoinResult>],
   bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
-  bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>]
+  bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>],
+  bitcoinSignPsbtRequest: [ConfirmationsQueueItem<BitcoinSignPsbtRequest>, ConfirmationResult<string>],
 }
 
 export type ConfirmationType = keyof ConfirmationDefinitions;

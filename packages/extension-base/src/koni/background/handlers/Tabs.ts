@@ -1165,7 +1165,6 @@ export default class KoniTabs {
   private async bitcoinSign (id: string, url: string, { method, params }: RequestArguments) {
     const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
 
-    console.log(allowedAccounts, 'allow');
     const signResult = await this.#koniState.bitcoinSign(id, url, method, params, allowedAccounts);
 
     if (signResult) {

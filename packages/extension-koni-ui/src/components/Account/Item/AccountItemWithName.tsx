@@ -40,8 +40,6 @@ const Component: React.FC<Props> = (props: Props) => {
     }));
   }, [accounts]);
 
-  console.log('accountProxies', accountProxies, isAll);
-
   const showFallback = useMemo(() => {
     if (isAll) {
       return false;

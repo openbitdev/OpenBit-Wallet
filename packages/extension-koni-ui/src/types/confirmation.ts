@@ -4,4 +4,4 @@
 import { ConfirmationDefinitions, ConfirmationDefinitionsBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 
 export type EvmSignatureSupportType = keyof Pick<ConfirmationDefinitions, 'evmSignatureRequest' | 'evmSendTransactionRequest' | 'evmWatchTransactionRequest'>;
-export type BitcoinSignatureSupportType = keyof Pick<ConfirmationDefinitionsBitcoin, 'bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest'>;
+export type BitcoinSignatureSupportType = keyof Pick<ConfirmationDefinitionsBitcoin, 'bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest' | 'bitcoinSignPsbtRequest'>;

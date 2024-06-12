@@ -19,7 +19,8 @@ export default class BitcoinRequestHandler {
   private readonly confirmationsQueueSubjectBitcoin = new BehaviorSubject<ConfirmationsQueueBitcoin>({
     bitcoinSignatureRequest: {},
     bitcoinSendTransactionRequest: {},
-    bitcoinWatchTransactionRequest: {}
+    bitcoinWatchTransactionRequest: {},
+    bitcoinSignPsbtRequest: {}
   });
 
   private readonly confirmationsPromiseMap: Record<string, { resolver: Resolver<any>, validator?: (rs: any) => Error | undefined }> = {};

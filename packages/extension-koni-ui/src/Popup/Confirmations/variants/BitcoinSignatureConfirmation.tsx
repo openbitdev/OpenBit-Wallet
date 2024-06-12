@@ -26,8 +26,6 @@ function Component ({ className, request, type }: Props) {
 
   const onClickDetail = useOpenDetailModal();
 
-  console.log('213123123');
-
   return (
     <>
       <div className={CN('confirmation-content', className)}>
