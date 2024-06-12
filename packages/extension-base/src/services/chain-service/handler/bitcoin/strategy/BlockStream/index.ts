@@ -12,6 +12,7 @@ import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-r
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest, postRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 import { BitcoinFeeInfo, BitcoinTx, UtxoResponseItem } from '@subwallet/extension-base/types';
+import BigN from 'bignumber.js';
 import EventEmitter from 'eventemitter3';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
@@ -130,13 +131,19 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
       const result = rs.result;
 
+      const low = 6;
+      const average = 3;
+      const fast = 1;
+
+      const convertFee = (fee: number) => parseFloat(new BigN(fee).toFixed(2));
+
       return {
         type: 'bitcoin',
         busyNetwork: false,
         options: {
-          slow: { feeRate: Math.ceil(result['25']), time: this.timePerBlock * 25 },
-          average: { feeRate: Math.ceil(result['10']), time: this.timePerBlock * 10 },
-          fast: { feeRate: Math.ceil(result['1']), time: this.timePerBlock * 1 },
+          slow: { feeRate: convertFee(result[low]), time: this.timePerBlock * low },
+          average: { feeRate: convertFee(result[average]), time: this.timePerBlock * average },
+          fast: { feeRate: convertFee(result[fast]), time: this.timePerBlock * fast },
           default: 'slow'
         }
       };
