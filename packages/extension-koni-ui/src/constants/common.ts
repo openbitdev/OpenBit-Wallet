@@ -6,7 +6,7 @@ import { ClaimDAppStakingRewardsState } from '@subwallet/extension-koni-ui/types
 export const EXTENSION_VERSION = chrome.runtime.getManifest().version;
 export const WIKI_URL = 'https://docs.openbit.app/';
 export const PRIVACY_AND_POLICY_URL = 'https://docs.subwallet.app/privacy-and-security/privacy-policy';
-export const TERMS_OF_SERVICE_URL = 'https://docs.openbit.app/extension-user-guide/getting-started/create-a-master-password';
+export const TERMS_OF_SERVICE_URL = 'https://docs.openbit.app/';
 export const WEBSITE_URL = 'https://subwallet.app/';
 export const TELEGRAM_URL = 'https://t.me/openbitapp';
 export const TWITTER_URL = 'https://x.com/openbitapp';

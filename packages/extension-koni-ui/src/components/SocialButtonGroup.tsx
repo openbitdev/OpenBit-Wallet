@@ -57,7 +57,6 @@ const Component: React.FC<Props> = (props: Props) => {
                 iconColor={'#fff'}
                 phosphorIcon={item.icon}
                 size={'md'}
-                weight={(item.type !== SocialType.TWITTER) ? 'fill' : undefined}
               />
             )}
             key={item.type}
