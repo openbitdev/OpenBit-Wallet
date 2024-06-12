@@ -162,6 +162,9 @@ export const AccountSelector = styled(forwardRef(Component))<Props>(({ theme: { 
       '.ant-select-modal-input-wrapper': {
         flex: 1,
         paddingLeft: 0
+      },
+      '.ant-select-modal-input-prefix': {
+        display: 'none'
       }
     }
   });
