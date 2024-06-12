@@ -231,4 +231,3 @@ export async function getInscriptionUtxos (bitcoinApi: _BitcoinApi, address: str
     } as UtxoResponseItem;
   });
 }
-

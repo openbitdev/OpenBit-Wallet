@@ -4,6 +4,7 @@
 import { Brc20Metadata, Inscription, InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 
+// todo: handle inscription testnet
 export async function getBrc20Metadata (ticker: string) {
   const hiroService = HiroService.getInstance();
   const defaultMetadata = {

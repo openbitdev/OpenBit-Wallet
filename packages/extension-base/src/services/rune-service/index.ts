@@ -10,12 +10,17 @@ import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-re
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
 const OPENBIT_URL = 'https://api.openbit.app';
+const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app/';
 
 export class RunesService extends BaseApiRequestStrategy {
-  private constructor () {
+  baseUrl: string;
+
+  private constructor (url: string) {
     const context = new BaseApiRequestContext();
 
     super(context);
+
+    this.baseUrl = url;
   }
 
   private headers = {
@@ -27,18 +32,13 @@ export class RunesService extends BaseApiRequestStrategy {
     return false;
   }
 
-  getUrl (isTestnet: boolean, path: string): string {
-    if (!isTestnet) {
-      return `${OPENBIT_URL}/${path}`;
-    } else {
-      // todo: update testnet url
-      return '';
-    }
+  getUrl (path: string): string {
+    return `${this.baseUrl}/${path}`;
   }
 
-  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddressFetchedData> {
+  getAddressRunesInfo (address: string, params: Record<string, string>): Promise<RunesInfoByAddressFetchedData> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, `rune/address/${address}`), params, this.headers);
+      const _rs = await getRequest(this.getUrl(`rune/address/${address}`), params, this.headers);
       const rs = await _rs.json() as OBResponse<RunesInfoByAddressFetchedData>;
 
       if (rs.status_code !== 200) {
@@ -50,9 +50,9 @@ export class RunesService extends BaseApiRequestStrategy {
   }
 
   // * Deprecated
-  getRuneCollectionsByBatch (params: Record<string, string>, isTestnet = false): Promise<RunesCollectionInfoResponse> {
+  getRuneCollectionsByBatch (params: Record<string, string>): Promise<RunesCollectionInfoResponse> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, 'rune');
+      const url = this.getUrl('rune');
       const rs = await getRequest(url, params);
 
       if (rs.status !== 200) {
@@ -64,9 +64,9 @@ export class RunesService extends BaseApiRequestStrategy {
   }
 
   // * Deprecated
-  getAddressRuneTxs (address: string, params: Record<string, string>, isTestnet = false): Promise<RuneTxsResponse> {
+  getAddressRuneTxs (address: string, params: Record<string, string>): Promise<RuneTxsResponse> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `address/${address}/txs`);
+      const url = this.getUrl(`address/${address}/txs`);
       const rs = await getRequest(url, params);
 
       if (rs.status !== 200) {
@@ -77,9 +77,9 @@ export class RunesService extends BaseApiRequestStrategy {
     }, 0);
   }
 
-  getRuneMetadata (runeid: string, isTestnet = false): Promise<RuneMetadata> {
+  getRuneMetadata (runeid: string): Promise<RuneMetadata> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, `rune/metadata/${runeid}`), undefined, this.headers);
+      const _rs = await getRequest(this.getUrl(`rune/metadata/${runeid}`), undefined, this.headers);
       const rs = await _rs.json() as OBResponse<RuneMetadata>;
 
       if (rs.status_code !== 200) {
@@ -90,9 +90,9 @@ export class RunesService extends BaseApiRequestStrategy {
     }, 0);
   }
 
-  getAddressRuneUtxos (address: string, isTestnet = false): Promise<RuneUtxoResponse> {
+  getAddressRuneUtxos (address: string): Promise<RuneUtxoResponse> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, `rune/address/${address}/utxo`), undefined, this.headers);
+      const _rs = await getRequest(this.getUrl(`rune/address/${address}/utxo`), undefined, this.headers);
       const rs = await _rs.json() as OBResponse<RuneUtxoResponse>;
 
       if (rs.status_code !== 200) {
@@ -104,13 +104,22 @@ export class RunesService extends BaseApiRequestStrategy {
   }
 
   // Singleton
-  private static _instance: RunesService;
+  private static mainnet: RunesService;
+  private static testnet: RunesService;
 
-  public static getInstance () {
-    if (!RunesService._instance) {
-      RunesService._instance = new RunesService();
+  public static getInstance (isTestnet = false) {
+    if (isTestnet) {
+      if (!RunesService.testnet) {
+        RunesService.testnet = new RunesService(OPENBIT_URL_TEST);
+      }
+
+      return RunesService.testnet;
+    } else {
+      if (!RunesService.mainnet) {
+        RunesService.mainnet = new RunesService(OPENBIT_URL);
+      }
+
+      return RunesService.mainnet;
     }
-
-    return RunesService._instance;
   }
 }

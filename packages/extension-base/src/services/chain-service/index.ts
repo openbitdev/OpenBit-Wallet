@@ -1820,8 +1820,10 @@ export class ChainService {
   }
 
   private async getRuneInfo (runeId: string, tokenType: _AssetType, originChain: string, contractCaller?: string): Promise<_SmartContractTokenInfo> {
-    if (tokenType === _AssetType.RUNE && originChain === _BITCOIN_CHAIN_SLUG) {
-      const runeMetadata = await getRuneMetadata(runeId);
+    const isTestnet = originChain !== _BITCOIN_CHAIN_SLUG;
+
+    if (tokenType === _AssetType.RUNE) {
+      const runeMetadata = await getRuneMetadata(runeId, isTestnet);
 
       const decimals = runeMetadata.entry.divisibility;
       const runeName = runeMetadata.entry.spaced_rune;

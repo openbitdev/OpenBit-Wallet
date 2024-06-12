@@ -16,6 +16,7 @@ import EventEmitter from 'eventemitter3';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
+  private readonly isTestnet: boolean;
   private timePerBlock = 0; // in milliseconds
 
   constructor (url: string) {
@@ -24,13 +25,14 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     super(context);
 
     this.baseUrl = url;
+    this.isTestnet = url.includes('testnet');
 
     this.getBlockTime()
       .then((rs) => {
         this.timePerBlock = rs;
       })
       .catch(() => {
-        this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
+        this.timePerBlock = (this.isTestnet ? 5 * 60 : 10 * 60) * 1000;
       });
   }
 
@@ -194,7 +196,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     const pageSize = 60;
     let offset = 0;
 
-    const runeService = RunesService.getInstance();
+    const runeService = RunesService.getInstance(this.isTestnet);
 
     try {
       while (true) {
@@ -226,7 +228,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     const pageSize = 10;
     let offset = 0;
 
-    const runeService = RunesService.getInstance();
+    const runeService = RunesService.getInstance(this.isTestnet);
 
     try {
       while (true) {
@@ -260,7 +262,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
   }
 
   async getRuneUtxos (address: string) {
-    const runeService = RunesService.getInstance();
+    const runeService = RunesService.getInstance(this.isTestnet);
 
     try {
       const responseRuneUtxos = await runeService.getAddressRuneUtxos(address);
@@ -273,7 +275,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
   }
 
   async getAddressBRC20FreeLockedBalance (address: string, ticker: string): Promise<Brc20BalanceItem> {
-    const hiroService = HiroService.getInstance();
+    const hiroService = HiroService.getInstance(this.isTestnet);
 
     try {
       const response = await hiroService.getAddressBRC20BalanceInfo(address, {
@@ -306,7 +308,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     const pageSize = 60;
     let offset = 0;
 
-    const hiroService = HiroService.getInstance();
+    const hiroService = HiroService.getInstance(this.isTestnet);
 
     try {
       while (true) {

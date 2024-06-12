@@ -42,8 +42,8 @@ export async function getAllCollectionRunes () {
   }
 }
 
-export async function getRuneMetadata (runeid: string) {
-  const runeService = RunesService.getInstance();
+export async function getRuneMetadata (runeid: string, isTestnet = false) {
+  const runeService = RunesService.getInstance(isTestnet);
 
   try {
     return await runeService.getRuneMetadata(runeid);

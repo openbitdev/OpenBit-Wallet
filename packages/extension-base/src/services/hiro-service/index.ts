@@ -10,12 +10,17 @@ import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-re
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
 const OPENBIT_URL = 'https://api.openbit.app';
+const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app/';
 
 export class HiroService extends BaseApiRequestStrategy {
-  private constructor () {
+  baseUrl: string;
+
+  private constructor (url: string) {
     const context = new BaseApiRequestContext();
 
     super(context);
+
+    this.baseUrl = url;
   }
 
   private headers = {
@@ -27,18 +32,13 @@ export class HiroService extends BaseApiRequestStrategy {
     return false;
   }
 
-  getUrl (isTestnet: boolean, path: string): string {
-    if (!isTestnet) {
-      return `${OPENBIT_URL}/${path}`;
-    } else {
-      // todo: update testnet url
-      return '';
-    }
+  getUrl (path: string): string {
+    return `${this.baseUrl}/${path}`;
   }
 
-  getBRC20Metadata (ticker: string, isTestnet = false): Promise<Brc20MetadataFetchedData> {
+  getBRC20Metadata (ticker: string): Promise<Brc20MetadataFetchedData> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, `brc-20/tokens/${ticker}`), undefined, this.headers);
+      const _rs = await getRequest(this.getUrl(`brc-20/tokens/${ticker}`), undefined, this.headers);
       const rs = await _rs.json() as OBResponse<Brc20MetadataFetchedData>;
 
       if (rs.status_code !== 200) {
@@ -49,9 +49,9 @@ export class HiroService extends BaseApiRequestStrategy {
     }, 3);
   }
 
-  getAddressBRC20BalanceInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<Brc20BalanceFetchedData> {
+  getAddressBRC20BalanceInfo (address: string, params: Record<string, string>): Promise<Brc20BalanceFetchedData> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, `brc-20/balances/${address}`), params, this.headers);
+      const _rs = await getRequest(this.getUrl(`brc-20/balances/${address}`), params, this.headers);
       const rs = await _rs.json() as OBResponse<Brc20BalanceFetchedData>;
 
       if (rs.status_code !== 200) {
@@ -62,9 +62,9 @@ export class HiroService extends BaseApiRequestStrategy {
     }, 3);
   }
 
-  getAddressInscriptionsInfo (params: Record<string, string>, isTestnet = false): Promise<InscriptionFetchedData> {
+  getAddressInscriptionsInfo (params: Record<string, string>): Promise<InscriptionFetchedData> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, 'inscriptions'), params, this.headers);
+      const _rs = await getRequest(this.getUrl('inscriptions'), params, this.headers);
       const rs = await _rs.json() as OBResponse<InscriptionFetchedData>;
 
       if (rs.status_code !== 200) {
@@ -75,9 +75,9 @@ export class HiroService extends BaseApiRequestStrategy {
     }, 0);
   }
 
-  getInscriptionContent (inscriptionId: string, isTestnet = false): Promise<Record<string, any>> {
+  getInscriptionContent (inscriptionId: string): Promise<Record<string, any>> {
     return this.addRequest(async () => {
-      const _rs = await getRequest(this.getUrl(isTestnet, `inscriptions/${inscriptionId}/content`), undefined, this.headers);
+      const _rs = await getRequest(this.getUrl(`inscriptions/${inscriptionId}/content`), undefined, this.headers);
       const rs = await _rs.json() as OBResponse<Record<string, any>>;
 
       if (rs.status_code !== 200) {
@@ -94,13 +94,22 @@ export class HiroService extends BaseApiRequestStrategy {
   }
 
   // Singleton
-  private static _instance: HiroService;
+  private static mainnet: HiroService;
+  private static testnet: HiroService;
 
-  public static getInstance () {
-    if (!HiroService._instance) {
-      HiroService._instance = new HiroService();
+  public static getInstance (isTestnet = false) {
+    if (isTestnet) {
+      if (!HiroService.testnet) {
+        HiroService.testnet = new HiroService(OPENBIT_URL_TEST);
+      }
+
+      return HiroService.testnet;
+    } else {
+      if (!HiroService.mainnet) {
+        HiroService.mainnet = new HiroService(OPENBIT_URL);
+      }
+
+      return HiroService.mainnet;
     }
-
-    return HiroService._instance;
   }
 }
