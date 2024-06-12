@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
@@ -134,7 +134,7 @@ export default class BitcoinRequestHandler {
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
   }
 
-  signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): string {
+  signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): SignMessageBitcoinResult {
     const { account, payload } = confirmation.payload;
     const address = account.address;
     const pair = keyring.getPair(address);
@@ -146,13 +146,19 @@ export default class BitcoinRequestHandler {
     // Check if payload is a string
     if (typeof payload === 'string') {
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-      return pair.bitcoin.signMessage(payload, false); // Assuming compressed = false
+      return {
+        signature: pair.bitcoin.signMessage(payload, false),
+        address
+      }; // Assuming compressed = false
     } else if (payload instanceof Uint8Array) { // Check if payload is a byte array (Uint8Array)
       // Convert Uint8Array to string
       const payloadString = Buffer.from(payload).toString('hex');
 
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-      return pair.bitcoin.signMessage(payloadString, false); // Assuming compressed = false
+      return {
+        signature: pair.bitcoin.signMessage(payloadString, false),
+        address
+      }; // Assuming compressed = false
     } else {
       // Handle the case where payload is invalid
       throw new Error('Invalid payload type');

@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
+import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSignatureRequest, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
@@ -42,6 +43,7 @@ import { isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwal
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
+import { isBitcoinAddress } from '@subwallet/keyring';
 import { decodePair } from '@subwallet/keyring/pair/decode';
 import { KeypairType } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
@@ -1164,6 +1166,59 @@ export default class KoniState {
       evm: this.chainService.getEvmApiMap(),
       bitcoin: this.chainService.getBitcoinApiMap()
     } as ApiMap;
+  }
+
+  public async bitcoinSign (id: string, url: string, method: string, params: any, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult> {
+    const { address, message } = params as Record<string, string>;
+
+    if (address === '' || !message) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found address or payload to sign'));
+    }
+
+    if (!isBitcoinAddress(address)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Invalid bitcoin address'));
+    }
+
+    // Check sign abiblity
+    if (!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()))) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
+    }
+
+    const pair = keyring.getPair(address);
+
+    if (!pair) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
+    }
+
+    const account: AccountJson = { address: pair.address, ...pair.meta };
+
+    const hashPayload = '';
+    const canSign = !account.isExternal;
+
+    const signPayload: BitcoinSignatureRequest = {
+      account: account,
+      payload: message as unknown,
+      payloadJson: message,
+      hashPayload,
+      canSign,
+      id
+    };
+
+    return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSignatureRequest', signPayload, {
+      requiredPassword: false,
+      address
+    })
+      .then(({ isApproved, payload }) => {
+        if (isApproved) {
+          if (payload) {
+            return payload;
+          } else {
+            throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found signature'));
+          }
+        } else {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+        }
+      });
   }
 
   public refreshSubstrateApi (key: string) {

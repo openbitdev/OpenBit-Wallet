@@ -1362,6 +1362,11 @@ export interface ConfirmationsQueueItemOptions {
   networkKey?: string;
 }
 
+export interface SignMessageBitcoinResult {
+  signature: string;
+  address: string;
+}
+
 export interface ConfirmationsQueueItem<T> extends ConfirmationsQueueItemOptions, ConfirmationRequestBase {
   payload: T;
   payloadJson: string;
@@ -1426,7 +1431,7 @@ export interface ConfirmationDefinitions {
 }
 
 export interface ConfirmationDefinitionsBitcoin {
-  bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<string>],
+  bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<SignMessageBitcoinResult>],
   bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
   bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>]
 }

@@ -62,6 +62,8 @@ function transformAccountsV2 (accounts: SubjectInfo, anyType = false, authInfo?:
     keyringTypes = ['ed25519', 'sr25519', 'ecdsa'];
   } else if (accountAuthType === 'evm') {
     keyringTypes = ['ethereum'];
+  } else if (accountAuthType === 'bitcoin') {
+    keyringTypes = ['bitcoin-84', 'bitcoin-86', 'bittest-84', 'bittest-86'];
   }
 
   const authTypeFilter = ({ type }: SingleAddress) => (!!type && keyringTypes.includes(type));
@@ -1133,6 +1135,46 @@ export default class KoniTabs {
     }
   }
 
+  private async getBitcoinCurrentAccount (url: string): Promise<string[]> {
+    return await new Promise((resolve) => {
+      this.getAuthInfo(url).then((authInfo) => {
+        const allAccounts = this.#koniState.keyringService.accounts;
+        const accountList = transformAccountsV2(allAccounts, false, authInfo, 'bitcoin').map((a) => a.address);
+        let accounts: string[] = [];
+
+        const address = this.#koniState.keyringService.currentAccount.address;
+
+        if (address === ALL_ACCOUNT_KEY || !address) {
+          accounts = accountList;
+        } else {
+          if (accountList.includes(address)) {
+            const result = accountList.filter((adr) => adr !== address);
+
+            result.unshift(address);
+            accounts = result;
+          } else {
+            accounts = accountList;
+          }
+        }
+
+        resolve(accounts);
+      }).catch(console.error);
+    });
+  }
+
+  private async bitcoinSign (id: string, url: string, { method, params }: RequestArguments) {
+    const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
+
+    console.log(allowedAccounts, 'allow');
+    const signResult = await this.#koniState.bitcoinSign(id, url, method, params, allowedAccounts);
+
+    if (signResult) {
+      return signResult;
+    } else {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, 'Failed to sign message');
+    }
+  }
+
   private async handleBitcoinRequest (id: string, url: string, request: RequestArguments, port: chrome.runtime.Port): Promise<unknown> {
     const { method } = request;
 
@@ -1140,6 +1182,9 @@ export default class KoniTabs {
       switch (method) {
         case 'getAddresses':
           return await this.bitcoinGetAddresses(url, request);
+
+        case 'signMessage':
+          return await this.bitcoinSign(id, url, request);
 
         default:
           return this.performWeb3Method(id, url, request);
