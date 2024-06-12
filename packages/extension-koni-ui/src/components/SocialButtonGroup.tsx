@@ -1,8 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { DiscordLogo, PaperPlaneTilt, XLogo } from '@phosphor-icons/react';
-import { DISCORD_URL, TELEGRAM_URL, TWITTER_URL } from '@subwallet/extension-koni-ui/constants';
+import { GithubLogo, PaperPlaneTilt, XLogo } from '@phosphor-icons/react';
+import { GITHUB_URL, TELEGRAM_URL, TWITTER_URL } from '@subwallet/extension-koni-ui/constants';
 import { PhosphorIcon, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { openInNewTab } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon } from '@subwallet/react-ui';
@@ -16,6 +16,7 @@ enum SocialType {
   TWITTER = 'twitter',
   DISCORD = 'discord',
   TELEGRAM = 'telegram',
+  GITHUB = 'github',
 }
 
 interface SocialItem {
@@ -31,9 +32,9 @@ const items: SocialItem[] = [
     url: TWITTER_URL
   },
   {
-    icon: DiscordLogo,
-    type: SocialType.DISCORD,
-    url: DISCORD_URL
+    icon: GithubLogo,
+    type: SocialType.GITHUB,
+    url: GITHUB_URL
   },
   {
     icon: PaperPlaneTilt,
@@ -88,7 +89,7 @@ const SocialButtonGroup = styled(Component)<Props>(({ theme: { token } }: Props)
       }
     },
 
-    [`.type-${SocialType.DISCORD}`]: {
+    [`.type-${SocialType.GITHUB}`]: {
       backgroundColor: token.colorBgInput,
 
       '&:hover': {
