@@ -207,6 +207,10 @@ export const TokenSelector = styled(forwardRef(Component))<Props>(({ theme: { to
       display: 'none'
     },
 
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
+
     '.token-logo': {
       bottom: 0,
       right: 0,

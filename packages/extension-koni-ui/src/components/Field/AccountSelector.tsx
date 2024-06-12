@@ -9,6 +9,7 @@ import { useSelectModalInputHelper, useSelector, useTranslation } from '@subwall
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { funcSortByName, toShort } from '@subwallet/extension-koni-ui/utils';
 import { InputRef, SelectModal } from '@subwallet/react-ui';
+import CN from 'classnames';
 import React, { ForwardedRef, forwardRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 
@@ -20,6 +21,7 @@ interface Props extends ThemeProps, BasicInputWrapper {
   filter?: (account: AccountJson) => boolean;
   doFilter?: boolean;
   addressPrefix?: number;
+  labelStyle?: 'default' | 'horizontal'
 }
 
 const renderEmpty = () => <GeneralEmptyList />;
@@ -29,7 +31,7 @@ function defaultFiler (account: AccountJson): boolean {
 }
 
 const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> => {
-  const { className = '', disabled, doFilter = true, externalAccounts, filter, id = 'account-selector', label, placeholder, readOnly, statusHelp, value } = props;
+  const { className = '', disabled, doFilter = true, externalAccounts, filter, id = 'account-selector', label, labelStyle = 'default', placeholder, readOnly, statusHelp, title, value } = props;
   const accounts = useSelector((state) => state.accountState.accounts);
 
   const items = useMemo(() => {
@@ -92,7 +94,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         className={`${className} account-selector-modal`}
         disabled={disabled || readOnly}
         id={id}
-        inputClassName={`${className} account-selector-input`}
+        inputClassName={CN(className, 'account-selector-input', `-label-${labelStyle}`)}
         itemKey={'address'}
         items={items}
         label={label}
@@ -112,7 +114,7 @@ const Component = (props: Props, ref: ForwardedRef<InputRef>): React.ReactElemen
         searchPlaceholder={t<string>('Account name')}
         selected={value || ''}
         statusHelp={statusHelp}
-        title={label || placeholder || t('Select account')}
+        title={title || label || placeholder || t('Select account')}
       />
     </>
   );
@@ -135,6 +137,37 @@ export const AccountSelector = styled(forwardRef(Component))<Props>(({ theme: { 
       '.__selected-item-address': {
         color: token.colorTextLight4,
         paddingLeft: token.sizeXXS
+      }
+    },
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
+    '&.-label-horizontal': {
+      display: 'flex',
+      flexDirection: 'row',
+      gap: 4,
+      height: 48,
+      '.-status-error .ant-input': {
+        maxWidth: 160
+      },
+      '.ant-select-modal-input-container': {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 4,
+        height: 48
+      },
+      '.ant-select-modal-input-label': {
+        top: 0,
+        display: 'flex',
+        alignItems: 'center',
+        paddingRight: 0
+      },
+      '.ant-select-modal-input-wrapper': {
+        flex: 1,
+        paddingLeft: 0
+      },
+      '.ant-select-modal-input-prefix': {
+        display: 'none'
       }
     }
   });

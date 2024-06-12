@@ -306,6 +306,9 @@ const AddressBookModal = styled(Component)<Props>(({ theme: { token } }: Props) 
     '.ant-sw-list-section': {
       flex: 1
     },
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
 
     '.address-book-group-separator': {
       fontWeight: token.fontWeightStrong,
