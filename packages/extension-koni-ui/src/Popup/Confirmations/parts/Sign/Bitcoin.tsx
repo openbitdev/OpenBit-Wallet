@@ -64,7 +64,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const chain = useGetChainInfoByChainId(chainId);
   const checkUnlock = useUnlockChecker();
 
-  const signMode = useMemo(() => getSignMode(account || accounts[0]?.address), [account, accounts]);
+  const signMode = useMemo(() => getSignMode(account || accounts[0]), [account, accounts]);
   const isLedger = useMemo(() => signMode === AccountSignMode.LEDGER, [signMode]);
   const isMessage = isBitcoinMessage(payload);
 
@@ -147,7 +147,7 @@ const Component: React.FC<Props> = (props: Props) => {
     setLoading(true);
 
     setTimeout(() => {
-      const signPromise = isMessage ? ledgerSignMessage(u8aToU8a(hashPayload), account.accountIndex, account.addressOffset) : ledgerSignTransaction(hexToU8a(hashPayload), account.accountIndex, account.addressOffset);
+      const signPromise = isMessage ? ledgerSignMessage(u8aToU8a(hashPayload), account?.accountIndex, account?.addressOffset) : ledgerSignTransaction(hexToU8a(hashPayload), account?.accountIndex, account?.addressOffset);
 
       signPromise
         .then(({ signature }) => {
@@ -158,7 +158,7 @@ const Component: React.FC<Props> = (props: Props) => {
           setLoading(false);
         });
     });
-  }, [account.accountIndex, account.addressOffset, hashPayload, isLedgerConnected, isMessage, ledger, ledgerSignMessage, ledgerSignTransaction, onApproveSignature, refreshLedger]);
+  }, [account?.accountIndex, account?.addressOffset, hashPayload, isLedgerConnected, isMessage, ledger, ledgerSignMessage, ledgerSignTransaction, onApproveSignature, refreshLedger]);
 
   const onConfirmInject = useCallback(() => {
     console.error('Not implemented yet');

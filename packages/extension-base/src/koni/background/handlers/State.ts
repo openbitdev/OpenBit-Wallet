@@ -1229,8 +1229,8 @@ export default class KoniState {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found payload to sign'));
     }
 
-    if (!isHex(psbt)) {
-      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Psbt to be signed must be base64-encoded'));
+    if (!isHex(`0x${psbt}`)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Psbt to be signed must be hex-encoded'));
     }
 
     let canSign = true;

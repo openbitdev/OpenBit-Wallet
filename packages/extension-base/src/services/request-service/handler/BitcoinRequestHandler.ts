@@ -1,7 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
+import { BitcoinProviderErrorType, ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
@@ -196,6 +197,10 @@ export default class BitcoinRequestHandler {
     const { accounts, payload } = request.payload;
     const { psbt, signingIndexes } = payload;
 
+    if (accounts.length === 0) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Please connect to Wallet to try this request');
+    }
+
     const psbtList = accounts.map(({ address }) => {
       const pair = keyring.getPair(address);
 
@@ -204,16 +209,13 @@ export default class BitcoinRequestHandler {
         keyring.unlockPair(pair.address);
       }
 
-      // Finalize all inputs in the Psbt
-
       // Sign the Psbt using the pair's bitcoin object
       const signedTransaction = pair.bitcoin.signTransaction(psbt, signingIndexes[address]);
 
       return signedTransaction.finalizeAllInputs();
     });
 
-    const psbtCombine = new Psbt().combine(...psbtList);
-
+    const psbtCombine = psbtList[0].combine(...psbtList);
     const transactionObj = psbt.extractTransaction();
 
     return {
@@ -258,12 +260,16 @@ export default class BitcoinRequestHandler {
       }
 
       if (isApproved) {
-        // Fill signature for some special type
-        await this.decorateResultBitcoin(type, confirmation, result);
-        const error = validator && validator(result);
+        try {
+          // Fill signature for some special type
+          await this.decorateResultBitcoin(type, confirmation, result);
+          const error = validator && validator(result);
 
-        if (error) {
-          resolver.reject(error);
+          if (error) {
+            resolver.reject(error);
+          }
+        } catch (e) {
+          resolver.reject(e as Error);
         }
       }
 
