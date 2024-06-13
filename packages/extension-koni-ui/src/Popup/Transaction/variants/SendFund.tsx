@@ -174,6 +174,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const destChainGenesisHash = chainInfoMap[destChainValue]?.substrateInfo?.genesisHash || '';
   const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
 
+  const [showFeeModal, setShowFeeModal] = useState(false);
   const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
   const assetRef = useRef<string | undefined>('');
   const proxyIdRef = useRef<string | undefined>('');
@@ -523,6 +524,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
   }, [assetRegistry, form, tokenItems]);
 
+  useEffect(() => {
+    if (!!fromValue && !!toValue && !!transferAmountValue) {
+      setShowFeeModal(true);
+    }
+  }, [fromValue, toValue, transferAmountValue]);
+
   // Get max transfer value
   useEffect(() => {
     let cancel = false;
@@ -769,11 +776,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         </Form>
 
         {
-          BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
+          BITCOIN_CHAINS.includes(chainValue) && !!assetValue && showFeeModal && (
             <BitcoinFeeSelector
               className={'__bitcoin-fee-selector'}
-              feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
-              isLoading={isFetchingInfo}
+              feeDetail={transferInfo?.feeOptions as BitcoinFeeDetail || ''}
+              isLoading={isFetchingInfo || !transferInfo}
               onSelect={onSelectTransactionFeeInfo}
               resetTrigger={feeResetTrigger}
               tokenSlug={assetValue}
