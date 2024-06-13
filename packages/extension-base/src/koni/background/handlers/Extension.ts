@@ -34,7 +34,7 @@ import { calculateGasFeeParams } from '@subwallet/extension-base/services/fee-se
 import { EXTENSION_REQUEST_URL } from '@subwallet/extension-base/services/request-service/constants';
 import { AuthUrls } from '@subwallet/extension-base/services/request-service/types';
 import { DEFAULT_AUTO_LOCK_TIME } from '@subwallet/extension-base/services/setting-service/constants';
-import { SWTransaction, SWTransactionResponse, SWTransactionResult, TransactionEmitter, ValidateTransactionResponseInput } from '@subwallet/extension-base/services/transaction-service/types';
+import { BitcoinTransactionData, SWTransaction, SWTransactionResponse, SWTransactionResult, TransactionEmitter, ValidateTransactionResponseInput } from '@subwallet/extension-base/services/transaction-service/types';
 import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/services/wallet-connect-service/constants';
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
@@ -2028,6 +2028,39 @@ export default class KoniExtension {
       edAsWarning: isTransferNativeToken,
       additionalValidator: additionalValidator
     });
+  }
+
+  private async getBitcoinTransactionData (inputData: RequestSubmitTransfer): Promise<BitcoinTransactionData> {
+    const { chain, feeCustom, feeOption, from, to, transferAll, value } = inputData;
+
+    const chainInfo = this.#koniState.getChainInfo(chain);
+    const bitcoinApi = this.#koniState.getBitcoinApi(chain); // Get Bitcoin API map
+    const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+    const getChainFee: GetFeeFunction = (id, chain, type) => {
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+    };
+
+    const [
+      transaction
+    ] = await getBitcoinTransactionObject({
+      bitcoinApi,
+      from,
+      getChainFee,
+      chain: chain,
+      feeCustom,
+      feeOption,
+      transferAll,
+      value: value || '0',
+      to,
+      network
+    });
+
+    return {
+      data: transaction,
+      dataBase64: transaction.toBase64(),
+      dataToHex: transaction.toHex()
+    };
   }
 
   private validateCrossChainTransfer (
@@ -5384,6 +5417,8 @@ export default class KoniExtension {
         return await this.makeTransfer(request as RequestSubmitTransfer);
       case 'pri(accounts.crossChainTransfer)':
         return await this.makeCrossChainTransfer(request as RequestCrossChainTransfer);
+      case 'pri(accounts.getBitcoinTransactionData)':
+        return await this.getBitcoinTransactionData(request as RequestSubmitTransfer);
 
       /// Sign QR
       case 'pri(qr.transaction.parse.substrate)':

@@ -47,6 +47,12 @@ export interface SWTransactionInput extends SwInputBase, Partial<Pick<SWTransact
 
 export type SWTransactionResponse = SwInputBase & Pick<SWTransaction, 'warnings' | 'errors'> & Partial<Pick<SWTransaction, 'id' | 'extrinsicHash' | 'status' | 'estimateFee'>> & TransactionFee;
 
+export type BitcoinTransactionData = {
+  data: Psbt,
+  dataBase64: string,
+  dataToHex: string,
+}
+
 export type ValidateTransactionResponseInput = SWTransactionInput;
 
 export type TransactionEmitter = EventEmitter<TransactionEventMap>;
