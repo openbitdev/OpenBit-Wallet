@@ -307,7 +307,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const typeTitleMap: Record<string, string> = useMemo((): Record<ExtrinsicType | 'default' | 'send' | 'received', string> => ({
     default: t('Transaction'),
-    send: t('Send token'),
+    send: t('Transaction history'),
     received: t('Receive token'),
     [ExtrinsicType.TRANSFER_BALANCE]: t('Send token'),
     [ExtrinsicType.TRANSFER_TOKEN]: t('Send token'),
