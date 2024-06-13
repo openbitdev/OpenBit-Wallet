@@ -167,20 +167,21 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     const eventEmitter = new EventEmitter<BitcoinTransactionEventMap>();
 
     this.addRequest<string>(async (): Promise<string> => {
-      const rs = await postRequest(this.getUrl('tx'), rawTransaction, { 'Content-Type': 'text/plain' }, false);
+      const _rs = await postRequest(this.getUrl('tx'), rawTransaction, this.headers, false);
+      const rs = await _rs.json() as OBResponse<string>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.sendRawTransaction', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.sendRawTransaction', rs.message);
       }
 
-      return await rs.text();
+      return rs.result;
     }, 0)
-      .then((value) => {
-        eventEmitter.emit('extrinsicHash', value);
+      .then((extrinsicHash) => {
+        eventEmitter.emit('extrinsicHash', extrinsicHash);
 
         // Check transaction status
         const interval = setInterval(() => {
-          this.getTransactionStatus(value)
+          this.getTransactionStatus(extrinsicHash)
             .then((transactionStatus) => {
               if (transactionStatus.confirmed) {
                 clearInterval(interval);
