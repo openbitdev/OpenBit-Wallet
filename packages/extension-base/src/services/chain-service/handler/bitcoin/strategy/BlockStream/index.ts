@@ -2,18 +2,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, BlockStreamUtxo, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressResponse, RuneTxs, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse, UpdateOpenBitUtxo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
+import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest, postRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 import { BitcoinFeeInfo, BitcoinTx, UtxoResponseItem } from '@subwallet/extension-base/types';
+import BigN from 'bignumber.js';
 import EventEmitter from 'eventemitter3';
 
 export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implements BitcoinApiStrategy {
   private readonly baseUrl: string;
+  private readonly isTestnet: boolean;
   private timePerBlock = 0; // in milliseconds
 
   constructor (url: string) {
@@ -22,15 +26,21 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     super(context);
 
     this.baseUrl = url;
+    this.isTestnet = url.includes('testnet');
 
     this.getBlockTime()
       .then((rs) => {
         this.timePerBlock = rs;
       })
       .catch(() => {
-        this.timePerBlock = (url.includes('testnet') ? 5 * 60 : 10 * 60) * 1000;
+        this.timePerBlock = (this.isTestnet ? 5 * 60 : 10 * 60) * 1000;
       });
   }
+
+  private headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${_BEAR_TOKEN}`
+  };
 
   isRateLimited (): boolean {
     return false;
@@ -42,13 +52,14 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getBlockTime (): Promise<number> {
     return this.addRequest<number>(async () => {
-      const rs = await getRequest(this.getUrl('blocks'));
+      const _rs = await getRequest(this.getUrl('blocks'), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<BlockStreamBlock[]>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getBlockTime', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getBlockTime', rs.message);
       }
 
-      const blocks = (await rs.json()) as BlockStreamBlock[];
+      const blocks = rs.result;
       const length = blocks.length;
       const sortedBlocks = blocks.sort((a, b) => b.timestamp - a.timestamp);
       const time = (sortedBlocks[0].timestamp - sortedBlocks[length - 1].timestamp) * 1000;
@@ -59,71 +70,80 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getAddressSummaryInfo (address: string): Promise<BitcoinAddressSummaryInfo> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`address/${address}`));
+      const _rs = await getRequest(this.getUrl(`address/${address}`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<BitcoinAddressSummaryInfo>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getAddressSummaryInfo', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getAddressSummaryInfo', rs.message);
       }
 
-      return (await rs.json()) as BitcoinAddressSummaryInfo;
+      return rs.result;
     }, 0);
   }
 
   getAddressTransaction (address: string, limit = 100): Promise<BitcoinTx[]> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`address/${address}/txs`), {
-        limit: `${limit}`
-      });
+      const _rs = await getRequest(this.getUrl(`address/${address}/txs`), { limit: `${limit}` }, this.headers);
+      const rs = await _rs.json() as OBResponse<BitcoinTx[]>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getAddressTransaction', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getAddressTransaction', rs.message);
       }
 
-      return (await rs.json()) as BitcoinTx[];
+      return rs.result;
     }, 1);
   }
 
   getTransactionStatus (txHash: string): Promise<BlockStreamTransactionStatus> {
-    return this.addRequest<BlockStreamTransactionStatus>(async () => {
-      const rs = await getRequest(this.getUrl(`tx/${txHash}/status`));
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(`tx/${txHash}/status`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<BlockStreamTransactionStatus>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getTransactionStatus', rs.message);
       }
 
-      return (await rs.json()) as BlockStreamTransactionStatus;
+      return rs.result;
     }, 1);
   }
 
   getTransactionDetail (txHash: string): Promise<BlockStreamTransactionDetail> {
     return this.addRequest(async () => {
-      const rs = await getRequest(this.getUrl(`tx/${txHash}`));
+      const _rs = await getRequest(this.getUrl(`tx/${txHash}`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<BlockStreamTransactionDetail>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getTransactionDetail', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getTransactionDetail', rs.message);
       }
 
-      return (await rs.json()) as BlockStreamTransactionDetail;
+      return rs.result;
     }, 1);
   }
 
   getFeeRate (): Promise<BitcoinFeeInfo> {
     return this.addRequest<BitcoinFeeInfo>(async (): Promise<BitcoinFeeInfo> => {
-      const rs = await getRequest(this.getUrl('fee-estimates'));
+      const _rs = await getRequest(this.getUrl('fee-estimates'), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<BlockStreamFeeEstimates>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getFeeRate', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getFeeRate', rs.message);
       }
 
-      const result = (await rs.json()) as BlockStreamFeeEstimates;
+      const result = rs.result;
+
+      const low = 6;
+      const average = 3;
+      const fast = 1;
+
+      const convertFee = (fee: number) => parseFloat(new BigN(fee).toFixed(2));
 
       return {
         type: 'bitcoin',
         busyNetwork: false,
         options: {
-          slow: { feeRate: Math.ceil(result['25']), time: this.timePerBlock * 25 },
-          average: { feeRate: Math.ceil(result['10']), time: this.timePerBlock * 10 },
-          fast: { feeRate: Math.ceil(result['1']), time: this.timePerBlock * 1 },
+          slow: { feeRate: convertFee(result[low]), time: this.timePerBlock * low },
+          average: { feeRate: convertFee(result[average]), time: this.timePerBlock * average },
+          fast: { feeRate: convertFee(result[fast]), time: this.timePerBlock * fast },
           default: 'slow'
         }
       };
@@ -132,13 +152,14 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getUtxos (address: string): Promise<UtxoResponseItem[]> {
     return this.addRequest<UtxoResponseItem[]>(async (): Promise<UtxoResponseItem[]> => {
-      const rs = await getRequest(this.getUrl(`address/${address}/utxo`));
+      const _rs = await getRequest(this.getUrl(`address/${address}/utxo`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<UpdateOpenBitUtxo>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getUtxos', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getUtxos', rs.message);
       }
 
-      return (await rs.json()) as BlockStreamUtxo[];
+      return rs.result.utxoItems;
     }, 0);
   }
 
@@ -179,26 +200,19 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   async getRunes (address: string) {
     const runesFullList: RunesInfoByAddress[] = [];
-    const pageSize = 10;
+    const pageSize = 60;
     let offset = 0;
 
-    const runeService = RunesService.getInstance();
+    const runeService = RunesService.getInstance(this.isTestnet);
 
     try {
       while (true) {
         const response = await runeService.getAddressRunesInfo(address, {
           limit: String(pageSize),
           offset: String(offset)
-        }) as unknown as RunesInfoByAddressResponse;
+        }) as unknown as RunesInfoByAddressFetchedData;
 
-        let runes: RunesInfoByAddress[] = [];
-
-        if (response.statusCode === 200) {
-          runes = response.data.runes;
-        } else {
-          console.log(`Error on request runes data for address ${address}`);
-          break;
-        }
+        const runes = response.runes;
 
         if (runes.length !== 0) {
           runesFullList.push(...runes);
@@ -215,12 +229,13 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }
   }
 
+  // * Deprecated
   async getRuneTxsUtxos (address: string) {
     const txsFullList: RuneTxs[] = [];
     const pageSize = 10;
     let offset = 0;
 
-    const runeService = RunesService.getInstance();
+    const runeService = RunesService.getInstance(this.isTestnet);
 
     try {
       while (true) {
@@ -253,8 +268,21 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     }
   }
 
+  async getRuneUtxos (address: string) {
+    const runeService = RunesService.getInstance(this.isTestnet);
+
+    try {
+      const responseRuneUtxos = await runeService.getAddressRuneUtxos(address);
+
+      return responseRuneUtxos.utxo;
+    } catch (error) {
+      console.error(`Failed to get ${address} rune utxos`, error);
+      throw error;
+    }
+  }
+
   async getAddressBRC20FreeLockedBalance (address: string, ticker: string): Promise<Brc20BalanceItem> {
-    const hiroService = HiroService.getInstance();
+    const hiroService = HiroService.getInstance(this.isTestnet);
 
     try {
       const response = await hiroService.getAddressBRC20BalanceInfo(address, {
@@ -284,10 +312,10 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   async getAddressInscriptions (address: string) {
     const inscriptionsFullList: Inscription[] = [];
-    const pageSize = 50;
+    const pageSize = 60;
     let offset = 0;
 
-    const hiroService = HiroService.getInstance();
+    const hiroService = HiroService.getInstance(this.isTestnet);
 
     try {
       while (true) {
@@ -316,13 +344,14 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
   getTxHex (txHash: string): Promise<string> {
     return this.addRequest<string>(async (): Promise<string> => {
-      const rs = await getRequest(this.getUrl(`tx/${txHash}/hex`));
+      const _rs = await getRequest(this.getUrl(`tx/${txHash}/hex`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<string>;
 
-      if (rs.status !== 200) {
-        throw new SWError('BlockStreamRequestStrategy.getTxHex', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getTxHex', rs.message);
       }
 
-      return await rs.text();
+      return rs.result;
     }, 0);
   }
 }
