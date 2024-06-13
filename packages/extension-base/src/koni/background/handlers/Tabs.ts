@@ -9,7 +9,7 @@ import { EvmProviderError } from '@subwallet/extension-base/background/errors/Ev
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
 import { createSubscription, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AddNetworkRequestExternal, AddTokenRequestExternal, AuthAddress, BitcoinProviderErrorType, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { AddNetworkRequestExternal, AddTokenRequestExternal, AuthAddress, BitcoinProviderErrorType, BitcoinSignPsbtRawRequest, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import RequestBytesSign from '@subwallet/extension-base/background/RequestBytesSign';
 import RequestExtrinsicSign from '@subwallet/extension-base/background/RequestExtrinsicSign';
 import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestTypes, ResponseRpcListProviders, ResponseSigning, ResponseTypes, SubscriptionMessageTypes } from '@subwallet/extension-base/background/types';
@@ -1165,12 +1165,24 @@ export default class KoniTabs {
   private async bitcoinSign (id: string, url: string, { method, params }: RequestArguments) {
     const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
 
-    const signResult = await this.#koniState.bitcoinSign(id, url, method, params, allowedAccounts);
+    const signResult = await this.#koniState.bitcoinSign(id, url, method, params as Record<string, string>, allowedAccounts);
 
     if (signResult) {
       return signResult;
     } else {
-      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, 'Failed to sign message');
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Failed to sign message');
+    }
+  }
+
+  private async bitcoinSignPspt (id: string, url: string, { method, params }: RequestArguments) {
+    const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
+
+    const signResult = await this.#koniState.bitcoinSignPspt(id, url, method, params as BitcoinSignPsbtRawRequest, allowedAccounts);
+
+    if (signResult) {
+      return signResult;
+    } else {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Failed to sign message');
     }
   }
 
@@ -1184,6 +1196,9 @@ export default class KoniTabs {
 
         case 'signMessage':
           return await this.bitcoinSign(id, url, request);
+
+        case 'signPsbt':
+          return await this.bitcoinSignPspt(id, url, request);
 
         default:
           return this.performWeb3Method(id, url, request);

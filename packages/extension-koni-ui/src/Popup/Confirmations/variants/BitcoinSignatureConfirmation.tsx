@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { BitcoinSignatureRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinSignatureRequest, BitcoinSignPsbtRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountItemWithName, ConfirmationGeneralInfo, MetaInfo, ViewDetailIcon } from '@subwallet/extension-koni-ui/components';
 import { useOpenDetailModal } from '@subwallet/extension-koni-ui/hooks';
 import { BitcoinSignArea } from '@subwallet/extension-koni-ui/Popup/Confirmations/parts';
@@ -16,13 +16,14 @@ import { BaseDetailModal } from '../parts';
 
 interface Props extends ThemeProps {
   type: BitcoinSignatureSupportType
-  request: ConfirmationsQueueItem<BitcoinSignatureRequest>
+  request: ConfirmationsQueueItem<BitcoinSignatureRequest> | ConfirmationsQueueItem<BitcoinSignPsbtRequest>
 }
 
 function Component ({ className, request, type }: Props) {
   const { id, payload } = request;
   const { t } = useTranslation();
-  const { account } = payload;
+  const { account } = payload as BitcoinSignatureRequest;
+  const { accounts } = payload as BitcoinSignPsbtRequest;
 
   const onClickDetail = useOpenDetailModal();
 
@@ -36,13 +37,25 @@ function Component ({ className, request, type }: Props) {
         <div className='description'>
           {t('You are approving a request with the following account')}
         </div>
-        <AccountItemWithName
-          accountName={account.name}
-          address={account.address}
-          avatarSize={24}
-          className='account-item'
-          isSelected={true}
-        />
+        {account
+          ? <AccountItemWithName
+            accountName={account.name}
+            address={account.address}
+            avatarSize={24}
+            className='account-item'
+            isSelected={true}
+          />
+          : accounts.map((account) => (
+            <AccountItemWithName
+              accountName={account.name}
+              address={account.address}
+              avatarSize={24}
+              className='account-item'
+              isSelected={true}
+              key = { account.address}
+            />
+          ))
+        }
         <div>
           <Button
             icon={<ViewDetailIcon />}

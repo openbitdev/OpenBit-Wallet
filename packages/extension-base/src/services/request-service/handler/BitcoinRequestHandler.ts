@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
+import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
@@ -191,12 +191,45 @@ export default class BitcoinRequestHandler {
     return signedTransaction.extractTransaction().toHex();
   }
 
+  private bitcoinSignPsbtconfirmation (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): SignPsbtBitcoinResult {
+    // Extract necessary information from the BitcoinSendTransactionRequest
+    const { accounts, payload } = request.payload;
+    const { psbt, signingIndexes } = payload;
+
+    const psbtList = accounts.map(({ address }) => {
+      const pair = keyring.getPair(address);
+
+      // Unlock the pair if it is locked
+      if (pair.isLocked) {
+        keyring.unlockPair(pair.address);
+      }
+
+      // Finalize all inputs in the Psbt
+
+      // Sign the Psbt using the pair's bitcoin object
+      const signedTransaction = pair.bitcoin.signTransaction(psbt, signingIndexes[address]);
+
+      return signedTransaction.finalizeAllInputs();
+    });
+
+    const psbtCombine = new Psbt().combine(...psbtList);
+
+    const transactionObj = psbt.extractTransaction();
+
+    return {
+      psbt: psbtCombine.toHex(),
+      txid: transactionObj.toHex()
+    };
+  }
+
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
     if (!result.payload) {
       if (t === 'bitcoinSignatureRequest') {
         result.payload = this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
       } else if (t === 'bitcoinSendTransactionRequest') {
         result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
+      } else if (t === 'bitcoinSignPsbtRequest') {
+        result.payload = this.bitcoinSignPsbtconfirmation(request as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]);
       }
 
       if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest') {

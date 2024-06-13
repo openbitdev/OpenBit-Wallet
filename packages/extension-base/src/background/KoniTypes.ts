@@ -1,6 +1,8 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import type { Psbt, PsbtTxOutput } from 'bitcoinjs-lib';
+
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
@@ -16,6 +18,7 @@ import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyr
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
+import { PsbtTxInput } from 'bitcoinjs-lib/src/psbt';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
 import { RequestArguments, TransactionConfig } from 'web3-core';
@@ -1334,6 +1337,25 @@ export interface BitcoinSignRequest {
   canSign: boolean;
 }
 
+export interface BitcoinSignPsbtConfirmRequest {
+  accounts: AccountJson[];
+  payload: BitcoinSignPsbtPayload
+}
+
+export interface BitcoinSignPsbtPayload {
+  txInput: PsbtTxInput[];
+  signingIndexes: Record<string, number[]>
+  txOutput: PsbtTxOutput[];
+  broadcast: boolean,
+  psbt: Psbt
+}
+
+export interface BitcoinSignPsbtRawRequest {
+  psbt: string;
+  signInputs: Record<string, number[]>;
+  broadcast: boolean;
+}
+
 export interface EvmSignatureRequest extends EvmSignRequest {
   id: string;
   type: string;
@@ -1355,7 +1377,7 @@ export type BitcoinSendTransactionRequest = BitcoinSignRequest
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
-export type BitcoinSignPsbtRequest = BitcoinSendTransactionRequest;
+export type BitcoinSignPsbtRequest = Omit<BitcoinSendTransactionRequest, 'account'> & BitcoinSignPsbtConfirmRequest;
 
 export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
@@ -1366,6 +1388,11 @@ export interface ConfirmationsQueueItemOptions {
 export interface SignMessageBitcoinResult {
   signature: string;
   address: string;
+}
+
+export interface SignPsbtBitcoinResult {
+  psbt: string;
+  txid: string
 }
 
 export interface ConfirmationsQueueItem<T> extends ConfirmationsQueueItemOptions, ConfirmationRequestBase {
@@ -1435,7 +1462,7 @@ export interface ConfirmationDefinitionsBitcoin {
   bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<SignMessageBitcoinResult>],
   bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
   bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>],
-  bitcoinSignPsbtRequest: [ConfirmationsQueueItem<BitcoinSignPsbtRequest>, ConfirmationResult<string>],
+  bitcoinSignPsbtRequest: [ConfirmationsQueueItem<BitcoinSignPsbtRequest>, ConfirmationResult<SignPsbtBitcoinResult>],
 }
 
 export type ConfirmationType = keyof ConfirmationDefinitions;
