@@ -41,3 +41,14 @@ export async function getAllCollectionRunes () {
     throw error;
   }
 }
+
+export async function getRuneMetadata (runeid: string, isTestnet = false) {
+  const runeService = RunesService.getInstance(isTestnet);
+
+  try {
+    return await runeService.getRuneMetadata(runeid);
+  } catch (error) {
+    console.error(`Failed to get rune ${runeid} metadata`, error);
+    throw error;
+  }
+}

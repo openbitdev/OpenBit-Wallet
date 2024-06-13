@@ -26,6 +26,8 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const { language } = useSelector((state) => state.settings);
 
+  const isValidExtrinsicHash = data.extrinsicHash && data.extrinsicHash !== '' && !data.extrinsicHash.startsWith('internal.');
+
   return (
     <MetaInfo className={CN(className)}>
       <MetaInfo.DisplayType
@@ -39,17 +41,21 @@ const Component: React.FC<Props> = (props: Props) => {
         statusName={t(HistoryStatusMap[data.status].name)}
         valueColorSchema={HistoryStatusMap[data.status].schema}
       />
-      <MetaInfo.Default label={t('Transaction id')}>{toShort(data.extrinsicHash, 8, 9)}</MetaInfo.Default>
-
+      {isValidExtrinsicHash && <MetaInfo.Default label={t('Transaction id')}>{toShort(data.extrinsicHash, 8, 9)}</MetaInfo.Default>}
       {
         !!data.time && (
           <MetaInfo.Default label={t('Transaction time')}>{formatHistoryDate(data.time, language, 'detail')}</MetaInfo.Default>
         )
       }
+      {
+        !!data.blockTime && (
+          <MetaInfo.Default label={t('Block time')}>{formatHistoryDate(data.blockTime, language, 'detail')}</MetaInfo.Default>
+        )
+      }
       <HistoryDetailAmount data={data} />
 
       {
-        isAbleToShowFee(data) && (<HistoryDetailFee data={data} />)
+        isValidExtrinsicHash && isAbleToShowFee(data) && (<HistoryDetailFee data={data} />)
       }
     </MetaInfo>
   );

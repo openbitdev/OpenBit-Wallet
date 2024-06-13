@@ -7,8 +7,8 @@ import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/const
 import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { _getChainNativeTokenSlug, _getRuneId } from '@subwallet/extension-base/services/chain-service/utils';
-import { BalanceItem } from '@subwallet/extension-base/types';
-import { filterAssetsByChainAndType, filteredOutTxsUtxos, filterOutPendingTxsUtxos, getInscriptionUtxos, getRuneTxsUtxos } from '@subwallet/extension-base/utils';
+import { BalanceItem, UtxoResponseItem } from '@subwallet/extension-base/types';
+import { filterAssetsByChainAndType, filteredOutTxsUtxos, getInscriptionUtxos, getRuneUtxos } from '@subwallet/extension-base/utils';
 import BigN from 'bignumber.js';
 
 // todo: update bitcoin params
@@ -131,15 +131,21 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
   try {
     const [utxos, runeTxsUtxos, inscriptionUtxos] = await Promise.all([
       await bitcoinApi.api.getUtxos(address),
-      await getRuneTxsUtxos(bitcoinApi, address),
+      await getRuneUtxos(bitcoinApi, address),
       await getInscriptionUtxos(bitcoinApi, address)
     ]);
 
+    let filteredUtxos: UtxoResponseItem[];
+
+    if (!utxos || !utxos.length) {
+      return [];
+    }
+
     // filter out pending utxos
-    let filteredUtxos = filterOutPendingTxsUtxos(utxos);
+    // filteredUtxos = filterOutPendingTxsUtxos(utxos);
 
     // filter out rune utxos
-    filteredUtxos = filteredOutTxsUtxos(filteredUtxos, runeTxsUtxos);
+    filteredUtxos = filteredOutTxsUtxos(utxos, runeTxsUtxos);
 
     // filter out inscription utxos
     filteredUtxos = filteredOutTxsUtxos(filteredUtxos, inscriptionUtxos);

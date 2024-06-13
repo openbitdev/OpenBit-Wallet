@@ -32,6 +32,7 @@ interface Props extends BasicInputWrapper, ThemeProps {
   allowDomain?: boolean;
   fitNetwork?: boolean;
   addressBookFilter?: (addressJson: AbstractAddressJson) => boolean;
+  labelStyle?: 'default' | 'horizontal'
 }
 
 const defaultScannerModalId = 'input-account-address-scanner-modal';
@@ -51,9 +52,9 @@ const isAddressValid = (address?: string): boolean => {
 
 function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactElement<Props> {
   const { addressBookFilter, addressPrefix,
-    allowDomain, chain, className = '', disabled, fitNetwork, id, label, networkGenesisHash,
-    onBlur, onChange, onFocus, placeholder, readOnly, saveAddress, showAddressBook, showScanner,
-    status, statusHelp, value } = props;
+    allowDomain, chain, className = '', disabled, fitNetwork, id, label, labelStyle = 'default',
+    networkGenesisHash, onBlur, onChange, onFocus, placeholder, readOnly, saveAddress, showAddressBook,
+    showScanner, status, statusHelp, value } = props;
   const { t } = useTranslation();
 
   const [domainName, setDomainName] = useState<string | undefined>(undefined);
@@ -226,7 +227,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   return (
     <>
       <Input
-        className={CN('address-input', className, {
+        className={CN('address-input', className, `-label-${labelStyle}`, {
           '-is-valid-address': true
         })}
         disabled={disabled}
@@ -373,6 +374,48 @@ export const AddressInput = styled(forwardRef(Component))<Props>(({ theme: { tok
 
     '.ant-input-prefix': {
       pointerEvents: 'none'
+    },
+
+    '&.-label-horizontal': {
+      display: 'flex',
+      gap: 4,
+      '&.-has-label .ant-input': {
+        borderTopWidth: 2
+      },
+      '.ant-input-container': {
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 4
+      },
+      '.ant-input-label': {
+        top: 0,
+        display: 'flex',
+        alignItems: 'center',
+        paddingTop: 0,
+        paddingRight: 0,
+        minWidth: 45
+      },
+      '.ant-input-wrapper': {
+        flex: 1
+      },
+      '.ant-input-affix-wrapper': {
+        paddingLeft: 0
+      },
+      '.__overlay': {
+        paddingLeft: 0,
+        top: 2,
+        left: 0
+      },
+      '&.-status-error .ant-input': {
+        borderTopWidth: 2
+      },
+      '.__avatar-account': {
+        display: 'none'
+      },
+      '.ant-input-prefix': {
+        paddingRight: 0
+      }
+
     },
 
     '&.-status-error': {

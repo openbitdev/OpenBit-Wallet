@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ChainLogoMap } from '@subwallet/chain-list';
-import { _ChainInfo } from '@subwallet/chain-list/types';
+import { _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, AccountWithChildren } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
@@ -209,6 +209,26 @@ export function getScanExplorerAddressInfoUrl (networkKey: string, address: stri
 }
 
 export const detectThemeAvatar = (address?: string) => isEthereumAddress(address) ? 'ethereum' : 'polkadot';
+
+export const getLogoKey = (asset: _ChainAsset | undefined, chainInfoMap: Record<string, _ChainInfo>): string => {
+  if (!asset) {
+    return 'default';
+  }
+
+  let logoKey: string;
+
+  if (asset.icon) {
+    logoKey = asset.slug;
+  } else if (asset.metadata?.runeId) {
+    logoKey = 'default_rune';
+  } else if (chainInfoMap[asset.originChain] && _isChainEvmCompatible(chainInfoMap[asset.originChain])) {
+    logoKey = 'default_evm';
+  } else {
+    logoKey = 'default';
+  }
+
+  return logoKey.toLowerCase();
+};
 
 export * from './account';
 export * from './buy';

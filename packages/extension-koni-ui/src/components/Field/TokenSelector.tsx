@@ -9,6 +9,7 @@ import { useChainAssets } from '@subwallet/extension-koni-ui/hooks/assets';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { useSelectModalInputHelper } from '@subwallet/extension-koni-ui/hooks/form/useSelectModalInputHelper';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { getLogoKey } from '@subwallet/extension-koni-ui/utils';
 import { Icon, InputRef, Logo, SelectModal } from '@subwallet/react-ui';
 import TokenItem from '@subwallet/react-ui/es/web3-block/token-item';
 import { CheckCircle } from 'phosphor-react';
@@ -45,7 +46,7 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
 
   const { onSelect } = useSelectModalInputHelper(props, ref);
 
-  const filteredItems = useMemo((): TokenItemType[] => {
+  const filteredItems = useMemo(() => {
     const raw = items.filter((item) => {
       const chainAsset = assetRegistry[item.slug];
 
@@ -60,20 +61,20 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   }, [assetRegistry, chainStateMap, filterFunction, items]);
 
   const chainLogo = useMemo(() => {
-    const tokenInfo = filteredItems.find((x) => x.slug === value);
+    const asset = value ? assetRegistry[value] : undefined;
 
-    return tokenInfo &&
+    return asset &&
       (
         <Logo
           className='token-logo'
           isShowSubLogo={true}
           shape='squircle'
           size={token.controlHeightSM}
-          subNetwork={tokenInfo.originChain}
-          token={tokenInfo.slug.toLowerCase()}
+          subNetwork={asset.originChain}
+          token={getLogoKey(asset, chainInfoMap)}
         />
       );
-  }, [filteredItems, token.controlHeightSM, value]);
+  }, [assetRegistry, chainInfoMap, token.controlHeightSM, value]);
 
   const renderTokenSelected = useCallback((item: TokenItemType) => {
     return (
@@ -96,6 +97,8 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
   }, [chainInfoMap]);
 
   const renderItem = useCallback((item: TokenItemType, selected: boolean) => {
+    const asset = assetRegistry[item.slug];
+
     return (
       <TokenItem
         className={'token-item'}
@@ -139,10 +142,10 @@ function Component (props: Props, ref: ForwardedRef<InputRef>): React.ReactEleme
         }
         subName=''
         subNetworkKey={item.originChain}
-        symbol={item.slug.toLowerCase()}
+        symbol={getLogoKey(asset, chainInfoMap)}
       />
     );
-  }, [chainInfoMap, token.colorSuccess]);
+  }, [assetRegistry, chainInfoMap, token.colorSuccess]);
 
   useEffect(() => {
     if (!value) {
@@ -202,6 +205,10 @@ export const TokenSelector = styled(forwardRef(Component))<Props>(({ theme: { to
     // TODO: delete this when fix component in ui-base
     '.token-item .ant-network-item-sub-name': {
       display: 'none'
+    },
+
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
     },
 
     '.token-logo': {

@@ -693,8 +693,8 @@ export interface TransactionHistoryItem<ET extends ExtrinsicType = ExtrinsicType
   status: ExtrinsicStatus,
   transactionId?: string, // Available for transaction history
   extrinsicHash: string,
-  submitTime?: number,
-  time: number,
+  blockTime?: number, // Block time. With bitcoin, time to submit is different with time on block
+  time: number, // Time submit transaction
   data?: string,
   blockNumber: number,
   blockHash: string,

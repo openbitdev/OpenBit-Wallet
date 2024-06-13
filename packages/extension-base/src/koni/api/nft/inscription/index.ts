@@ -5,8 +5,11 @@ import { NftCollection, NftItem } from '@subwallet/extension-base/background/Kon
 import { HIRO_API } from '@subwallet/extension-base/koni/api/nft/inscription/constants/api';
 import { InscriptionResponseItem } from '@subwallet/extension-base/koni/api/nft/inscription/types/interface';
 import { BaseNftApi, HandleNftParams } from '@subwallet/extension-base/koni/api/nft/nft';
+import { Inscription } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { getAddressInscriptions, getInscriptionContent } from '@subwallet/extension-base/services/hiro-service/utils';
 import fetch from 'cross-fetch';
 
+// * Deprecated
 interface FetchedData {
   limit: number,
   offset: number,
@@ -25,11 +28,6 @@ export class InscriptionApi extends BaseNftApi {
     super(chain, undefined, addresses);
   }
 
-  // todo: temporary not use
-  // private createInscriptionInfoUrl (id: string) {
-  //   return `https://ordinals.hiro.so/inscription/${id}`;
-  // }
-
   private createIframePreviewUrl (id: string) {
     return `https://ordinals.com/preview/${id}`;
   }
@@ -45,12 +43,13 @@ export class InscriptionApi extends BaseNftApi {
 
     if (type.startsWith('image/')) {
       return `${HIRO_API.list_of_incriptions}/${id}/content`;
-      // return `https://ordinals.com/preview/${id}`;
+      // return getPreviewUrl(id);
     }
 
     return undefined;
   }
 
+  // @ts-ignore
   private async getBalances (address: string) {
     const pageSize = 50;
     let offset = 0;
@@ -85,6 +84,7 @@ export class InscriptionApi extends BaseNftApi {
     }
   }
 
+  // @ts-ignore
   private async getOrdinalContent (id: string) {
     const url = HIRO_API.inscription_content.replace(':id', id);
 
@@ -102,7 +102,7 @@ export class InscriptionApi extends BaseNftApi {
     }
   }
 
-  private handleProperties (inscription: InscriptionResponseItem) {
+  private handleProperties (inscription: Inscription) {
     const propertiesMap: Record<string, any> = {};
     const satRarity = inscription.sat_rarity;
     const satNumber = inscription.sat_ordinal;
@@ -126,7 +126,7 @@ export class InscriptionApi extends BaseNftApi {
   public async handleNfts (params: HandleNftParams) {
     try {
       await Promise.all(this.addresses.map(async (address) => {
-        const balances = await this.getBalances(address);
+        const balances = await getAddressInscriptions(address);
 
         if (balances.length > 0) {
           const collectionMap: Record <string, NftCollection> = {};
@@ -135,7 +135,7 @@ export class InscriptionApi extends BaseNftApi {
             let content;
 
             if (ins.content_type.startsWith('text/plain') || ins.content_type.startsWith('application/json')) {
-              content = await this.getOrdinalContent(ins.id);
+              content = await getInscriptionContent(ins.id);
             }
 
             const propertiesMap = this.handleProperties(ins);

@@ -63,7 +63,7 @@ interface BitcoinTransactionPegOut {
   scriptpubkey_address: string;
 }
 
-interface BitcoinTransactionStatus {
+export interface BitcoinTransactionStatus {
   confirmed: boolean;
   block_height?: number | null;
   block_hash?: string | null;

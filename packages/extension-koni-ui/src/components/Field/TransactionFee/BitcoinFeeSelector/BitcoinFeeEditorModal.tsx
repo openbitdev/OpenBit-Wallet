@@ -72,14 +72,11 @@ const OPTIONS: BitcoinFeeOption[] = [
   }
 ];
 
-function validateCustomValue (value: string) {
-  return /^\d+$/.test(value) && !value.includes('e');
-}
-
 const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOption }: Props): React.ReactElement<Props> => {
   const { t } = useTranslation();
   const { inactiveModal } = useContext(ModalContext);
   const [currentViewMode, setViewMode] = useState<ViewMode>(selectedOption.option === 'custom' ? ViewMode.CUSTOM : ViewMode.RECOMMENDED);
+  const [invalidForm, setInvalidForm] = useState(false);
 
   const [form] = Form.useForm<FormProps>();
 
@@ -233,8 +230,10 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
   };
 
   const customValueValidator = useCallback((rule: Rule, value: string): Promise<void> => {
-    if (value && !validateCustomValue(value)) {
-      return Promise.reject(t('Invalid value'));
+    if (!value || !/^[0-9]*\.?[0-9]+$/.test(value)) {
+      setInvalidForm(true);
+
+      return Promise.reject(t('Please enter a valid number with optional decimal.'));
     }
 
     const low = feeDetail?.options?.slow?.feeRate;
@@ -243,14 +242,18 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
     if (low > val) {
       const minString = formatNumber(low, 0, balanceFormatter);
 
+      setInvalidForm(true);
+
       return Promise.reject(t('Custom fee should be greater than {{min}} sats/vB', { min: minString }));
     }
+
+    setInvalidForm(false);
 
     return Promise.resolve();
   }, [feeDetail, t]);
 
   const convertedCustomValue = useMemo<BigN>(() => {
-    if (validateCustomValue(customValue)) {
+    if (customValue) {
       return new BigN(customValue).multipliedBy(feeDetail.vSize);
     }
 
@@ -258,7 +261,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
   }, [customValue, feeDetail.vSize]);
 
   const canSubmitCustom = useMemo((): boolean => {
-    if (validateCustomValue(customValue)) {
+    if (customValue) {
       return new BigN(customValue).gt(0);
     } else {
       return false;
@@ -322,27 +325,28 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
                     validator: customValueValidator
                   }
                 ]}
+                statusHelpAsTooltip={true}
               >
                 <Input
                   label={'sats/vB'}
-                  min={1}
                   placeholder={'Enter sats/vB'}
-                  suffix={(
-                    <Number
-                      className={'__converted-value'}
-                      decimal={8} // decimals of bitcoin is 8, will update dynamic value later
-                      suffix={'BTC'} // will update dynamic value later
-                      value={convertedCustomValue}
-                    />
-                  )}
                   type={'number'}
                 />
               </Form.Item>
+              <div className={'__converted-value-wrapper'}>
+                <Number
+                  className={'__converted-value'}
+                  decimal={8} // decimals of bitcoin is 8, will update dynamic value later
+                  suffix={'BTC'} // will update dynamic value later
+                  value={convertedCustomValue}
+                />
+              </div>
             </Form>
 
             <Button
               block={true}
-              disabled={!canSubmitCustom}
+              className={'__custom-fee-button'}
+              disabled={!canSubmitCustom || invalidForm}
               onClick={form.submit}
             >
               Use custom fee
@@ -365,10 +369,30 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       borderRadius: 8,
       overflow: 'hidden'
     },
+
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
+
+    '.ant-form-item-has-error': {
+      marginBottom: 11
+    },
+
+    '.ant-form-item': {
+      marginBottom: 4
+    },
+
+    '.__converted-value-wrapper': {
+      display: 'flex',
+      justifyContent: 'end',
+      paddingBottom: token.padding
+    },
+
     '.__fee-option-item: hover': {
       backgroundColor: token.colorBgInput,
       transition: 'backgroundColor 0.2s ease-in-out'
     },
+
     '.__line-1 .__label': {
       color: token.colorTextSecondary,
       overflow: 'hidden',
@@ -381,7 +405,6 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
       fontWeight: token.headingFontWeight,
       color: token.colorTextTertiary,
       paddingLeft: 8,
-      paddingRight: 8,
 
       '.ant-number-integer': {
         color: 'inherit !important',
@@ -499,6 +522,9 @@ export const BitcoinFeeEditorModal = styled(Component)<Props>(({ theme: { token 
     '.__selection-ite': {
       display: 'flex',
       alignItems: 'center'
+    },
+    '.-status-error .ant-input-suffix': {
+      display: 'none'
     }
   });
 });

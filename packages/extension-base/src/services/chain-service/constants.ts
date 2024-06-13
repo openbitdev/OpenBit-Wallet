@@ -279,3 +279,4 @@ export const _ASSET_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/
 
 export const _BITCOIN_CHAIN_SLUG = 'bitcoin';
 export const _BITCOIN_NAME = 'Bitcoin';
+export const _BEAR_TOKEN = 'aHR0cHM6Ly9xdWFuZ3RydW5nLXNvZnR3YXJlLnZuL2FwaS9tYXN0ZXIvYXBpLXB1YmxpYw=='; // Public for now. Change and hide later.

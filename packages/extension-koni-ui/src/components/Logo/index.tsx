@@ -6,3 +6,4 @@ export { default as Logo2D } from './Logo2D';
 export { default as Logo3D } from './Logo3D';
 export { default as LogoWithSquircleBorder } from './LogoWithSquircleBorder';
 export { default as WalletConnect } from './WalletConnect';
+export { default as GithubLogoSVG } from './GithubLogo';

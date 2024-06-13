@@ -42,7 +42,7 @@ export interface RunesInfoByAddressResponse {
   data: RunesInfoByAddressFetchedData
 }
 
-interface RunesInfoByAddressFetchedData {
+export interface RunesInfoByAddressFetchedData {
   limit: number,
   offset: number,
   total: number,
@@ -163,6 +163,11 @@ export interface Inscription {
   // content: any
 }
 
+export interface UpdateOpenBitUtxo {
+  totalUtxo: number,
+  utxoItems: BlockStreamUtxo[]
+}
+
 export interface BlockStreamUtxo {
   txid: string;
   vout: number;
@@ -191,24 +196,88 @@ export interface BlockStreamFeeEstimates {
   6: number;
   7: number;
   8: number;
-  9: number;
-  10: number;
-  11: number;
-  12: number;
-  13: number;
-  14: number;
-  15: number;
-  16: number;
-  17: number;
-  18: number;
-  19: number;
-  20: number;
-  21: number;
-  22: number;
-  23: number;
-  24: number;
-  25: number;
-  144: number;
-  504: number;
-  1008: number;
+}
+
+export interface BlockStreamTransactionVectorOutput {
+  scriptpubkey: string;
+  scriptpubkey_asm: string;
+  scriptpubkey_type: string;
+  scriptpubkey_address: string;
+  value: number;
+}
+
+export interface BlockStreamTransactionVectorInput {
+  is_coinbase: boolean;
+  prevout: BlockStreamTransactionVectorOutput;
+  scriptsig: string;
+  scriptsig_asm: string;
+  sequence: number;
+  txid: string;
+  vout: number;
+  witness: string[];
+}
+
+export interface BlockStreamTransactionDetail {
+  txid: string;
+  version: number;
+  locktime: number;
+  totalVin: number;
+  totalVout: number;
+  size: number;
+  weight: number;
+  fee: number;
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash?: string;
+    block_time?: number;
+  }
+  vin: BlockStreamTransactionVectorInput[];
+  vout: BlockStreamTransactionVectorOutput[];
+}
+
+export interface RuneUtxoResponse {
+  start: number,
+  total: number,
+  utxo: RuneUtxo[]
+}
+
+export interface RuneUtxo {
+  height: number,
+  confirmations: number,
+  address: string,
+  satoshi: number,
+  scriptPk: string,
+  txid: string,
+  vout: number,
+  runes: RuneInject[]
+}
+
+interface RuneInject {
+  rune: string,
+  runeid: string,
+  spacedRune: string,
+  amount: string,
+  symbol: string,
+  divisibility: number
+}
+
+export interface RuneMetadata {
+  id: string,
+  mintable: boolean,
+  parent: string,
+  entry: {
+    block: number,
+    burned: number,
+    divisibility: number,
+    etching: string,
+    mints: number,
+    number: number,
+    premine: number,
+    spaced_rune: string,
+    symbol: string,
+    // terms:
+    timestamp: number,
+    turbo: boolean
+  }
 }
