@@ -1,11 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { GeneralEmptyList } from '@subwallet/extension-koni-ui/components';
 import { RECEIVE_QR_MODAL, RECEIVE_TOKEN_SELECTOR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useSelector, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { ReceiveTokenItemType, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { getLogoKey } from '@subwallet/extension-koni-ui/utils';
 import { Logo, ModalContext, SwList, SwModal } from '@subwallet/react-ui';
 import { SwListSectionRef } from '@subwallet/react-ui/es/sw-list';
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
@@ -64,39 +64,22 @@ function Component ({ className = '', items, onSelectItem }: Props): React.React
   }, [isActive]);
 
   const renderItem = useCallback((item: ReceiveTokenItemType) => {
-    let logoKey: string | undefined;
-
-    if (item.icon) {
-      logoKey = item.slug.toLowerCase();
-    } else if (item.isRune) {
-      logoKey = 'rune';
-    } else if (chainInfoMap[item.originChain] && _isChainEvmCompatible(chainInfoMap[item.originChain])) {
-      logoKey = 'default_evm';
-    }
-
     return (
       <TokenSelectionItem
         address={item.address}
         className={'token-selector-item'}
-        item={item.isRune
-          ? ({
-            ...item,
-            symbol: 'Runes'
-          })
-          : item}
+        item={item}
         key={item.slug}
-        leftItem={!logoKey
-          ? undefined
-          : (
-            <Logo
-              isShowSubLogo
-              shape={'squircle'}
-              size={40}
-              subLogoShape={'circle'}
-              subNetwork={item.originChain}
-              token={logoKey}
-            />
-          )}
+        leftItem={
+          <Logo
+            isShowSubLogo
+            shape={'squircle'}
+            size={40}
+            subLogoShape={'circle'}
+            subNetwork={item.originChain}
+            token={getLogoKey(item, chainInfoMap)}
+          />
+        }
         onClickQrBtn={onClickQrBtn(item)}
         onPressItem={onClickQrBtn(item)}
       />

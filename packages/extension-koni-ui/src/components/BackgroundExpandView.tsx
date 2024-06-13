@@ -51,7 +51,7 @@ const Component: React.FC<Props> = (props: Props) => {
         <div className='help-container'>
           <Button
             icon={<Icon phosphorIcon={Question} />}
-            onClick={openInNewTab('https://docs.subwallet.app/')}
+            onClick={openInNewTab('https://docs.openbit.app/')}
             size='xs'
             type='ghost'
           >

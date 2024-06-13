@@ -206,3 +206,9 @@ export const _NFT_CONTRACT_STANDARDS = [
 ];
 
 export const _SMART_CONTRACT_STANDARDS = [..._FUNGIBLE_CONTRACT_STANDARDS, ..._NFT_CONTRACT_STANDARDS];
+
+export interface OBResponse<T> {
+  status_code: number,
+  message: string,
+  result: T,
+}

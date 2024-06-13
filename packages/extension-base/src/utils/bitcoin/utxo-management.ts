@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { BITCOIN_DECIMAL, BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
+import { BTC_DUST_AMOUNT } from '@subwallet/extension-base/constants';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { DetermineUtxosForSpendArgs, InsufficientFundsError, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { BitcoinAddressType } from '@subwallet/keyring/types';
@@ -179,6 +179,10 @@ export function filterOutPendingTxsUtxos (utxos: UtxoResponseItem[]): UtxoRespon
 }
 
 export function filteredOutTxsUtxos (allTxsUtxos: UtxoResponseItem[], filteredOutTxsUtxos: UtxoResponseItem[]): UtxoResponseItem[] {
+  if (!filteredOutTxsUtxos.length) {
+    return allTxsUtxos;
+  }
+
   const listFilterOut = filteredOutTxsUtxos.map((utxo) => {
     return `${utxo.txid}:${utxo.vout}`;
   });
@@ -186,53 +190,52 @@ export function filteredOutTxsUtxos (allTxsUtxos: UtxoResponseItem[], filteredOu
   return allTxsUtxos.filter((element) => !listFilterOut.includes(`${element.txid}:${element.vout}`));
 }
 
-export async function getRuneTxsUtxos (bitcoinApi: _BitcoinApi, address: string) {
-  const runeTxs = await bitcoinApi.api.getRuneTxsUtxos(address);
-  const runeTxsUtxos: UtxoResponseItem[] = [];
+export async function getRuneUtxos (bitcoinApi: _BitcoinApi, address: string) {
+  const responseRuneUtxos = await bitcoinApi.api.getRuneUtxos(address);
+  const runeUtxos: UtxoResponseItem[] = [];
 
-  runeTxs.forEach((runeTx) => {
-    const txid = runeTx.txid;
-    const runeOutput = runeTx.vout.find((vout) => !!vout.runeInject);
-    const runeUtxoIndex = runeOutput ? runeOutput.n : undefined;
-    const runeUtxoValue = runeOutput ? applyBitcoinDecimal(runeOutput.value) : undefined;
+  responseRuneUtxos.forEach((responseRuneUtxo) => {
+    const txid = responseRuneUtxo.txid;
+    const vout = responseRuneUtxo.vout;
+    const utxoValue = responseRuneUtxo.satoshi;
 
-    if (runeUtxoIndex && runeUtxoValue) {
+    if (txid && vout && utxoValue) {
       const item = {
         txid,
-        vout: runeUtxoIndex,
+        vout,
         status: {
           confirmed: true // not use in filter out rune utxos
         },
-        value: runeUtxoValue
+        value: utxoValue
       } as UtxoResponseItem;
 
-      runeTxsUtxos.push(item);
+      runeUtxos.push(item);
     }
   });
 
-  return runeTxsUtxos;
+  return runeUtxos;
 }
 
 export async function getInscriptionUtxos (bitcoinApi: _BitcoinApi, address: string) {
-  const inscriptions = await bitcoinApi.api.getAddressInscriptions(address);
+  try {
+    const inscriptions = await bitcoinApi.api.getAddressInscriptions(address);
 
-  return inscriptions.map((inscription) => {
-    const [txid, vout] = inscription.output.split(':');
+    return inscriptions.map((inscription) => {
+      const [txid, vout] = inscription.output.split(':');
 
-    return {
-      txid,
-      vout: parseInt(vout),
-      status: {
-        confirmed: true, // not use in filter out inscription utxos
-        block_height: inscription.genesis_block_height,
-        block_hash: inscription.genesis_block_hash,
-        block_time: inscription.genesis_timestamp
-      },
-      value: parseInt(inscription.value)
-    } as UtxoResponseItem;
-  });
-}
-
-function applyBitcoinDecimal (valueBeforeDecimal: number) {
-  return valueBeforeDecimal * Math.pow(10, BITCOIN_DECIMAL);
+      return {
+        txid,
+        vout: parseInt(vout),
+        status: {
+          confirmed: true, // not use in filter out inscription utxos
+          block_height: inscription.genesis_block_height,
+          block_hash: inscription.genesis_block_hash,
+          block_time: inscription.genesis_timestamp
+        },
+        value: parseInt(inscription.value)
+      } as UtxoResponseItem;
+    });
+  } catch (e) {
+    return [];
+  }
 }
