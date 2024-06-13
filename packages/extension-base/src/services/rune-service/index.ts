@@ -2,49 +2,57 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { RunesCollectionInfoResponse, RunesInfoByAddressResponse, RuneTxsResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
+import { RuneMetadata, RunesCollectionInfoResponse, RunesInfoByAddressFetchedData, RuneTxsResponse, RuneUtxoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const RUNE_ALPHA_ENDPOINT = 'https://mainnet-indexer-api.runealpha.xyz';
+const OPENBIT_URL = 'https://api.openbit.app';
+const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app';
 
 export class RunesService extends BaseApiRequestStrategy {
-  private constructor () {
+  baseUrl: string;
+
+  private constructor (url: string) {
     const context = new BaseApiRequestContext();
 
     super(context);
+
+    this.baseUrl = url;
   }
+
+  private headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${_BEAR_TOKEN}`
+  };
 
   isRateLimited (): boolean {
     return false;
   }
 
-  getUrl (isTestnet: boolean, path: string): string {
-    if (!isTestnet) {
-      return `${RUNE_ALPHA_ENDPOINT}/${path}`;
-    } else {
-      // todo: update testnet url
-      return '';
-    }
+  getUrl (path: string): string {
+    return `${this.baseUrl}/${path}`;
   }
 
-  getAddressRunesInfo (address: string, params: Record<string, string>, isTestnet = false): Promise<RunesInfoByAddressResponse> {
+  getAddressRunesInfo (address: string, params: Record<string, string>): Promise<RunesInfoByAddressFetchedData> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `address/${address}/runes`);
-      const rs = await getRequest(url, params);
+      const _rs = await getRequest(this.getUrl(`rune/address/${address}`), params, this.headers);
+      const rs = await _rs.json() as OBResponse<RunesInfoByAddressFetchedData>;
 
-      if (rs.status !== 200) {
-        throw new SWError('RuneScanService.getAddressRunesInfo', await rs.text());
+      if (rs.status_code !== 200) {
+        throw new SWError('RuneScanService.getAddressRunesInfo', rs.message);
       }
 
-      return (await rs.json()) as RunesInfoByAddressResponse;
+      return rs.result;
     }, 1);
   }
 
-  getRuneCollectionsByBatch (params: Record<string, string>, isTestnet = false): Promise<RunesCollectionInfoResponse> {
+  // * Deprecated
+  getRuneCollectionsByBatch (params: Record<string, string>): Promise<RunesCollectionInfoResponse> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, 'rune');
+      const url = this.getUrl('rune');
       const rs = await getRequest(url, params);
 
       if (rs.status !== 200) {
@@ -55,9 +63,10 @@ export class RunesService extends BaseApiRequestStrategy {
     }, 1);
   }
 
-  getAddressRuneTxs (address: string, params: Record<string, string>, isTestnet = false): Promise<RuneTxsResponse> {
+  // * Deprecated
+  getAddressRuneTxs (address: string, params: Record<string, string>): Promise<RuneTxsResponse> {
     return this.addRequest(async () => {
-      const url = this.getUrl(isTestnet, `address/${address}/txs`);
+      const url = this.getUrl(`address/${address}/txs`);
       const rs = await getRequest(url, params);
 
       if (rs.status !== 200) {
@@ -68,14 +77,49 @@ export class RunesService extends BaseApiRequestStrategy {
     }, 0);
   }
 
+  getRuneMetadata (runeid: string): Promise<RuneMetadata> {
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(`rune/metadata/${runeid}`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<RuneMetadata>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('RuneScanService.getRuneMetadata', rs.message);
+      }
+
+      return rs.result;
+    }, 0);
+  }
+
+  getAddressRuneUtxos (address: string): Promise<RuneUtxoResponse> {
+    return this.addRequest(async () => {
+      const _rs = await getRequest(this.getUrl(`rune/address/${address}/utxo`), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<RuneUtxoResponse>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('RuneScanService.getAddressRuneUtxos', rs.message);
+      }
+
+      return rs.result;
+    }, 0);
+  }
+
   // Singleton
-  private static _instance: RunesService;
+  private static mainnet: RunesService;
+  private static testnet: RunesService;
 
-  public static getInstance () {
-    if (!RunesService._instance) {
-      RunesService._instance = new RunesService();
+  public static getInstance (isTestnet = false) {
+    if (isTestnet) {
+      if (!RunesService.testnet) {
+        RunesService.testnet = new RunesService(OPENBIT_URL_TEST);
+      }
+
+      return RunesService.testnet;
+    } else {
+      if (!RunesService.mainnet) {
+        RunesService.mainnet = new RunesService(OPENBIT_URL);
+      }
+
+      return RunesService.mainnet;
     }
-
-    return RunesService._instance;
   }
 }
