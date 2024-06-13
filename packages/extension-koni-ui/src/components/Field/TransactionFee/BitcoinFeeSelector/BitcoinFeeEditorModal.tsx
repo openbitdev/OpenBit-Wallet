@@ -244,7 +244,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
 
       setInvalidForm(true);
 
-      return Promise.reject(t('Custom fee should be greater than {{min}} sats/vB', { min: minString }));
+      return Promise.reject(t('Custom fee too low. Increase fee to at least {{min}} sats/vB and try again', { min: minString }));
     }
 
     setInvalidForm(false);
