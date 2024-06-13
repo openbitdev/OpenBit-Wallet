@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinSignatureRequest, BitcoinSignPsbtRequest, ConfirmationDefinitionsBitcoin, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useGetChainInfoByChainId, useLedger, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
 import { completeConfirmationBitcoin } from '@subwallet/extension-koni-ui/messaging';
@@ -50,7 +50,10 @@ const handleSignature = async (type: BitcoinSignatureSupportType, id: string, si
 
 const Component: React.FC<Props> = (props: Props) => {
   const { className, extrinsicType, id, payload, type } = props;
-  const { payload: { account, canSign, hashPayload } } = payload;
+  const { payload: { canSign, hashPayload } } = payload;
+  const account = (payload.payload as BitcoinSignatureRequest).account;
+  const accounts = (payload.payload as BitcoinSignPsbtRequest).accounts;
+  // const isModeAllAccount = accounts && accounts.length > 0 && !account;
   const chainId = (payload.payload as EvmSendTransactionRequest)?.chainId || 1;
 
   const { t } = useTranslation();
@@ -61,7 +64,7 @@ const Component: React.FC<Props> = (props: Props) => {
   const chain = useGetChainInfoByChainId(chainId);
   const checkUnlock = useUnlockChecker();
 
-  const signMode = useMemo(() => getSignMode(account), [account]);
+  const signMode = useMemo(() => getSignMode(account || accounts[0]?.address), [account, accounts]);
   const isLedger = useMemo(() => signMode === AccountSignMode.LEDGER, [signMode]);
   const isMessage = isBitcoinMessage(payload);
 

@@ -6,7 +6,7 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSignatureRequest, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
@@ -48,6 +48,7 @@ import { decodePair } from '@subwallet/keyring/pair/decode';
 import { KeypairType } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
+import * as bitcoin from 'bitcoinjs-lib';
 import BN from 'bn.js';
 import SimpleKeyring from 'eth-simple-keyring';
 import { t } from 'i18next';
@@ -1168,8 +1169,8 @@ export default class KoniState {
     } as ApiMap;
   }
 
-  public async bitcoinSign (id: string, url: string, method: string, params: any, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult> {
-    const { address, message } = params as Record<string, string>;
+  public async bitcoinSign (id: string, url: string, method: string, params: Record<string, string>, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult> {
+    const { address, message } = params;
 
     if (address === '' || !message) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found address or payload to sign'));
@@ -1207,6 +1208,78 @@ export default class KoniState {
     return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSignatureRequest', signPayload, {
       requiredPassword: false,
       address
+    })
+      .then(({ isApproved, payload }) => {
+        if (isApproved) {
+          if (payload) {
+            return payload;
+          } else {
+            throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found signature'));
+          }
+        } else {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+        }
+      });
+  }
+
+  public async bitcoinSignPspt (id: string, url: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
+    const { broadcast, psbt, signInputs } = params;
+
+    if (!psbt || !signInputs) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found payload to sign'));
+    }
+
+    if (!isHex(psbt)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Psbt to be signed must be base64-encoded'));
+    }
+
+    let canSign = true;
+
+    const accountListJson = Object.keys(signInputs).reduce((accountList, address) => {
+      if (!isBitcoinAddress(address)) {
+        return accountList;
+      }
+
+      // Check sign abiblity
+      if (!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()))) {
+        return accountList;
+      }
+
+      const pair = keyring.getPair(address);
+
+      if (!pair) {
+        return accountList;
+      }
+
+      if (pair.meta && pair.meta.isExternal) {
+        canSign = false;
+      }
+
+      return [...accountList, { address: pair.address, ...pair.meta }];
+    }, [] as AccountJson[]);
+
+    const psbtGenerate = bitcoin.Psbt.fromHex(psbt);
+    const psbtTxInputs = psbtGenerate.txInputs;
+    const psbtTxOutputs = psbtGenerate.txOutputs;
+
+    const payload: BitcoinSignPsbtPayload = {
+      psbt: psbtGenerate,
+      broadcast,
+      signingIndexes: signInputs,
+      txInput: psbtTxInputs,
+      txOutput: psbtTxOutputs
+    };
+    const hashPayload = '';
+
+    const signPayload: BitcoinSignPsbtRequest = {
+      accounts: accountListJson,
+      payload,
+      hashPayload,
+      canSign
+    };
+
+    return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSignPsbtRequest', signPayload, {
+      requiredPassword: false
     })
       .then(({ isApproved, payload }) => {
         if (isApproved) {
