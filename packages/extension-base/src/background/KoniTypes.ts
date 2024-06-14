@@ -1337,11 +1337,6 @@ export interface BitcoinSignRequest {
   canSign: boolean;
 }
 
-export interface BitcoinSignPsbtConfirmRequest {
-  accounts: AccountJson[];
-  payload: BitcoinSignPsbtPayload
-}
-
 export interface BitcoinSignPsbtPayload {
   txInput: PsbtTxInput[];
   signingIndexes: Record<string, number[]>
@@ -1377,7 +1372,10 @@ export type BitcoinSendTransactionRequest = BitcoinSignRequest
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
-export type BitcoinSignPsbtRequest = Omit<BitcoinSendTransactionRequest, 'account'> & BitcoinSignPsbtConfirmRequest;
+export type BitcoinSignPsbtRequest = Omit<BitcoinSendTransactionRequest, 'account'> & {
+  accounts: AccountJson[];
+  payload: BitcoinSignPsbtPayload;
+};
 
 export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
@@ -1392,7 +1390,7 @@ export interface SignMessageBitcoinResult {
 
 export interface SignPsbtBitcoinResult {
   psbt: string;
-  txid: string
+  txid?: string
 }
 
 export interface ConfirmationsQueueItem<T> extends ConfirmationsQueueItemOptions, ConfirmationRequestBase {

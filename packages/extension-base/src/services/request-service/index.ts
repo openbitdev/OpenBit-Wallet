@@ -40,7 +40,7 @@ export default class RequestService {
     this.#authRequestHandler = new AuthRequestHandler(this, this.#chainService, this.keyringService);
     this.#substrateRequestHandler = new SubstrateRequestHandler(this);
     this.#evmRequestHandler = new EvmRequestHandler(this);
-    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this);
+    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this, this.#chainService);
     this.#connectWCRequestHandler = new ConnectWCRequestHandler(this);
     this.#notSupportWCRequestHandler = new NotSupportWCRequestHandler(this);
 

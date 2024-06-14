@@ -21,6 +21,7 @@ export interface BitcoinApiStrategy extends Omit<ApiRequestStrategy, 'addRequest
   getUtxos (address: string): Promise<UtxoResponseItem[]>;
   getTxHex (txHash: string): Promise<string>;
   sendRawTransaction (rawTransaction: string): EventEmitter<BitcoinTransactionEventMap>;
+  simpleSendRawTransaction (rawTransaction: string): Promise<string>;
 }
 
 export interface BitcoinTransactionEventMap {

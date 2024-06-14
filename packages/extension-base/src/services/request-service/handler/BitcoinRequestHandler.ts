@@ -4,8 +4,10 @@
 import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
 import { BitcoinProviderErrorType, ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
+import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import { Psbt } from 'bitcoinjs-lib';
 import { t } from 'i18next';
@@ -16,6 +18,7 @@ import { Logger } from '@polkadot/util/types';
 
 export default class BitcoinRequestHandler {
   readonly #requestService: RequestService;
+  readonly #chainService: ChainService;
   readonly #logger: Logger;
   private readonly confirmationsQueueSubjectBitcoin = new BehaviorSubject<ConfirmationsQueueBitcoin>({
     bitcoinSignatureRequest: {},
@@ -26,8 +29,9 @@ export default class BitcoinRequestHandler {
 
   private readonly confirmationsPromiseMap: Record<string, { resolver: Resolver<any>, validator?: (rs: any) => Error | undefined }> = {};
 
-  constructor (requestService: RequestService) {
+  constructor (requestService: RequestService, chainService: ChainService) {
     this.#requestService = requestService;
+    this.#chainService = chainService;
     this.#logger = createLogger('BitcoinRequestHandler');
   }
 
@@ -192,10 +196,12 @@ export default class BitcoinRequestHandler {
     return signedTransaction.extractTransaction().toHex();
   }
 
-  private bitcoinSignPsbtconfirmation (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): SignPsbtBitcoinResult {
+  private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
     // Extract necessary information from the BitcoinSendTransactionRequest
     const { accounts, payload } = request.payload;
-    const { psbt, signingIndexes } = payload;
+    const { broadcast, psbt, signingIndexes } = payload;
+
+    // todo: validate type of the account
 
     if (accounts.length === 0) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Please connect to Wallet to try this request');
@@ -216,11 +222,31 @@ export default class BitcoinRequestHandler {
     });
 
     const psbtCombine = psbtList[0].combine(...psbtList);
-    const transactionObj = psbt.extractTransaction();
+
+    if (!broadcast) {
+      return {
+        psbt: psbtCombine.toHex()
+      };
+    }
+
+    const addressType = getKeypairTypeByAddress(accounts[0].address);
+
+    // todo: this is hotfix, will update logic to get chain value later
+    const chain = (() => {
+      if (['bittest-86', 'bittest-84'].includes(addressType)) {
+        return 'bitcoinTestnet';
+      }
+
+      return 'bitcoin';
+    })();
+
+    const txid = await this.#chainService.getBitcoinApi(chain).api.simpleSendRawTransaction(psbt.extractTransaction().toHex());
+
+    console.log('TXID', txid);
 
     return {
       psbt: psbtCombine.toHex(),
-      txid: transactionObj.toHex()
+      txid
     };
   }
 
@@ -231,7 +257,7 @@ export default class BitcoinRequestHandler {
       } else if (t === 'bitcoinSendTransactionRequest') {
         result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
       } else if (t === 'bitcoinSignPsbtRequest') {
-        result.payload = this.bitcoinSignPsbtconfirmation(request as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]);
+        result.payload = await this.signPsbt(request as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]);
       }
 
       if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest') {
