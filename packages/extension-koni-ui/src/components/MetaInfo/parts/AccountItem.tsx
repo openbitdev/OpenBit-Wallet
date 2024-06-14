@@ -110,7 +110,6 @@ const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: Ac
     },
     '.-is-not-name': {
       display: 'flex',
-      gap: 8,
       alignItems: 'center'
 
     },
@@ -123,7 +122,10 @@ const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: Ac
     '.__name': {
       whiteSpace: 'nowrap',
       overflow: 'hidden',
-      textOverflow: 'ellipsis'
+      textOverflow: 'ellipsis',
+      color: token.colorTextLight2,
+      fontSize: token.fontSize,
+      fontWeight: token.fontWeightStrong
     },
     '.__short-address': {
       display: 'flex',

@@ -46,7 +46,7 @@ const Component: React.FC<Props> = ({ className, transaction }: Props) => {
       <MetaInfo hasBackgroundWrapper>
         <MetaInfo.Account
           address={data.from}
-          label={t('Send from')}
+          label={t('From')}
           networkPrefix={senderPrefix}
         />
 
@@ -62,7 +62,7 @@ const Component: React.FC<Props> = ({ className, transaction }: Props) => {
 
         <MetaInfo.Account
           address={data.to}
-          label={t('Send to')}
+          label={t('To')}
           networkPrefix={receiverPrefix}
         />
 
