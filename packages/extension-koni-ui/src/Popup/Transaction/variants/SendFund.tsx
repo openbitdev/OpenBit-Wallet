@@ -174,8 +174,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const destChainGenesisHash = chainInfoMap[destChainValue]?.substrateInfo?.genesisHash || '';
   const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
 
-  const [showFeeModal, setShowFeeModal] = useState(false);
-  const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
+  const [showFeeSelector, setShowFeeSelector] = useState(false);
+  const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>(Date.now());
   const assetRef = useRef<string | undefined>('');
   const proxyIdRef = useRef<string | undefined>('');
 
@@ -311,7 +311,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         setTransactionFeeInfo(undefined);
 
         if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
-          setFeeResetTrigger({});
+          setFeeResetTrigger(Date.now());
         }
       }
 
@@ -526,7 +526,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
 
   useEffect(() => {
     if (!!fromValue && !!toValue && !!transferAmountValue) {
-      setShowFeeModal(true);
+      setShowFeeSelector(true);
     }
   }, [fromValue, toValue, transferAmountValue]);
 
@@ -776,11 +776,11 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         </Form>
 
         {
-          BITCOIN_CHAINS.includes(chainValue) && !!assetValue && showFeeModal && (
+          BITCOIN_CHAINS.includes(chainValue) && !!assetValue && showFeeSelector && (
             <BitcoinFeeSelector
               className={'__bitcoin-fee-selector'}
-              feeDetail={transferInfo?.feeOptions as BitcoinFeeDetail || ''}
-              isLoading={isFetchingInfo || !transferInfo}
+              feeDetail={transferInfo?.feeOptions as BitcoinFeeDetail | undefined}
+              isLoading={isFetchingInfo}
               onSelect={onSelectTransactionFeeInfo}
               resetTrigger={feeResetTrigger}
               tokenSlug={assetValue}

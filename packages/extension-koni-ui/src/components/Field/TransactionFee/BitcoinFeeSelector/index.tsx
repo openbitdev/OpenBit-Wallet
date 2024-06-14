@@ -17,7 +17,7 @@ import styled from 'styled-components';
 import { BitcoinFeeEditorModal } from './BitcoinFeeEditorModal';
 
 type Props = ThemeProps & {
-  feeDetail: BitcoinFeeDetail;
+  feeDetail: BitcoinFeeDetail | undefined;
   onSelect: (transactionFee: TransactionFee) => void;
   isLoading?: boolean;
   tokenSlug: string;
@@ -31,7 +31,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
   const { t } = useTranslation();
   const { activeModal } = useContext(ModalContext);
   const assetRegistry = useSelector((root) => root.assetRegistry.assetRegistry);
-  const [selectedOption, setSelectedOption] = useState<BitcoinFeeOption>({ option: feeDetail?.options?.default });
+  const [selectedOption, setSelectedOption] = useState<BitcoinFeeOption | undefined>(undefined);
   const priceMap = useSelector((state) => state.price.priceMap);
   const resetTriggerRef = useRef<unknown>(resetTrigger);
   const [modalRenderKey, setModalRenderKey] = useState<string>(modalId);
@@ -45,6 +45,10 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
   const symbol = _getAssetSymbol(tokenAsset);
 
   const tokenFeePriceValue = useMemo(() => {
+    if (!feeDetail) {
+      return BN_ZERO;
+    }
+
     if (!isLoading && feeDetail.estimatedFee) {
       const price = priceMap[priceId] || 0;
 
@@ -52,7 +56,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
     }
 
     return BN_ZERO;
-  }, [feeDetail.estimatedFee, decimals, priceId, priceMap, isLoading]);
+  }, [feeDetail, isLoading, priceMap, priceId, decimals]);
 
   const onClickEdit = useCallback(() => {
     setModalRenderKey(`${modalId}_${Date.now()}`);
@@ -74,8 +78,14 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
   }, [onSelect]);
 
   useEffect(() => {
-    if (resetTrigger !== resetTriggerRef.current) {
-      setSelectedOption({ option: feeDetail?.options?.default });
+    if (feeDetail && !selectedOption) {
+      setSelectedOption({ option: feeDetail.options.default });
+    }
+  }, [feeDetail, selectedOption]);
+
+  useEffect(() => {
+    if (feeDetail && resetTrigger !== resetTriggerRef.current) {
+      setSelectedOption({ option: feeDetail.options.default });
       resetTriggerRef.current = resetTrigger;
     }
   }, [feeDetail, resetTrigger]);
@@ -86,7 +96,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
         className={className}
         content={(
           <div>
-            {isLoading
+            {isLoading || !feeDetail || !selectedOption
               ? (
                 <ActivityIndicator size={20} />
               )
@@ -113,7 +123,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
               value={tokenFeePriceValue}
             />
             <Button
-              disabled={isLoading}
+              disabled={isLoading || !feeDetail || !selectedOption}
               icon={
                 <Icon
                   phosphorIcon={PencilSimpleLine}
