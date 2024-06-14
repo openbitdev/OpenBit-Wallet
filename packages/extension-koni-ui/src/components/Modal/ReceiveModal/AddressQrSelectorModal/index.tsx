@@ -66,19 +66,19 @@ function getItemInfo (address: string): ItemInfo {
   }
 
   if (type === 'bittest-44') {
-    result.logoKey = 'bitcoin';
+    result.logoKey = 'bitcoinTestnet';
     result.addressTypeName = 'Bitcoin testnet';
     result.order = 4;
   }
 
   if (type === 'bittest-84') {
-    result.logoKey = 'bitcoin';
+    result.logoKey = 'bitcoinTestnet';
     result.addressTypeName = 'Bitcoin testnet';
     result.order = 5;
   }
 
   if (type === 'bittest-86') {
-    result.logoKey = 'bitcoin';
+    result.logoKey = 'bitcoinTestnet';
     result.addressTypeName = 'Bitcoin testnet (BIP86)';
     result.order = 6;
   }
