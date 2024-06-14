@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
-import { AccountJson } from '@subwallet/extension-base/background/types';
+import { AccountAuthType, AccountJson } from '@subwallet/extension-base/background/types';
 import { AccountItemWithName, EmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { ActionItemType, ActionModal } from '@subwallet/extension-koni-ui/components/Modal/ActionModal';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
@@ -11,6 +11,7 @@ import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { updateAuthUrls } from '@subwallet/extension-koni-ui/stores/utils';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ManageWebsiteAccessDetailParam } from '@subwallet/extension-koni-ui/types/navigation';
+import { accountByAuthTypeFilter } from '@subwallet/extension-koni-ui/utils';
 import { Icon, ModalContext, Switch, SwList } from '@subwallet/react-ui';
 import { GearSix, MagnifyingGlass, Plugs, PlugsConnected, ShieldCheck, ShieldSlash, X } from 'phosphor-react';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -18,8 +19,6 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
-
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 type Props = ThemeProps & ManageWebsiteAccessDetailParam & {
   authInfo: AuthUrlInfo;
@@ -38,15 +37,7 @@ function Component ({ accountAuthType, authInfo, className = '', goBack, origin,
   const { t } = useTranslation();
   const { token } = useTheme() as Theme;
   const accountItems = useMemo(() => {
-    const accountListWithoutAll = accounts.filter((opt) => opt.address !== 'ALL');
-
-    if (accountAuthType === 'substrate') {
-      return accountListWithoutAll.filter((acc) => !isEthereumAddress(acc.address));
-    } else if (accountAuthType === 'evm') {
-      return accountListWithoutAll.filter((acc) => isEthereumAddress(acc.address));
-    } else {
-      return accountListWithoutAll;
-    }
+    return accounts.filter((opt) => opt.address !== 'ALL' && accountByAuthTypeFilter(opt.address, accountAuthType as AccountAuthType));
   }, [accountAuthType, accounts]);
 
   const onOpenActionModal = useCallback(() => {

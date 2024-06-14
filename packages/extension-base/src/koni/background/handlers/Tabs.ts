@@ -87,25 +87,14 @@ const getAuthAddresses = (addresses: string[]) => {
   const result: AuthAddress[] = [];
 
   addresses.forEach((address) => {
-    const pair = keyring.getPair(address);
-
-    if (pair.meta.isReadOnly) {
-      return;
-    }
-
     const keypairType = getKeypairTypeByAddress(address);
 
     if (!['ethereum', 'bitcoin-84', 'bitcoin-86', 'bittest-84', 'bittest-86'].includes(keypairType)) {
       return;
     }
 
-    const deriFunc = getDerivePath(keypairType);
-    const index = parseInt((pair.meta.suri as string)?.split('//')[1]) || 0;
-
     const item: AuthAddress = {
       address,
-      derivationPath: deriFunc(index),
-      publicKey: hexStripPrefix(u8aToHex(pair.publicKey)),
       type: (() => {
         if (keypairType === 'ethereum') {
           return 'ethereum';
@@ -126,6 +115,20 @@ const getAuthAddresses = (addresses: string[]) => {
     if (['bittest-84', 'bittest-86'].includes(keypairType)) {
       item.isTestnet = true;
     }
+
+    const pair = keyring.getPair(address);
+
+    if (pair.meta.isReadOnly) {
+      result.push(item);
+
+      return;
+    }
+
+    const deriFunc = getDerivePath(keypairType);
+    const index = parseInt((pair.meta.suri as string)?.split('//')[1]) || 0;
+
+    item.derivationPath = deriFunc(index);
+    item.publicKey = hexStripPrefix(u8aToHex(pair.publicKey));
 
     if (pair.publicKey.length !== 32) {
       item.tweakedPublicKey = hexStripPrefix(u8aToHex(pair.publicKey.slice(1, 33)));

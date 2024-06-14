@@ -43,6 +43,7 @@ const FILTER_MODAL_ID = 'manage-website-access-filter-id';
 
 enum FilterValue {
   SUBSTRATE = 'substrate',
+  BITCOIN = 'bitcoin',
   ETHEREUM = 'ethereum',
   BLOCKED = 'blocked',
   Connected = 'connected',
@@ -63,8 +64,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       }
 
       for (const filter of selectedFilters) {
-        if (filter === FilterValue.SUBSTRATE) {
-          if (item.accountAuthType === 'substrate' || item.accountAuthType === 'both') {
+        if (filter === FilterValue.BITCOIN) {
+          if (item.accountAuthType === 'bitcoin' || item.accountAuthType === 'both') {
             return true;
           }
         } else if (filter === FilterValue.ETHEREUM) {
@@ -92,7 +93,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const filterOptions = useMemo(() => {
     return [
-      { label: t('Substrate dApp'), value: FilterValue.SUBSTRATE },
+      { label: t('Bitcoin dApp'), value: FilterValue.BITCOIN },
       { label: t('Ethereum dApp'), value: FilterValue.ETHEREUM },
       { label: t('Blocked dApp'), value: FilterValue.BLOCKED },
       { label: t('Connected dApp'), value: FilterValue.Connected }

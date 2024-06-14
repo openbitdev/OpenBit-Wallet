@@ -823,11 +823,18 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       <TransactionFooter
         className={`${className} -transaction-footer`}
       >
-        <Button
-          onClick={getTransactionData}
-        >
-          Get transaction data
-        </Button>
+        {
+          BITCOIN_CHAINS.includes(chainValue) && (
+            <Button
+              className={'hidden'}
+              disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}
+              onClick={getTransactionData}
+            >
+              Get transaction data
+            </Button>
+          )
+        }
+
         <Button
           className={'__transfer-button'}
           disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}

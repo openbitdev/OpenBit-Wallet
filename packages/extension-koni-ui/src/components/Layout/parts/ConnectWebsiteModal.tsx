@@ -8,6 +8,7 @@ import ConfirmationGeneralInfo from '@subwallet/extension-koni-ui/components/Con
 import { changeAuthorizationBlock, changeAuthorizationPerSite } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { accountByAuthTypeFilter } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon, SwModal } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CheckCircle, GlobeHemisphereWest, ShieldCheck, ShieldSlash, XCircle } from 'phosphor-react';
@@ -15,8 +16,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import styled, { useTheme } from 'styled-components';
-
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 type Props = ThemeProps & {
   id: string;
@@ -83,20 +82,10 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
       const type = authInfo.accountAuthType;
       const allowedMap = authInfo.isAllowedMap;
 
-      const filterType = (address: string) => {
-        if (type === 'both') {
-          return true;
-        }
-
-        const _type = type || 'substrate';
-
-        return _type === 'substrate' ? !isEthereumAddress(address) : isEthereumAddress(address);
-      };
-
       const result: Record<string, boolean> = {};
 
       Object.entries(allowedMap)
-        .filter(([address]) => filterType(address))
+        .filter(([address]) => accountByAuthTypeFilter(address, type))
         .forEach(([address, value]) => {
           result[address] = value;
         });
@@ -285,6 +274,7 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
                   isSelected={value}
                   key={account.address}
                   onClick={handlerUpdateMap(address, value)}
+                  proxyId={account.proxyId}
                   showUnselectIcon
                 />
               );

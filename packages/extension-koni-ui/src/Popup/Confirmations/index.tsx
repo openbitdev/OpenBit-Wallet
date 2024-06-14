@@ -32,6 +32,7 @@ const titleMap: Record<ConfirmationType, string> = {
   bitcoinSignatureRequest: detectTranslate('Signature request'),
   bitcoinSendTransactionRequest: detectTranslate('Transaction request'),
   bitcoinWatchTransactionRequest: detectTranslate('Transaction request'),
+  bitcoinSignPsbtRequest: detectTranslate('Sign PSBT request'),
   metadataRequest: detectTranslate('Update metadata'),
   signingRequest: detectTranslate('Signature request'),
   switchNetworkRequest: detectTranslate('Add network request'),
@@ -156,15 +157,6 @@ const Component = function ({ className }: Props) {
             type={confirmation.type}
           />
         );
-
-      case 'bitcoinSignPsbtRequest':
-        return (
-          <BitcoinSignatureConfirmation
-            request={confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]}
-            type={confirmation.type}
-          />
-        );
-
       case 'authorizeRequest':
         return (
           <AuthorizeConfirmation request={confirmation.item as AuthorizeRequest} />

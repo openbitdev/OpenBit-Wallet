@@ -40,12 +40,12 @@ import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectN
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
 import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
-import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
+import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isAddressValidWithAuthType, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
 import { MetadataDef } from '@subwallet/extension-inject/types';
 import { createPair, decodeAddress, getDerivePath, getKeypairTypeByAddress } from '@subwallet/keyring';
-import { BitcoinAddressType, BitcoinKeypairTypes, EthereumKeypairTypes, KeypairType, KeyringPair, KeyringPair$Json, KeyringPair$Meta, SubstrateKeypairTypes } from '@subwallet/keyring/types';
+import { BitcoinAddressType, BitcoinKeypairTypes, KeypairType, KeyringPair, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { getBitcoinAddressInfo, validateBitcoinAddress } from '@subwallet/keyring/utils';
 import { keyring } from '@subwallet/ui-keyring';
 import { SingleAddress, SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -869,26 +869,8 @@ export default class KoniExtension {
     return transformedAccounts.map((a) => a.address);
   }
 
-  private isAddressValidWithAuthType (address: string, accountAuthType?: AccountAuthType): boolean {
-    const type = getKeypairTypeByAddress(address);
-
-    if (accountAuthType === 'substrate') {
-      return SubstrateKeypairTypes.includes(type);
-    } else if (accountAuthType === 'evm') {
-      return EthereumKeypairTypes.includes(type);
-    }
-
-    return false;
-  }
-
   private filterAccountsByAccountAuthType (accounts: string[], accountAuthType?: AccountAuthType): string[] {
-    if (accountAuthType === 'substrate') {
-      return accounts.filter((address) => !isEthereumAddress(address));
-    } else if (accountAuthType === 'evm') {
-      return accounts.filter((address) => isEthereumAddress(address));
-    } else {
-      return accounts;
-    }
+    return accounts.filter((a) => isAddressValidWithAuthType(a, accountAuthType));
   }
 
   private _changeAuthorizationAll (connectValue: boolean, callBack?: (value: AuthUrls) => void) {
@@ -976,7 +958,7 @@ export default class KoniExtension {
     this.#koniState.getAuthorize((value) => {
       assert(value, 'The source is not known');
 
-      if (this.isAddressValidWithAuthType(address, value[url].accountAuthType)) {
+      if (isAddressValidWithAuthType(address, value[url].accountAuthType)) {
         value[url].isAllowedMap[address] = connectValue;
 
         this.#koniState.setAuthorize(value, () => {
@@ -1362,7 +1344,7 @@ export default class KoniExtension {
     this.#koniState.getAuthorize((value) => {
       if (value && Object.keys(value).length) {
         Object.keys(value).forEach((url) => {
-          if (this.isAddressValidWithAuthType(address, value[url].accountAuthType)) {
+          if (isAddressValidWithAuthType(address, value[url].accountAuthType)) {
             value[url].isAllowedMap[address] = isAllowed;
           }
         });
@@ -1377,7 +1359,7 @@ export default class KoniExtension {
       if (value && Object.keys(value).length) {
         Object.keys(value).forEach((url) => {
           addresses.forEach((address) => {
-            if (this.isAddressValidWithAuthType(address, value[url].accountAuthType)) {
+            if (isAddressValidWithAuthType(address, value[url].accountAuthType)) {
               value[url].isAllowedMap[address] = isAllowed;
             }
           });

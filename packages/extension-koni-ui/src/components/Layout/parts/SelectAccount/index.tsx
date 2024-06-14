@@ -9,7 +9,7 @@ import { saveCurrentAccountProxy } from '@subwallet/extension-koni-ui/messaging'
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { funcSortByProxyName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
+import { accountByAuthTypeFilter, funcSortByProxyName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, Icon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CaretDown, Plug, Plugs, PlugsConnected } from 'phosphor-react';
@@ -17,8 +17,6 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 import { GeneralEmptyList } from '../../../EmptyList';
 import { ConnectWebsiteModal } from '../ConnectWebsiteModal';
@@ -196,28 +194,14 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         const type = currentAuth.accountAuthType;
         const allowedMap = currentAuth.isAllowedMap;
 
-        const filterType = (address: string) => {
-          if (type === 'both') {
-            return true;
-          }
-
-          const _type = type || 'substrate';
-
-          return _type === 'substrate' ? !isEthereumAddress(address) : isEthereumAddress(address);
-        };
-
         if (!isAllAccount) {
-          const _allowedMap: Record<string, boolean> = {};
+          const isAllowed = (() => {
+            if (!currentAccountProxy) {
+              return undefined;
+            }
 
-          Object.entries(allowedMap)
-            .filter(([address]) => filterType(address))
-            .forEach(([address, value]) => {
-              _allowedMap[address] = value;
-            });
-
-          const evmAccount = currentAccountProxy?.accounts.find(({ address }) => isEthereumAddress(address));
-
-          const isAllowed = _allowedMap[evmAccount?.address || ''];
+            return currentAccountProxy.accounts.some((a) => allowedMap[a.address]);
+          })();
 
           setCanConnect(0);
           setConnected(0);
@@ -229,12 +213,12 @@ function Component ({ className }: Props): React.ReactElement<Props> {
           }
         } else {
           const numberAccounts = noAllAccountProxies.reduce((numAccount, currentValue) => {
-            currentValue.accounts.find(({ address }) => filterType(address)) && numAccount++;
+            currentValue.accounts.find(({ address }) => accountByAuthTypeFilter(address, type)) && numAccount++;
 
             return numAccount;
           }, 0);
           const numberAllowedAccounts = Object.entries(allowedMap)
-            .filter(([address]) => filterType(address))
+            .filter(([address]) => accountByAuthTypeFilter(address, type))
             .filter(([, value]) => value)
             .length;
 
@@ -257,7 +241,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       setConnected(0);
       setConnectionState(ConnectionStatement.NOT_CONNECTED);
     }
-  }, [currentAccountProxy?.accounts, currentAuth, isAllAccount, noAllAccountProxies]);
+  }, [currentAccountProxy, currentAccountProxy?.accounts, currentAuth, isAllAccount, noAllAccountProxies]);
 
   const visibleText = useMemo((): string => {
     switch (connectionState) {
