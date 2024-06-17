@@ -6,6 +6,7 @@ import { Icon, SwSubHeader } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CaretRight } from 'phosphor-react';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 
 interface Props extends ThemeProps {
@@ -17,6 +18,8 @@ interface Props extends ThemeProps {
 }
 
 function Component ({ className, index, numberOfConfirmations, onClickNext, onClickPrev, title }: Props) {
+  const { t } = useTranslation();
+
   return (
     <SwSubHeader
       background='transparent'
@@ -40,13 +43,35 @@ function Component ({ className, index, numberOfConfirmations, onClickNext, onCl
           }
         ]}
       showBackButton={index > 0}
-      title={title}
+      title={
+        <div className={'__title-wrapper'}>
+          <div>{t(title || '')}</div>
+          <div className={'__beta-version'}>Beta version</div>
+        </div>
+      }
     />
   );
 }
 
-const ConfirmationHeader = styled(Component)<Props>(({ theme }: ThemeProps) => {
-  return {};
+const ConfirmationHeader = styled(Component)<Props>(({ theme: { token } }: ThemeProps) => {
+  return {
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
+    }
+  };
 });
 
 export default ConfirmationHeader;
