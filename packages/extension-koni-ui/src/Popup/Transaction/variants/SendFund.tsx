@@ -583,7 +583,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           .finally(() => {
             setIsFetchingInfo(false);
           });
-      }, 800);
+      }, 100);
     }
 
     return () => {
@@ -746,13 +746,15 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             </Form.Item>
           </div>
 
-          {!!fromValue && <FreeBalance
-            address={fromValue}
-            chain={chainValue}
-            className={'__free-balance-block'}
-            onBalanceReady={setIsBalanceReady}
-            tokenSlug={assetValue}
-          />}
+          {!!fromValue && (
+            <FreeBalance
+              address={fromValue}
+              chain={chainValue}
+              className={'__free-balance-block'}
+              onBalanceReady={setIsBalanceReady}
+              tokenSlug={assetValue}
+            />
+          )}
 
           <Form.Item
             name={'value'}

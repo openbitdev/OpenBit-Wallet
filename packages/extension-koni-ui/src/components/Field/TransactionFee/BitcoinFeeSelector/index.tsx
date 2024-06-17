@@ -77,6 +77,20 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
     });
   }, [onSelect]);
 
+  const feeValue = useMemo(() => {
+    if (!selectedOption || !feeDetail) {
+      return '0';
+    }
+
+    if (selectedOption.option === 'custom') {
+      return new BigN(selectedOption.customValue.feeRate).multipliedBy(feeDetail.vSize);
+    }
+
+    const feeRate = feeDetail.options[selectedOption.option].feeRate;
+
+    return new BigN(feeRate).multipliedBy(feeDetail.vSize);
+  }, [feeDetail, selectedOption]);
+
   useEffect(() => {
     if (feeDetail && !selectedOption) {
       setSelectedOption({ option: feeDetail.options.default });
@@ -106,7 +120,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
                   decimal={decimals}
                   size={14}
                   suffix={symbol}
-                  value={feeDetail.estimatedFee}
+                  value={feeValue}
                 />
               )}
           </div>
