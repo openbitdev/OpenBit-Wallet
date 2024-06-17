@@ -349,7 +349,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
               disabled={!canSubmitCustom || invalidForm}
               onClick={form.submit}
             >
-              Use custom fee
+              Apply custom fee
             </Button>
           </div>
         )
