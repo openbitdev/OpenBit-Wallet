@@ -236,8 +236,8 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return Promise.reject(t('Please enter a valid number with optional decimal.'));
     }
 
-    const low = feeDetail?.options?.slow?.feeRate;
-    const val = parseFloat(value);
+    const low = feeDetail?.options?.slow?.feeRate || 0;
+    const val = value ? parseFloat(value) : 0;
 
     if (low > val) {
       const minString = formatNumber(low, 0, balanceFormatter);
