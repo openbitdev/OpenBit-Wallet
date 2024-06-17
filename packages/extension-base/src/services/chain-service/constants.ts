@@ -278,5 +278,7 @@ export const _CHAIN_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/
 export const _ASSET_LOGO_MAP_SRC = `https://raw.githubusercontent.com/Koniverse/SubWallet-Chain/${TARGET_BRANCH}/packages/chain-list/src/data/AssetLogoMap.json`;
 
 export const _BITCOIN_CHAIN_SLUG = 'bitcoin';
+export const _BITCOIN_TESTNET_CHAIN_SLUG = 'bitcoinTestnet';
 export const _BITCOIN_NAME = 'Bitcoin';
+export const _BITCOIN_TESTNET_NAME = 'Bitcoin Testnet';
 export const _BEAR_TOKEN = 'aHR0cHM6Ly9xdWFuZ3RydW5nLXNvZnR3YXJlLnZuL2FwaS9tYXN0ZXIvYXBpLXB1YmxpYw=='; // Public for now. Change and hide later.
