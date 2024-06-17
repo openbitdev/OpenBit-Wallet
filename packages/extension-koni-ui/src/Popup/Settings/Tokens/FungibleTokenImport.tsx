@@ -420,7 +420,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                   name={'decimals'}
                 >
                   <Field
-                    content={decimals === -1 ? '' : decimals}
+                    content={decimals === -1 ? '' : `${decimals}`}
                     placeholder={t<string>('Decimals')}
                     tooltip={t('Decimals')}
                     tooltipPlacement={'topLeft'}
