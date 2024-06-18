@@ -207,7 +207,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
               {collectionInfo.collectionName || collectionInfo.collectionId}
             </div>
             <div className={CN('collection-count')}>
-              &nbsp;({totalItems})
+              &nbsp;({nftList.length})
             </div>
           </div>
         )}

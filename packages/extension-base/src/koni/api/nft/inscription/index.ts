@@ -27,11 +27,11 @@ const ORDINAL_COLLECTION_INFO_TEST: NftCollection = {
   chain: 'bitcoinTestnet',
   collectionId: 'INSCRIPTION_TESTNET',
   collectionName: 'Inscriptions Testnet'
-}
+};
 
 const checkTestnet = (chain: string) => {
   return chain === ORDINAL_COLLECTION_INFO_TEST.chain;
-}
+};
 
 export class InscriptionApi extends BaseNftApi {
   private isTestnet: boolean;

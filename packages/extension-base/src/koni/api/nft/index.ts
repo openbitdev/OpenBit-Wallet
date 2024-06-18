@@ -54,7 +54,7 @@ function createBitcoinInscriptionApi (chain: string, addresses: string[]) {
 
   const testnetAddresses = addresses.filter((a) => {
     return getKeypairTypeByAddress(a) === 'bittest-86';
-  })
+  });
 
   if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
     return new InscriptionApi(chain, mainnetAddresses);
