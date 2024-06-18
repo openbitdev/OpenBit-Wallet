@@ -9,7 +9,7 @@ import { EvmProviderError } from '@subwallet/extension-base/background/errors/Ev
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
 import { createSubscription, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AddNetworkRequestExternal, AddTokenRequestExternal, AuthAddress, BitcoinProviderErrorType, BitcoinSignPsbtRawRequest, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { AddNetworkRequestExternal, AddTokenRequestExternal, BitcoinProviderErrorType, BitcoinSignPsbtRawRequest, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import RequestBytesSign from '@subwallet/extension-base/background/RequestBytesSign';
 import RequestExtrinsicSign from '@subwallet/extension-base/background/RequestExtrinsicSign';
 import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestTypes, ResponseRpcListProviders, ResponseSigning, ResponseTypes, SubscriptionMessageTypes } from '@subwallet/extension-base/background/types';
@@ -21,6 +21,7 @@ import { _NetworkUpsertParams } from '@subwallet/extension-base/services/chain-s
 import { _generateCustomProviderKey } from '@subwallet/extension-base/services/chain-service/utils';
 import { AuthUrls } from '@subwallet/extension-base/services/request-service/types';
 import { DEFAULT_CHAIN_PATROL_ENABLE } from '@subwallet/extension-base/services/setting-service/constants';
+import { AuthAddress, RequestAddressesResult, Response } from '@subwallet/extension-base/types/dApp';
 import { canDerive, getEVMChainInfo, stripUrl } from '@subwallet/extension-base/utils';
 import { InjectedMetadataKnown, MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
 import { getDerivePath, getKeypairTypeByAddress } from '@subwallet/keyring';
@@ -1119,7 +1120,7 @@ export default class KoniTabs {
     return await this.#koniState.addTokenConfirm(id, url, tokenInfo);
   }
 
-  async bitcoinGetAddresses (url: string, request: RequestArguments): Promise<AuthAddress[]> {
+  async bitcoinGetAddresses (url: string, request: RequestArguments): Promise<Response<RequestAddressesResult>> {
     try {
       await this.#koniState.authorizeUrlV2(url, {
         origin: '',
@@ -1129,10 +1130,18 @@ export default class KoniTabs {
       const authInfo = await this.getAuthInfo(url);
 
       if (!authInfo) {
-        return [];
+        return {
+          result: {
+            addresses: []
+          }
+        };
       }
 
-      return getAuthAddresses(Object.keys(authInfo.isAllowedMap).filter((k) => authInfo.isAllowedMap[k]));
+      return {
+        result: {
+          addresses: getAuthAddresses(Object.keys(authInfo.isAllowedMap).filter((k) => authInfo.isAllowedMap[k]))
+        }
+      };
     } catch (e) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
     }
