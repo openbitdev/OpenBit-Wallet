@@ -203,15 +203,13 @@ export class NftService {
   public async handleNfts (
     nftContracts: _ChainAsset[],
     updateItem: (chain: string, data: NftItem, owner: string) => void,
-    updateCollection: (chain: string, data: NftCollection) => void,
-    getOffset?: (address: string) => Promise<number>) {
+    updateCollection: (chain: string, data: NftCollection) => void) {
     this.setupApi();
     this.setupNftContracts(nftContracts);
     await Promise.all(this.handlers.map(async (handler) => {
       await handler.fetchNfts({
         updateItem,
-        updateCollection,
-        getOffset
+        updateCollection
       });
     }));
   }
@@ -221,7 +219,9 @@ export class NftService {
     updateCollection: (chain: string, data: NftCollection) => void,
     getOffset?: (address: string) => Promise<number>
   ) {
-    await Promise.all(this.handlers.map(async (handler) => {
+    const inscriptionApiHandlers = this.handlers.filter((handler) => handler instanceof InscriptionApi);
+
+    await Promise.all(inscriptionApiHandlers.map(async (handler) => {
       await handler.fetchNfts({
         updateItem,
         updateCollection,
