@@ -223,7 +223,7 @@ export class NftService {
   public async loadMoreNfts (
     updateItem: (chain: string, data: NftItem, owner: string) => void,
     updateCollection: (chain: string, data: NftCollection) => void,
-    getOffset?: (address: string) => Promise<number>
+    getOffset?: (address: string, chain: string) => Promise<number>
   ) {
     const inscriptionApiHandlers = this.handlers.filter((handler) => handler instanceof InscriptionApi);
 

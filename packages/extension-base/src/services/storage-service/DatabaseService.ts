@@ -214,8 +214,8 @@ export default class DatabaseService {
     return this.stores.nft.cleanUpNfts(chain, reformatAddress(owner, 42), collectionIds, nftIds);
   }
 
-  async getAddressTotalInscriptions (addresses: string[], chainHashes?: string[]) {
-    return this.stores.nft.getAddressTotalNfts(addresses, chainHashes);
+  async getAddressTotalInscriptions (addresses: string[], chain: string) {
+    return this.stores.nft.getAddressTotalInscriptions(addresses, chain);
   }
 
   async getNft (addresses: string[], chainHashes?: string[]) {

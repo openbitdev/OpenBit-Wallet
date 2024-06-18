@@ -505,7 +505,7 @@ export default class KoniState {
     this.nftService.loadMoreNfts(
       (...args) => this.updateNftData(...args),
       (...args) => this.setNftCollection(...args),
-      (address: string) => this.dbService.getAddressTotalInscriptions([address], ['bitcoin'])
+      (address: string, chain: string) => this.dbService.getAddressTotalInscriptions([address], chain)
     ).catch(this.logger.log);
   }
 

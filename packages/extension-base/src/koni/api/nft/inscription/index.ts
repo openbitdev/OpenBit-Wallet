@@ -17,13 +17,13 @@ interface FetchedData {
   results: InscriptionResponseItem[]
 }
 
-const ORDINAL_COLLECTION_INFO: NftCollection = {
+export const ORDINAL_COLLECTION_INFO: NftCollection = {
   chain: 'bitcoin',
   collectionId: 'INSCRIPTION',
   collectionName: 'Inscriptions'
 };
 
-const ORDINAL_COLLECTION_INFO_TEST: NftCollection = {
+export const ORDINAL_COLLECTION_INFO_TEST: NftCollection = {
   chain: 'bitcoinTestnet',
   collectionId: 'INSCRIPTION_TESTNET',
   collectionName: 'Inscriptions Testnet'
@@ -141,7 +141,7 @@ export class InscriptionApi extends BaseNftApi {
 
     try {
       await Promise.all(this.addresses.map(async (address) => {
-        const offset = params.getOffset && await params.getOffset(address);
+        const offset = params.getOffset && await params.getOffset(address, collectionInfo.chain);
         const balances = await getAddressInscriptions(address, this.isTestnet, offset);
 
         if (balances.length > 0) {

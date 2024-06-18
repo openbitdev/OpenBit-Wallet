@@ -8,7 +8,7 @@ import { baseParseIPFSUrl } from '@subwallet/extension-base/utils';
 export interface HandleNftParams {
   updateItem: (chain: string, data: NftItem, owner: string) => void,
   updateCollection: (chain: string, data: NftCollection) => void,
-  getOffset?: (address: string) => Promise<number>
+  getOffset?: (address: string, chain: string) => Promise<number>
 }
 
 export abstract class BaseNftApi {

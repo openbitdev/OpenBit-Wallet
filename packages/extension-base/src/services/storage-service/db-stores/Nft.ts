@@ -2,18 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftItem } from '@subwallet/extension-base/background/KoniTypes';
+import { ORDINAL_COLLECTION_INFO, ORDINAL_COLLECTION_INFO_TEST } from '@subwallet/extension-base/koni/api/nft/inscription';
 import BaseStoreWithAddressAndChain from '@subwallet/extension-base/services/storage-service/db-stores/BaseStoreWithAddressAndChain';
 import { liveQuery } from 'dexie';
 
 import { INft } from '../databases';
 
 export default class NftStore extends BaseStoreWithAddressAndChain<INft> {
-  getAddressTotalNfts (addresses: string[], chainList: string[] = []) {
+  getAddressTotalInscriptions (addresses: string[], chain: string) {
+    const collectionId = chain === 'bitcoin' ? ORDINAL_COLLECTION_INFO.collectionId : ORDINAL_COLLECTION_INFO_TEST.collectionId;
+
     if (addresses.length) {
-      return this.table.where('address').anyOfIgnoreCase(addresses).and((item) => chainList && chainList.includes(item.chain)).count();
+      return this.table
+        .where('address').anyOfIgnoreCase(addresses)
+        .and((item) => chain === item.chain && item.collectionId === collectionId).count();
     }
 
-    return this.table.filter((item) => chainList && chainList.includes(item.chain)).count();
+    return this.table.filter((item) => chain === item.chain).count();
   }
 
   getNft (addresses: string[], chainList: string[] = []) {
