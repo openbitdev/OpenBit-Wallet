@@ -174,7 +174,8 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
   const destChainGenesisHash = chainInfoMap[destChainValue]?.substrateInfo?.genesisHash || '';
   const checkAction = usePreCheckAction(fromValue, true, detectTranslate('The account you are using is {{accountTitle}}, you cannot send assets with it'));
 
-  const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>({});
+  const [showFeeSelector, setShowFeeSelector] = useState(false);
+  const [feeResetTrigger, setFeeResetTrigger] = useState<unknown>(Date.now());
   const assetRef = useRef<string | undefined>('');
   const proxyIdRef = useRef<string | undefined>('');
 
@@ -310,7 +311,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         setTransactionFeeInfo(undefined);
 
         if (values.chain && BITCOIN_CHAINS.includes(values.chain)) {
-          setFeeResetTrigger({});
+          setFeeResetTrigger(Date.now());
         }
       }
 
@@ -523,6 +524,12 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     }
   }, [assetRegistry, form, tokenItems]);
 
+  useEffect(() => {
+    if (!!fromValue && !!toValue && !!transferAmountValue) {
+      setShowFeeSelector(true);
+    }
+  }, [fromValue, toValue, transferAmountValue]);
+
   // Get max transfer value
   useEffect(() => {
     let cancel = false;
@@ -576,7 +583,7 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
           .finally(() => {
             setIsFetchingInfo(false);
           });
-      }, 800);
+      }, 100);
     }
 
     return () => {
@@ -758,13 +765,15 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
             </Form.Item>
           </div>
 
-          {!!fromValue && <FreeBalance
-            address={fromValue}
-            chain={chainValue}
-            className={'__free-balance-block'}
-            onBalanceReady={setIsBalanceReady}
-            tokenSlug={assetValue}
-          />}
+          {!!fromValue && (
+            <FreeBalance
+              address={fromValue}
+              chain={chainValue}
+              className={'__free-balance-block'}
+              onBalanceReady={setIsBalanceReady}
+              tokenSlug={assetValue}
+            />
+          )}
 
           <Form.Item
             name={'value'}
@@ -788,10 +797,10 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
         </Form>
 
         {
-          BITCOIN_CHAINS.includes(chainValue) && !!transferInfo && !!assetValue && (
+          BITCOIN_CHAINS.includes(chainValue) && !!assetValue && showFeeSelector && (
             <BitcoinFeeSelector
               className={'__bitcoin-fee-selector'}
-              feeDetail={transferInfo.feeOptions as BitcoinFeeDetail}
+              feeDetail={transferInfo?.feeOptions as BitcoinFeeDetail | undefined}
               isLoading={isFetchingInfo}
               onSelect={onSelectTransactionFeeInfo}
               resetTrigger={feeResetTrigger}
