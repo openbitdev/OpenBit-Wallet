@@ -2278,6 +2278,7 @@ export interface KoniRequestSignatures {
   'pri(assetSetting.update)': [AssetSettingUpdateReq, boolean];
 
   // NFT functions
+  'pri(inscription.loadMoreInscription)': [null, null]
   'pri(evmNft.submitTransaction)': [NftTransactionRequest, SWTransactionResponse];
   'pri(evmNft.getTransaction)': [NftTransactionRequest, EvmNftTransaction];
   'pri(substrateNft.submitTransaction)': [NftTransactionRequest, SWTransactionResponse];

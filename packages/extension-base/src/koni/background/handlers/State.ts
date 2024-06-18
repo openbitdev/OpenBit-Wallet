@@ -501,6 +501,14 @@ export default class KoniState {
     this.dbService.updateNominatorMetadata(item).catch((e) => this.logger.warn(e));
   }
 
+  public loadMoreInscription () {
+    this.nftService.loadMoreNfts(
+      (...args) => this.updateNftData(...args),
+      (...args) => this.setNftCollection(...args),
+      (address: string) => this.dbService.getAddressTotalNfts([address])
+    ).catch(this.logger.log);
+  }
+
   public setNftCollection (network: string, data: NftCollection, callback?: (data: NftCollection) => void): void {
     this.dbService.addNftCollection(data).catch((e) => this.logger.warn(e));
     callback && callback(data);
