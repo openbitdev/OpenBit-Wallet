@@ -150,8 +150,7 @@ export class KoniSubscription {
     this.nftService.handleNfts(
       smartContractNfts,
       (...args) => this.state.updateNftData(...args),
-      (...args) => this.state.setNftCollection(...args),
-      (address: string) => this.dbService.getAddressTotalNfts([address])
+      (...args) => this.state.setNftCollection(...args)
     ).catch(this.logger.log);
   }
 

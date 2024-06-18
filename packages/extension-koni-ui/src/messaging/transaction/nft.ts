@@ -19,7 +19,7 @@ export async function subscribeNftCollection (callback: (data: NftCollection[]) 
   return sendMessage('pri(nftCollection.getSubscription)', null, callback);
 }
 
-export async function loadMoreNft () {
+export async function loadMoreInscription () {
   return sendMessage('pri(inscription.loadMoreInscription)');
 }
 
