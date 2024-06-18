@@ -6,8 +6,7 @@ import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { BalanceInfo } from '@subwallet/extension-base/types';
 
 export interface INftCollectionDetail {
-  collectionInfo: NftCollection,
-  nftList: NftItem[]
+  collectionInfo: NftCollection
 }
 
 export interface INftItemDetail {

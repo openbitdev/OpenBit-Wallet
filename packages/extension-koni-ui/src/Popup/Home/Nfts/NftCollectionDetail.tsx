@@ -6,9 +6,9 @@ import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import { EmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
-import { useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
+import { useGetNftByAccount, useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
-import { loadMoreNft } from '@subwallet/extension-koni-ui/messaging';
+import { loadMoreInscription } from '@subwallet/extension-koni-ui/messaging';
 import { InscriptionGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionGalleryWrapper';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
 import { getTotalCollectionItems, INftCollectionDetail, INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
@@ -57,7 +57,21 @@ const SearchInput = ({ initValue = '', onChange, placeholder }: SearchInputProps
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const location = useLocation();
-  const { collectionInfo, nftList } = location.state as INftCollectionDetail;
+  const { collectionInfo } = location.state as INftCollectionDetail;
+  const { nftItems } = useGetNftByAccount();
+
+  const nftList = useMemo(() => {
+    const result: NftItem[] = [];
+
+    nftItems.forEach((nftItem) => {
+      if (nftItem.collectionId === collectionInfo.collectionId && nftItem.chain === collectionInfo.chain) {
+        result.push(nftItem);
+      }
+    });
+
+    return result;
+  }, [collectionInfo.chain, collectionInfo.collectionId, nftItems]);
+
   const balanceMap = useSelector((state: RootState) => state.balance.balanceMap);
   const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
 
@@ -148,7 +162,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [nftList.length, searchValue.length, totalItems]);
 
   const onLoadMoreItems = useCallback(() => {
-    loadMoreNft().catch(console.log);
+    loadMoreInscription().catch(console.log);
   }, []);
 
   // note: memo to hot fix list scroll problem

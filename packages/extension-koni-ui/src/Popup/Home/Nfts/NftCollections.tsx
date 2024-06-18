@@ -99,7 +99,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       }
     }
 
-    const state: INftCollectionDetail = { collectionInfo: nftCollection, nftList };
+    const state: INftCollectionDetail = { collectionInfo: nftCollection };
 
     return (
       <NftGalleryWrapper
