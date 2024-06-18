@@ -163,7 +163,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                   }
 
                   if (validationResult.contractError) {
-                    reject(new Error(t('Error validating this token')));
+                    reject(new Error(t('Invalid ID')));
                   }
 
                   if (!validationResult.isExist && !validationResult.contractError) {
@@ -178,10 +178,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 })
                 .catch(() => {
                   setLoading(false);
-                  reject(new Error(t('Error validating this token')));
+                  reject(new Error(t('Invalid ID')));
                 });
             } else if (isValidBrc20) {
-              console.log('successfull passed brc20');
               setLoading(true);
               validateCustomBrc20({
                 ticker: inputMetadata,
@@ -189,7 +188,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 type: selectedTokenType
               })
                 .then((validationResult) => {
-                  console.log('validationResultBRC20', validationResult);
                   setLoading(false);
 
                   if (validationResult.isExist) {
@@ -197,7 +195,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                   }
 
                   if (validationResult.contractError) {
-                    reject(new Error(t('Error validating this token')));
+                    reject(new Error(t('Invalid ticker')));
                   }
 
                   if (!validationResult.isExist && !validationResult.contractError) {
@@ -212,7 +210,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 })
                 .catch(() => {
                   setLoading(false);
-                  reject(new Error(t('Error validating this token')));
+                  reject(new Error(t('Invalid ticker')));
                 });
             } else {
               reject(t('Invalid contract address'));
