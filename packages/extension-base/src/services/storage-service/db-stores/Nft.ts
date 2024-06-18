@@ -8,6 +8,14 @@ import { liveQuery } from 'dexie';
 import { INft } from '../databases';
 
 export default class NftStore extends BaseStoreWithAddressAndChain<INft> {
+  getAddressTotalNfts (addresses: string[], chainList: string[] = []) {
+    if (addresses.length) {
+      return this.table.where('address').anyOfIgnoreCase(addresses).and((item) => chainList && chainList.includes(item.chain)).count();
+    }
+
+    return this.table.filter((item) => chainList && chainList.includes(item.chain)).count();
+  }
+
   getNft (addresses: string[], chainList: string[] = []) {
     if (addresses.length) {
       return this.table.where('address').anyOfIgnoreCase(addresses).and((item) => chainList && chainList.includes(item.chain)).toArray();

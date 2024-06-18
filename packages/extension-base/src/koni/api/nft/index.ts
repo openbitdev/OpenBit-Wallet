@@ -75,7 +75,7 @@ const createOrdinalApi = (chain: string, subscanChain: string, addresses: string
   return new OrdinalNftApi(addresses, chain, subscanChain);
 };
 
-export class NftHandler {
+export class NftService {
   // General settings
   chainInfoMap: Record<string, _ChainInfo> = {};
   addresses: string[] = [];
@@ -203,13 +203,15 @@ export class NftHandler {
   public async handleNfts (
     nftContracts: _ChainAsset[],
     updateItem: (chain: string, data: NftItem, owner: string) => void,
-    updateCollection: (chain: string, data: NftCollection) => void) {
+    updateCollection: (chain: string, data: NftCollection) => void,
+    getOffset?: (address: string) => Promise<number>) {
     this.setupApi();
     this.setupNftContracts(nftContracts);
     await Promise.all(this.handlers.map(async (handler) => {
       await handler.fetchNfts({
         updateItem,
-        updateCollection
+        updateCollection,
+        getOffset
       });
     }));
   }

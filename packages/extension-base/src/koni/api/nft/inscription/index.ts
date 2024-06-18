@@ -126,7 +126,8 @@ export class InscriptionApi extends BaseNftApi {
   public async handleNfts (params: HandleNftParams) {
     try {
       await Promise.all(this.addresses.map(async (address) => {
-        const balances = await getAddressInscriptions(address);
+        const offset = params.getOffset && await params.getOffset(address);
+        const balances = await getAddressInscriptions(address, offset);
 
         if (balances.length > 0) {
           const collectionMap: Record <string, NftCollection> = {};
