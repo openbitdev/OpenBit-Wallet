@@ -304,7 +304,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       >
         <div className={'chain_import__container'}>
           <div className={'chain_import__header_info'}>
-            {t('Currently support WSS provider for Substrate networks and HTTP provider for EVM network')}
+            {t('Only HTTP providers for EVM networks are currently supported')}
           </div>
           <Form
             disabled={loading}
