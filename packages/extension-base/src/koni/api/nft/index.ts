@@ -48,12 +48,18 @@ function createSubstrateNftApi (chain: string, substrateApi: _SubstrateApi | nul
 }
 
 function createBitcoinInscriptionApi (chain: string, addresses: string[]) {
-  const filteredAddresses = addresses.filter((a) => {
+  const mainnetAddresses = addresses.filter((a) => {
     return getKeypairTypeByAddress(a) === 'bitcoin-86';
   });
 
+  const testnetAddresses = addresses.filter((a) => {
+    return getKeypairTypeByAddress(a) === 'bittest-86';
+  })
+
   if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
-    return new InscriptionApi(chain, filteredAddresses);
+    return new InscriptionApi(chain, mainnetAddresses);
+  } else if (_NFT_CHAIN_GROUP.bitcoinTest.includes(chain)) {
+    return new InscriptionApi(chain, testnetAddresses);
   } else {
     return null;
   }

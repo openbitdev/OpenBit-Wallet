@@ -23,9 +23,22 @@ const ORDINAL_COLLECTION_INFO: NftCollection = {
   collectionName: 'Inscriptions'
 };
 
+const ORDINAL_COLLECTION_INFO_TEST: NftCollection = {
+  chain: 'bitcoinTestnet',
+  collectionId: 'INSCRIPTION_TESTNET',
+  collectionName: 'Inscriptions Testnet'
+}
+
+const checkTestnet = (chain: string) => {
+  return chain === ORDINAL_COLLECTION_INFO_TEST.chain;
+}
+
 export class InscriptionApi extends BaseNftApi {
+  private isTestnet: boolean;
+
   constructor (chain: string, addresses: string[]) {
     super(chain, undefined, addresses);
+    this.isTestnet = checkTestnet(chain);
   }
 
   private createIframePreviewUrl (id: string) {
@@ -124,10 +137,12 @@ export class InscriptionApi extends BaseNftApi {
   }
 
   public async handleNfts (params: HandleNftParams) {
+    const collectionInfo = this.isTestnet ? ORDINAL_COLLECTION_INFO_TEST : ORDINAL_COLLECTION_INFO;
+
     try {
       await Promise.all(this.addresses.map(async (address) => {
         const offset = params.getOffset && await params.getOffset(address);
-        const balances = await getAddressInscriptions(address, offset);
+        const balances = await getAddressInscriptions(address, this.isTestnet, offset);
 
         if (balances.length > 0) {
           const collectionMap: Record <string, NftCollection> = {};
@@ -148,22 +163,22 @@ export class InscriptionApi extends BaseNftApi {
               name: `#${ins.number.toString()}`,
               image: this.parseInsUrl(ins.id, ins.content_type),
               description: content ? JSON.stringify(content) : undefined,
-              collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+              collectionId: collectionInfo.collectionId,
               rarity: ins.sat_rarity,
               properties: propertiesMap
             };
 
             params.updateItem(this.chain, parsedNft, ins.address);
 
-            if (!collectionMap[ORDINAL_COLLECTION_INFO.collectionId]) {
+            if (!collectionMap[collectionInfo.collectionId]) {
               const parsedCollection: NftCollection = {
-                collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+                collectionId: collectionInfo.collectionId,
                 chain: this.chain,
-                collectionName: ORDINAL_COLLECTION_INFO.collectionName,
-                image: ORDINAL_COLLECTION_INFO.image
+                collectionName: collectionInfo.collectionName,
+                image: collectionInfo.image
               };
 
-              collectionMap[ORDINAL_COLLECTION_INFO.collectionId] = parsedCollection;
+              collectionMap[collectionInfo.collectionId] = parsedCollection;
               params.updateCollection(this.chain, parsedCollection);
             }
           }

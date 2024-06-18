@@ -44,8 +44,8 @@ export async function getInscriptionContent (inscriptionId: string) {
 }
 
 // todo: handle large inscriptions
-export async function getAddressInscriptions (address: string, offset = 0, limit = 25) {
-  const hiroService = HiroService.getInstance();
+export async function getAddressInscriptions (address: string, isTestnet: boolean, offset = 0, limit = 25) {
+  const hiroService = HiroService.getInstance(isTestnet);
 
   try {
     const response = await hiroService.getAddressInscriptionsInfo({
