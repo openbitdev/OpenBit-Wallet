@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
-import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
+import { _BalanceMetadata, APIItemState } from '@subwallet/extension-base/background/KoniTypes';
 import { _EvmApi } from '@subwallet/extension-base/services/chain-service/types';
 
 import { ApiPromise } from '@polkadot/api';
@@ -43,6 +43,8 @@ export interface BalanceItem {
 
   // substrate fields
   substrateInfo?: SubstrateBalance;
+
+  metadata?: _BalanceMetadata;
 }
 
 /** Balance info of all tokens on an address */

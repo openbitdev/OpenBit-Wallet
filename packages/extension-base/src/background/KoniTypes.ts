@@ -2232,6 +2232,12 @@ export interface RequestAccountProxyCreateSuri {
   suri: string;
 }
 
+export type BitcoinBalanceMetadata = {
+  inscriptionCount: number
+}
+
+export type _BalanceMetadata = unknown;
+
 /* Campaign */
 
 // Use stringify to communicate, pure boolean value will error with case 'false' value
