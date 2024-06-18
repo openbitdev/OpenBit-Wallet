@@ -29,7 +29,10 @@ const Component: React.FC<Props> = (props: Props) => {
   const isValidExtrinsicHash = data.extrinsicHash && data.extrinsicHash !== '' && !data.extrinsicHash.startsWith('internal.');
 
   return (
-    <MetaInfo className={CN(className)}>
+    <MetaInfo
+      className={CN(className)}
+      spaceSize={'sm'}
+    >
       <MetaInfo.DisplayType
         label={t('Transaction type')}
         typeName={t(TxTypeNameMap[data.type])}

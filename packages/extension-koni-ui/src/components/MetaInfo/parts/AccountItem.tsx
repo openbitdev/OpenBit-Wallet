@@ -117,7 +117,8 @@ const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: Ac
       display: 'flow'
     },
     '.__account-transfer-wrapper': {
-      overflow: 'hidden'
+      overflow: 'hidden',
+      maxWidth: 204
     },
     '.__name': {
       whiteSpace: 'nowrap',
