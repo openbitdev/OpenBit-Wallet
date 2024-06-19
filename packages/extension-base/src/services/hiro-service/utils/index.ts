@@ -31,8 +31,8 @@ export async function getBrc20Metadata (ticker: string) {
   }
 }
 
-export async function getInscriptionContent (inscriptionId: string) {
-  const hiroService = HiroService.getInstance();
+export async function getInscriptionContent (isTestnet: boolean, inscriptionId: string) {
+  const hiroService = HiroService.getInstance(isTestnet);
 
   try {
     return await hiroService.getInscriptionContent(inscriptionId);
