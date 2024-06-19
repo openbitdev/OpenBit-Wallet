@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { ExtrinsicType, NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
+import { AbstractAddressJson } from '@subwallet/extension-base/background/types';
+import { _isPureEvmChain } from '@subwallet/extension-base/services/chain-service/utils';
 import { SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { isSameAddress } from '@subwallet/extension-base/utils';
+import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
 import { AddressInput, ChainSelector, HiddenInput, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { DEFAULT_MODEL_VIEWER_PROPS, SHOW_3D_MODELS_CHAIN } from '@subwallet/extension-koni-ui/constants';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
@@ -11,6 +14,7 @@ import { useFocusFormItem, useGetChainPrefixBySlug, useHandleSubmitTransaction, 
 import { evmNftSubmitTransaction, substrateNftSubmitTransaction } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormFieldData, FormInstance, FormRule, SendNftParams, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { findAccountByAddress, noop, reformatAddress, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
+import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import { Button, Form, Icon, Image, Typography } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { ArrowCircleRight } from 'phosphor-react';
@@ -198,6 +202,22 @@ const Component: React.FC = () => {
 
   const checkAction = usePreCheckAction(from);
 
+  const addressBookFilter = useCallback((addressJson: AbstractAddressJson): boolean => {
+    const addressType = getKeypairTypeByAddress(addressJson.address);
+
+    const chainInfo = chainInfoMap[chain];
+
+    if (chain === 'bitcoin') {
+      return 'bitcoin-84'.includes(addressType) && addressJson.address !== from;
+    } else if (chain === 'bitcoinTestnet') {
+      return 'bittest-84'.includes(addressType) && addressJson.address !== from;
+    } else if (!!chainInfo && _isPureEvmChain(chainInfo)) {
+      return 'ethereum'.includes(addressType) && addressJson.address !== from;
+    }
+
+    return false;
+  }, [chain, chainInfoMap, from]);
+
   useEffect(() => {
     if (nftItem === DEFAULT_ITEM || collectionInfo === DEFAULT_COLLECTION) {
       navigate('/home/nfts/collections');
@@ -226,9 +246,10 @@ const Component: React.FC = () => {
       <TransactionContent className={CN('-transaction-content')}>
         <div className={'nft_item_detail text-center'}>
           <Image
+            fallbackSrc={DefaultLogosMap.default_placeholder}
             height={120}
             modelViewerProps={show3DModel ? DEFAULT_MODEL_VIEWER_PROPS : undefined}
-            src={nftItem.image}
+            src={nftItem.image || DefaultLogosMap.default_placeholder}
             width={120}
           />
           <Typography.Title level={5}>
@@ -252,6 +273,7 @@ const Component: React.FC = () => {
             statusHelpAsTooltip={true}
           >
             <AddressInput
+              addressBookFilter={addressBookFilter}
               addressPrefix={addressPrefix}
               allowDomain={true}
               chain={chain}

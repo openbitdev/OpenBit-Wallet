@@ -143,7 +143,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         .then((result) => {
           if (result) {
             showNotification({
-              message: t('Imported NFT successfully')
+              message: t('Imported collectible successfully')
             });
             goBack();
           } else {
@@ -195,7 +195,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
               setLoading(false);
 
               if (validationResult.isExist) {
-                reject(t('Existed NFT'));
+                reject(t('Existed collectible'));
               }
 
               if (validationResult.contractError) {
@@ -242,7 +242,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           onClick: form.submit,
           children: t('Import')
         }}
-        title={t<string>('Import NFT')}
+        title={t<string>('Import collectible')}
       >
         <div className={'nft_import__container'}>
           <Form
@@ -277,8 +277,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 disabled={!selectedChain}
                 items={nftTypeOptions}
                 label={t<string>('Type')}
-                placeholder={t('Select NFT type')}
-                title={t('Select NFT type')}
+                placeholder={t('Select collectible type')}
+                title={t('Select collectible type')}
               />
             </Form.Item>
 
@@ -304,7 +304,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             >
               <Input
                 disabled={nameDisabled}
-                label={t<string>('NFT collection name')}
+                label={t<string>('Collection name')}
               />
             </Form.Item>
           </Form>
