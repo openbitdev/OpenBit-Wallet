@@ -129,6 +129,10 @@ const EvmTransactionConfirmation = styled(Component)<Props>(({ theme: { token } 
     }
   },
 
+  '.network-box': {
+    marginTop: token.margin
+  },
+
   '.to-account': {
     marginTop: token.margin - 2
   },

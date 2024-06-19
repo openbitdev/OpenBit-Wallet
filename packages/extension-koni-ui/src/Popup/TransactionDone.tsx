@@ -104,6 +104,10 @@ const TransactionDone = styled(Component)<Props>(({ theme: { token } }: Props) =
       textAlign: 'center'
     },
 
+    '.ant-btn-content-wrapper': {
+      fontWeight: token.fontWeightStrong
+    },
+
     '.and-more': {
       fontSize: token.fontSizeHeading5,
       lineHeight: token.lineHeightHeading5,

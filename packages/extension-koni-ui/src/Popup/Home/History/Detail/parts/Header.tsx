@@ -71,14 +71,17 @@ const Component: React.FC<Props> = (props: Props) => {
             />
           )
           : (
-            <MetaInfo.Transfer
-              recipientAddress={data.to}
-              recipientName={data.toName}
-              recipientProxyId={data.toProxyId}
-              senderAddress={data.from}
-              senderName={data.fromName}
-              senderProxyId={data.fromProxyId}
-            />
+            <>
+              <MetaInfo.Account
+                address={data.from}
+                label={t('From')}
+              />
+
+              <MetaInfo.Account
+                address={data.to}
+                label={t('To')}
+              />
+            </>
           )
       }
     </>
