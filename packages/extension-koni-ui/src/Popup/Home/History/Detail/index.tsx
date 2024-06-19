@@ -69,6 +69,7 @@ function Component ({ className = '', data, onCancel }: Props): React.ReactEleme
     return (
       <Button
         block
+        className={'explorer-button'}
         disabled={!link}
         icon={
           <Icon
@@ -128,6 +129,10 @@ export const HistoryDetailModal = styled(Component)<Props>(({ theme: { token } }
 
     '.ant-sw-modal-header': {
       borderBottomColor: token.colorBgSecondary
+    },
+
+    '.explorer-button': {
+      fontWeight: token.fontWeightStrong
     },
 
     '.ant-sw-modal-footer': {
