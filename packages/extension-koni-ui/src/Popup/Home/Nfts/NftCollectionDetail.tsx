@@ -154,7 +154,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [balanceMap, collectionInfo.collectionId, currentAccountProxy, nftList.length]);
 
   const hasMoreItems = useMemo(() => {
-    if (searchValue.length === 2) {
+    if (searchValue.length >= 2) {
       return false;
     }
 
@@ -162,8 +162,10 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [nftList.length, searchValue.length, totalItems]);
 
   const onLoadMoreItems = useCallback(() => {
-    loadMoreInscription().catch(console.log);
-  }, []);
+    if (hasMoreItems) {
+      loadMoreInscription().catch(console.log);
+    }
+  }, [hasMoreItems]);
 
   // note: memo to hot fix list scroll problem
   const listSection = useMemo(() => (
