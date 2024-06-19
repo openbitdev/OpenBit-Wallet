@@ -198,6 +198,14 @@ export interface BlockStreamFeeEstimates {
   8: number;
 }
 
+export interface RecommendedFeeEstimates {
+  fastestFee: number,
+  halfHourFee: number,
+  hourFee: number,
+  economyFee: number,
+  minimumFee: number
+}
+
 export interface BlockStreamTransactionVectorOutput {
   scriptpubkey: string;
   scriptpubkey_asm: string;

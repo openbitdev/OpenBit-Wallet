@@ -3,7 +3,7 @@
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
 import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
-import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, Brc20BalanceItem, Inscription, InscriptionFetchedData, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse, UpdateOpenBitUtxo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, Brc20BalanceItem, Inscription, InscriptionFetchedData, RecommendedFeeEstimates, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse, UpdateOpenBitUtxo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
@@ -144,6 +144,38 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
           slow: { feeRate: convertFee(result[low]), time: this.timePerBlock * low },
           average: { feeRate: convertFee(result[average]), time: this.timePerBlock * average },
           fast: { feeRate: convertFee(result[fast]), time: this.timePerBlock * fast },
+          default: 'slow'
+        }
+      };
+    }, 0);
+  }
+
+  getRecommendedFeeRate (): Promise<BitcoinFeeInfo> {
+    return this.addRequest<BitcoinFeeInfo>(async (): Promise<BitcoinFeeInfo> => {
+      const _rs = await getRequest(this.getUrl('fee-estimates/recommended'), undefined, this.headers);
+      const rs = await _rs.json() as OBResponse<RecommendedFeeEstimates>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.getRecommendedFeeRate', rs.message);
+      }
+
+      const result = rs.result;
+
+      const convertTimeMilisec = {
+        fastestFee: 10 * 60000,
+        halfHourFee: 30 * 60000,
+        hourFee: 60 * 60000
+      };
+
+      const convertFee = (fee: number) => parseFloat(new BigN(fee).toFixed(2));
+
+      return {
+        type: 'bitcoin',
+        busyNetwork: false,
+        options: {
+          slow: { feeRate: convertFee(result.hourFee), time: convertTimeMilisec.hourFee },
+          average: { feeRate: convertFee(result.halfHourFee), time: convertTimeMilisec.halfHourFee },
+          fast: { feeRate: convertFee(result.fastestFee), time: convertTimeMilisec.fastestFee },
           default: 'slow'
         }
       };
