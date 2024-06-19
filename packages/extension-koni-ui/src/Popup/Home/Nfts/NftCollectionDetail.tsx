@@ -48,18 +48,22 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     const routingParams = { collectionInfo, nftItem } as INftItemDetail;
 
     if (nftItem.description) {
-      const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
+      try {
+        const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
 
-      if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
-        return (
-          <InscriptionGalleryWrapper
-            handleOnClick={handleOnClickNft}
-            key={`${nftItem.chain}_${nftItem.collectionId}_${nftItem.id}`}
-            name={nftItem.name as string}
-            properties={ordinalNftItem}
-            routingParams={routingParams}
-          />
-        );
+        if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+          return (
+            <InscriptionGalleryWrapper
+              handleOnClick={handleOnClickNft}
+              key={`${nftItem.chain}_${nftItem.collectionId}_${nftItem.id}`}
+              name={nftItem.name as string}
+              properties={ordinalNftItem}
+              routingParams={routingParams}
+            />
+          );
+        }
+      } catch (e) {
+
       }
     }
 

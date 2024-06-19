@@ -1,3 +1,45 @@
+diff --git a/node_modules/@subwallet/react-ui/es/image/index.d.ts b/node_modules/@subwallet/react-ui/es/image/index.d.ts
+index 6daf2a3..c12be26 100644
+--- a/node_modules/@subwallet/react-ui/es/image/index.d.ts
++++ b/node_modules/@subwallet/react-ui/es/image/index.d.ts
+@@ -13,6 +13,7 @@ export interface SwImageProps extends ImageProps {
+     isLoading?: boolean;
+     activityIndicatorSize?: number | string;
+     modelViewerProps?: ModelViewerProps;
++    fallbackSrc?: string;
+ }
+ export interface CompositionImage<P> extends React.FC<P> {
+     PreviewGroup: typeof PreviewGroup;
+diff --git a/node_modules/@subwallet/react-ui/es/image/index.js b/node_modules/@subwallet/react-ui/es/image/index.js
+index 2b8275d..25a0579 100644
+--- a/node_modules/@subwallet/react-ui/es/image/index.js
++++ b/node_modules/@subwallet/react-ui/es/image/index.js
+@@ -36,9 +36,10 @@ const Image = _a => {
+       modelViewerProps,
+       onLoad,
+       onError,
+-      src
++      src,
++      fallbackSrc
+     } = _a,
+-    otherProps = __rest(_a, ["prefixCls", "preview", "rootClassName", "shape", "width", "height", "responsive", "isLoading", "activityIndicatorSize", "modelViewerProps", "onLoad", "onError", "src"]);
++    otherProps = __rest(_a, ["prefixCls", "preview", "rootClassName", "shape", "width", "height", "responsive", "isLoading", "activityIndicatorSize", "modelViewerProps", "onLoad", "onError", "src", "fallbackSrc"]);
+   const {
+     getPrefixCls,
+     locale: contextLocale = defaultLocale,
+@@ -165,10 +166,10 @@ const Image = _a => {
+       preview: false,
+       prefixCls: `${prefixCls}`,
+       rootClassName: mergedRootClassName,
+-      fallback: FAULT_TOLERANT,
++      fallback: fallbackSrc || FAULT_TOLERANT,
+       onLoad: handleOnLoad,
+       onError: handleImageError,
+-      src: FAULT_TOLERANT
++      src: fallbackSrc || FAULT_TOLERANT
+     }, otherProps));
+   };
+   if (shape === 'squircle') {
 diff --git a/node_modules/@subwallet/react-ui/es/number/index.js b/node_modules/@subwallet/react-ui/es/number/index.js
 index 895129b..0081551 100644
 --- a/node_modules/@subwallet/react-ui/es/number/index.js

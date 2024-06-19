@@ -28,12 +28,14 @@ type Props = ThemeProps
 
 const NFT_DESCRIPTION_MAX_LENGTH = 70;
 
-const modalCloseButton = <Icon
-  customSize={'24px'}
-  phosphorIcon={CaretLeft}
-  type='phosphor'
-  weight={'light'}
-/>;
+const modalCloseButton = (
+  <Icon
+    customSize={'24px'}
+    phosphorIcon={CaretLeft}
+    type='phosphor'
+    weight={'light'}
+  />
+);
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const location = useLocation();
@@ -137,14 +139,16 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [nftItem.externalUrl]);
 
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
-  const ordinalNftItem = nftItem.description && JSON.parse(nftItem.description) as OrdinalRemarkData;
-  const isInscription = useMemo(() => {
-    if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
-      return true;
-    }
 
-    return false;
-  }, [ordinalNftItem]);
+  const isInscription = useMemo(() => {
+    try {
+      const ordinalNftItem = nftItem.description && JSON.parse(nftItem.description) as OrdinalRemarkData;
+
+      return !!(ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem);
+    } catch (e) {
+      return false;
+    }
+  }, [nftItem.description]);
 
   return (
     <PageWrapper
@@ -171,6 +175,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             {!isInscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
+                fallbackSrc={DefaultLogosMap.default_placeholder}
                 height={358}
                 modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
                 onClick={onImageClick}
