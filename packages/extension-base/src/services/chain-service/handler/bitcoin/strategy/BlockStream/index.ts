@@ -167,7 +167,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         hourFee: 60 * 60000
       };
 
-      const convertFee = (fee: number) => parseFloat(new BigN(fee).toFixed(2));
+      const convertFee = (fee: number) => parseInt(new BigN(fee).toFixed());
 
       return {
         type: 'bitcoin',
