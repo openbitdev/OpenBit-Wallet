@@ -1161,6 +1161,7 @@ export class ChainService {
 
   // @ts-ignore
   private async fetchLatestRuneData () {
+    // todo: need check mainnet or testnet
     const chainAssetMap: Record<string, _ChainAsset> = {};
     const allCollectionRunes = await getAllCollectionRunes();
 
@@ -1896,8 +1897,10 @@ export class ChainService {
   }
 
   private async getBrc20Info (ticker: string, tokenType: _AssetType, originChain: string) {
-    if ([_AssetType.BRC20].includes(tokenType) && originChain === _BITCOIN_CHAIN_SLUG) {
-      const brc20Metdata = await getBrc20Metadata(ticker);
+    const isTestnet = originChain !== _BITCOIN_CHAIN_SLUG;
+
+    if ([_AssetType.BRC20].includes(tokenType)) {
+      const brc20Metdata = await getBrc20Metadata(isTestnet, ticker);
       const isContractError = (!(brc20Metdata.decimals && brc20Metdata));
 
       return {
