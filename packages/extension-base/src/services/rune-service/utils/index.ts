@@ -4,12 +4,12 @@
 import { RunesCollectionInfo, RunesCollectionInfoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { RunesService } from '@subwallet/extension-base/services/rune-service';
 
-export async function getAllCollectionRunes () {
+export async function getAllCollectionRunes (isTestnet = false) {
   const runesCollectionFullList: RunesCollectionInfo[] = [];
   const pageSize = 15000;
   let offset = 0;
 
-  const runeService = RunesService.getInstance();
+  const runeService = RunesService.getInstance(isTestnet);
 
   try {
     while (true) {

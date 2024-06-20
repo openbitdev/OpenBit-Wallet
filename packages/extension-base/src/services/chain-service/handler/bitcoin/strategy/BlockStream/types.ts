@@ -266,18 +266,27 @@ export interface RuneMetadata {
   id: string,
   mintable: boolean,
   parent: string,
-  entry: {
-    block: number,
-    burned: number,
-    divisibility: number,
-    etching: string,
-    mints: number,
-    number: number,
-    premine: number,
-    spaced_rune: string,
-    symbol: string,
-    // terms:
-    timestamp: number,
-    turbo: boolean
-  }
+  entry: RuneInfo
+}
+
+interface RuneInfo {
+  block: number,
+  burned: string,
+  divisibility: number,
+  etching: string,
+  mints: string,
+  number: number,
+  premine: string,
+  spaced_rune: string,
+  symbol: string,
+  terms: RuneTerms
+  timestamp: string,
+  turbo: boolean
+}
+
+interface RuneTerms {
+  amount: string,
+  cap: string,
+  height: string[],
+  offset: string[]
 }
