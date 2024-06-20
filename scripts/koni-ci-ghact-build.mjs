@@ -197,7 +197,7 @@ function loopFunc (fn) {
 
 gitSetup();
 gitBump();
-npmSetup();
+// npmSetup();
 
 runClean();
 runCheck();
@@ -205,9 +205,9 @@ runCheck();
 runBuild();
 runBuildWebRunner();
 
-gitPush();
-try {
-  loopFunc(npmPublish);
-} catch (e) {
-  console.error(e);
-}
+// gitPush();
+// try {
+//   loopFunc(npmPublish);
+// } catch (e) {
+//   console.error(e);
+// }
