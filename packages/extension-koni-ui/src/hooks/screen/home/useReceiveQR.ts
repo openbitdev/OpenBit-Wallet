@@ -118,8 +118,6 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
 
     const result: ReceiveTokenItemType[] = [];
 
-    let runeTokenFlag = false;
-
     Object.values(assetRegistryMap).forEach((asset) => {
       if (tokenGroupSlug && (_getMultiChainAsset(asset) !== tokenGroupSlug)) {
         return;
@@ -131,13 +129,7 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
         return;
       }
 
-      if (tokenItem.isRune && !runeTokenFlag) {
-        result.push(tokenItem);
-
-        runeTokenFlag = true;
-      } else if (!tokenItem.isRune) {
-        result.push(tokenItem);
-      }
+      result.push(tokenItem);
     });
 
     result.sort((a, b) => a.order - b.order);

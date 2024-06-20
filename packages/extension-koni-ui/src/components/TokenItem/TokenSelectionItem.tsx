@@ -44,14 +44,7 @@ const Component = (props: Props) => {
           (
             <>
               <div className='token-info'>
-                <span>{symbol}</span>
-                {/* { name && ( */}
-                {/*  <span className='__token-name'> */}
-                {/*    &nbsp;( */}
-                {/*    <span className='name'>{name}</span> */}
-                {/*    ) */}
-                {/*  </span> */}
-                {/* ) } */}
+                {symbol}
               </div>
               <div className={'__chain-name'}>
                 {chainInfo.name}
@@ -118,28 +111,14 @@ export const TokenSelectionItem = styled(Component)<Props>(({ theme: { token } }
     },
 
     '.token-info': {
-      display: 'flex',
-      flexDirection: 'row',
       overflow: 'hidden',
       'white-space': 'nowrap',
 
-      fontSize: token.fontSizeHeading5,
-      lineHeight: token.lineHeightHeading5,
-      fontWeight: token.fontWeightStrong,
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
+      fontWeight: token.headingFontWeight,
       color: token.colorWhite,
-
-      '.__token-name': {
-        color: token.colorTextTertiary,
-        display: 'flex',
-        flexDirection: 'row',
-        overflow: 'hidden',
-
-        '.name': {
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-          whiteSpace: 'nowrap'
-        }
-      }
+      textOverflow: 'ellipsis'
     },
 
     '.__chain-name': {

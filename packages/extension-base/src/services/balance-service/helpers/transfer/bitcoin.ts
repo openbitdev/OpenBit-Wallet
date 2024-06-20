@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
+import { _BITCOIN_CHAIN_SLUG, _BITCOIN_NAME, _BITCOIN_TESTNET_NAME } from '@subwallet/extension-base/services/chain-service/constants';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
 import { BitcoinFeeInfo, BitcoinFeeRate, GetFeeFunction, TransactionFee } from '@subwallet/extension-base/types';
 import { combineBitcoinFee, determineUtxosForSpend, determineUtxosForSpendAll, getId } from '@subwallet/extension-base/utils';
@@ -100,8 +101,16 @@ export async function getBitcoinTransactionObject ({ bitcoinApi,
 
     return [tx, transferAmount.toString()];
   } catch (e) {
-    const error = e as Error;
+    // const error = e as Error;
 
-    throw new Error(`Failed to get Bitcoin transaction object: ${error.message}`);
+    throw new Error(`You don’t have enough BTC (${convertChainToSymbol(chain)}) for the transaction. Lower your BTC amount and try again`);
+  }
+}
+
+function convertChainToSymbol (chain: string) {
+  if (chain === _BITCOIN_CHAIN_SLUG) {
+    return _BITCOIN_NAME;
+  } else {
+    return _BITCOIN_TESTNET_NAME;
   }
 }

@@ -15,7 +15,7 @@ import { Col, Field, Form, Icon, Input, Row } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { PlusCircle } from 'phosphor-react';
 import { FieldData } from 'rc-field-form/lib/interface';
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
@@ -87,6 +87,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const decimals = Form.useWatch('decimals', form);
   const tokenName = Form.useWatch('tokenName', form);
   const selectedTokenType = Form.useWatch('type', form);
+  const contractAddress = Form.useWatch('contractAddress', form);
+
+  const contractRef = useRef<string|undefined>(contractAddress);
 
   const chainChecker = useChainChecker();
   const chainNetworkPrefix = useGetChainPrefixBySlug(selectedChain);
@@ -163,7 +166,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                   }
 
                   if (validationResult.contractError) {
-                    reject(new Error(t('Error validating this token')));
+                    reject(new Error(t('Invalid ID')));
                   }
 
                   if (!validationResult.isExist && !validationResult.contractError) {
@@ -178,10 +181,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 })
                 .catch(() => {
                   setLoading(false);
-                  reject(new Error(t('Error validating this token')));
+                  reject(new Error(t('Invalid ID')));
                 });
             } else if (isValidBrc20) {
-              console.log('successfull passed brc20');
               setLoading(true);
               validateCustomBrc20({
                 ticker: inputMetadata,
@@ -189,7 +191,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 type: selectedTokenType
               })
                 .then((validationResult) => {
-                  console.log('validationResultBRC20', validationResult);
                   setLoading(false);
 
                   if (validationResult.isExist) {
@@ -197,7 +198,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                   }
 
                   if (validationResult.contractError) {
-                    reject(new Error(t('Error validating this token')));
+                    reject(new Error(t('Invalid ticker')));
                   }
 
                   if (!validationResult.isExist && !validationResult.contractError) {
@@ -212,7 +213,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 })
                 .catch(() => {
                   setLoading(false);
-                  reject(new Error(t('Error validating this token')));
+                  reject(new Error(t('Invalid ticker')));
                 });
             } else {
               reject(t('Invalid contract address'));
@@ -329,6 +330,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     chainChecker(selectedChain);
   }, [chainChecker, selectedChain]);
 
+  useEffect(() => {
+    if (loading && (contractRef.current !== contractAddress)) {
+      contractRef.current = contractAddress;
+      form.resetFields(['tokenName', 'symbol', 'decimals', 'priceId']);
+    }
+  }, [contractAddress, form, loading]);
+
   return (
     <PageWrapper
       className={`import_token ${className}`}
@@ -420,7 +428,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                   name={'decimals'}
                 >
                   <Field
-                    content={decimals === -1 ? '' : decimals}
+                    content={decimals === -1 ? '' : `${decimals}`}
                     placeholder={t<string>('Decimals')}
                     tooltip={t('Decimals')}
                     tooltipPlacement={'topLeft'}

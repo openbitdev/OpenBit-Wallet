@@ -236,15 +236,15 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
       return Promise.reject(t('Please enter a valid number with optional decimal.'));
     }
 
-    const low = feeDetail?.options?.slow?.feeRate;
-    const val = parseFloat(value);
+    const low = feeDetail?.options?.slow?.feeRate || 0;
+    const val = value ? parseFloat(value) : 0;
 
     if (low > val) {
       const minString = formatNumber(low, 0, balanceFormatter);
 
       setInvalidForm(true);
 
-      return Promise.reject(t('Custom fee should be greater than {{min}} sats/vB', { min: minString }));
+      return Promise.reject(t('Custom fee too low. Increase fee to at least {{min}} sats/vB and try again', { min: minString }));
     }
 
     setInvalidForm(false);
@@ -349,7 +349,7 @@ const Component = ({ className, feeDetail, modalId, onSelectOption, selectedOpti
               disabled={!canSubmitCustom || invalidForm}
               onClick={form.submit}
             >
-              Use custom fee
+              Apply custom fee
             </Button>
           </div>
         )

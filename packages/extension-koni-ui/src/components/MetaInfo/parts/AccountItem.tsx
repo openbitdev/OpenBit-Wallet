@@ -47,24 +47,11 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
     return reformatAddress(accountAddress, addPrefix);
   }, [account, accountAddress, addressPrefix, chainInfoMap]);
 
-  const name = useMemo(() => {
-    const name = accountName || account?.name;
-
-    return (
-      <>
-        <div className={'__account-wrapper'}>
-          <div className={'__account-name'}>{name}&nbsp;</div>
-          <span>({toShort(address)})</span>
-        </div>
-      </>
-    );
-  }, [account?.name, accountName, address]);
-
   const isAll = useMemo(() => isAccountAll(address), [address]);
 
   return (
     <div className={CN(className, '__row -type-account')}>
-      {!!label && <div className={'__col __label-col'}>
+      {!!label && <div className={CN('__col __label-col', { '-is-account-name': (accountName || account?.name) })}>
         <div className={'__label'}>
           {label}
         </div>
@@ -86,13 +73,16 @@ const Component: React.FC<AccountInfoItem> = (props: AccountInfoItem) => {
               )
               : (
                 <>
-                  <AccountProxyAvatar
-                    className={'__account-avatar'}
-                    size={24}
-                    value={account?.proxyId}
-                  />
-                  <div className={'__account-name ml-xs'}>
-                    {name || toShort(address)}
+                  <div className={CN('__account-transfer-wrapper', { '-is-not-name': !(accountName || account?.name) })}>
+                    <div className={'__account-transfer-name'}>
+                      <AccountProxyAvatar
+                        className={'__account-avatar'}
+                        size={24}
+                        value={account?.proxyId}
+                      />
+                      <span className={'__name'}>{accountName || account?.name}</span>
+                    </div>
+                    <span className={'__short-address'}>{toShort(address, 9, 9)}</span>
                   </div>
                 </>
               )
@@ -112,6 +102,35 @@ const AccountItem = styled(Component)<AccountInfoItem>(({ theme: { token } }: Ac
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap'
+    },
+    '.__account-transfer-name': {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'flex-end'
+    },
+    '.-is-not-name': {
+      display: 'flex',
+      alignItems: 'center'
+
+    },
+    '.-is-account-name.__label-col': {
+      display: 'flow'
+    },
+    '.__account-transfer-wrapper': {
+      overflow: 'hidden',
+      maxWidth: 204
+    },
+    '.__name': {
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      color: token.colorTextLight2,
+      fontSize: token.fontSize,
+      fontWeight: token.fontWeightStrong
+    },
+    '.__short-address': {
+      display: 'flex',
+      justifyContent: 'flex-end'
     }
   };
 });

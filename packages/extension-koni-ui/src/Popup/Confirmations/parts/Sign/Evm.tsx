@@ -240,6 +240,7 @@ const Component: React.FC<Props> = (props: Props) => {
   return (
     <div className={CN(className, 'confirmation-footer')}>
       <Button
+        className={'__cancel-button'}
         disabled={loading}
         icon={(
           <Icon
@@ -253,6 +254,7 @@ const Component: React.FC<Props> = (props: Props) => {
         {t('Cancel')}
       </Button>
       <Button
+        className={'__ok-button'}
         disabled={!canSign}
         icon={(
           <Icon
@@ -282,7 +284,11 @@ const Component: React.FC<Props> = (props: Props) => {
 };
 
 const EvmSignArea = styled(Component)<Props>(({ theme: { token } }: Props) => {
-  return {};
+  return {
+    '.__ok-button, .__cancel-button': {
+      fontWeight: token.fontWeightStrong
+    }
+  };
 });
 
 export default EvmSignArea;

@@ -323,7 +323,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 >
                   <div>
                     <Field
-                      content={tokenInfo.decimals}
+                      content={`${tokenInfo.decimals ?? ''}`}
                       placeholder={t<string>('Decimals')}
                     />
                   </div>

@@ -69,6 +69,7 @@ function Component ({ className = '', data, onCancel }: Props): React.ReactEleme
     return (
       <Button
         block
+        className={'explorer-button'}
         disabled={!link}
         icon={
           <Icon
@@ -89,7 +90,12 @@ function Component ({ className = '', data, onCancel }: Props): React.ReactEleme
       footer={modalFooter}
       id={HISTORY_DETAIL_MODAL}
       onCancel={onCancel}
-      title={data?.displayData?.title || ''}
+      title={
+        <div className={'__title-wrapper'}>
+          <div>{t(data?.displayData?.title || '')}</div>
+          <div className={'__beta-version'}>Beta version</div>
+        </div>
+      }
     >
       <div className={'__layout-container'}>
         {data && <HistoryDetailLayout data={data} />}
@@ -102,6 +108,31 @@ export const HistoryDetailModal = styled(Component)<Props>(({ theme: { token } }
   return ({
     '.ant-sw-modal-body': {
       marginBottom: 0
+    },
+
+    '.__beta-version': {
+      color: token.colorTextTertiary,
+      fontSize: token.fontSizeSM,
+      lineHeight: token.lineHeightSM,
+      fontWeight: token.bodyFontWeight,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+
+    '.__title-wrapper': {
+      fontSize: token.fontSizeXL,
+      lineHeight: token.lineHeightHeading4,
+      fontWeight: token.fontWeightStrong
+
+    },
+
+    '.ant-sw-modal-header': {
+      borderBottomColor: token.colorBgSecondary
+    },
+
+    '.explorer-button': {
+      fontWeight: token.fontWeightStrong
     },
 
     '.ant-sw-modal-footer': {
