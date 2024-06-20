@@ -183,7 +183,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
         const interval = setInterval(() => {
           this.getTransactionStatus(extrinsicHash)
             .then((transactionStatus) => {
-              if (transactionStatus.confirmed) {
+              if (transactionStatus.confirmed && transactionStatus.block_time > 0) {
                 clearInterval(interval);
                 eventEmitter.emit('success', transactionStatus);
               }
