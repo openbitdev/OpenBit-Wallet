@@ -285,7 +285,7 @@ interface RuneInfo {
 }
 
 interface RuneTerms {
-  amount: number,
+  amount: string,
   cap: string,
   height: string[],
   offset: string[]
