@@ -32,11 +32,7 @@ export interface BitcoinAddressSummaryInfo {
     spent_txo_count: number,
     spent_txo_sum: number,
     tx_count: number
-  },
-  balance: number,
-  balance_inscription: number,
-  balance_rune: number,
-  total_inscription: number
+  }
 }
 
 // todo: combine RunesByAddressResponse & RunesCollectionInfoResponse
