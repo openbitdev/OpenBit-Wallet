@@ -160,7 +160,7 @@ const TransactionConfirmation = styled(Component)<Props>(({ theme: { token } }: 
     marginTop: token.marginXS,
 
     '.network-box': {
-      marginTop: token.marginSM
+      marginTop: token.margin
     },
 
     '.-to-right': {

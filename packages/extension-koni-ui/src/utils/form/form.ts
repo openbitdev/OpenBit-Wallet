@@ -56,7 +56,7 @@ export const simpleCheckForm = (allFields: FormFieldData[], requiredFields: stri
 
     const needCheck = checkAll || (ignorePass && requirePass);
 
-    return !needCheck ? false : typeof value === 'boolean' ? false : !value;
+    return !needCheck ? false : typeof value === 'boolean' ? false : (typeof value === 'number' ? false : !value);
   });
 
   return {

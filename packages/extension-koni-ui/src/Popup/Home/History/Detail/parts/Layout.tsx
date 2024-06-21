@@ -29,7 +29,10 @@ const Component: React.FC<Props> = (props: Props) => {
   const isValidExtrinsicHash = data.extrinsicHash && data.extrinsicHash !== '' && !data.extrinsicHash.startsWith('internal.');
 
   return (
-    <MetaInfo className={CN(className)}>
+    <MetaInfo
+      className={CN(className)}
+      spaceSize={'sm'}
+    >
       <MetaInfo.DisplayType
         label={t('Transaction type')}
         typeName={t(TxTypeNameMap[data.type])}
@@ -41,7 +44,7 @@ const Component: React.FC<Props> = (props: Props) => {
         statusName={t(HistoryStatusMap[data.status].name)}
         valueColorSchema={HistoryStatusMap[data.status].schema}
       />
-      {isValidExtrinsicHash && <MetaInfo.Default label={t('Transaction id')}>{toShort(data.extrinsicHash, 8, 9)}</MetaInfo.Default>}
+      {isValidExtrinsicHash && <MetaInfo.Default label={t('Transaction hash')}>{toShort(data.extrinsicHash, 8, 9)}</MetaInfo.Default>}
       {
         !!data.time && (
           <MetaInfo.Default label={t('Transaction time')}>{formatHistoryDate(data.time, language, 'detail')}</MetaInfo.Default>

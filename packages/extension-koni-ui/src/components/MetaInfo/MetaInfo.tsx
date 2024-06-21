@@ -41,7 +41,7 @@ const Component: React.FC<Props> = ({ children, className = '',
 const _MetaInfo = styled(Component)<Props>(({ theme: { token } }: Props) => {
   return ({
     '& + .meta-info-block': {
-      marginTop: token.marginSM
+      marginTop: token.margin
     },
 
     '.ant-number .ant-typography': {
