@@ -305,7 +305,7 @@ export class BalanceService implements StoppableServiceInterface {
       }
 
       addLazy('updateBalanceStore', () => {
-        const isAllAccount = isAccountAll(this.state.keyringService.currentAccount.address);
+        const isAllAccount = isAccountAll(this.state.keyringService.currentAccountProxy.proxyId);
 
         this.balanceMap.updateBalanceItems(this.balanceUpdateCache, isAllAccount);
 
