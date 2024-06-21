@@ -4,7 +4,7 @@
 import { BitcoinBalanceMetadata, NftCollection, NftItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
-import { ORDINAL_COLLECTION_INFO } from '@subwallet/extension-base/koni/api/nft/inscription';
+import { ORDINAL_COLLECTION_INFO, ORDINAL_COLLECTION_INFO_TEST } from '@subwallet/extension-base/koni/api/nft/inscription';
 import { BalanceInfo } from '@subwallet/extension-base/types';
 
 export interface INftCollectionDetail {
@@ -33,31 +33,31 @@ export function getTotalCollectionItems (
   balanceMap: Record<string, BalanceInfo>,
   itemsLength: number
 ): number {
-  if (!accountProxy) {
+  if (!accountProxy || ![ORDINAL_COLLECTION_INFO.collectionId, ORDINAL_COLLECTION_INFO_TEST.collectionId].includes(collectionId)) {
     return itemsLength;
   }
 
-  const isAllAccount = accountProxy.proxyId === ALL_ACCOUNT_KEY;
-  const isTestnet = collectionId !== ORDINAL_COLLECTION_INFO.collectionId;
-  const accountType = isTestnet ? 'bittest-86' : 'bitcoin-86';
+  const isTestnet = collectionId === ORDINAL_COLLECTION_INFO_TEST.collectionId;
 
-  if (isAllAccount) {
+  if (accountProxy.proxyId === ALL_ACCOUNT_KEY) {
     const totalInscription = getTotalInscriptions(ALL_ACCOUNT_KEY, balanceMap, isTestnet);
 
     if (totalInscription) {
       return totalInscription;
     }
-  }
+  } else {
+    const targetAccountType = isTestnet ? 'bittest-86' : 'bitcoin-86';
 
-  for (const account of accountProxy.accounts) {
-    if (account.type !== accountType) {
-      continue;
-    }
+    for (const account of accountProxy.accounts) {
+      if (account.type !== targetAccountType) {
+        continue;
+      }
 
-    const totalInscription = getTotalInscriptions(account.address, balanceMap, isTestnet);
+      const totalInscription = getTotalInscriptions(account.address, balanceMap, isTestnet);
 
-    if (totalInscription) {
-      return totalInscription;
+      if (totalInscription) {
+        return totalInscription;
+      }
     }
   }
 
