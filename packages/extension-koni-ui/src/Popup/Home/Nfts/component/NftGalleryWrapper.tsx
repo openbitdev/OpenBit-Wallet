@@ -42,8 +42,16 @@ function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer
 
   const getCollectionImage = useCallback(() => {
     if (image) {
+      if (image.startsWith('https://ordinals.com/preview/')) {
+        return image.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
+      }
+
       return image;
     } else if (fallbackImage) {
+      if (fallbackImage.startsWith('https://ordinals.com/preview/')) {
+        return fallbackImage.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
+      }
+
       return fallbackImage;
     }
 

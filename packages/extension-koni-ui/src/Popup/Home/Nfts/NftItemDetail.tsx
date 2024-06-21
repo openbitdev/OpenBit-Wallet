@@ -37,6 +37,7 @@ const modalCloseButton = <Icon
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const location = useLocation();
+  const { extendToken } = useTheme() as Theme;
   const { collectionInfo, nftItem } = location.state as INftItemDetail;
 
   const { t } = useTranslation();
@@ -145,6 +146,54 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     return false;
   }, [ordinalNftItem]);
+  const isImageInscription = useMemo(() => {
+    if (nftItem && nftItem.properties && nftItem.properties.content_type) {
+      return nftItem?.properties.content_type.value.startsWith('image');
+    }
+
+    return false;
+  }, [nftItem]);
+
+  const isVideoInscription = useMemo(() => {
+    if (nftItem && nftItem.properties && nftItem.properties.content_type) {
+      return nftItem?.properties.content_type.value.startsWith('video');
+    }
+
+    return false;
+  }, [nftItem]);
+
+  const isAudioInscription = useMemo(() => {
+    if (nftItem && nftItem.properties && nftItem.properties.content_type) {
+      return nftItem?.properties.content_type.value.startsWith('audio');
+    }
+
+    return false;
+  }, [nftItem]);
+
+  const getCollectionImage = useCallback(() => {
+    if (nftItem.image) {
+      if (nftItem.image.startsWith('https://ordinals.com/preview/')) {
+        return nftItem.image.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
+      }
+
+      return nftItem.image;
+    } else if (nftItem.image) {
+      if (nftItem.image.startsWith('https://ordinals.com/preview/')) {
+        return nftItem.image.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
+      }
+
+      return nftItem.image;
+    }
+
+    return extendToken.defaultImagePlaceholder;
+  }, [extendToken.defaultImagePlaceholder, nftItem.image]);
+
+  console.log('isInscription', isInscription);
+  console.log('ordinalNftItem', ordinalNftItem);
+  console.log('nftItem', nftItem);
+  console.log('collectionInfo', collectionInfo);
+  console.log('isVideoInscription', isVideoInscription);
+  console.log('isAudioInscription', isAudioInscription);
 
   return (
     <PageWrapper
@@ -168,7 +217,32 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
               />
             )}
-            {!isInscription && (
+            {isVideoInscription && (
+              <video
+                autoPlay
+                height={'100%'}
+                loop={true}
+                muted
+                width={'100%'}
+              >
+                <source
+                  src={getCollectionImage()}
+                  type='video/mp4'
+                />
+              </video>
+            )}
+            {isAudioInscription && (
+              <audio
+                autoPlay
+                loop={true}
+              >
+                <source
+                  src={getCollectionImage()}
+                  type='audio'
+                />
+              </audio>
+            )}
+            {!(isInscription && nftItem.description) && !isVideoInscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
                 height={358}

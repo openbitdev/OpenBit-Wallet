@@ -33,6 +33,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const [loading, setLoading] = React.useState<boolean>(false);
   const notify = useNotification();
 
+  console.log('nftCollections', nftCollections);
+  console.log('nftItems', nftItems);
   const subHeaderButton: ButtonProps[] = [
     {
       icon: reloadIcon,
