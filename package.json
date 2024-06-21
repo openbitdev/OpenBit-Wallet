@@ -94,7 +94,7 @@
     "@polkadot/types-codec": "10.10.1",
     "@polkadot/util": "^12.6.2",
     "@polkadot/util-crypto": "^12.6.2",
-    "@subwallet/chain-list": "0.2.68-beta.1",
+    "@subwallet/chain-list": "0.2.70-beta.3",
     "@subwallet/keyring": "file:./local-libs/keyring",
     "@subwallet/ui-keyring": "file:./local-libs/ui-keyring",
     "babel-core": "^7.0.0-bridge.0",
