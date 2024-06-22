@@ -57,7 +57,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { TransactionConfig } from 'web3-core';
 
 import { JsonRpcResponse, ProviderInterface, ProviderInterfaceCallback } from '@polkadot/rpc-provider/types';
-import { assert, hexStripPrefix, hexToU8a, isHex, logger as createLogger, u8aToHex } from '@polkadot/util';
+import { assert, hexStripPrefix, hexToU8a, isArray, isHex, logger as createLogger, u8aToHex } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 import { base64Decode, isEthereumAddress, keyExtractSuri } from '@polkadot/util-crypto';
 
@@ -1223,9 +1223,9 @@ export default class KoniState {
   }
 
   public async bitcoinSignPspt (id: string, url: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
-    const { broadcast, psbt, signInputs } = params;
+    const { account: address, allowedSighash, broadcast, network, psbt, signAtIndex } = params;
 
-    if (!psbt || !signInputs) {
+    if (!psbt || !address) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found payload to sign'));
     }
 
@@ -1233,30 +1233,36 @@ export default class KoniState {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Psbt to be signed must be hex-encoded'));
     }
 
-    let canSign = true;
+    if (!(network === 'mainnet' || network === 'testnet')) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network to try this request is must be mainnet or testnet'));
+    }
 
-    const accountListJson = Object.keys(signInputs).reduce((accountList, address) => {
-      if (!isBitcoinAddress(address)) {
-        return accountList;
+    if (!isBitcoinAddress(address)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found address'));
+    }
+
+    // Check sign abiblity
+    if (!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()))) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
+    }
+
+    const pair = keyring.getPair(address);
+
+    if (!pair) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
+    }
+
+    if (network === 'mainnet') {
+      if (!['bitcoin-86', 'bitcoin-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the mainnet network'));
       }
-
-      // Check sign abiblity
-      if (!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()))) {
-        return accountList;
+    } else if (network === 'testnet') {
+      if (!['bittest-86', 'bittest-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the testnet network'));
       }
+    }
 
-      const pair = keyring.getPair(address);
-
-      if (!pair) {
-        return accountList;
-      }
-
-      if (pair.meta && pair.meta.isExternal) {
-        canSign = false;
-      }
-
-      return [...accountList, { address: pair.address, ...pair.meta }];
-    }, [] as AccountJson[]);
+    const account: AccountJson = { address: pair.address, ...pair.meta };
 
     const psbtGenerate = bitcoin.Psbt.fromHex(psbt);
     const psbtTxInputs = psbtGenerate.txInputs;
@@ -1264,15 +1270,19 @@ export default class KoniState {
 
     const payload: BitcoinSignPsbtPayload = {
       psbt: psbtGenerate,
-      broadcast,
-      signingIndexes: signInputs,
+      broadcast: !!broadcast,
+      network,
+      signAtIndex: isArray(signAtIndex) && signAtIndex.length === 0 ? undefined : signAtIndex,
+      account: account.address,
+      allowedSighash,
       txInput: psbtTxInputs,
       txOutput: psbtTxOutputs
     };
     const hashPayload = '';
+    const canSign = !account.isExternal;
 
     const signPayload: BitcoinSignPsbtRequest = {
-      accounts: accountListJson,
+      account,
       payload,
       hashPayload,
       canSign

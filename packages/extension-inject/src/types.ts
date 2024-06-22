@@ -117,6 +117,7 @@ export interface InjectedWindow extends This {
   ethereum: EvmProvider;
   OpenBit: EvmProvider;
   OpenBitProvider: OpenBitProviderType;
+  LeatherProvider: OpenBitProviderType;
 }
 
 export type InjectedExtension = InjectedExtensionInfo & Injected;

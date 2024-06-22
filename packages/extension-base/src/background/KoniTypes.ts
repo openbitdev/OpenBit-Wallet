@@ -76,15 +76,6 @@ export interface AuthRequestV2 extends Resolver<ResultResolver> {
   accountAuthType: AccountAuthType;
 }
 
-export type AuthAddress = {
-  address: string;
-  publicKey?: string;
-  tweakedPublicKey?: string;
-  derivationPath?: string;
-  isTestnet?: boolean;
-  type: 'p2tr' | 'p2wpkh' | 'p2sh' | 'ethereum' | 'unknown';
-}
-
 /// Manage Auth
 
 // Get Auth
@@ -1341,18 +1332,27 @@ export interface BitcoinSignRequest {
   canSign: boolean;
 }
 
-export interface BitcoinSignPsbtPayload {
+export interface BitcoinSignPsbtPayload extends Omit<BitcoinSignPsbtRawRequest, 'psbt'>{
   txInput: PsbtTxInput[];
-  signingIndexes: Record<string, number[]>
   txOutput: PsbtTxOutput[];
-  broadcast: boolean,
   psbt: Psbt
+}
+
+enum SignatureHash {
+  DEFAULT = 0,
+  ALL = 1,
+  NONE = 2,
+  SINGLE = 3,
+  ANYONECANPAY = 128
 }
 
 export interface BitcoinSignPsbtRawRequest {
   psbt: string;
-  signInputs: Record<string, number[]>;
-  broadcast: boolean;
+  allowedSighash ?: SignatureHash[];
+  signAtIndex?:  number | number[];
+  broadcast?: boolean;
+  network: 'mainnet' | 'testnet';
+  account: string;
 }
 
 export interface EvmSignatureRequest extends EvmSignRequest {
@@ -1376,8 +1376,7 @@ export type BitcoinSendTransactionRequest = BitcoinSignRequest
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
-export type BitcoinSignPsbtRequest = Omit<BitcoinSendTransactionRequest, 'account'> & {
-  accounts: AccountJson[];
+export type BitcoinSignPsbtRequest = BitcoinSendTransactionRequest & {
   payload: BitcoinSignPsbtPayload;
 };
 
@@ -1389,6 +1388,7 @@ export interface ConfirmationsQueueItemOptions {
 
 export interface SignMessageBitcoinResult {
   signature: string;
+  message: string;
   address: string;
 }
 
