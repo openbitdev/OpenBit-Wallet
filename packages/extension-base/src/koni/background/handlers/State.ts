@@ -6,9 +6,64 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import {
+  AccountRefMap,
+  AddTokenRequestExternal,
+  AmountData,
+  APIItemState,
+  ApiMap,
+  AuthRequestV2,
+  BasicTxErrorType,
+  BitcoinProviderErrorType,
+  BitcoinSendTransactionParams,
+  BitcoinSendTransactionRequest,
+  BitcoinSignatureRequest,
+  BitcoinSignPsbtPayload,
+  BitcoinSignPsbtRawRequest,
+  BitcoinSignPsbtRequest,
+  BitcoinTransactionConfig,
+  ChainStakingMetadata,
+  ChainType,
+  ConfirmationsQueue,
+  CrowdloanItem,
+  CrowdloanJson,
+  CurrentAccountInfo,
+  CurrentAccountProxyInfo,
+  EvmProviderErrorType,
+  EvmSendTransactionParams,
+  EvmSendTransactionRequest,
+  EvmSignatureRequest,
+  ExternalRequestPromise,
+  ExternalRequestPromiseStatus,
+  ExtrinsicType,
+  MantaAuthorizationContext,
+  MantaPayConfig,
+  MantaPaySyncState,
+  NftCollection,
+  NftItem,
+  NftJson,
+  NominatorMetadata,
+  RequestAccountExportPrivateKey,
+  RequestCheckPublicAndSecretKey,
+  RequestConfirmationComplete,
+  RequestConfirmationCompleteBitcoin,
+  RequestCrowdloanContributions,
+  RequestSettingsType,
+  ResponseAccountExportPrivateKey,
+  ResponseCheckPublicAndSecretKey,
+  ServiceInfo,
+  SignMessageBitcoinResult,
+  SignPsbtBitcoinResult,
+  SingleModeJson,
+  StakingItem,
+  StakingJson,
+  StakingRewardItem,
+  StakingRewardJson,
+  StakingType,
+  UiSettings
+} from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
-import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL, XCM_FEE_RATIO } from '@subwallet/extension-base/constants';
+import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
@@ -39,14 +94,8 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
-import {
-  BalanceItem,
-  BalanceMap,
-  DetermineUtxosForSpendArgs,
-  EvmFeeInfo,
-  FeeCustom, FeeOption
-} from '@subwallet/extension-base/types';
-import { determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, getSizeInfo, isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
+import { BalanceItem, BalanceMap, DetermineUtxosForSpendArgs, EvmFeeInfo } from '@subwallet/extension-base/types';
+import { determineUtxosForSpend, filterUneconomicalUtxos, getSizeInfo, isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -1318,7 +1367,7 @@ export default class KoniState {
 
     const autoFormatNumber = (val?: string | number): string | undefined => {
       if (typeof val === 'string' && val.startsWith('0x')) {
-        return new BN(val.replace('0x', ''), 16).toString();
+        return new BigN(val.replace('0x', ''), 16).toString();
       } else if (typeof val === 'number') {
         return val.toString();
       }
@@ -1357,8 +1406,9 @@ export default class KoniState {
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
     // Calculate transaction data
-    const feeOptions = await apiStrategy.getRecommendedFeeRate();
-    const optionDefault = feeOptions.options.default;
+    let feeOptions_ = await apiStrategy.getRecommendedFeeRate();
+    const optionDefault = feeOptions_.options.default;
+    let feeOptions =  null;
 
     const utxos = await getTransferableBitcoinUtxos(bitcoinApi, transaction.value as string);
     const determineUtxosArgs: DetermineUtxosForSpendArgs = {
@@ -1368,6 +1418,10 @@ export default class KoniState {
       sender: account.address,
       utxos
     };
+
+    if (!transaction.to) {
+      throw new Error();
+    }
 
     const fallbackCalculate = (recipients: string[]) => {
       const utxos = filterUneconomicalUtxos({
@@ -1402,9 +1456,9 @@ export default class KoniState {
       return balanceValue;
     };
 
-    const balance = await getBalance(transaction.to);
-    let maxTransferable = maxTransferable
-      .minus(new BigN(estimatedFeeMax));
+    let maxTransferable = await getBalance(transaction.to);
+    let estimatedFee = '0';
+
 
     try {
       const { fee: _estimatedFee, inputs } = determineUtxosForSpend(determineUtxosArgs);
@@ -1413,45 +1467,29 @@ export default class KoniState {
 
       const { txVBytes: vSize } = getSizeInfo({
         inputLength: inputs.length,
-        sender: address,
-        recipients
+        sender: fromAddress,
+        recipients: [transaction.to]
       });
 
       estimatedFee = new BigN(_estimatedFee).toFixed(0);
       feeOptions = {
-        ..._fee,
+        ...feeOptions_,
         estimatedFee,
         vSize
       };
 
-      if (transferAll) {
-        estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
-      } else {
-        try {
-          const { fee: estimateFeeMax, inputs } = determineUtxosForSpendAll(determineUtxosArgs);
-
-          maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
-          estimatedFeeMax = new BigN(estimateFeeMax).toFixed(0);
-        } catch (_e) {
-          const fb = fallbackCalculate([to || address]);
-
-          maxTransferable = fb.maxTransferable;
-          estimatedFeeMax = fb.estimatedFee;
-        }
-      }
     } catch (_e) {
-      const fb = fallbackCalculate([to || address]);
+      const fb = fallbackCalculate([transaction.to]);
 
       maxTransferable = fb.maxTransferable;
-      estimatedFeeMax = fb.estimatedFee;
 
       if (!feeOptions) {
-        const fb = fallbackCalculate([address, to || address]);
+        const fb = fallbackCalculate([transaction.to, transaction.to]);
 
         estimatedFee = fb.estimatedFee;
 
         feeOptions = {
-          ..._fee,
+          ...feeOptions_,
           estimatedFee,
           vSize: fb.vSize
         };
@@ -1459,7 +1497,7 @@ export default class KoniState {
     }
 
     // Validate balance
-    if (balance.lt(new BN(estimateGas).add(new BN(autoFormatNumber(transactionParams.recipients[0].amount) || '0')))) {
+    if (maxTransferable.lt(new BigN(estimatedFee).plus(new BigN(autoFormatNumber(transactionParams.recipients[0].amount) || '0')))) {
       throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
     }
 
@@ -1473,12 +1511,9 @@ export default class KoniState {
         : ''
       : transaction.data || '';
 
-    const requestPayload: EvmSendTransactionRequest = {
+    const requestPayload: BitcoinSendTransactionRequest = {
       ...transaction,
-      estimateGas,
       hashPayload,
-      isToContract,
-      parseData: parseData,
       account: account,
       canSign: true
     };

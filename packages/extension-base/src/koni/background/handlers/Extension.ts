@@ -3041,6 +3041,7 @@ export default class KoniExtension {
           secretKey: hexToU8a(secretKey)
         }, { name });
         keyring.addPair(keyringPair, true);
+        keyring.addPair(keyringPair, true);
       }
 
       if (!keyringPair) {
