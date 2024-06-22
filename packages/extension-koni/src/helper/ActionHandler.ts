@@ -98,10 +98,10 @@ export class ActionHandler {
       // Set timeout to sleep
       if (Object.keys(this.connectionMap).length === 0) {
         console.debug('Every port is disconnected, set timeout to sleep');
+        // Reset active status
+        this.isActive = false;
         this.sleepTimeout && clearTimeout(this.sleepTimeout);
         this.sleepTimeout = setTimeout(() => {
-          // Reset active status
-          this.isActive = false;
           this.waitActiveHandler = createPromiseHandler<boolean>();
           this.mainHandler && this.mainHandler.state.sleep().catch(console.error);
         }, SLEEP_TIMEOUT);

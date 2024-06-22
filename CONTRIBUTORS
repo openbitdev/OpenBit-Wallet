@@ -1,23 +1,24 @@
-    2318	AnhMTV                        	Release version 1.1.43
-    2170	Nam Phạm                      	[Issue 2717] change XCM ref map
-    1949	S2kael                        	[Issue-2698] Update stable chain-list version
-     619	lw-cdm                        	Fix issue related to undefined object
+    2444	AnhMTV                        	Release version 1.1.44
+    2171	Nam Phạm                      	[Issue 2717] change XCM ref map
+    2001	S2kael                        	[Issue-193] Add re-scan BTC transaction have no block_time
+     757	lw-cdm                        	[UI] Update fee selector logic
      465	Jaco                          	0.42.5 (#969)
      185	quangdo                       	
+     156	nguyentiendung                	[Issue-44] hotfix to resetForm case change contractAddress
+     144	bluezdot                      	Revert "[Issue-189] optimize speed get bitcoin balance"
      104	khainh                        	predefine metadata for Polkadot & Kusama chains
       99	lw-cdm                        	
       88	dominhquang                   	[Issue-2649] Add send crash log feature
+      85	leewong                       	Update color
       83	Hieu Dao                      	Update README.md
       82	Thibaut Sardan                	Add account filtering feature (#832)
-      80	leewong                       	Update account filter for earn transaction
       63	Roman                         	fix ui issues
-      62	nguyentiendung                	
-      53	bluezdot                      	fix eslint
       53	Dominhquangdev                	update Bridge code
-      47	bluedot                       	update priceId for EWT on Energy Web X
+      48	bluedot                       	[Runes] Merge openbit-dev--migrate-code
+      30	Thiendekaco                   	[Issue 3109] [build] [mv3] Extension - Auto build for firefox mv3
       29	Automation Bot                	[CI Skip] Auto increase webapp build number
-      27	Thiendekaco                   	update locate of file
-      24	S2kael                        	
+      26	S2kael                        	
+      10	louisdangw3                   	Check logic of transaction-service and request-serivce
       10	Trang Trịnh                   	api get karura and acala nfts
        9	Minh Le                       	
        9	minhld1029                    	[#115] [ForgetAccount] catch exception refList undefined
@@ -25,6 +26,7 @@
        6	unknown                       	refactor code
        5	anhnhu                        	[issue-2231]: add condition branch_name webapp-dev auto increase run scripts change build number
        4	Amaury Martiny                	PostMessageProvider with on('connected' | 'disconnected') (#279)
+       4	louisdang                     	check error for transaction
        4	namph                         	update UI for nft
        4	Quangdm-cdm                   	
        3	Antoine Estienne              	Add eth test for extension signature (#909)

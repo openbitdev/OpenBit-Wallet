@@ -5,8 +5,8 @@ import { Brc20Metadata, Inscription, InscriptionFetchedData } from '@subwallet/e
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 
 // todo: handle inscription testnet
-export async function getBrc20Metadata (ticker: string) {
-  const hiroService = HiroService.getInstance();
+export async function getBrc20Metadata (isTestnet = false, ticker: string) {
+  const hiroService = HiroService.getInstance(isTestnet);
   const defaultMetadata = {
     ticker: '',
     decimals: 0

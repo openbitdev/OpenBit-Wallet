@@ -142,7 +142,7 @@ export default class FeeService {
             } else if (type === 'bitcoin') {
               const api = this.state.getBitcoinApi(chain);
 
-              api.api.getFeeRate()
+              api.api.getRecommendedFeeRate()
                 .then((info) => {
                   observer.next(info);
                 })
