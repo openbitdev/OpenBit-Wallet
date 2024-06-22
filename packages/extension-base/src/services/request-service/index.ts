@@ -4,6 +4,7 @@
 import { AuthRequestV2, ConfirmationDefinitions, ConfirmationDefinitionsBitcoin, ConfirmationsQueue, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationType, ConfirmationTypeBitcoin, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AccountJson, AuthorizeRequest, MetadataRequest, RequestAuthorizeTab, RequestSign, ResponseSigning, SigningRequest } from '@subwallet/extension-base/background/types';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
+import FeeService from '@subwallet/extension-base/services/fee-service/service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import SettingService from '@subwallet/extension-base/services/setting-service/SettingService';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
@@ -31,7 +32,7 @@ export default class RequestService {
   readonly #notSupportWCRequestHandler: NotSupportWCRequestHandler;
 
   // Common
-  constructor (chainService: ChainService, settingService: SettingService, keyringService: KeyringService) {
+  constructor (chainService: ChainService, settingService: SettingService, keyringService: KeyringService, feeService: FeeService) {
     this.#chainService = chainService;
     this.settingService = settingService;
     this.keyringService = keyringService;
@@ -40,7 +41,7 @@ export default class RequestService {
     this.#authRequestHandler = new AuthRequestHandler(this, this.#chainService, this.keyringService);
     this.#substrateRequestHandler = new SubstrateRequestHandler(this);
     this.#evmRequestHandler = new EvmRequestHandler(this);
-    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this, this.#chainService);
+    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this, this.#chainService, feeService);
     this.#connectWCRequestHandler = new ConnectWCRequestHandler(this);
     this.#notSupportWCRequestHandler = new NotSupportWCRequestHandler(this);
 

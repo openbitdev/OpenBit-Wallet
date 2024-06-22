@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BitcoinSignatureRequest, ConfirmationDefinitionsBitcoin, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useGetChainInfoByChainId, useLedger, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
 import { completeConfirmationBitcoin } from '@subwallet/extension-koni-ui/messaging';
@@ -23,6 +24,7 @@ interface Props extends ThemeProps {
   type: BitcoinSignatureSupportType;
   payload: ConfirmationDefinitionsBitcoin[BitcoinSignatureSupportType][0];
   extrinsicType?: ExtrinsicType;
+  editedPayload?: SWTransactionResult;
 }
 
 const handleConfirm = async (type: BitcoinSignatureSupportType, id: string, payload: string) => {
@@ -49,7 +51,7 @@ const handleSignature = async (type: BitcoinSignatureSupportType, id: string, si
 };
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className, extrinsicType, id, payload, type } = props;
+  const { className, editedPayload, extrinsicType, id, payload, type } = props;
   const { payload: { canSign, hashPayload } } = payload;
   const account = (payload.payload as BitcoinSignatureRequest).account;
   const chainId = (payload.payload as EvmSendTransactionRequest)?.chainId || 1;
@@ -107,11 +109,11 @@ const Component: React.FC<Props> = (props: Props) => {
   const onApprovePassword = useCallback(() => {
     setLoading(true);
     setTimeout(() => {
-      handleConfirm(type, id, '').finally(() => {
+      handleConfirm(type, id, editedPayload ? JSON.stringify(editedPayload) : '').finally(() => {
         setLoading(false);
       });
     }, 1000);
-  }, [id, type]);
+  }, [editedPayload, id, type]);
 
   const onApproveSignature = useCallback((signature: SigData) => {
     setLoading(true);

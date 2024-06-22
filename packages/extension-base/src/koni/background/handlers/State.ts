@@ -157,7 +157,8 @@ export default class KoniState {
     this.chainService = new ChainService(this.dbService, this.eventService, this.keyringService);
     this.subscanService = SubscanService.getInstance();
     this.settingService = new SettingService();
-    this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
+    this.feeService = new FeeService(this);
+    this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService, this.feeService);
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
     this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService);
@@ -169,7 +170,6 @@ export default class KoniState {
     this.buyService = new BuyService(this);
     this.transactionService = new TransactionService(this);
     this.earningService = new EarningService(this);
-    this.feeService = new FeeService(this);
 
     this.subscription = new KoniSubscription(this, this.dbService);
     this.cron = new KoniCron(this, this.subscription, this.dbService);
@@ -1331,7 +1331,7 @@ export default class KoniState {
       from: transactionParams.account,
       to: transactionParams.recipients[0].address,
       value: autoFormatNumber(transactionParams.recipients[0].amount),
-      chain: transactionParams.network
+      networkKey: transactionParams.network
     };
 
     // Address is validated in before step
@@ -1347,14 +1347,26 @@ export default class KoniState {
       throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
     }
 
+    if (networkKey === 'mainnet') {
+      if (!['bitcoin-86', 'bitcoin-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the mainnet network'));
+      }
+    } else if (networkKey === 'testnet') {
+      if (!['bittest-86', 'bittest-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the testnet network'));
+      }
+    }
+
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
     // Calculate transaction data
-    const feeOptions_ = await apiStrategy.getRecommendedFeeRate();
+    const [feeOptions_, utxos] = await Promise.all([
+      apiStrategy.getRecommendedFeeRate(),
+      getTransferableBitcoinUtxos(bitcoinApi, fromAddress)
+    ]);
+
     const optionDefault = feeOptions_.options.default;
     let feeOptions = null;
-
-    const utxos = await getTransferableBitcoinUtxos(bitcoinApi, transaction.value as string);
     const determineUtxosArgs: DetermineUtxosForSpendArgs = {
       amount: parseInt(transaction.value as string || '0'),
       feeRate: feeOptions_.options[optionDefault].feeRate,
@@ -1388,8 +1400,8 @@ export default class KoniState {
       };
     };
 
-    const getBalance = async (recipientAddress: string) => {
-      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, recipientAddress);
+    const getBalance = async (senderAddress: string) => {
+      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, senderAddress);
 
       let balanceValue = new BigN(0);
 
@@ -1400,13 +1412,11 @@ export default class KoniState {
       return balanceValue;
     };
 
-    let maxTransferable = await getBalance(transaction.to);
+    let maxTransferable = new BigN('0');
     let estimatedFee = '0';
 
     try {
       const { fee: _estimatedFee, inputs } = determineUtxosForSpend(determineUtxosArgs);
-
-      maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
 
       const { txVBytes: vSize } = getSizeInfo({
         inputLength: inputs.length,
@@ -1421,10 +1431,6 @@ export default class KoniState {
         vSize
       };
     } catch (_e) {
-      const fb = fallbackCalculate([transaction.to]);
-
-      maxTransferable = fb.maxTransferable;
-
       if (!feeOptions) {
         const fb = fallbackCalculate([transaction.to, transaction.to]);
 
@@ -1438,6 +1444,8 @@ export default class KoniState {
       }
     }
 
+    maxTransferable = await getBalance(fromAddress);
+
     // Validate balance
     if (maxTransferable.lt(new BigN(estimatedFee).plus(new BigN(autoFormatNumber(transactionParams.recipients[0].amount) || '0')))) {
       throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
@@ -1446,6 +1454,7 @@ export default class KoniState {
     const requestPayload: BitcoinSendTransactionRequest = {
       ...transaction,
       hashPayload: JSON.stringify(transaction),
+      fee: feeOptions,
       account: account,
       canSign: true
     };
@@ -1464,7 +1473,6 @@ export default class KoniState {
     const transactionEmitter = await this.transactionService.addTransaction({
       transaction: requestPayload,
       address: requestPayload.from as string,
-      isFeeEditable: true,
       chain: networkKey,
       url,
       data: transactionData,

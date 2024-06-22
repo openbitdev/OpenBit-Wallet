@@ -880,16 +880,11 @@ export default class KoniTabs {
     return true;
   }
 
-  private async getBitcoinState (url?: string): Promise<BitcoinAppState> {
-    let currentChain: string | undefined;
+  private async getBitcoinState (url?: string, defaultChain?: string): Promise<BitcoinAppState> {
     let autoActiveChain = false;
 
     if (url) {
       const authInfo = await this.getAuthInfo(url);
-
-      if (authInfo?.currentEvmNetworkKey) {
-        currentChain = authInfo?.currentEvmNetworkKey;
-      }
 
       if (authInfo?.isAllowed) {
         autoActiveChain = true;
@@ -899,7 +894,7 @@ export default class KoniTabs {
     const currentBitcoinNetwork = this.#koniState.requestService.getDAppChainInfo({
       autoActive: autoActiveChain,
       accessType: 'bitcoin',
-      defaultChain: currentChain,
+      defaultChain: defaultChain === 'mainnet' ? 'bitcoin' : 'bitcoinTestnet',
       url
     });
 
@@ -1238,15 +1233,15 @@ export default class KoniTabs {
   private async bitcoinSendTransfer (id: string, url: string, { params }: RequestArguments) {
     const transactionParams = params as BitcoinSendTransactionParams;
     const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url);
-    const bitcoinState = await this.getBitcoinState(url);
+    const bitcoinState = await this.getBitcoinState(url, transactionParams.network);
     const networkKey = bitcoinState.networkKey;
 
     if (!canUseAccount) {
-      throw new Error(t('You have rescinded allowance for this account in wallet'));
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
     }
 
     if (!networkKey) {
-      throw new Error('Network unavailable. Please switch network or manually add network to wallet');
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network unavailable. Please switch network or manually add network to wallet'));
     }
 
     const allowedAccounts = await this.getBitcoinCurrentAccount(url);

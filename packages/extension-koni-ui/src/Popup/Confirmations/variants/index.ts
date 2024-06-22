@@ -14,3 +14,4 @@ export { default as TransactionConfirmation } from './Transaction';
 export { default as NotSupportWCConfirmation } from './NotSupportWCConfirmation';
 export { default as BitcoinSignatureConfirmation } from './BitcoinSignatureConfirmation';
 export { default as BitcoinSignPsbtConfirmation } from './BitcoinSignPsbtConfirmation';
+export { default as BitcoinTransactionConfirmation } from './BitcoinTransactionConfirmation';
