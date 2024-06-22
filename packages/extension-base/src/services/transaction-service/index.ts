@@ -3,7 +3,7 @@
 
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
-import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSignatureRequest, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, FeeData, NotificationType, TransactionAdditionalInfo, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
+import { AmountData, BasicTxErrorType, BasicTxWarningCode, BitcoinSendTransactionRequest, ChainType, EvmProviderErrorType, EvmSendTransactionRequest, ExtrinsicStatus, ExtrinsicType, FeeData, NotificationType, TransactionAdditionalInfo, TransactionDirection, TransactionHistoryItem } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
@@ -300,7 +300,7 @@ export default class TransactionService {
     transactions[transaction.id] = transaction;
     this.transactionSubject.next({ ...transactions });
 
-    return await this.sendTransaction(transaction);
+    return await this.sendTransaction(transaction, inputTransaction.isFeeEditable);
   }
 
   public generateBeforeHandleResponseErrors (errors: TransactionError[]): SWTransactionResponse {
@@ -368,7 +368,7 @@ export default class TransactionService {
     return validatedTransaction;
   }
 
-  private async sendTransaction (transaction: SWTransaction): Promise<TransactionEmitter> {
+  private async sendTransaction (transaction: SWTransaction, isFeeEditable?: boolean): Promise<TransactionEmitter> {
     let emitter: TransactionEmitter;
 
     if (transaction.chainType === 'substrate') {
@@ -376,7 +376,7 @@ export default class TransactionService {
     } else if (transaction.chainType === 'evm') {
       emitter = await this.signAndSendEvmTransaction(transaction);
     } else if (transaction.chainType === 'bitcoin') {
-      emitter = await this.signAndSendBitcoinTransaction(transaction);
+      emitter = await this.signAndSendBitcoinTransaction(transaction, !!isFeeEditable);
     } else {
       throw new Error('Unsupported chain type');
     }
@@ -959,7 +959,7 @@ export default class TransactionService {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  private async signAndSendBitcoinTransaction ({ address, chain, id, transaction, url }: SWTransaction): Promise<TransactionEmitter> {
+  private async signAndSendBitcoinTransaction ({ address, chain, id, transaction, url }: SWTransaction, isFeeEditable: boolean): Promise<TransactionEmitter> {
     const tx = transaction as Psbt;
     // const bitcoinApi = this.state.chainService.getBitcoinApi(chain);
     // const chainInfo = this.state.chainService.getChainInfoByKey(chain);
@@ -967,9 +967,10 @@ export default class TransactionService {
     const accountPair = keyring.getPair(address);
     const account: AccountJson = { address, ...accountPair.meta };
 
-    const payload: BitcoinSignatureRequest = {
+    const payload: BitcoinSendTransactionRequest = {
       payload: undefined,
       payloadJson: undefined,
+      isFeeEditable,
       account,
       canSign: true,
       hashPayload: tx.toHex(),

@@ -9,7 +9,7 @@ import { EvmProviderError } from '@subwallet/extension-base/background/errors/Ev
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
 import { createSubscription, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AddNetworkRequestExternal, AddTokenRequestExternal, BitcoinProviderErrorType, BitcoinSignPsbtRawRequest, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { AddNetworkRequestExternal, AddTokenRequestExternal, BitcoinAppState, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSignPsbtRawRequest, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import RequestBytesSign from '@subwallet/extension-base/background/RequestBytesSign';
 import RequestExtrinsicSign from '@subwallet/extension-base/background/RequestExtrinsicSign';
 import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestTypes, ResponseRpcListProviders, ResponseSigning, ResponseTypes, SubscriptionMessageTypes } from '@subwallet/extension-base/background/types';
@@ -880,6 +880,44 @@ export default class KoniTabs {
     return true;
   }
 
+  private async getBitcoinState (url?: string): Promise<BitcoinAppState> {
+    let currentChain: string | undefined;
+    let autoActiveChain = false;
+
+    if (url) {
+      const authInfo = await this.getAuthInfo(url);
+
+      if (authInfo?.currentEvmNetworkKey) {
+        currentChain = authInfo?.currentEvmNetworkKey;
+      }
+
+      if (authInfo?.isAllowed) {
+        autoActiveChain = true;
+      }
+    }
+
+    const currentBitcoinNetwork = this.#koniState.requestService.getDAppChainInfo({
+      autoActive: autoActiveChain,
+      accessType: 'bitcoin',
+      defaultChain: currentChain,
+      url
+    });
+
+    if (currentBitcoinNetwork) {
+      const { slug } = currentBitcoinNetwork;
+      const bitcoinApi = this.#koniState.getBitcoinApi(slug);
+      const bitcoinApiStrategy = bitcoinApi?.api;
+
+      return {
+        networkKey: slug,
+        strategy: bitcoinApiStrategy,
+        listenEvents: []
+      };
+    } else {
+      return {};
+    }
+  }
+
   private checkAndHandleProviderStatus (provider: WebsocketProvider | HttpProvider | undefined) {
     if ((!provider || !provider?.connected) && provider?.supportsSubscriptions()) { // excludes HttpProvider
       Object.values(this.evmEventEmitterMap).forEach((m) => {
@@ -1197,6 +1235,30 @@ export default class KoniTabs {
     }
   }
 
+  private async bitcoinSendTransfer (id: string, url: string, { params }: RequestArguments) {
+    const transactionParams = params as BitcoinSendTransactionParams;
+    const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url);
+    const bitcoinState = await this.getBitcoinState(url);
+    const networkKey = bitcoinState.networkKey;
+
+    if (!canUseAccount) {
+      throw new Error(t('You have rescinded allowance for this account in wallet'));
+    }
+
+    if (!networkKey) {
+      throw new Error('Network unavailable. Please switch network or manually add network to wallet');
+    }
+
+    const allowedAccounts = await this.getBitcoinCurrentAccount(url);
+    const transactionHash = await this.#koniState.bitcoinSendTransaction(id, url, networkKey, allowedAccounts, transactionParams);
+
+    if (!transactionHash) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+    }
+
+    return transactionHash;
+  }
+
   private async handleBitcoinRequest (id: string, url: string, request: RequestArguments, port: chrome.runtime.Port): Promise<unknown> {
     const { method } = request;
 
@@ -1210,6 +1272,9 @@ export default class KoniTabs {
 
         case 'signPsbt':
           return await this.bitcoinSignPspt(id, url, request);
+
+        case 'sendTransfer':
+          return await this.bitcoinSendTransfer(id, url, request);
 
         default:
           return this.performWeb3Method(id, url, request);
