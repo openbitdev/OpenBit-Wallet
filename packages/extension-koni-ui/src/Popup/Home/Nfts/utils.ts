@@ -15,3 +15,13 @@ export interface INftItemDetail {
 
 // might set perPage based on screen height
 export const NFT_PER_PAGE = 4;
+
+export const isValidJson = (str: string): boolean => {
+  try {
+    JSON.parse(str);
+
+    return true;
+  } catch {
+    return false;
+  }
+};

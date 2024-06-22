@@ -10,7 +10,7 @@ import { useNavigateOnChangeAccount } from '@subwallet/extension-koni-ui/hooks';
 import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTranslation';
 import { InscriptionGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionGalleryWrapper';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
-import { INftCollectionDetail, INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { INftCollectionDetail, INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { SwList } from '@subwallet/react-ui';
 import CN from 'classnames';
@@ -47,7 +47,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const renderNft = useCallback((nftItem: NftItem) => {
     const routingParams = { collectionInfo, nftItem } as INftItemDetail;
 
-    if (nftItem.description) {
+    if (nftItem.description && isValidJson(nftItem.description)) {
       const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
 
       if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
