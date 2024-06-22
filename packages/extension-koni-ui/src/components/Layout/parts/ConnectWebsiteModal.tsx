@@ -264,11 +264,14 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
           {
             list.map((item) => {
               const isSelected = item.accounts.some((a) => allowedMap[a.address]);
+              const isCurrent = item.proxyId === currentAccountProxy?.proxyId;
 
               return (
                 <AccountProxyItem
                   accountProxy={item}
-                  className={'account-proxy-item'}
+                  className={CN('account-proxy-item', {
+                    '-is-current': isCurrent
+                  })}
                   isSelected={isSelected}
                   key={item.proxyId}
                   onClick={handlerUpdateMap(item, isSelected)}
@@ -337,6 +340,24 @@ export const ConnectWebsiteModal = styled(Component)<Props>(({ theme: { token } 
 
     '.__account-item-container:not(:empty)': {
       marginTop: token.margin
+    },
+
+    '.account-proxy-item': {
+      position: 'relative',
+      cursor: 'pointer',
+
+      '&:before': {
+        content: '""',
+        position: 'absolute',
+        inset: 0,
+        display: 'block',
+        border: '2px solid transparent',
+        borderRadius: token.borderRadiusLG
+      },
+
+      '&.-is-current:before': {
+        borderColor: token.colorPrimary
+      }
     },
 
     '.account-proxy-item + .account-proxy-item': {
