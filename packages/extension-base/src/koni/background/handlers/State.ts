@@ -6,62 +6,7 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import {
-  AccountRefMap,
-  AddTokenRequestExternal,
-  AmountData,
-  APIItemState,
-  ApiMap,
-  AuthRequestV2,
-  BasicTxErrorType,
-  BitcoinProviderErrorType,
-  BitcoinSendTransactionParams,
-  BitcoinSendTransactionRequest,
-  BitcoinSignatureRequest,
-  BitcoinSignPsbtPayload,
-  BitcoinSignPsbtRawRequest,
-  BitcoinSignPsbtRequest,
-  BitcoinTransactionConfig,
-  ChainStakingMetadata,
-  ChainType,
-  ConfirmationsQueue,
-  CrowdloanItem,
-  CrowdloanJson,
-  CurrentAccountInfo,
-  CurrentAccountProxyInfo,
-  EvmProviderErrorType,
-  EvmSendTransactionParams,
-  EvmSendTransactionRequest,
-  EvmSignatureRequest,
-  ExternalRequestPromise,
-  ExternalRequestPromiseStatus,
-  ExtrinsicType,
-  MantaAuthorizationContext,
-  MantaPayConfig,
-  MantaPaySyncState,
-  NftCollection,
-  NftItem,
-  NftJson,
-  NominatorMetadata,
-  RequestAccountExportPrivateKey,
-  RequestCheckPublicAndSecretKey,
-  RequestConfirmationComplete,
-  RequestConfirmationCompleteBitcoin,
-  RequestCrowdloanContributions,
-  RequestSettingsType,
-  ResponseAccountExportPrivateKey,
-  ResponseCheckPublicAndSecretKey,
-  ServiceInfo,
-  SignMessageBitcoinResult,
-  SignPsbtBitcoinResult,
-  SingleModeJson,
-  StakingItem,
-  StakingJson,
-  StakingRewardItem,
-  StakingRewardJson,
-  StakingType,
-  UiSettings
-} from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
@@ -1362,7 +1307,6 @@ export default class KoniState {
 
   public async bitcoinSendTransaction (id: string, url: string, networkKey: string, allowedAccounts: string[], transactionParams: BitcoinSendTransactionParams): Promise<string | undefined> {
     const bitcoinApi = this.getBitcoinApi(networkKey);
-    const bitcoinNetwork = this.getChainInfo(networkKey);
     const apiStrategy = bitcoinApi.api;
 
     const autoFormatNumber = (val?: string | number): string | undefined => {
@@ -1406,14 +1350,14 @@ export default class KoniState {
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
     // Calculate transaction data
-    let feeOptions_ = await apiStrategy.getRecommendedFeeRate();
+    const feeOptions_ = await apiStrategy.getRecommendedFeeRate();
     const optionDefault = feeOptions_.options.default;
-    let feeOptions =  null;
+    let feeOptions = null;
 
     const utxos = await getTransferableBitcoinUtxos(bitcoinApi, transaction.value as string);
     const determineUtxosArgs: DetermineUtxosForSpendArgs = {
       amount: parseInt(transaction.value as string || '0'),
-      feeRate: transaction.fee?.options[optionDefault].feeRate,
+      feeRate: feeOptions_.options[optionDefault].feeRate,
       recipient: transaction.to as string,
       sender: account.address,
       utxos
@@ -1459,7 +1403,6 @@ export default class KoniState {
     let maxTransferable = await getBalance(transaction.to);
     let estimatedFee = '0';
 
-
     try {
       const { fee: _estimatedFee, inputs } = determineUtxosForSpend(determineUtxosArgs);
 
@@ -1477,7 +1420,6 @@ export default class KoniState {
         estimatedFee,
         vSize
       };
-
     } catch (_e) {
       const fb = fallbackCalculate([transaction.to]);
 
@@ -1501,19 +1443,9 @@ export default class KoniState {
       throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
     }
 
-    transaction.nonce = await web3.eth.getTransactionCount(fromAddress);
-
-    const hashPayload = this.transactionService.generateHashPayload(networkKey, transaction);
-    const isToContract = await isContractAddress(transaction.to || '', evmApi);
-    const parseData = isToContract
-      ? transaction.data
-        ? (await parseContractInput(transaction.data, transaction.to || '', evmNetwork)).result
-        : ''
-      : transaction.data || '';
-
     const requestPayload: BitcoinSendTransactionRequest = {
       ...transaction,
-      hashPayload,
+      hashPayload: JSON.stringify(transaction),
       account: account,
       canSign: true
     };
@@ -1537,10 +1469,8 @@ export default class KoniState {
       data: transactionData,
       extrinsicType: eType,
       chainType: ChainType.BITCOIN,
-      feeOption: {},
-      feeCustom: {},
       estimateFee: {
-        value: '0',
+        value: estimatedFee,
         symbol: token.symbol,
         decimals: token.decimals || 18
       },
