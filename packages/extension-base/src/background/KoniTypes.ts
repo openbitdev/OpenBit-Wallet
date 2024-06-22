@@ -1380,6 +1380,7 @@ export interface ConfirmationsQueueItemOptions {
 
 export interface SignMessageBitcoinResult {
   signature: string;
+  message: string;
   address: string;
 }
 

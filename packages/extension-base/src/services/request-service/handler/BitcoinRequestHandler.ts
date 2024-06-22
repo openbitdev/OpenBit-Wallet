@@ -153,7 +153,8 @@ export default class BitcoinRequestHandler {
     if (typeof payload === 'string') {
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
       return {
-        signature: pair.bitcoin.signMessage(payload, false),
+        signature: pair.bitcoin.signMessage(payload),
+        message: payload,
         address
       }; // Assuming compressed = false
     } else if (payload instanceof Uint8Array) { // Check if payload is a byte array (Uint8Array)
@@ -162,7 +163,8 @@ export default class BitcoinRequestHandler {
 
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
       return {
-        signature: pair.bitcoin.signMessage(payloadString, false),
+        signature: pair.bitcoin.signMessage(payloadString),
+        message: payload.toString(),
         address
       }; // Assuming compressed = false
     } else {

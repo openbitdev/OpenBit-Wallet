@@ -39,6 +39,7 @@ import { checkIfDenied } from '@polkadot/phishing';
 import { JsonRpcResponse } from '@polkadot/rpc-provider/types';
 import { SignerPayloadJSON, SignerPayloadRaw } from '@polkadot/types/types';
 import { assert, hexStripPrefix, isNumber, u8aToHex } from '@polkadot/util';
+import { isEthereumAddress } from '@polkadot/util-crypto';
 
 interface AccountSub {
   subscription: Subscription;
@@ -74,7 +75,7 @@ function transformAccountsV2 (accounts: SubjectInfo, anyType = false, authInfo?:
     .filter(({ json: { meta: { isHidden } } }) => !isHidden)
     .filter(({ type }) => anyType ? true : canDerive(type))
     .filter(authTypeFilter)
-    .filter(({ json: { address } }) => accountSelected.includes(address))
+    .filter(({ json: { address } }) => accountSelected.includes(address) && (accountAuthType !== 'bitcoin' || !isEthereumAddress(address)))
     .sort((a, b) => (a.json.meta.whenCreated || 0) - (b.json.meta.whenCreated || 0))
     .map(({ json: { address, meta: { genesisHash, name } }, type }): InjectedAccount => ({
       address,
@@ -1137,7 +1138,7 @@ export default class KoniTabs {
 
       return {
         result: {
-          addresses: getAuthAddresses(Object.keys(authInfo.isAllowedMap).filter((k) => authInfo.isAllowedMap[k]))
+          addresses: getAuthAddresses(Object.keys(authInfo.isAllowedMap).filter((k) => authInfo.isAllowedMap[k])).filter(({ address }) => !isEthereumAddress(address))
         }
       };
     } catch (e) {
