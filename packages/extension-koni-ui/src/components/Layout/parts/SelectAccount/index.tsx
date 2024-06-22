@@ -9,7 +9,7 @@ import { saveCurrentAccountProxy } from '@subwallet/extension-koni-ui/messaging'
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme } from '@subwallet/extension-koni-ui/themes';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { accountByAuthTypeFilter, funcSortByProxyName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
+import { funcSortByProxyName, isAccountAll, searchAccountProxyFunction } from '@subwallet/extension-koni-ui/utils';
 import { BackgroundIcon, Icon, ModalContext, SelectModal, Tooltip } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CaretDown, Plug, Plugs, PlugsConnected } from 'phosphor-react';
@@ -191,13 +191,16 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         setConnected(0);
         setConnectionState(ConnectionStatement.BLOCKED);
       } else {
-        const type = currentAuth.accountAuthType;
         const allowedMap = currentAuth.isAllowedMap;
 
         if (!isAllAccount) {
           const isAllowed = (() => {
             if (!currentAccountProxy) {
               return undefined;
+            }
+
+            if (currentAccountProxy.isReadOnly) {
+              return false;
             }
 
             return currentAccountProxy.accounts.some((a) => allowedMap[a.address]);
@@ -212,23 +215,25 @@ function Component ({ className }: Props): React.ReactElement<Props> {
             setConnectionState(isAllowed ? ConnectionStatement.CONNECTED : ConnectionStatement.DISCONNECTED);
           }
         } else {
-          const numberAccounts = noAllAccountProxies.reduce((numAccount, currentValue) => {
-            currentValue.accounts.find(({ address }) => accountByAuthTypeFilter(address, type)) && numAccount++;
+          const numberAccountProxies = noAllAccountProxies.reduce((numAccountProxy, currentValue) => {
+            !currentValue.isReadOnly && numAccountProxy++;
 
-            return numAccount;
+            return numAccountProxy;
           }, 0);
-          const numberAllowedAccounts = Object.entries(allowedMap)
-            .filter(([address]) => accountByAuthTypeFilter(address, type))
-            .filter(([, value]) => value)
-            .length;
+
+          const numberAllowedAccounts = noAllAccountProxies.reduce((numAccountProxy, currentValue) => {
+            !currentValue.isReadOnly && currentValue.accounts.some((a) => allowedMap[a.address]) && numAccountProxy++;
+
+            return numAccountProxy;
+          }, 0);
 
           setConnected(numberAllowedAccounts);
-          setCanConnect(numberAccounts);
+          setCanConnect(numberAccountProxies);
 
           if (numberAllowedAccounts === 0) {
             setConnectionState(ConnectionStatement.DISCONNECTED);
           } else {
-            if (numberAllowedAccounts > 0 && numberAllowedAccounts < numberAccounts) {
+            if (numberAllowedAccounts > 0 && numberAllowedAccounts < numberAccountProxies) {
               setConnectionState(ConnectionStatement.PARTIAL_CONNECTED);
             } else {
               setConnectionState(ConnectionStatement.CONNECTED);

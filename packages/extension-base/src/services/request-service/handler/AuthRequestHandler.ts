@@ -214,7 +214,7 @@ export default class AuthRequestHandler {
   private authorizePromiseMap: Record<string, PromiseHandler<boolean>> = {};
   public async authorizeUrlV2 (url: string, request: RequestAuthorizeTab): Promise<boolean> {
     let authList = await this.getAuthList();
-    let accountAuthType = request.accountAuthType || 'substrate';
+    let accountAuthType = request.accountAuthType || 'both';
 
     request.accountAuthType = accountAuthType;
 
@@ -287,13 +287,13 @@ export default class AuthRequestHandler {
         .map(([address, allowed]) => (allowed ? address : ''))
         .filter((item) => (item !== ''));
 
-      let allowedListByRequestType = [...request.allowedAccounts];
+      const allowedListByRequestType = [...request.allowedAccounts];
 
-      if (accountAuthType === 'evm') {
-        allowedListByRequestType = allowedListByRequestType.filter((a) => isEthereumAddress(a));
-      } else if (accountAuthType === 'substrate') {
-        allowedListByRequestType = allowedListByRequestType.filter((a) => !isEthereumAddress(a));
-      }
+      // if (accountAuthType === 'evm') {
+      //   allowedListByRequestType = allowedListByRequestType.filter((a) => isEthereumAddress(a));
+      // } else if (accountAuthType === 'substrate') {
+      //   allowedListByRequestType = allowedListByRequestType.filter((a) => !isEthereumAddress(a));
+      // }
 
       if (!confirmAnotherType && !request.reConfirm && allowedListByRequestType.length !== 0) {
         // Prevent appear confirmation popup
