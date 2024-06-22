@@ -31,6 +31,10 @@ export async function changeAuthorizationPerAccount (address: string, connectVal
   return sendMessage('pri(authorize.changeSitePerAccount)', { address, url, connectValue }, callback);
 }
 
+export async function changeAuthorizationPerAccountProxy (accountProxyId: string, connectValue: boolean, url: string, callback: (data: AuthUrls) => void): Promise<boolean> {
+  return sendMessage('pri(authorize.changeSitePerAccountProxy)', { proxyId: accountProxyId, url, connectValue }, callback);
+}
+
 export async function changeAuthorizationPerSite (request: RequestAuthorizationPerSite): Promise<boolean> {
   return sendMessage('pri(authorize.changeSitePerSite)', request);
 }

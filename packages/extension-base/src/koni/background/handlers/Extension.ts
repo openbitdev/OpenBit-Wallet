@@ -7,8 +7,8 @@ import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountExternalError, AccountExternalErrorCode, AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountMeta, RequestAccountProxyCreateSuri, RequestAccountProxyEdit, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
-import { AccountAuthType, AccountJson, AccountProxy, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountProxy, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
+import { AccountExternalError, AccountExternalErrorCode, AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountMeta, RequestAccountProxyCreateSuri, RequestAccountProxyEdit, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerAccountProxy, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountJson, AccountProxy, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountProxy, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, BTC_DUST_AMOUNT, SUPPORT_KEYPAIR_TYPES, XCM_FEE_RATIO, XCM_MIN_AMOUNT_RATIO } from '@subwallet/extension-base/constants';
 import { ALLOWED_PATH } from '@subwallet/extension-base/defaults';
@@ -107,6 +107,7 @@ function transformAccountProxies (accounts: SubjectInfo): AccountProxy[] {
     if (!proxyMap[proxyId].accounts.length) {
       proxyMap[proxyId].name = accountToAdd.name;
       proxyMap[proxyId].isMaster = accountToAdd.isMasterAccount;
+      proxyMap[proxyId].isReadOnly = accountToAdd.isReadOnly;
     }
 
     proxyMap[proxyId].accounts.push(accountToAdd);
@@ -862,33 +863,22 @@ export default class KoniExtension {
     return true;
   }
 
-  private getAccounts (): string[] {
-    const storedAccounts = this.#koniState.keyringService.accounts;
-    const transformedAccounts = transformAccounts(storedAccounts);
-
-    return transformedAccounts.map((a) => a.address);
-  }
-
-  private filterAccountsByAccountAuthType (accounts: string[], accountAuthType?: AccountAuthType): string[] {
-    return accounts.filter((a) => isAddressValidWithAuthType(a, accountAuthType));
-  }
-
   private _changeAuthorizationAll (connectValue: boolean, callBack?: (value: AuthUrls) => void) {
     this.#koniState.getAuthorize((value) => {
       assert(value, 'The source is not known');
-
-      const accounts = this.getAccounts();
 
       Object.keys(value).forEach((url) => {
         if (!value[url].isAllowed) {
           return;
         }
 
-        const targetAccounts = this.filterAccountsByAccountAuthType(accounts, value[url].accountAuthType);
+        for (const address in this.#koniState.keyringService.accounts) {
+          const singleAddress = this.#koniState.keyringService.accounts[address];
 
-        targetAccounts.forEach((address) => {
-          value[url].isAllowedMap[address] = connectValue;
-        });
+          if (!singleAddress.json.meta.isReadOnly) {
+            value[url].isAllowedMap[address] = connectValue;
+          }
+        }
       });
       this.#koniState.setAuthorize(value, () => {
         callBack && callBack(value);
@@ -914,12 +904,14 @@ export default class KoniExtension {
     this.#koniState.getAuthorize((value) => {
       assert(value[url], 'The source is not known');
 
-      const accounts = this.getAccounts();
-      const targetAccounts = this.filterAccountsByAccountAuthType(accounts, value[url].accountAuthType);
+      for (const address in this.#koniState.keyringService.accounts) {
+        const singleAddress = this.#koniState.keyringService.accounts[address];
 
-      targetAccounts.forEach((address) => {
-        value[url].isAllowedMap[address] = connectValue;
-      });
+        if (!singleAddress.json.meta.isReadOnly) {
+          value[url].isAllowedMap[address] = connectValue;
+        }
+      }
+
       this.#koniState.setAuthorize(value, () => {
         callBack && callBack(value);
       });
@@ -954,6 +946,7 @@ export default class KoniExtension {
     return true;
   }
 
+  // deprecated
   private _changeAuthorizationPerAcc (address: string, connectValue: boolean, url: string, callBack?: (value: AuthUrls) => void) {
     this.#koniState.getAuthorize((value) => {
       assert(value, 'The source is not known');
@@ -967,6 +960,27 @@ export default class KoniExtension {
       } else {
         callBack && callBack(value);
       }
+    });
+  }
+
+  private _changeAuthorizationPerAccountProxy (proxyId: string, connectValue: boolean, url: string, callBack?: (value: AuthUrls) => void) {
+    this.#koniState.getAuthorize((value) => {
+      assert(value, 'The source is not known');
+
+      this.#koniState.setAuthorize(value, () => {
+        const accounts = this.#koniState.keyringService.accounts;
+
+        for (const address in accounts) {
+          const singleAddress = accounts[address];
+          const _proxyId = (singleAddress.json.meta.proxyId || '') as string;
+
+          if (_proxyId && _proxyId === proxyId && !singleAddress.json.meta.isReadOnly) {
+            value[url].isAllowedMap[singleAddress.json.address] = connectValue;
+          }
+        }
+
+        callBack && callBack(value);
+      });
     });
   }
 
@@ -994,6 +1008,20 @@ export default class KoniExtension {
     const cb = createSubscription<'pri(authorize.changeSitePerAccount)'>(id, port);
 
     this._changeAuthorizationPerAcc(data.address, data.connectValue, data.url, (items) => {
+      cb(items);
+    });
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
+    return true;
+  }
+
+  private changeAuthorizationPerAccountProxy (data: RequestAuthorizationPerAccountProxy, id: string, port: chrome.runtime.Port): boolean {
+    const cb = createSubscription<'pri(authorize.changeSitePerAccountProxy)'>(id, port);
+
+    this._changeAuthorizationPerAccountProxy(data.proxyId, data.connectValue, data.url, (items) => {
       cb(items);
     });
 
@@ -5098,6 +5126,8 @@ export default class KoniExtension {
         return this.changeAuthorization(request as RequestAuthorization, id, port);
       case 'pri(authorize.changeSitePerAccount)':
         return this.changeAuthorizationPerAcc(request as RequestAuthorizationPerAccount, id, port);
+      case 'pri(authorize.changeSitePerAccountProxy)':
+        return this.changeAuthorizationPerAccountProxy(request as RequestAuthorizationPerAccountProxy, id, port);
       case 'pri(authorize.changeSitePerSite)':
         return this.changeAuthorizationPerSite(request as RequestAuthorizationPerSite);
       case 'pri(authorize.changeSiteBlock)':

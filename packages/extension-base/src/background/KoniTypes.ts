@@ -103,6 +103,10 @@ export interface RequestAuthorizationPerAccount extends RequestAuthorization {
   address: string;
 }
 
+export interface RequestAuthorizationPerAccountProxy extends RequestAuthorization {
+  proxyId: string;
+}
+
 // Manage single site with multi account
 
 export interface RequestAuthorizationPerSite {
@@ -2362,6 +2366,7 @@ export interface KoniRequestSignatures {
   'pri(authorize.changeSiteAll)': [RequestAuthorizationAll, boolean, AuthUrls];
   'pri(authorize.changeSite)': [RequestAuthorization, boolean, AuthUrls];
   'pri(authorize.changeSitePerAccount)': [RequestAuthorizationPerAccount, boolean, AuthUrls];
+  'pri(authorize.changeSitePerAccountProxy)': [RequestAuthorizationPerAccountProxy, boolean, AuthUrls];
   'pri(authorize.changeSitePerSite)': [RequestAuthorizationPerSite, boolean];
   'pri(authorize.changeSiteBlock)': [RequestAuthorizationBlock, boolean];
   'pri(authorize.forgetSite)': [RequestForgetSite, boolean, AuthUrls];

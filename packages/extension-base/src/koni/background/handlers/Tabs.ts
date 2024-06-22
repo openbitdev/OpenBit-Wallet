@@ -94,6 +94,12 @@ const getAuthAddresses = (addresses: string[]) => {
       return;
     }
 
+    const pair = keyring.getPair(address);
+
+    if (pair.meta.isReadOnly) {
+      return;
+    }
+
     const item: AuthAddress = {
       address,
       type: (() => {
@@ -115,14 +121,6 @@ const getAuthAddresses = (addresses: string[]) => {
 
     if (['bittest-84', 'bittest-86'].includes(keypairType)) {
       item.isTestnet = true;
-    }
-
-    const pair = keyring.getPair(address);
-
-    if (pair.meta.isReadOnly) {
-      result.push(item);
-
-      return;
     }
 
     const deriFunc = getDerivePath(keypairType);
