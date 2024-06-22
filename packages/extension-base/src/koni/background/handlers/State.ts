@@ -1464,7 +1464,7 @@ export default class KoniState {
     const transactionEmitter = await this.transactionService.addTransaction({
       transaction: requestPayload,
       address: requestPayload.from as string,
-      isEditFee: true,
+      isFeeEditable: true,
       chain: networkKey,
       url,
       data: transactionData,

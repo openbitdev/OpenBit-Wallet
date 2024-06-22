@@ -1377,6 +1377,7 @@ export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   id: string;
   payload: unknown;
   payloadJson: any;
+  isFeeEditable ?: boolean
 }
 
 export interface BitcoinAppState {
