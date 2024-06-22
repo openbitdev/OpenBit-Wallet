@@ -1377,7 +1377,6 @@ export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   id: string;
   payload: unknown;
   payloadJson: any;
-  isFeeEditable ?: boolean
 }
 
 export interface BitcoinAppState {
@@ -1393,7 +1392,9 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends BitcoinSignRequest, BitcoinTransactionConfig {}
+export interface BitcoinSendTransactionRequest extends BitcoinSignatureRequest, BitcoinTransactionConfig {
+  isFeeEditable?: boolean
+}
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
