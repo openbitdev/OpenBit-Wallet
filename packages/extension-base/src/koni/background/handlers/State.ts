@@ -6,10 +6,11 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
-import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
+import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL, XCM_FEE_RATIO } from '@subwallet/extension-base/constants';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
+import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
 import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
@@ -38,8 +39,14 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
-import { BalanceItem, BalanceMap, EvmFeeInfo } from '@subwallet/extension-base/types';
-import { isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
+import {
+  BalanceItem,
+  BalanceMap,
+  DetermineUtxosForSpendArgs,
+  EvmFeeInfo,
+  FeeCustom, FeeOption
+} from '@subwallet/extension-base/types';
+import { determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, getSizeInfo, isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -1302,6 +1309,230 @@ export default class KoniState {
           throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
         }
       });
+  }
+
+  public async bitcoinSendTransaction (id: string, url: string, networkKey: string, allowedAccounts: string[], transactionParams: BitcoinSendTransactionParams): Promise<string | undefined> {
+    const bitcoinApi = this.getBitcoinApi(networkKey);
+    const bitcoinNetwork = this.getChainInfo(networkKey);
+    const apiStrategy = bitcoinApi.api;
+
+    const autoFormatNumber = (val?: string | number): string | undefined => {
+      if (typeof val === 'string' && val.startsWith('0x')) {
+        return new BN(val.replace('0x', ''), 16).toString();
+      } else if (typeof val === 'number') {
+        return val.toString();
+      }
+
+      return val;
+    };
+
+    if (transactionParams.recipients.length !== 1) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Receiving address must be a single account'));
+    }
+
+    if (transactionParams.account === transactionParams.recipients[0].address) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Receiving address must be different from sending address'));
+    }
+
+    const transaction: BitcoinTransactionConfig = {
+      from: transactionParams.account,
+      to: transactionParams.recipients[0].address,
+      value: autoFormatNumber(transactionParams.recipients[0].amount),
+      chain: transactionParams.network
+    };
+
+    // Address is validated in before step
+    const fromAddress = allowedAccounts.find((account) => (account.toLowerCase() === (transaction.from as string).toLowerCase()));
+
+    if (!fromAddress) {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
+    }
+
+    const pair = keyring.getPair(fromAddress);
+
+    if (!pair) {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
+    }
+
+    const account: AccountJson = { address: pair.address, ...pair.meta };
+
+    // Calculate transaction data
+    const feeOptions = await apiStrategy.getRecommendedFeeRate();
+    const optionDefault = feeOptions.options.default;
+
+    const utxos = await getTransferableBitcoinUtxos(bitcoinApi, transaction.value as string);
+    const determineUtxosArgs: DetermineUtxosForSpendArgs = {
+      amount: parseInt(transaction.value as string || '0'),
+      feeRate: transaction.fee?.options[optionDefault].feeRate,
+      recipient: transaction.to as string,
+      sender: account.address,
+      utxos
+    };
+
+    const fallbackCalculate = (recipients: string[]) => {
+      const utxos = filterUneconomicalUtxos({
+        utxos: determineUtxosArgs.utxos,
+        feeRate: determineUtxosArgs.feeRate,
+        recipients,
+        sender: determineUtxosArgs.sender
+      });
+
+      const { txVBytes: vSize } = getSizeInfo({
+        inputLength: utxos.length || 1,
+        sender: fromAddress,
+        recipients
+      });
+
+      return {
+        vSize,
+        maxTransferable: utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0)),
+        estimatedFee: Math.ceil(determineUtxosArgs.feeRate * vSize).toString()
+      };
+    };
+
+    const getBalance = async (recipientAddress: string) => {
+      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, recipientAddress);
+
+      let balanceValue = new BigN(0);
+
+      filteredUtxos.forEach((utxo) => {
+        balanceValue = balanceValue.plus(utxo.value);
+      });
+
+      return balanceValue;
+    };
+
+    const balance = await getBalance(transaction.to);
+    let maxTransferable = maxTransferable
+      .minus(new BigN(estimatedFeeMax));
+
+    try {
+      const { fee: _estimatedFee, inputs } = determineUtxosForSpend(determineUtxosArgs);
+
+      maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
+
+      const { txVBytes: vSize } = getSizeInfo({
+        inputLength: inputs.length,
+        sender: address,
+        recipients
+      });
+
+      estimatedFee = new BigN(_estimatedFee).toFixed(0);
+      feeOptions = {
+        ..._fee,
+        estimatedFee,
+        vSize
+      };
+
+      if (transferAll) {
+        estimatedFeeMax = new BigN(_estimatedFee).toFixed(0);
+      } else {
+        try {
+          const { fee: estimateFeeMax, inputs } = determineUtxosForSpendAll(determineUtxosArgs);
+
+          maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
+          estimatedFeeMax = new BigN(estimateFeeMax).toFixed(0);
+        } catch (_e) {
+          const fb = fallbackCalculate([to || address]);
+
+          maxTransferable = fb.maxTransferable;
+          estimatedFeeMax = fb.estimatedFee;
+        }
+      }
+    } catch (_e) {
+      const fb = fallbackCalculate([to || address]);
+
+      maxTransferable = fb.maxTransferable;
+      estimatedFeeMax = fb.estimatedFee;
+
+      if (!feeOptions) {
+        const fb = fallbackCalculate([address, to || address]);
+
+        estimatedFee = fb.estimatedFee;
+
+        feeOptions = {
+          ..._fee,
+          estimatedFee,
+          vSize: fb.vSize
+        };
+      }
+    }
+
+    // Validate balance
+    if (balance.lt(new BN(estimateGas).add(new BN(autoFormatNumber(transactionParams.recipients[0].amount) || '0')))) {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
+    }
+
+    transaction.nonce = await web3.eth.getTransactionCount(fromAddress);
+
+    const hashPayload = this.transactionService.generateHashPayload(networkKey, transaction);
+    const isToContract = await isContractAddress(transaction.to || '', evmApi);
+    const parseData = isToContract
+      ? transaction.data
+        ? (await parseContractInput(transaction.data, transaction.to || '', evmNetwork)).result
+        : ''
+      : transaction.data || '';
+
+    const requestPayload: EvmSendTransactionRequest = {
+      ...transaction,
+      estimateGas,
+      hashPayload,
+      isToContract,
+      parseData: parseData,
+      account: account,
+      canSign: true
+    };
+
+    const eType = transaction.value ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.EVM_EXECUTE;
+
+    const transactionData = { ...transaction };
+    const token = this.chainService.getNativeTokenInfo(networkKey);
+
+    if (eType === ExtrinsicType.TRANSFER_BALANCE) {
+      // @ts-ignore
+      transactionData.tokenSlug = token.slug;
+    }
+
+    // Custom handle this instead of general handler transaction
+    const transactionEmitter = await this.transactionService.addTransaction({
+      transaction: requestPayload,
+      address: requestPayload.from as string,
+      chain: networkKey,
+      url,
+      data: transactionData,
+      extrinsicType: eType,
+      chainType: ChainType.BITCOIN,
+      feeOption: {},
+      feeCustom: {},
+      estimateFee: {
+        value: '0',
+        symbol: token.symbol,
+        decimals: token.decimals || 18
+      },
+      id
+    });
+
+    // Wait extrinsic hash
+    return new Promise((resolve, reject) => {
+      transactionEmitter.on('extrinsicHash', (rs: TransactionEventResponse) => {
+        resolve(rs.extrinsicHash);
+      });
+
+      // Mapping error for evmProvider
+      transactionEmitter.on('error', (rs: TransactionEventResponse) => {
+        let evmProviderError = new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR);
+
+        const errorType = (rs.errors[0]?.errorType || BasicTxErrorType.INTERNAL_ERROR);
+
+        if (errorType === BasicTxErrorType.USER_REJECT_REQUEST || errorType === BasicTxErrorType.UNABLE_TO_SIGN) {
+          evmProviderError = new EvmProviderError(EvmProviderErrorType.USER_REJECTED_REQUEST);
+        } else if (errorType === BasicTxErrorType.UNABLE_TO_SEND) {
+          evmProviderError = new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR, rs.errors[0]?.message);
+        }
+
+        reject(evmProviderError);
+      });
+    });
   }
 
   public refreshSubstrateApi (key: string) {

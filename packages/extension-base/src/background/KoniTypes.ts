@@ -12,13 +12,14 @@ import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi,
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import { BitcoinTransactionData, SWTransactionResponse, SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
-import { BalanceJson, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
+import { BalanceJson, BitcoinFeeDetail, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
 import { InjectedAccount, InjectedAccountWithMeta, MetadataDefBase } from '@subwallet/extension-inject/types';
 import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { PsbtTxInput } from 'bitcoinjs-lib/src/psbt';
+import BN from 'bn.js';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
 import { RequestArguments, TransactionConfig } from 'web3-core';
@@ -27,6 +28,7 @@ import { JsonRpcPayload, JsonRpcResponse } from 'web3-core-helpers';
 import { SignerResult } from '@polkadot/types/types/extrinsic';
 import { HexString } from '@polkadot/util/types';
 
+import { BitcoinApiStrategy } from '../../build/services/chain-service/handler/bitcoin/strategy/types';
 import { TransactionWarning } from './warnings/TransactionWarning';
 
 export enum RuntimeEnvironment {
@@ -1332,6 +1334,17 @@ export interface BitcoinSignRequest {
   canSign: boolean;
 }
 
+export interface BitcoinRecipientTransactionParams{
+  address: string;
+  amount: string;
+}
+
+export interface BitcoinSendTransactionParams {
+  account: string;
+  network: 'mainnet' | 'testnet';
+  recipients: BitcoinRecipientTransactionParams[]
+}
+
 export interface BitcoinSignPsbtPayload extends Omit<BitcoinSignPsbtRawRequest, 'psbt'>{
   txInput: PsbtTxInput[];
   txOutput: PsbtTxOutput[];
@@ -1348,8 +1361,8 @@ enum SignatureHash {
 
 export interface BitcoinSignPsbtRawRequest {
   psbt: string;
-  allowedSighash ?: SignatureHash[];
-  signAtIndex?:  number | number[];
+  allowedSighash?: SignatureHash[];
+  signAtIndex?: number | number[];
   broadcast?: boolean;
   network: 'mainnet' | 'testnet';
   account: string;
@@ -1364,6 +1377,13 @@ export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   id: string;
   payload: unknown;
   payloadJson: any;
+}
+
+export interface BitcoinAppState {
+  networkKey?: string,
+  isConnected?: boolean,
+  strategy?: BitcoinApiStrategy,
+  listenEvents?: string[]
 }
 
 export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignRequest {
@@ -1384,6 +1404,14 @@ export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
   address?: string;
   networkKey?: string;
+}
+
+export interface BitcoinTransactionConfig{
+  from?: string | number;
+  to?: string;
+  value?: number | string | BN;
+  chain?: string;
+  fee?: BitcoinFeeDetail;
 }
 
 export interface SignMessageBitcoinResult {
