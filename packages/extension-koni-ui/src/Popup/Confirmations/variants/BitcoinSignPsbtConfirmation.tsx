@@ -22,7 +22,7 @@ interface Props extends ThemeProps {
 function Component ({ className, request, type }: Props) {
   const { id, payload } = request;
   const { t } = useTranslation();
-  const { accounts } = payload;
+  const { account } = payload;
 
   const onClickDetail = useOpenDetailModal();
 
@@ -36,16 +36,15 @@ function Component ({ className, request, type }: Props) {
         <div className='description'>
           {t('You are approving a request with the following account')}
         </div>
-        {accounts.map((account) =>
-          <AccountItemWithName
-            accountName={account.name}
-            address={account.address}
-            avatarSize={24}
-            className='account-item'
-            isSelected={true}
-            key={account.address}
-            proxyId={account.proxyId}
-          />)}
+        <AccountItemWithName
+          accountName={account.name}
+          address={account.address}
+          avatarSize={24}
+          className='account-item'
+          isSelected={true}
+          key={account.address}
+          proxyId={account.proxyId}
+        />
         <div>
           <Button
             icon={<ViewDetailIcon />}

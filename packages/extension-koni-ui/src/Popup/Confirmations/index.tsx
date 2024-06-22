@@ -94,7 +94,7 @@ const Component = function ({ className }: Props) {
         account = request.payload.account;
         canSign = request.payload.canSign;
         isMessage = confirmation.type === 'evmSignatureRequest';
-      } else if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinWatchTransactionRequest'].includes(confirmation.type)) {
+      } else if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinWatchTransactionRequest', 'bitcoinSignPsbtRequest'].includes(confirmation.type)) {
         const request = confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest'][0];
 
         account = request.payload.account;

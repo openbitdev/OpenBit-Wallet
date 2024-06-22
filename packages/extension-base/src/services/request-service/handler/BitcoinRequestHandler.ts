@@ -7,13 +7,12 @@ import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/bac
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
-import { getKeypairTypeByAddress } from '@subwallet/keyring';
 import keyring from '@subwallet/ui-keyring';
 import { Psbt } from 'bitcoinjs-lib';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
 
-import { logger as createLogger } from '@polkadot/util';
+import { isArray, logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 
 export default class BitcoinRequestHandler {
@@ -200,54 +199,47 @@ export default class BitcoinRequestHandler {
 
   private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
     // Extract necessary information from the BitcoinSendTransactionRequest
-    const { accounts, payload } = request.payload;
-    const { broadcast, psbt, signingIndexes } = payload;
+    const { account, payload } = request.payload;
+    const { allowedSighash, broadcast, network, psbt, signAtIndex } = payload;
 
     // todo: validate type of the account
 
-    if (accounts.length === 0) {
+    if (Object.keys(account).length === 0) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Please connect to Wallet to try this request');
     }
 
-    const psbtList = accounts.map(({ address }) => {
-      const pair = keyring.getPair(address);
+    const pair = keyring.getPair(account.address);
 
-      // Unlock the pair if it is locked
-      if (pair.isLocked) {
-        keyring.unlockPair(pair.address);
-      }
+    // Unlock the pair if it is locked
+    if (pair.isLocked) {
+      keyring.unlockPair(pair.address);
+    }
 
-      // Sign the Psbt using the pair's bitcoin object
-      const signedTransaction = pair.bitcoin.signTransaction(psbt, signingIndexes[address]);
+    const signAtIndexGenerate = signAtIndex ? (isArray(signAtIndex) ? signAtIndex : [signAtIndex]) : [psbt.inputCount];
 
-      return signedTransaction.finalizeAllInputs();
-    });
-
-    const psbtCombine = psbtList[0].combine(...psbtList);
+    // Sign the Psbt using the pair's bitcoin object
+    const psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
 
     if (!broadcast) {
+      for (const index of signAtIndexGenerate) {
+        psptSignedTransaction.finalizeInput(index);
+      }
+
       return {
-        psbt: psbtCombine.toHex()
+        psbt: psptSignedTransaction.toHex()
       };
     }
 
-    const addressType = getKeypairTypeByAddress(accounts[0].address);
+    psptSignedTransaction.finalizeAllInputs();
 
-    // todo: this is hotfix, will update logic to get chain value later
-    const chain = (() => {
-      if (['bittest-86', 'bittest-84'].includes(addressType)) {
-        return 'bitcoinTestnet';
-      }
+    const chain = network === 'mainnet' ? 'bitcoin' : 'bitcoinTestnet';
 
-      return 'bitcoin';
-    })();
-
-    const txid = await this.#chainService.getBitcoinApi(chain).api.simpleSendRawTransaction(psbt.extractTransaction().toHex());
+    const txid = await this.#chainService.getBitcoinApi(chain).api.simpleSendRawTransaction(psptSignedTransaction.extractTransaction().toHex());
 
     console.log('TXID', txid);
 
     return {
-      psbt: psbtCombine.toHex(),
+      psbt: psptSignedTransaction.toHex(),
       txid
     };
   }

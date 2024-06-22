@@ -75,7 +75,7 @@ function transformAccountsV2 (accounts: SubjectInfo, anyType = false, authInfo?:
     .filter(({ json: { meta: { isHidden } } }) => !isHidden)
     .filter(({ type }) => anyType ? true : canDerive(type))
     .filter(authTypeFilter)
-    .filter(({ json: { address } }) => accountSelected.includes(address) && (accountAuthType !== 'bitcoin' || !isEthereumAddress(address)))
+    .filter(({ json: { address } }) => accountSelected.includes(address))
     .sort((a, b) => (a.json.meta.whenCreated || 0) - (b.json.meta.whenCreated || 0))
     .map(({ json: { address, meta: { genesisHash, name } }, type }): InjectedAccount => ({
       address,
