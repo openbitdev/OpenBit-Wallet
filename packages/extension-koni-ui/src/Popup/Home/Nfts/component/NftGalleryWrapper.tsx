@@ -24,6 +24,8 @@ function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer
 
   const [showImage, setShowImage] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
+  const [showAudio, setShowAudio] = useState(false);
+  const [showTextPlain, setShowTextPlain] = useState(false);
   const [show3dViewer, setShow3dViewer] = useState(false);
 
   const onClick = useCallback(() => {
@@ -37,21 +39,23 @@ function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer
 
   const handleVideoError = useCallback(() => {
     setShowVideo(false);
+    setShowTextPlain(true);
+  }, []);
+
+  const handleTextPlainError = useCallback(() => {
+    setShowTextPlain(false);
+    setShowAudio(true);
+  }, []);
+
+  const handleAudioError = useCallback(() => {
+    setShowAudio(false);
     setShow3dViewer(true);
   }, []);
 
   const getCollectionImage = useCallback(() => {
     if (image) {
-      if (image.startsWith('https://ordinals.com/preview/')) {
-        return image.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
-      }
-
       return image;
     } else if (fallbackImage) {
-      if (fallbackImage.startsWith('https://ordinals.com/preview/')) {
-        return fallbackImage.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
-      }
-
       return fallbackImage;
     }
 
@@ -103,6 +107,36 @@ function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer
       );
     }
 
+    if (showTextPlain) {
+      return (
+        <LazyLoadComponent>
+          <iframe
+            className={'__nft-text-content'}
+            height={'171px'}
+            onError={handleTextPlainError}
+            src={getCollectionImage()}
+            width={'171px'}
+          ></iframe>
+        </LazyLoadComponent>
+      );
+    }
+
+    if (showAudio) {
+      return (
+        <LazyLoadComponent>
+          <audio
+            autoPlay={false}
+            controls
+            controlsList={'nodownload'}
+            loop
+            muted
+            onError={handleAudioError}
+            src={getCollectionImage()}
+          />
+        </LazyLoadComponent>
+      );
+    }
+
     if (have3dViewer && show3dViewer) {
       return (
         <LazyLoadComponent>
@@ -135,7 +169,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer
         visibleByDefault={true}
       />
     );
-  }, [showImage, showVideo, have3dViewer, show3dViewer, extendToken.defaultImagePlaceholder, handleImageError, loadingPlaceholder, getCollectionImage, handleVideoError]);
+  }, [extendToken.defaultImagePlaceholder, getCollectionImage, handleAudioError, handleImageError, handleTextPlainError, handleVideoError, have3dViewer, loadingPlaceholder, show3dViewer, showAudio, showImage, showTextPlain, showVideo]);
 
   return (
     <NftItem_
@@ -155,6 +189,11 @@ export const NftGalleryWrapper = styled(Component)<Props>(({ theme: { token } }:
 
     '.__image-wrapper': {
       overflow: 'hidden'
+    },
+
+    '.__nft-text-content': {
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8
     },
 
     '.nft_gallery_wrapper__loading': {

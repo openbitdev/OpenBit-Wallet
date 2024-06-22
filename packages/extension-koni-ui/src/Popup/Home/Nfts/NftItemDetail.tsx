@@ -1,6 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _AssetType } from '@subwallet/chain-list/types';
+import { RMRK_VER } from '@subwallet/extension-base/background/KoniTypes';
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
 import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
@@ -35,9 +37,29 @@ const modalCloseButton = <Icon
   weight={'light'}
 />;
 
+export interface NftItemWrapper {
+  id: string;
+  chain: string;
+  collectionId: string;
+  owner: string;
+  originAsset?: string;
+  name?: string;
+  image?: string;
+  externalUrl?: string;
+  rarity?: string;
+  description?: string;
+  properties?: {
+    [key: string]: {
+      value: string;
+    };
+  } | null;
+  type?: _AssetType.ERC721 | _AssetType.PSP34 | RMRK_VER;
+  rmrk_ver?: RMRK_VER;
+  onChainOption?: any;
+}
+
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const location = useLocation();
-  const { extendToken } = useTheme() as Theme;
   const { collectionInfo, nftItem } = location.state as INftItemDetail;
 
   const { t } = useTranslation();
@@ -146,54 +168,21 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     return false;
   }, [ordinalNftItem]);
-  const isImageInscription = useMemo(() => {
-    if (nftItem && nftItem.properties && nftItem.properties.content_type) {
-      return nftItem?.properties.content_type.value.startsWith('image');
+
+  const getContentStartsWith = (nftItem: NftItemWrapper, type: string) => {
+    if (nftItem && nftItem.properties && nftItem.properties.content_type && nftItem.properties.content_type.value) {
+      return nftItem?.properties?.content_type?.value.startsWith(type) || false;
     }
 
     return false;
-  }, [nftItem]);
+  };
 
-  const isVideoInscription = useMemo(() => {
-    if (nftItem && nftItem.properties && nftItem.properties.content_type) {
-      return nftItem?.properties.content_type.value.startsWith('video');
-    }
-
-    return false;
-  }, [nftItem]);
-
-  const isAudioInscription = useMemo(() => {
-    if (nftItem && nftItem.properties && nftItem.properties.content_type) {
-      return nftItem?.properties.content_type.value.startsWith('audio');
-    }
-
-    return false;
-  }, [nftItem]);
-
-  const getCollectionImage = useCallback(() => {
-    if (nftItem.image) {
-      if (nftItem.image.startsWith('https://ordinals.com/preview/')) {
-        return nftItem.image.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
-      }
-
-      return nftItem.image;
-    } else if (nftItem.image) {
-      if (nftItem.image.startsWith('https://ordinals.com/preview/')) {
-        return nftItem.image.replace('https://ordinals.com/preview/', 'https://ordinals.com/content/');
-      }
-
-      return nftItem.image;
-    }
-
-    return extendToken.defaultImagePlaceholder;
-  }, [extendToken.defaultImagePlaceholder, nftItem.image]);
-
-  console.log('isInscription', isInscription);
-  console.log('ordinalNftItem', ordinalNftItem);
-  console.log('nftItem', nftItem);
-  console.log('collectionInfo', collectionInfo);
-  console.log('isVideoInscription', isVideoInscription);
-  console.log('isAudioInscription', isAudioInscription);
+  // const isImageInscription = useMemo(() => getContentStartsWith(nftItem, 'image'), [nftItem]);
+  const isImageSVGInscription = useMemo(() => getContentStartsWith(nftItem, 'image/svg'), [nftItem]);
+  const isVideoInscription = useMemo(() => getContentStartsWith(nftItem, 'video'), [nftItem]);
+  const isAudioInscription = useMemo(() => getContentStartsWith(nftItem, 'audio'), [nftItem]);
+  const isTextPlainInscription = useMemo(() => getContentStartsWith(nftItem, 'text'), [nftItem]);
+  const isModelGltfInscription = useMemo(() => getContentStartsWith(nftItem, 'model/gltf'), [nftItem]);
 
   return (
     <PageWrapper
@@ -226,23 +215,29 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 width={'100%'}
               >
                 <source
-                  src={getCollectionImage()}
+                  src={nftItem.image}
                   type='video/mp4'
                 />
               </video>
             )}
             {isAudioInscription && (
-              <audio
-                autoPlay
-                loop={true}
-              >
-                <source
-                  src={getCollectionImage()}
-                  type='audio'
+              <div className={'__nft-audio'}>
+                <audio
+                  autoPlay
+                  controls
+                  controlsList={'nodownload'}
+                  loop
+                  src={nftItem.image}
                 />
-              </audio>
+              </div>
             )}
-            {!(isInscription && nftItem.description) && !isVideoInscription && (
+            {(isTextPlainInscription || isModelGltfInscription || isImageSVGInscription) && (
+              <iframe
+                className={'__nft-text-content'}
+                src={nftItem.image}
+              ></iframe>
+            )}
+            {!(isInscription && nftItem.description) && !isTextPlainInscription && !isAudioInscription && !isVideoInscription && !isModelGltfInscription && !isImageSVGInscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
                 height={358}
@@ -379,6 +374,15 @@ const NftItemDetail = styled(Component)<Props>(({ theme: { token } }: Props) => 
 
     '.clickable': {
       cursor: 'pointer'
+    },
+    '.__nft-audio': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+
+    '.__nft-text-content': {
+      flex: 1
     },
 
     '.nft_item_detail__info_container': {
