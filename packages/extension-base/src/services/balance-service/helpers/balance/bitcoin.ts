@@ -9,7 +9,6 @@ import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/ty
 import { _getChainNativeTokenSlug, _getRuneId } from '@subwallet/extension-base/services/chain-service/utils';
 import { BalanceItem, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { filterAssetsByChainAndType, filteredOutTxsUtxos, getInscriptionUtxos, getRuneUtxos } from '@subwallet/extension-base/utils';
-import BigN from 'bignumber.js';
 
 // todo: update bitcoin params
 function subscribeRuneBalance (bitcoinApi: _BitcoinApi, addresses: string[], assetMap: Record<string, _ChainAsset>, chainInfo: _ChainInfo, callback: (rs: BalanceItem[]) => void) {
@@ -161,17 +160,11 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
   return await Promise.all(addresses.map(async (address) => {
     try {
-      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
+      const addressInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
 
-      let balanceValue = new BigN(0);
-
-      filteredUtxos.forEach((utxo) => {
-        balanceValue = balanceValue.plus(utxo.value);
-      });
-
-      return balanceValue.toString();
+      return addressInfo.balance.toString();
     } catch (error) {
-      console.log('Error while fetching Bitcoin balances', error);
+      console.log(`Error while fetching Bitcoin balances for address ${address}`, error);
 
       return '0';
     }
