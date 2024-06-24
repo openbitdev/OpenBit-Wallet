@@ -65,7 +65,8 @@ export const _NFT_CHAIN_GROUP = {
   unique_network: ['unique_network', 'quartz', 'opal'],
   bitcountry: ['bitcountry', 'pioneer', 'continuum_network'],
   vara: ['vara_network'],
-  bitcoin: ['bitcoin']
+  bitcoin: ['bitcoin'],
+  bitcoinTest: ['bitcoinTestnet']
 };
 
 // Staking--------------------------------------------------------------------------------------------------------------

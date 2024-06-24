@@ -3,7 +3,7 @@
 
 import { _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
 import { subscribeCrowdloan } from '@subwallet/extension-base/koni/api/dotsama/crowdloan';
-import { NftHandler } from '@subwallet/extension-base/koni/api/nft';
+import { NftService } from '@subwallet/extension-base/koni/api/nft';
 import { _EvmApi, _SubstrateApi } from '@subwallet/extension-base/services/chain-service/types';
 import { COMMON_RELOAD_EVENTS, EventItem, EventType } from '@subwallet/extension-base/services/event-service/types';
 import DatabaseService from '@subwallet/extension-base/services/storage-service/DatabaseService';
@@ -15,8 +15,6 @@ import { Logger } from '@polkadot/util/types';
 import KoniState from './handlers/State';
 
 type SubscriptionName = 'balance' | 'crowdloan' | 'yieldPoolStats' | 'yieldPosition';
-
-const nftHandler = new NftHandler();
 
 export class KoniSubscription {
   private eventHandler?: (events: EventItem<EventType>[], eventTypes: EventType[]) => void;
@@ -30,11 +28,13 @@ export class KoniSubscription {
   public dbService: DatabaseService;
   private state: KoniState;
   private logger: Logger;
+  private nftService: NftService;
 
   constructor (state: KoniState, dbService: DatabaseService) {
     this.dbService = dbService;
     this.state = state;
     this.logger = createLogger('Subscription');
+    this.nftService = this.state.nftService;
   }
 
   getSubscriptionMap () {
@@ -142,12 +142,12 @@ export class KoniSubscription {
   }
 
   initNftSubscription (addresses: string[], substrateApiMap: Record<string, _SubstrateApi>, evmApiMap: Record<string, _EvmApi>, smartContractNfts: _ChainAsset[], chainInfoMap: Record<string, _ChainInfo>) {
-    nftHandler.setChainInfoMap(chainInfoMap);
-    nftHandler.setDotSamaApiMap(substrateApiMap);
-    nftHandler.setWeb3ApiMap(evmApiMap);
-    nftHandler.setAddresses(addresses);
+    this.nftService.setChainInfoMap(chainInfoMap);
+    this.nftService.setDotSamaApiMap(substrateApiMap);
+    this.nftService.setWeb3ApiMap(evmApiMap);
+    this.nftService.setAddresses(addresses);
 
-    nftHandler.handleNfts(
+    this.nftService.handleNfts(
       smartContractNfts,
       (...args) => this.state.updateNftData(...args),
       (...args) => this.state.setNftCollection(...args)

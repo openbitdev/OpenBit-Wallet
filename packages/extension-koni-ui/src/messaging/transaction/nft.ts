@@ -19,6 +19,10 @@ export async function subscribeNftCollection (callback: (data: NftCollection[]) 
   return sendMessage('pri(nftCollection.getSubscription)', null, callback);
 }
 
+export async function loadMoreInscription () {
+  return sendMessage('pri(inscription.loadMoreInscription)');
+}
+
 export async function evmNftSubmitTransaction (request: NftTransactionRequest): Promise<SWTransactionResponse> {
   return sendMessage('pri(evmNft.submitTransaction)', request);
 }
