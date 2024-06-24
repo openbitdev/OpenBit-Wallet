@@ -86,3 +86,17 @@ export function getPreviewUrl (inscriptionId: string) {
     throw error;
   }
 }
+
+export function isValidBrc20Ticker (ticker: string) {
+  const bytesLength = getByteLength(ticker);
+
+  return bytesLength === 4 || bytesLength === 5;
+}
+
+function getByteLength (str: string): number {
+  const encoder = new TextEncoder();
+  const encodedStr = encoder.encode(str);
+
+  // Return the length of the encoded array, which represents the number of bytes
+  return encodedStr.length;
+}
