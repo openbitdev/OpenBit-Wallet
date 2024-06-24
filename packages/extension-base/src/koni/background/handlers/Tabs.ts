@@ -1169,9 +1169,29 @@ export default class KoniTabs {
         };
       }
 
+      const { proxyId: currentAccountProxy } = this.#koniState.keyringService.currentAccountProxy;
+
+      const addressesAllowed =
+        getAuthAddresses(Object.keys(authInfo.isAllowedMap)
+          .filter((k) => authInfo.isAllowedMap[k]))
+          .filter(({ address }) => !isEthereumAddress(address))
+          .reduce((listSorted, account) => {
+            const pair = keyring.getPair(account.address);
+
+            console.log(pair.meta.proxyId, currentAccountProxy, account.address);
+
+            if (pair.meta.proxyId === currentAccountProxy) {
+              listSorted.unshift(account);
+            } else {
+              listSorted.push(account);
+            }
+
+            return listSorted;
+          }, [] as AuthAddress[]);
+
       return {
         result: {
-          addresses: getAuthAddresses(Object.keys(authInfo.isAllowedMap).filter((k) => authInfo.isAllowedMap[k])).filter(({ address }) => !isEthereumAddress(address))
+          addresses: addressesAllowed
         }
       };
     } catch (e) {
