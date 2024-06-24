@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base
 // SPDX-License-Identifier: Apache-2.0
 
-import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
+import { APIItemState, BitcoinBalanceMetadata } from '@subwallet/extension-base/background/KoniTypes';
 import { BalanceItem } from '@subwallet/extension-base/types';
 import { sumBN } from '@subwallet/extension-base/utils';
 import BN from 'bn.js';
@@ -28,22 +28,15 @@ export const groupBalance = (items: BalanceItem[], address: string, token: strin
         : APIItemState.PENDING
   };
 
-  for (const item of items) {
-    if (item.substrateInfo) {
-      if (!result.substrateInfo) {
-        result.substrateInfo = { ...item.substrateInfo };
-      } else {
-        const old = { ...result.substrateInfo };
-        const _new = { ...item.substrateInfo };
+  let allInscription = 0;
 
-        result.substrateInfo = {
-          reserved: new BN(old.reserved || '0').add(new BN(_new.reserved || '0')).toString(),
-          feeFrozen: new BN(old.feeFrozen || '0').add(new BN(_new.feeFrozen || '0')).toString(),
-          miscFrozen: new BN(old.miscFrozen || '0').add(new BN(_new.miscFrozen || '0')).toString()
-        };
-      }
-    }
+  for (const item of items) {
+    const inscriptionCount = (item.metadata as BitcoinBalanceMetadata)?.inscriptionCount;
+
+    allInscription = inscriptionCount ? allInscription + inscriptionCount : allInscription;
   }
+
+  result.metadata = { inscriptionCount: allInscription } as BitcoinBalanceMetadata;
 
   return result;
 };
