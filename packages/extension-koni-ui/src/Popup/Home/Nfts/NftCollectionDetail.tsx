@@ -11,8 +11,7 @@ import useTranslation from '@subwallet/extension-koni-ui/hooks/common/useTransla
 import { loadMoreInscription } from '@subwallet/extension-koni-ui/messaging';
 import { InscriptionGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionGalleryWrapper';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
-import { INftCollectionDetail, INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
-import { getTotalCollectionItems, INftCollectionDetail, INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { getTotalCollectionItems, INftCollectionDetail, INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Input, SwList } from '@subwallet/react-ui';
