@@ -36,7 +36,6 @@ type SwInputBase = Pick<SWTransaction, 'address' | 'url' | 'data' | 'extrinsicTy
 
 export interface SWTransactionInput extends SwInputBase, Partial<Pick<SWTransaction, 'estimateFee'>>, TransactionFee {
   id?: string;
-  isFeeEditable?: boolean;
   transaction?: SWTransaction['transaction'] | null;
   warnings?: SWTransaction['warnings'];
   errors?: SWTransaction['errors'];

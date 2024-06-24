@@ -1392,9 +1392,7 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends BitcoinSignatureRequest, BitcoinTransactionConfig {
-  isFeeEditable?: boolean
-}
+export interface BitcoinSendTransactionRequest extends BitcoinSignRequest, BitcoinTransactionConfig {}
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
@@ -1412,7 +1410,7 @@ export interface BitcoinTransactionConfig{
   from?: string | number;
   to?: string;
   value?: number | string | BN;
-  chain?: string;
+  networkKey?: string;
   fee?: BitcoinFeeDetail;
 }
 
