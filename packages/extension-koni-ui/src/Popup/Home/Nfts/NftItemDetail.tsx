@@ -1,6 +1,8 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { _AssetType } from '@subwallet/chain-list/types';
+import { RMRK_VER } from '@subwallet/extension-base/background/KoniTypes';
 import { getExplorerLink } from '@subwallet/extension-base/services/transaction-service/utils';
 import { OrdinalRemarkData } from '@subwallet/extension-base/types';
 import DefaultLogosMap from '@subwallet/extension-koni-ui/assets/logo';
@@ -34,6 +36,27 @@ const modalCloseButton = <Icon
   type='phosphor'
   weight={'light'}
 />;
+
+export interface NftItemWrapper {
+  id: string;
+  chain: string;
+  collectionId: string;
+  owner: string;
+  originAsset?: string;
+  name?: string;
+  image?: string;
+  externalUrl?: string;
+  rarity?: string;
+  description?: string;
+  properties?: {
+    [key: string]: {
+      value: string;
+    };
+  } | null;
+  type?: _AssetType.ERC721 | _AssetType.PSP34 | RMRK_VER;
+  rmrk_ver?: RMRK_VER;
+  onChainOption?: any;
+}
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const location = useLocation();
@@ -146,6 +169,16 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return false;
   }, [ordinalNftItem]);
 
+  const getContentStartsWith = (nftItem: NftItemWrapper, type: string) => {
+    if (nftItem && nftItem.properties && nftItem.properties.content_type && nftItem.properties.content_type.value) {
+      return nftItem?.properties?.content_type?.value.startsWith(type) || false;
+    }
+
+    return false;
+  };
+
+  const isTextPlainInscription = useMemo(() => getContentStartsWith(nftItem, 'text'), [nftItem]);
+
   return (
     <PageWrapper
       className={`${className}`}
@@ -168,7 +201,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
               />
             )}
-            {!isInscription && (
+            {isTextPlainInscription && (
+              <iframe
+                className={'__nft-text-content'}
+                src={nftItem.image}
+              ></iframe>
+            )}
+            {!(isInscription && nftItem.description) && !isTextPlainInscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
                 height={358}
