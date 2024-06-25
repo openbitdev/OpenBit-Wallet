@@ -15,7 +15,7 @@ import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDef
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/screen/common/useGetAccountInfoByAddress';
 import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
-import { INftItemDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
@@ -160,7 +160,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [nftItem.externalUrl]);
 
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
-  const ordinalNftItem = nftItem.description && JSON.parse(nftItem.description) as OrdinalRemarkData;
+  const ordinalNftItem = nftItem.description && isValidJson(nftItem.description) && JSON.parse(nftItem.description) as OrdinalRemarkData;
   const isInscription = useMemo(() => {
     if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
       return true;

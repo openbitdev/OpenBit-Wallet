@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
-import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
+import { APIItemState, BitcoinBalanceMetadata } from '@subwallet/extension-base/background/KoniTypes';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
@@ -161,7 +161,14 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
   return await Promise.all(addresses.map(async (address) => {
     try {
-      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
+      const [filteredUtxos, addressSummaryInfo] = await Promise.all([
+        getTransferableBitcoinUtxos(bitcoinApi, address),
+        bitcoinApi.api.getAddressSummaryInfo(address)
+      ]);
+
+      const bitcoinBalanceMetadata = {
+        inscriptionCount: addressSummaryInfo.total_inscription
+      } as BitcoinBalanceMetadata;
 
       let balanceValue = new BigN(0);
 
@@ -169,11 +176,19 @@ async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) 
         balanceValue = balanceValue.plus(utxo.value);
       });
 
-      return balanceValue.toString();
+      return {
+        balance: balanceValue.toString(),
+        bitcoinBalanceMetadata: bitcoinBalanceMetadata
+      };
     } catch (error) {
       console.log('Error while fetching Bitcoin balances', error);
 
-      return '0';
+      return {
+        balance: '0',
+        bitcoinBalanceMetadata: {
+          inscriptionCount: 0
+        }
+      };
     }
   }));
 }
@@ -184,13 +199,14 @@ export function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainI
   const getBalance = () => {
     getBitcoinBalance(bitcoinApi, addresses)
       .then((balances) => {
-        return balances.map((balance, index): BalanceItem => {
+        return balances.map(({ balance, bitcoinBalanceMetadata }, index): BalanceItem => {
           return {
             address: addresses[index],
             tokenSlug: nativeSlug,
             state: APIItemState.READY,
             free: balance,
-            locked: '0'
+            locked: '0',
+            metadata: bitcoinBalanceMetadata
           };
         });
       })

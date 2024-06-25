@@ -2232,6 +2232,12 @@ export interface RequestAccountProxyCreateSuri {
   suri: string;
 }
 
+export type BitcoinBalanceMetadata = {
+  inscriptionCount: number
+}
+
+export type _BalanceMetadata = unknown;
+
 /* Campaign */
 
 // Use stringify to communicate, pure boolean value will error with case 'false' value
@@ -2278,6 +2284,7 @@ export interface KoniRequestSignatures {
   'pri(assetSetting.update)': [AssetSettingUpdateReq, boolean];
 
   // NFT functions
+  'pri(inscription.loadMoreInscription)': [null, null]
   'pri(evmNft.submitTransaction)': [NftTransactionRequest, SWTransactionResponse];
   'pri(evmNft.getTransaction)': [NftTransactionRequest, EvmNftTransaction];
   'pri(substrateNft.submitTransaction)': [NftTransactionRequest, SWTransactionResponse];
