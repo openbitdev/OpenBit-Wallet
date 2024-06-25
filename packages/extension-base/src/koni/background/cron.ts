@@ -195,7 +195,7 @@ export class KoniCron {
   };
 
   checkNetworkAvailable = (serviceInfo: ServiceInfo): boolean => {
-    return Object.keys(serviceInfo.chainApiMap.substrate).length > 0 || Object.keys(serviceInfo.chainApiMap.evm).length > 0;
+    return Object.keys(serviceInfo.chainApiMap.substrate).length > 0 || Object.keys(serviceInfo.chainApiMap.evm).length > 0 || Object.keys(serviceInfo.chainApiMap.bitcoin).length > 0;
   };
 
   public async reloadNft () {

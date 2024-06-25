@@ -56,6 +56,8 @@ const openbitChainInfoMap = (() => {
     'merlinEvm',
     'botanixEvmTest',
     'bounceBitEvm',
+    'bounceBitEvmTest',
+    'layerEdge_testnet',
     'bevm_testnet'
   ];
   const enableList = nativeList.concat(bitcoinL2List);

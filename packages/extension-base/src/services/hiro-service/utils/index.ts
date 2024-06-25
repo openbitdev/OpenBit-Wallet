@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { Brc20Metadata, Inscription, InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
+import { Brc20Metadata, InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { HiroService } from '@subwallet/extension-base/services/hiro-service';
 
 // todo: handle inscription testnet
@@ -31,8 +31,8 @@ export async function getBrc20Metadata (isTestnet = false, ticker: string) {
   }
 }
 
-export async function getInscriptionContent (inscriptionId: string) {
-  const hiroService = HiroService.getInstance();
+export async function getInscriptionContent (isTestnet: boolean, inscriptionId: string) {
+  const hiroService = HiroService.getInstance(isTestnet);
 
   try {
     return await hiroService.getInscriptionContent(inscriptionId);
@@ -44,34 +44,19 @@ export async function getInscriptionContent (inscriptionId: string) {
 }
 
 // todo: handle large inscriptions
-export async function getAddressInscriptions (address: string, isCompress = true) {
-  const inscriptionsFullList: Inscription[] = [];
-  const pageSize = 60;
-  let offset = 0;
-
-  const hiroService = HiroService.getInstance();
+export async function getAddressInscriptions (address: string, isTestnet: boolean, offset = 0, limit = 25) {
+  const hiroService = HiroService.getInstance(isTestnet);
 
   try {
-    while (true) {
-      const response = await hiroService.getAddressInscriptionsInfo({
-        limit: String(pageSize),
-        offset: String(offset),
-        address: String(address)
-      }) as unknown as InscriptionFetchedData;
+    const response = await hiroService.getAddressInscriptionsInfo({
+      limit: String(limit),
+      offset: String(offset),
+      address: String(address)
+    }) as unknown as InscriptionFetchedData;
 
-      const inscriptions = response.results;
-
-      if (inscriptions.length !== 0 && !(isCompress && offset >= 360)) {
-        inscriptionsFullList.push(...inscriptions);
-        offset += pageSize;
-      } else {
-        break;
-      }
-    }
-
-    return inscriptionsFullList;
+    return response.results;
   } catch (error) {
-    console.error(`Failed to get ${address} inscriptions`, error);
+    console.error(`Failed to get ${address} inscriptions with offset ${offset} and limit ${limit}`, error);
     throw error;
   }
 }
