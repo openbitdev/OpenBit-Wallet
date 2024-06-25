@@ -307,7 +307,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     try {
       const responseRuneUtxos = await runeService.getAddressRuneUtxos(address);
 
-      return responseRuneUtxos.utxo;
+      return responseRuneUtxos.utxoItems;
     } catch (error) {
       console.error(`Failed to get ${address} rune utxos`, error);
       throw error;
