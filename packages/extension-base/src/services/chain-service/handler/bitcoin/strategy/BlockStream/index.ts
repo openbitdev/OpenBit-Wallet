@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
+import { _BEAR_TOKEN, OPENBIT_API_DEV_MAINNET, OPENBIT_API_DEV_TESTNET } from '@subwallet/extension-base/services/chain-service/constants';
 import { BitcoinAddressSummaryInfo, BlockStreamBlock, BlockStreamFeeEstimates, BlockStreamTransactionDetail, BlockStreamTransactionStatus, Brc20BalanceItem, Inscription, InscriptionFetchedData, RecommendedFeeEstimates, RunesInfoByAddress, RunesInfoByAddressFetchedData, RuneTxs, RuneTxsResponse, UpdateOpenBitUtxo } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { BitcoinApiStrategy, BitcoinTransactionEventMap } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
@@ -25,7 +25,7 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
 
     super(context);
 
-    this.baseUrl = url;
+    this.baseUrl = url.includes('testnet') ? OPENBIT_API_DEV_TESTNET : OPENBIT_API_DEV_MAINNET;
     this.isTestnet = url.includes('testnet');
 
     this.getBlockTime()
