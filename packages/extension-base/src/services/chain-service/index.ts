@@ -57,7 +57,8 @@ const openbitChainInfoMap = (() => {
     'botanixEvmTest',
     'bounceBitEvm',
     'bounceBitEvmTest',
-    'layerEdge_testnet'
+    'layerEdge_testnet',
+    'bevm_testnet'
   ];
   const enableList = nativeList.concat(bitcoinL2List);
 
@@ -1926,9 +1927,7 @@ export class ChainService {
     let existedToken: _ChainAsset | undefined;
 
     for (const token of Object.values(assetRegistry)) {
-      const ticker = token?.slug;
-
-      if (ticker === data.ticker && token.assetType === data.type && token.originChain === data.originChain) {
+      if (token?.symbol === data.ticker && token?.assetType === data.type && token?.originChain === data.originChain) {
         existedToken = token;
         break;
       }
