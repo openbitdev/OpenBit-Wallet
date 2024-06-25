@@ -9,8 +9,8 @@ import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-r
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
 
-const OPENBIT_URL = 'https://apix.openbit.app';
-const OPENBIT_URL_TEST = 'https://apix-testnet.openbit.app';
+const OPENBIT_URL = 'https://api.openbit.app';
+const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app';
 
 export class RunesService extends BaseApiRequestStrategy {
   baseUrl: string;
