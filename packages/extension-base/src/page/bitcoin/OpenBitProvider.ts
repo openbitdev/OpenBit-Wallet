@@ -1,15 +1,11 @@
 // Copyright 2019-2022 @subwallet/extension authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { StacksProvider } from '@stacks/connect';
 import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
 import { version } from '@subwallet/extension-base/page/params';
+import { OpenBitProviderType } from '@subwallet/extension-inject/types';
 
 import { sendMessage } from '../message';
-
-export interface OpenBitProviderType extends StacksProvider {
-  isOpenBit: boolean;
-}
 
 export const OpenBitProvider: OpenBitProviderType = {
   isOpenBit: true,

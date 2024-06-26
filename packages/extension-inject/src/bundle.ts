@@ -1,11 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-inject authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Injected, InjectedWindow, InjectOptions } from './types';
-
-import { OpenBitProvider } from '@subwallet/extension-base/page';
-
-import { EIP6963ProviderDetail, EIP6963ProviderInfo, EvmProvider } from './types';
+import { EIP6963ProviderDetail, EIP6963ProviderInfo, EvmProvider, Injected, InjectedWindow, InjectOptions, OpenBitProviderType } from './types';
 
 export { packageInfo } from './packageInfo';
 
@@ -94,8 +90,8 @@ export const inject6963EIP = (provider: EvmProvider) => {
   announceProvider();
 };
 
-export function injectBitcoinProvider () {
+export function injectBitcoinProvider (openBitProvider: OpenBitProviderType) {
   const windowInject = window as Window & InjectedWindow;
 
-  windowInject.OpenBitProvider = OpenBitProvider;
+  windowInject.OpenBitProvider = openBitProvider;
 }

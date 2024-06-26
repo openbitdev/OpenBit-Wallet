@@ -4,8 +4,8 @@
 import type { InjectedProvider, ProviderList, ProviderMeta } from '@subwallet/extension-inject/types';
 import type { ProviderInterfaceEmitCb, ProviderInterfaceEmitted } from '@polkadot/rpc-provider/types';
 import type { AnyFunction } from '@polkadot/types/types';
-import type { SendRequest } from './types';
 
+import { SendRequest } from '@subwallet/extension-base/page/types';
 import EventEmitter from 'eventemitter3';
 
 import { isUndefined, logger } from '@polkadot/util';
