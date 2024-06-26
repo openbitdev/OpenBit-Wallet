@@ -138,7 +138,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
   const ordinalNftItem = nftItem.description && isValidJson(nftItem.description) && JSON.parse(nftItem.description) as OrdinalRemarkData;
-  const isInscription = useMemo(() => {
+  const isBRC20Inscription = useMemo(() => {
     if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
       return true;
     }
@@ -162,15 +162,16 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       >
         <div className={'nft_item_detail__container'}>
           <div className={'nft_item_detail__nft_image'}>
-            {isInscription && nftItem.description && (
+            {isBRC20Inscription && nftItem.description && (
               <InscriptionImage
                 alone={true}
                 properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
               />
             )}
-            {!isInscription && (
+            {!isBRC20Inscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
+                fallbackSrc={DefaultLogosMap.default_placeholder}
                 height={358}
                 modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
                 onClick={onImageClick}
