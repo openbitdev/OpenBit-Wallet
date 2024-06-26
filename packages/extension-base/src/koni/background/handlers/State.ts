@@ -9,6 +9,7 @@ import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/ba
 import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
+import { NftService } from '@subwallet/extension-base/koni/api/nft';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
 import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
@@ -140,6 +141,7 @@ export default class KoniState {
   readonly buyService: BuyService;
   readonly earningService: EarningService;
   readonly feeService: FeeService;
+  readonly nftService: NftService;
 
   // Handle the general status of the extension
   private generalStatus: ServiceStatus = ServiceStatus.INITIALIZING;
@@ -170,6 +172,8 @@ export default class KoniState {
     this.buyService = new BuyService(this);
     this.transactionService = new TransactionService(this);
     this.earningService = new EarningService(this);
+    this.feeService = new FeeService(this);
+    this.nftService = new NftService();
 
     this.subscription = new KoniSubscription(this, this.dbService);
     this.cron = new KoniCron(this, this.subscription, this.dbService);
@@ -500,6 +504,14 @@ export default class KoniState {
 
   public updateStakingNominatorMetadata (item: NominatorMetadata) {
     this.dbService.updateNominatorMetadata(item).catch((e) => this.logger.warn(e));
+  }
+
+  public loadMoreInscription () {
+    this.nftService.loadMoreNfts(
+      (...args) => this.updateNftData(...args),
+      (...args) => this.setNftCollection(...args),
+      (address: string, chain: string) => this.dbService.getAddressTotalInscriptions([address], chain)
+    ).catch(this.logger.log);
   }
 
   public setNftCollection (network: string, data: NftCollection, callback?: (data: NftCollection) => void): void {
@@ -1331,7 +1343,7 @@ export default class KoniState {
       from: transactionParams.account,
       to: transactionParams.recipients[0].address,
       value: autoFormatNumber(transactionParams.recipients[0].amount),
-      networkKey: transactionParams.network
+      networkKey: transactionParams.network === 'testnet' ? 'bitcoinTestnet' : 'bitcoin'
     };
 
     // Address is validated in before step
@@ -2228,9 +2240,10 @@ export default class KoniState {
   }
 
   public async reloadNft () {
-    const currentAddress = this.keyringService.currentAccount.address;
+    const accountProxyId = this.keyringService.currentAccountProxy.proxyId;
+    const addresses = this.getAccountProxyAddresses(accountProxyId);
 
-    await this.dbService.removeNftsByAddress(currentAddress);
+    await this.dbService.removeNftsByAddress(addresses);
 
     return await this.cron.reloadNft();
   }

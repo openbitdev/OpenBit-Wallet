@@ -45,6 +45,7 @@ function Component (
         name={isTestnet ? `${symbol} (${t('Testnet')})` : symbol}
         networkMainLogoShape={'squircle'}
         onPressItem={onPressItem}
+        prefix={'$'}
         price={priceValue}
         rightItem={
           (

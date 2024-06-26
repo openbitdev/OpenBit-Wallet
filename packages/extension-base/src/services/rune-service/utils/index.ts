@@ -42,13 +42,17 @@ export async function getAllCollectionRunes (isTestnet = false) {
   }
 }
 
-export async function getRuneMetadata (runeid: string, isTestnet = false) {
+export async function getRuneMetadata (runeId: string, isTestnet = false) {
   const runeService = RunesService.getInstance(isTestnet);
 
   try {
-    return await runeService.getRuneMetadata(runeid);
+    return await runeService.getRuneMetadata(runeId);
   } catch (error) {
-    console.error(`Failed to get rune ${runeid} metadata`, error);
+    console.error(`Failed to get rune ${runeId} metadata`, error);
     throw error;
   }
+}
+
+export function isValidRuneId (runeId: string) {
+  return runeId.includes(':');
 }

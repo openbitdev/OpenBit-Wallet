@@ -217,7 +217,6 @@ export default class BitcoinRequestHandler {
     const chainInfo = this.#chainService.getChainInfoByKey(chain);
     const bitcoinApi = this.#chainService.getBitcoinApi(chain);
 
-    console.log('bitcoinApi', bitcoinApi, transactionObj);
     const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
     const getChainFee: GetFeeFunction = (id, chain, type) => {

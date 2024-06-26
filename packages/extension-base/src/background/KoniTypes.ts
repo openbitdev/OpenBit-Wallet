@@ -7,6 +7,7 @@ import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChai
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
 import { AccountAuthType, AccountJson, AccountProxy, AddressJson, AuthorizeRequest, ConfirmationRequestBase, RequestAccountList, RequestAccountProxy, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeCancel, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestCurrentAccountAddress, ResponseAuthorizeList, ResponseJsonGetAccountInfo, SeedLengths } from '@subwallet/extension-base/background/types';
+import { BitcoinApiStrategy } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
@@ -28,7 +29,6 @@ import { JsonRpcPayload, JsonRpcResponse } from 'web3-core-helpers';
 import { SignerResult } from '@polkadot/types/types/extrinsic';
 import { HexString } from '@polkadot/util/types';
 
-import { BitcoinApiStrategy } from '../../build/services/chain-service/handler/bitcoin/strategy/types';
 import { TransactionWarning } from './warnings/TransactionWarning';
 
 export enum RuntimeEnvironment {
@@ -2315,6 +2315,12 @@ export interface RequestAccountProxyCreateSuri {
   suri: string;
 }
 
+export type BitcoinBalanceMetadata = {
+  inscriptionCount: number
+}
+
+export type _BalanceMetadata = unknown;
+
 /* Campaign */
 
 // Use stringify to communicate, pure boolean value will error with case 'false' value
@@ -2361,6 +2367,7 @@ export interface KoniRequestSignatures {
   'pri(assetSetting.update)': [AssetSettingUpdateReq, boolean];
 
   // NFT functions
+  'pri(inscription.loadMoreInscription)': [null, null]
   'pri(evmNft.submitTransaction)': [NftTransactionRequest, SWTransactionResponse];
   'pri(evmNft.getTransaction)': [NftTransactionRequest, EvmNftTransaction];
   'pri(substrateNft.submitTransaction)': [NftTransactionRequest, SWTransactionResponse];
