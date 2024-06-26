@@ -161,7 +161,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
   const ordinalNftItem = nftItem.description && isValidJson(nftItem.description) && JSON.parse(nftItem.description) as OrdinalRemarkData;
-  const isInscription = useMemo(() => {
+  const isBRC20Inscription = useMemo(() => {
     if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
       return true;
     }
@@ -171,7 +171,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const getContentStartsWith = (nftItem: NftItemWrapper, type: string) => {
     if (nftItem && nftItem.properties && nftItem.properties.content_type && nftItem.properties.content_type.value) {
-      return nftItem?.properties?.content_type?.value.startsWith(type) || false;
+      return (nftItem.image && nftItem?.properties?.content_type?.value.startsWith(type)) || false;
     }
 
     return false;
@@ -195,19 +195,19 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       >
         <div className={'nft_item_detail__container'}>
           <div className={'nft_item_detail__nft_image'}>
-            {isInscription && nftItem.description && (
+            {isBRC20Inscription && nftItem.description && (
               <InscriptionImage
                 alone={true}
                 properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
               />
             )}
-            {isTextPlainInscription && (
+            {isTextPlainInscription && !isBRC20Inscription && (
               <iframe
                 className={'__nft-text-content'}
                 src={nftItem.image}
               ></iframe>
             )}
-            {!(isInscription && nftItem.description) && !isTextPlainInscription && (
+            {!isBRC20Inscription && !isTextPlainInscription && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
                 height={358}
