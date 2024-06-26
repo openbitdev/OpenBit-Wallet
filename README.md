@@ -1,5 +1,27 @@
 ## OpenBit Extension
-Our OpenBit is forked from polkadot-js/extension. We aim to adding more features while being able to rebase the polkadot-js origin at any time.
+
+One-stop-shop multichain wallet for the Bitcoin ecosystem
+
+As the first Bitcoin multichain wallet and super dApp, OpenBit provides a one-stop-shop that allows users to connect to and explore diverse use cases on Bitcoin, Bitcoin L2s and Multichain on one single interface. With the mission of onboarding multichain users to the Bitcoin ecosystem and driving the Bitcoin economy forward, OpenBit serves as a crucial gateway through which users can navigate the multi-VM Bitcoin ecosystem with utmost ease and absolute security. 
+
+**Attention**: OpenBit is in beta version, so use it at your own risk. We recommend only using testnets to try out features at the moment.
+
+OpenBit Bitcoin wallet key features
+
+1. Send and receive BTC with custom fees on a sleek UI
+2. View your L1 asset balance including inscriptions, BRC-20 and Runes tokens
+3. View your Ordinals collectibles
+4. Navigate the multichain ecosystem with Bitcoin, Bitcoin L2s and EVM networks
+5. Import and manage custom EVM networks
+6. Connect to multiple dApps with ease
+
+And many more!
+
+Asset and network support
+
+1. Assets supported include inscriptions, BRC-20, Runes and Ordinals collectibles
+2. Networks supported include Bitcoin, Ethereum, Merlin Chain, Bitlayer, BOB,…
+
 ## Main Concept
 
 The extension is compiled from folder `packages/extension-koni`
