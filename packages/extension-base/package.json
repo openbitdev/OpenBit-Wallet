@@ -48,7 +48,6 @@
     "@polkadot/x-global": "^12.6.1",
     "@reduxjs/toolkit": "^1.9.1",
     "@sora-substrate/type-definitions": "^1.17.7",
-    "@stacks/connect": "^7.7.1",
     "@substrate/connect": "^0.7.26",
     "@subwallet/chain-list": "0.2.43",
     "@subwallet/extension-base": "^1.1.44-0",

@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Psbt, PsbtTxOutput } from 'bitcoinjs-lib';
+import type { Psbt, PsbtTxInput, PsbtTxOutput } from 'bitcoinjs-lib';
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
@@ -19,7 +19,6 @@ import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyr
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
-import { PsbtTxInput } from 'bitcoinjs-lib/src/psbt';
 import BN from 'bn.js';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
