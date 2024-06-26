@@ -13,7 +13,7 @@ import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi,
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
 import { BitcoinTransactionData, SWTransactionResponse, SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
-import { BalanceJson, BitcoinFeeDetail, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
+import { BalanceJson, BitcoinFeeDetail, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, UtxoResponseItem, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
 import { InjectedAccount, InjectedAccountWithMeta, MetadataDefBase } from '@subwallet/extension-inject/types';
 import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
@@ -1392,7 +1392,10 @@ export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignReq
   isToContract: boolean;
 }
 
-export interface BitcoinSendTransactionRequest extends BitcoinSignRequest, BitcoinTransactionConfig {}
+export interface BitcoinSendTransactionRequest extends BitcoinSignRequest, BitcoinTransactionConfig {
+  outputs?: BitcoinOutputUtox[],
+  inputs?: UtxoResponseItem[],
+}
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
@@ -1406,11 +1409,18 @@ export interface ConfirmationsQueueItemOptions {
   networkKey?: string;
 }
 
+export interface BitcoinOutputUtox {
+  address: string;
+  value: number;
+}
+
 export interface BitcoinTransactionConfig{
+  id?: string,
   from?: string | number;
   to?: string;
   value?: number | string | BN;
   networkKey?: string;
+  tokenSlug?: string;
   fee?: BitcoinFeeDetail;
 }
 
@@ -1491,6 +1501,7 @@ export interface ConfirmationDefinitions {
 export interface ConfirmationDefinitionsBitcoin {
   bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<SignMessageBitcoinResult>],
   bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
+  bitcoinSendTransactionRequestAfterConfirmation: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
   bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>],
   bitcoinSignPsbtRequest: [ConfirmationsQueueItem<BitcoinSignPsbtRequest>, ConfirmationResult<SignPsbtBitcoinResult>],
 }
@@ -2560,6 +2571,7 @@ export interface KoniRequestSignatures {
   // Transfer
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ValidateTransactionResponse];
   'pri(accounts.transfer)': [RequestSubmitTransfer, SWTransactionResponse];
+  'pri(accounts.transfer.after.confirmation)': [RequestSubmitTransferWithId, SWTransactionResponse];
   'pri(accounts.getBitcoinTransactionData)': [RequestSubmitTransfer, BitcoinTransactionData];
 
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ValidateTransactionResponse];

@@ -39,7 +39,40 @@ import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/servi
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
-import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
+import {
+  BalanceJson,
+  BitcoinFeeInfo,
+  BitcoinFeeRate,
+  BuyServiceInfo,
+  BuyTokenInfo,
+  DetermineUtxosForSpendArgs,
+  EarningRewardJson,
+  EvmEIP1995FeeOption,
+  EvmFeeInfo,
+  FeeChainType,
+  FeeDetail,
+  FeeInfo,
+  GetFeeFunction,
+  NominationPoolInfo,
+  OptimalYieldPathParams,
+  RequestEarlyValidateYield,
+  RequestGetYieldPoolTargets,
+  RequestStakeCancelWithdrawal,
+  RequestStakeClaimReward,
+  RequestSubmitTransfer, RequestSubmitTransferWithId,
+  RequestSubscribeTransfer,
+  RequestUnlockDotCheckCanMint,
+  RequestUnlockDotSubscribeMintedData,
+  RequestYieldLeave,
+  RequestYieldStepSubmit,
+  RequestYieldWithdrawal,
+  ResponseGetYieldPoolTargets,
+  ResponseSubmitTransferWithId,
+  ResponseSubscribeTransfer,
+  SubstrateFeeInfo,
+  ValidateYieldProcessParams,
+  YieldPoolType
+} from '@subwallet/extension-base/types';
 import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isAddressValidWithAuthType, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
@@ -1949,8 +1982,6 @@ export default class KoniExtension {
           to,
           network
         });
-
-        console.log('getBitcoinTransactionObject', transaction);
       } else {
         const substrateApi = this.#koniState.getSubstrateApi(chain);
 
@@ -2037,6 +2068,86 @@ export default class KoniExtension {
       isTransferAll: isTransferNativeToken ? transferAll : false,
       edAsWarning: isTransferNativeToken,
       additionalValidator: additionalValidator
+    });
+  }
+
+  private async makeTransferAfterConfirmation (inputData: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
+    const { chain, feeCustom, feeOption, from, to, tokenSlug, transferAll, value, id } = inputData;
+    const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
+
+    const warnings: TransactionWarning[] = [];
+
+    const chainInfo = this.#koniState.getChainInfo(chain);
+    const nativeTokenInfo = this.#koniState.getNativeTokenInfo(chain);
+    const nativeTokenSlug: string = nativeTokenInfo.slug;
+    const isTransferNativeToken = nativeTokenSlug === tokenSlug;
+    let chainType = ChainType.SUBSTRATE;
+
+    const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
+    const transferAmount: AmountData = { ...tokenBaseAmount };
+
+    let transaction: ValidateTransactionResponseInput['transaction'];
+
+    // Get native token amount
+    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
+
+    const getChainFee: GetFeeFunction = (id, chain, type) => {
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+    };
+
+    const txVal: string = transferAll ? freeBalance.value : (value || '0');
+
+    try {
+      if (_isChainBitcoinCompatible(chainInfo)) {
+        chainType = ChainType.BITCOIN;
+
+        const bitcoinApi = this.#koniState.getBitcoinApi(chain); // Get Bitcoin API map
+        const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+        [
+          transaction,
+          transferAmount.value
+        ] = await getBitcoinTransactionObject({
+          bitcoinApi,
+          from,
+          getChainFee,
+          chain: chain,
+          feeCustom,
+          feeOption,
+          transferAll,
+          value: txVal,
+          to,
+          network
+        });
+      }
+    } catch (e) {
+      const error = e as Error;
+
+      if (error.message.includes('transfer amount exceeds balance')) {
+        error.message = t('Insufficient balance');
+      }
+
+      throw error;
+    }
+
+    const transferNativeAmount = isTransferNativeToken ? transferAmount.value : '0';
+
+    return this.#koniState.transactionService.handleTransactionAfterConfirmation({
+      id,
+      errors,
+      warnings,
+      address: from,
+      chain: chain,
+      feeCustom,
+      feeOption,
+      chainType,
+      transferNativeAmount,
+      transaction,
+      data: inputData,
+      extrinsicType: isTransferNativeToken ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.TRANSFER_TOKEN,
+      ignoreWarnings: transferAll,
+      isTransferAll: isTransferNativeToken ? transferAll : false,
+      edAsWarning: isTransferNativeToken
     });
   }
 
@@ -5435,6 +5546,8 @@ export default class KoniExtension {
       /// Transfer
       case 'pri(accounts.transfer)':
         return await this.makeTransfer(request as RequestSubmitTransfer);
+      case 'pri(accounts.transfer.after.confirmation)':
+        return await this.makeTransferAfterConfirmation(request as RequestSubmitTransfer);
       case 'pri(accounts.crossChainTransfer)':
         return await this.makeCrossChainTransfer(request as RequestCrossChainTransfer);
       case 'pri(accounts.getBitcoinTransactionData)':

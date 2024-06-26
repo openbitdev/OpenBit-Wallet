@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BitcoinSignatureRequest, ConfirmationDefinitionsBitcoin, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
-import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
+import { RequestSubmitTransferWithId } from '@subwallet/extension-base/types';
+import { wait } from '@subwallet/extension-base/utils';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useGetChainInfoByChainId, useLedger, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { completeConfirmationBitcoin } from '@subwallet/extension-koni-ui/messaging';
+import { completeConfirmationBitcoin, makeTransferAfterConfirmation } from '@subwallet/extension-koni-ui/messaging';
 import { AccountSignMode, BitcoinSignatureSupportType, PhosphorIcon, SigData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { getSignMode, isBitcoinMessage, removeTransactionPersist } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
@@ -24,7 +25,7 @@ interface Props extends ThemeProps {
   type: BitcoinSignatureSupportType;
   payload: ConfirmationDefinitionsBitcoin[BitcoinSignatureSupportType][0];
   extrinsicType?: ExtrinsicType;
-  editedPayload?: SWTransactionResult;
+  editedPayload?: RequestSubmitTransferWithId;
   canSign?: boolean;
 }
 
@@ -109,11 +110,14 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const onApprovePassword = useCallback(() => {
     setLoading(true);
-    setTimeout(() => {
-      handleConfirm(type, id, editedPayload ? JSON.stringify(editedPayload) : '').finally(() => {
-        setLoading(false);
-      });
-    }, 1000);
+    (type === 'bitcoinSendTransactionRequestAfterConfirmation' && editedPayload ? makeTransferAfterConfirmation(editedPayload) : wait(1000))
+      .then(() => {
+        console.log('complete', type, id);
+        handleConfirm(type, id, '').finally(() => {
+          setLoading(false);
+        });
+      })
+      .catch(console.error);
   }, [editedPayload, id, type]);
 
   const onApproveSignature = useCallback((signature: SigData) => {

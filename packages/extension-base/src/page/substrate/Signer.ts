@@ -1,10 +1,9 @@
 // Copyright 2019-2022 @polkadot/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import type { SendRequest } from '@subwallet/extension-base/page/types';
 import type { Signer as SignerInterface, SignerResult } from '@polkadot/api/types';
 import type { SignerPayloadJSON, SignerPayloadRaw } from '@polkadot/types/types';
-
-import { SendRequest } from '@subwallet/extension-base/page/types';
 
 // External to class, this.# is not private enough (yet)
 let sendRequest: SendRequest;

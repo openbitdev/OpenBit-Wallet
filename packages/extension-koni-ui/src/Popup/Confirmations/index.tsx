@@ -31,6 +31,7 @@ const titleMap: Record<ConfirmationType, string> = {
   evmWatchTransactionRequest: detectTranslate('Transaction request'),
   bitcoinSignatureRequest: detectTranslate('Signature request'),
   bitcoinSendTransactionRequest: detectTranslate('Transaction request'),
+  bitcoinSendTransactionRequestAfterConfirmation: detectTranslate('Transaction request'),
   bitcoinWatchTransactionRequest: detectTranslate('Transaction request'),
   bitcoinSignPsbtRequest: detectTranslate('Sign PSBT request'),
   metadataRequest: detectTranslate('Update metadata'),
@@ -46,6 +47,9 @@ const Component = function ({ className }: Props) {
   const { confirmationQueue, numberOfConfirmations } = useConfirmationsInfo();
   const [index, setIndex] = useState(0);
   const confirmation = confirmationQueue[index] || null;
+
+  console.log(confirmation, 'confirmation');
+
   const { t } = useTranslation();
   const { alertProps, closeAlert, openAlert } = useAlert(alertModalId);
 
@@ -94,8 +98,8 @@ const Component = function ({ className }: Props) {
         account = request.payload.account;
         canSign = request.payload.canSign;
         isMessage = confirmation.type === 'evmSignatureRequest';
-      } else if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinWatchTransactionRequest', 'bitcoinSignPsbtRequest'].includes(confirmation.type)) {
-        const request = confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest'][0];
+      } else if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinWatchTransactionRequest', 'bitcoinSignPsbtRequest', 'bitcoinSendTransactionRequestAfterConfirmation'].includes(confirmation.type)) {
+        const request = confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest' | 'bitcoinSendTransactionRequestAfterConfirmation'][0];
 
         account = request.payload.account;
         canSign = request.payload.canSign;
@@ -157,10 +161,10 @@ const Component = function ({ className }: Props) {
             type={confirmation.type}
           />
         );
-      case 'bitcoinSendTransactionRequest':
+      case 'bitcoinSendTransactionRequestAfterConfirmation':
         return (
           <BitcoinSendTransactionRequestConfirmation
-            request={confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]}
+            request={confirmation.item as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequestAfterConfirmation'][0]}
             type={confirmation.type}
           />
         );

@@ -8,7 +8,8 @@ import { getBitcoinTransactionObject } from '@subwallet/extension-base/services/
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
 import FeeService from '@subwallet/extension-base/services/fee-service/service';
 import RequestService from '@subwallet/extension-base/services/request-service';
-import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
+import TransactionService from '@subwallet/extension-base/services/transaction-service';
+import { TransactionEventResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { GetFeeFunction } from '@subwallet/extension-base/types';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
 import keyring from '@subwallet/ui-keyring';
@@ -23,21 +24,24 @@ import { Logger } from '@polkadot/util/types';
 export default class BitcoinRequestHandler {
   readonly #requestService: RequestService;
   readonly #chainService: ChainService;
+  readonly #transactionService: TransactionService;
   readonly #feeService: FeeService;
   readonly #logger: Logger;
   private readonly confirmationsQueueSubjectBitcoin = new BehaviorSubject<ConfirmationsQueueBitcoin>({
     bitcoinSignatureRequest: {},
     bitcoinSendTransactionRequest: {},
     bitcoinWatchTransactionRequest: {},
+    bitcoinSendTransactionRequestAfterConfirmation: {},
     bitcoinSignPsbtRequest: {}
   });
 
   private readonly confirmationsPromiseMap: Record<string, { resolver: Resolver<any>, validator?: (rs: any) => Error | undefined }> = {};
 
-  constructor (requestService: RequestService, chainService: ChainService, feeService: FeeService) {
+  constructor (requestService: RequestService, chainService: ChainService, feeService: FeeService, transactionService: TransactionService) {
     this.#requestService = requestService;
     this.#chainService = chainService;
     this.#feeService = feeService;
+    this.#transactionService = transactionService;
     this.#logger = createLogger('BitcoinRequestHandler');
   }
 
@@ -68,7 +72,7 @@ export default class BitcoinRequestHandler {
     const payloadJson = JSON.stringify(payload);
     const isInternal = isInternalRequest(url);
 
-    if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest'].includes(type)) {
+    if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinSendTransactionRequestAfterConfirmation'].includes(type)) {
       const isAlwaysRequired = await this.#requestService.settingService.isAlwaysRequired;
 
       if (isAlwaysRequired) {
@@ -102,6 +106,7 @@ export default class BitcoinRequestHandler {
       };
     });
 
+    console.log(confirmations, 'bg');
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
 
     if (!isInternal) {
@@ -204,18 +209,23 @@ export default class BitcoinRequestHandler {
     return signedTransaction.extractTransaction().toHex();
   }
 
-  private async signTransactionBitcoinWithPayload (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0], { payload }: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][1]): Promise<string> {
-    if (!payload) {
-      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS);
+  private async signTransactionBitcoinWithPayload (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequestAfterConfirmation'][0]): Promise<string> {
+    const transaction = this.#transactionService.getTransaction(request.id);
+    const { chain, emitterTransaction, feeCustom, feeOption, id } = transaction;
+    const { from, to, value } = transaction.data as ExtrinsicDataTypeMap['transfer.balance'];
+
+    if (!emitterTransaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
     }
-
-    const transactionObj = JSON.parse(payload) as SWTransactionResult;
-
-    const { chain, feeCustom, feeOption } = transactionObj;
-    const { from, to, value } = transactionObj.data as ExtrinsicDataTypeMap['transfer.balance'];
 
     const chainInfo = this.#chainService.getChainInfoByKey(chain);
     const bitcoinApi = this.#chainService.getBitcoinApi(chain);
+    const eventData: TransactionEventResponse = {
+      id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: id
+    };
 
     const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
@@ -250,7 +260,11 @@ export default class BitcoinRequestHandler {
 
     signedTransaction.finalizeAllInputs();
 
-    return signedTransaction.extractTransaction().toHex();
+    const signature = signedTransaction.extractTransaction().toHex();
+
+    this.#transactionService.emitterEventTransaction(emitterTransaction, eventData, chainInfo.slug, signature);
+
+    return signature;
   }
 
   private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
@@ -301,21 +315,17 @@ export default class BitcoinRequestHandler {
   }
 
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
-    if (!result.payload) {
-      if (t === 'bitcoinSignatureRequest') {
-        result.payload = this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
-      } else if (t === 'bitcoinSendTransactionRequest') {
-        result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
-      } else if (t === 'bitcoinSignPsbtRequest') {
-        result.payload = await this.signPsbt(request as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]);
-      }
-    } else {
-      if (t === 'bitcoinSendTransactionRequest') {
-        result.payload = await this.signTransactionBitcoinWithPayload(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0], result as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][1]);
-      }
+    if (t === 'bitcoinSignatureRequest') {
+      result.payload = this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
+    } else if (t === 'bitcoinSendTransactionRequest') {
+      result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
+    } else if (t === 'bitcoinSignPsbtRequest') {
+      result.payload = await this.signPsbt(request as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]);
+    } else if (t === 'bitcoinSendTransactionRequestAfterConfirmation') {
+      result.payload = await this.signTransactionBitcoinWithPayload(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequestAfterConfirmation'][0]);
     }
 
-    if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest') {
+    if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest' || t === 'bitcoinSignPsbtRequest' || t === 'bitcoinSendTransactionRequestAfterConfirmation') {
       const isAlwaysRequired = await this.#requestService.settingService.isAlwaysRequired;
 
       if (isAlwaysRequired) {
@@ -327,19 +337,15 @@ export default class BitcoinRequestHandler {
   public async completeConfirmationBitcoin (request: RequestConfirmationCompleteBitcoin): Promise<boolean> {
     const confirmations = this.confirmationsQueueSubjectBitcoin.getValue();
 
-    console.log(confirmations);
-
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;
       const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
 
-      console.log(request, 'errr');
       const { id, isApproved } = result;
       const { resolver, validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
 
       if (!resolver || !confirmation) {
-        console.log('error');
         this.#logger.error(t('Unable to proceed. Please try again'), type, id);
         throw new Error('Unable to proceed. Please try again');
       }

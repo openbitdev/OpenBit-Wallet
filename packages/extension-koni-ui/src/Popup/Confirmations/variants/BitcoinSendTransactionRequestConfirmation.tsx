@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
-import { BitcoinSendTransactionRequest, ConfirmationsQueueItem, ExtrinsicDataTypeMap, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
-import { SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
-import { BitcoinFeeDetail, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
+import { BitcoinSendTransactionRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinFeeDetail, RequestSubmitTransferWithId, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
 import { BN_ZERO, getDomainFromUrl } from '@subwallet/extension-base/utils';
-import { AlertBox, BitcoinFeeSelector, MetaInfo } from '@subwallet/extension-koni-ui/components';
+import { BitcoinFeeSelector, MetaInfo } from '@subwallet/extension-koni-ui/components';
 import { RenderFieldNodeParams } from '@subwallet/extension-koni-ui/components/Field/TransactionFee/BitcoinFeeSelector';
 import { useGetAccountByAddress } from '@subwallet/extension-koni-ui/hooks';
 import { cancelSubscription, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
@@ -36,39 +35,46 @@ const convertToBigN = (num: BitcoinSendTransactionRequest['value']): string | nu
 };
 
 function Component ({ className, request, type }: Props) {
-  const { id, payload: { account } } = request;
+  const { id, payload: { account, fee, inputs, networkKey, outputs, to, tokenSlug, value } } = request;
   const { t } = useTranslation();
 
-  const { transactionRequest } = useSelector((state: RootState) => state.requestState);
-
-  // request.payload.fee
-  const transaction = useMemo(() => transactionRequest[id], [transactionRequest, id]);
-  const [transactionInfo, setTransactionInfo] = useState<SWTransactionResult>(transaction);
+  const [transactionInfo, setTransactionInfo] = useState<RequestSubmitTransferWithId>({
+    id,
+    chain: networkKey as string,
+    from: account.address,
+    to: to as string,
+    tokenSlug: tokenSlug as string,
+    transferAll: false,
+    value: value?.toString() || '0'
+  });
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
   const [isTransferAll, setIsTransferAll] = useState(false);
   const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransfer | undefined>();
-  const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>(undefined);
-
-  const data = transaction.data as ExtrinsicDataTypeMap[ExtrinsicType.TRANSFER_BALANCE];
+  const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>({
+    feeOption: fee?.options.default
+  });
 
   const chainInfoMap = useSelector((root: RootState) => root.chainStore.chainInfoMap);
   const assetRegistry = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
 
-  const transferAmountValue = data.value;
-  const fromValue = data.from;
-  const toValue = data.to;
-  const chainValue = data.networkKey;
-  const assetValue = data.tokenSlug;
+  const transferAmountValue = value?.toString() as string;
+  const fromValue = account.address;
+  const toValue = to as string;
+  const chainValue = networkKey as string;
+  const assetValue = tokenSlug as string;
+
+  console.log(request);
 
   const chainInfo = useMemo(
-    () => chainInfoMap[transaction.chain],
-    [chainInfoMap, transaction.chain]
+    () => chainInfoMap[networkKey as string],
+    [chainInfoMap, networkKey]
   );
 
   const assetInfo: _ChainAsset | undefined = useMemo(() => {
     return assetRegistry[assetValue];
   }, [assetRegistry, assetValue]);
 
+  console.log(assetInfo);
   const recipient = useGetAccountByAddress(toValue);
 
   // console.log(transactionRequest);
@@ -219,16 +225,17 @@ function Component ({ className, request, type }: Props) {
           />
         </MetaInfo>
 
-        {!!transaction.estimateFee?.tooHigh && (
-          <AlertBox
-            className='network-box'
-            description={t('Gas fees on {{networkName}} are high due to high demands, so gas estimates are less accurate.', { replace: { networkName: chainInfo?.name } })}
-            title={t('Pay attention!')}
-            type='warning'
-          />
-        )}
+        {/* {!!transaction.estimateFee?.tooHigh && ( */}
+        {/*  <AlertBox */}
+        {/*    className='network-box' */}
+        {/*    description={t('Gas fees on {{networkName}} are high due to high demands, so gas estimates are less accurate.', { replace: { networkName: chainInfo?.name } })} */}
+        {/*    title={t('Pay attention!')} */}
+        {/*    type='warning' */}
+        {/*  /> */}
+        {/* )} */}
       </div>
       <BitcoinSignArea
+        canSign={!isFetchingInfo}
         editedPayload={transactionInfo}
         id={id}
         payload={request}

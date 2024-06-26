@@ -6,7 +6,7 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinOutputUtox, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { NftService } from '@subwallet/extension-base/koni/api/nft';
@@ -40,7 +40,7 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
-import { BalanceItem, BalanceMap, DetermineUtxosForSpendArgs, EvmFeeInfo } from '@subwallet/extension-base/types';
+import { BalanceItem, BalanceMap, DetermineUtxosForSpendArgs, EvmFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
 import { determineUtxosForSpend, filterUneconomicalUtxos, getSizeInfo, isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
@@ -160,17 +160,18 @@ export default class KoniState {
     this.subscanService = SubscanService.getInstance();
     this.settingService = new SettingService();
     this.feeService = new FeeService(this);
-    this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService, this.feeService);
+
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
     this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService);
     this.mintCampaignService = new MintCampaignService(this);
-    this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.migrationService = new MigrationService(this, this.eventService);
 
     this.campaignService = new CampaignService(this);
     this.buyService = new BuyService(this);
     this.transactionService = new TransactionService(this);
+    this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService, this.feeService, this.transactionService);
+    this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.earningService = new EarningService(this);
     this.feeService = new FeeService(this);
     this.nftService = new NftService();
@@ -1339,10 +1340,14 @@ export default class KoniState {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Receiving address must be different from sending address'));
     }
 
+    const tokenInfo = this.getNativeTokenInfo(networkKey);
+
     const transaction: BitcoinTransactionConfig = {
+      id,
       from: transactionParams.account,
       to: transactionParams.recipients[0].address,
       value: autoFormatNumber(transactionParams.recipients[0].amount),
+      tokenSlug: tokenInfo.slug,
       networkKey: transactionParams.network === 'testnet' ? 'bitcoinTestnet' : 'bitcoin'
     };
 
@@ -1426,9 +1431,11 @@ export default class KoniState {
 
     let maxTransferable = new BigN('0');
     let estimatedFee = '0';
+    let inputs: UtxoResponseItem[] = [];
+    let outputs: BitcoinOutputUtox[] = [];
 
     try {
-      const { fee: _estimatedFee, inputs } = determineUtxosForSpend(determineUtxosArgs);
+      const { fee: _estimatedFee, inputs: inputsRs, outputs: outputRs } = determineUtxosForSpend(determineUtxosArgs);
 
       const { txVBytes: vSize } = getSizeInfo({
         inputLength: inputs.length,
@@ -1436,6 +1443,8 @@ export default class KoniState {
         recipients: [transaction.to]
       });
 
+      inputs = [...inputsRs];
+      outputs = [...outputRs];
       estimatedFee = new BigN(_estimatedFee).toFixed(0);
       feeOptions = {
         ...feeOptions_,
@@ -1467,58 +1476,27 @@ export default class KoniState {
       ...transaction,
       hashPayload: JSON.stringify(transaction),
       fee: feeOptions,
-      account: account,
-      canSign: true
+      inputs,
+      canSign: true,
+      outputs,
+      account: account
     };
 
-    const eType = transaction.value ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.EVM_EXECUTE;
-
-    const transactionData = { ...transaction };
-    const token = this.chainService.getNativeTokenInfo(networkKey);
-
-    if (eType === ExtrinsicType.TRANSFER_BALANCE) {
-      // @ts-ignore
-      transactionData.tokenSlug = token.slug;
-    }
-
     // Custom handle this instead of general handler transaction
-    const transactionEmitter = await this.transactionService.addTransaction({
-      transaction: requestPayload,
-      address: requestPayload.from as string,
-      chain: networkKey,
-      url,
-      data: transactionData,
-      extrinsicType: eType,
-      chainType: ChainType.BITCOIN,
-      estimateFee: {
-        value: estimatedFee,
-        symbol: token.symbol,
-        decimals: token.decimals || 18
-      },
-      id
-    });
-
-    // Wait extrinsic hash
-    return new Promise((resolve, reject) => {
-      transactionEmitter.on('extrinsicHash', (rs: TransactionEventResponse) => {
-        resolve(rs.extrinsicHash);
-      });
-
-      // Mapping error for evmProvider
-      transactionEmitter.on('error', (rs: TransactionEventResponse) => {
-        let evmProviderError = new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR);
-
-        const errorType = (rs.errors[0]?.errorType || BasicTxErrorType.INTERNAL_ERROR);
-
-        if (errorType === BasicTxErrorType.USER_REJECT_REQUEST || errorType === BasicTxErrorType.UNABLE_TO_SIGN) {
-          evmProviderError = new EvmProviderError(EvmProviderErrorType.USER_REJECTED_REQUEST);
-        } else if (errorType === BasicTxErrorType.UNABLE_TO_SEND) {
-          evmProviderError = new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR, rs.errors[0]?.message);
+    return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSendTransactionRequestAfterConfirmation', requestPayload, {
+      requiredPassword: false
+    })
+      .then(({ isApproved, payload }) => {
+        if (isApproved) {
+          if (payload) {
+            return payload;
+          } else {
+            throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found signature'));
+          }
+        } else {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
         }
-
-        reject(evmProviderError);
       });
-    });
   }
 
   public refreshSubstrateApi (key: string) {

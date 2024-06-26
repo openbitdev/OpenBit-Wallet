@@ -10,7 +10,7 @@ import { TransactionConfig } from 'web3-core';
 import { SubmittableExtrinsic } from '@polkadot/api/promise/types';
 import { EventRecord } from '@polkadot/types/interfaces';
 
-export interface SWTransaction extends ValidateTransactionResponse, Partial<Pick<BaseRequestSign, 'ignoreWarnings'>>, TransactionFee {
+export interface SWTransaction extends ValidateTransactionResponse, Partial<Pick<BaseRequestSign, 'ignoreWarnings'>>, TransactionFee, SWTransactionEmitter {
   id: string;
   url?: string;
   isInternal: boolean,
@@ -30,6 +30,10 @@ export interface SWTransaction extends ValidateTransactionResponse, Partial<Pick
 }
 
 export type SWTransactionResult = Omit<SWTransaction, 'transaction' | 'additionalValidator' | 'eventsHandler'>
+
+export interface SWTransactionEmitter {
+  emitterTransaction?: TransactionEmitter
+}
 
 type SwInputBase = Pick<SWTransaction, 'address' | 'url' | 'data' | 'extrinsicType' | 'chain' | 'chainType' | 'ignoreWarnings' | 'transferNativeAmount'>
 & Partial<Pick<SWTransaction, 'additionalValidator' | 'eventsHandler'>>;
