@@ -23,7 +23,6 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
 
   const [showImage, setShowImage] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
-  const [showTextPlain, setShowTextPlain] = useState(false);
 
   const onClick = useCallback(() => {
     handleOnClick && handleOnClick(routingParams);
@@ -36,11 +35,6 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
 
   const handleVideoError = useCallback(() => {
     setShowVideo(false);
-    setShowTextPlain(true);
-  }, []);
-
-  const handleTextPlainError = useCallback(() => {
-    setShowTextPlain(false);
   }, []);
 
   const getCollectionImage = useCallback(() => {
@@ -98,27 +92,13 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
       );
     }
 
-    if (showTextPlain) {
-      return (
-        <LazyLoadComponent>
-          <iframe
-            className={'__nft-text-content'}
-            height={'171px'}
-            onError={handleTextPlainError}
-            src={getCollectionImage()}
-            width={'171px'}
-          ></iframe>
-        </LazyLoadComponent>
-      );
-    }
-
     return (
       <LazyLoadImage
         src={extendToken.defaultImagePlaceholder}
         visibleByDefault={true}
       />
     );
-  }, [extendToken.defaultImagePlaceholder, getCollectionImage, handleImageError, handleTextPlainError, handleVideoError, loadingPlaceholder, showImage, showTextPlain, showVideo]);
+  }, [extendToken.defaultImagePlaceholder, getCollectionImage, handleImageError, handleVideoError, loadingPlaceholder, showImage, showVideo]);
 
   return (
     <NftItem_
