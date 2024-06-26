@@ -25,6 +25,7 @@ interface Props extends ThemeProps {
   payload: ConfirmationDefinitionsBitcoin[BitcoinSignatureSupportType][0];
   extrinsicType?: ExtrinsicType;
   editedPayload?: SWTransactionResult;
+  canSign?: boolean;
 }
 
 const handleConfirm = async (type: BitcoinSignatureSupportType, id: string, payload: string) => {
@@ -51,8 +52,8 @@ const handleSignature = async (type: BitcoinSignatureSupportType, id: string, si
 };
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className, editedPayload, extrinsicType, id, payload, type } = props;
-  const { payload: { canSign, hashPayload } } = payload;
+  const { canSign, className, editedPayload, extrinsicType, id, payload, type } = props;
+  const { payload: { hashPayload } } = payload;
   const account = (payload.payload as BitcoinSignatureRequest).account;
   const chainId = (payload.payload as EvmSendTransactionRequest)?.chainId || 1;
 
@@ -252,7 +253,7 @@ const Component: React.FC<Props> = (props: Props) => {
         {t('Cancel')}
       </Button>
       <Button
-        disabled={!canSign}
+        disabled={!(canSign && payload.payload.canSign)}
         icon={(
           <Icon
             phosphorIcon={approveIcon}

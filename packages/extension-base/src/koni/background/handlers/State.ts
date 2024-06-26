@@ -1343,7 +1343,7 @@ export default class KoniState {
       from: transactionParams.account,
       to: transactionParams.recipients[0].address,
       value: autoFormatNumber(transactionParams.recipients[0].amount),
-      networkKey: transactionParams.network
+      networkKey: transactionParams.network === 'testnet' ? 'bitcoinTestnet' : 'bitcoin'
     };
 
     // Address is validated in before step
