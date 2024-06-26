@@ -3,7 +3,7 @@
 
 import type { KeypairType } from '@subwallet/keyring/types';
 
-import { _ChainAsset } from '@subwallet/chain-list/types';
+import { _AssetType, _ChainAsset } from '@subwallet/chain-list/types';
 import { AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
 import { _getMultiChainAsset, _isAssetFungibleToken, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { AccountSelectorModalId } from '@subwallet/extension-koni-ui/components/Modal/AccountSelectorModal';
@@ -52,23 +52,18 @@ export default function useReceiveQR (tokenGroupSlug?: string) {
       return null;
     }
 
-    let targetAccount: AccountJson | undefined;
+    const targetAccount: AccountJson | undefined = accountProxy.accounts.find((a) => {
+      const accountType = getKeypairTypeByAddress(a.address);
 
-    for (const account of accountProxy.accounts) {
-      const accountType = getKeypairTypeByAddress(account.address);
-
-      if ((accountType === 'ethereum' && evmChains.includes(asset.originChain)) ||
-      (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') ||
-      (accountType === 'bitcoin-86' && asset.originChain === 'bitcoin' && asset.metadata?.runeId) ||
-      (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet')) {
-        targetAccount = {
-          ...account,
-          type: accountType
-        };
-
-        break;
+      if (evmChains.includes(asset.originChain)) {
+        return accountType === 'ethereum';
+      } else if (asset.metadata?.runeId || asset.assetType === _AssetType.BRC20) {
+        return (accountType === 'bitcoin-86' && asset.originChain === 'bitcoin') || (accountType === 'bittest-86' && asset.originChain === 'bitcoinTestnet');
       }
-    }
+
+      return (accountType === 'bitcoin-84' && asset.originChain === 'bitcoin') ||
+          (accountType === 'bittest-84' && asset.originChain === 'bitcoinTestnet');
+    });
 
     if (!targetAccount) {
       return null;

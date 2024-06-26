@@ -17,19 +17,36 @@ interface FetchedData {
   results: InscriptionResponseItem[]
 }
 
-const ORDINAL_COLLECTION_INFO: NftCollection = {
+export const ORDINAL_COLLECTION_INFO: NftCollection = {
   chain: 'bitcoin',
   collectionId: 'INSCRIPTION',
   collectionName: 'Inscriptions'
 };
 
+export const ORDINAL_COLLECTION_INFO_TEST: NftCollection = {
+  chain: 'bitcoinTestnet',
+  collectionId: 'INSCRIPTION_TESTNET',
+  collectionName: 'Inscriptions Testnet'
+};
+
+const checkTestnet = (chain: string) => {
+  return chain === ORDINAL_COLLECTION_INFO_TEST.chain;
+};
+
 export class InscriptionApi extends BaseNftApi {
+  private isTestnet: boolean;
+
   constructor (chain: string, addresses: string[]) {
     super(chain, undefined, addresses);
+    this.isTestnet = checkTestnet(chain);
   }
 
   private createIframePreviewUrl (id: string) {
     return `https://ordinals.com/preview/${id}`;
+  }
+
+  get collectionInfo () {
+    return this.isTestnet ? ORDINAL_COLLECTION_INFO_TEST : ORDINAL_COLLECTION_INFO;
   }
 
   private parseInsUrl (id: string, type: string) {
@@ -123,19 +140,54 @@ export class InscriptionApi extends BaseNftApi {
     return propertiesMap;
   }
 
+  public async updateTextInscription (inscriptions: Inscription[], params: HandleNftParams, collectionMap: Record <string, NftCollection>) {
+    await Promise.all(inscriptions.map(async (ins) => {
+      const content = await getInscriptionContent(this.isTestnet, ins.id);
+      const propertiesMap = this.handleProperties(ins);
+
+      const parsedNft: NftItem = {
+        id: ins.id,
+        chain: this.chain,
+        owner: ins.address,
+        name: `#${ins.number.toString()}`,
+        image: this.parseInsUrl(ins.id, ins.content_type),
+        description: content ? JSON.stringify(content) : undefined,
+        collectionId: this.collectionInfo.collectionId,
+        rarity: ins.sat_rarity,
+        properties: propertiesMap
+      };
+
+      params.updateItem(this.chain, parsedNft, ins.address);
+
+      if (!collectionMap[this.collectionInfo.collectionId]) {
+        const parsedCollection: NftCollection = {
+          collectionId: this.collectionInfo.collectionId,
+          chain: this.chain,
+          collectionName: this.collectionInfo.collectionName,
+          image: this.collectionInfo.image
+        };
+
+        collectionMap[this.collectionInfo.collectionId] = parsedCollection;
+        params.updateCollection(this.chain, parsedCollection);
+      }
+    }));
+  }
+
   public async handleNfts (params: HandleNftParams) {
     try {
       await Promise.all(this.addresses.map(async (address) => {
-        const balances = await getAddressInscriptions(address);
+        const offset = params.getOffset && await params.getOffset(address, this.collectionInfo.chain);
+        const balances = await getAddressInscriptions(address, this.isTestnet, offset);
 
         if (balances.length > 0) {
           const collectionMap: Record <string, NftCollection> = {};
+          const textIns: Inscription[] = [];
 
           for (const ins of balances) {
             let content;
 
             if (ins.content_type.startsWith('text/plain') || ins.content_type.startsWith('application/json')) {
-              content = await getInscriptionContent(ins.id);
+              textIns.push(ins);
             }
 
             const propertiesMap = this.handleProperties(ins);
@@ -147,25 +199,28 @@ export class InscriptionApi extends BaseNftApi {
               name: `#${ins.number.toString()}`,
               image: this.parseInsUrl(ins.id, ins.content_type),
               description: content ? JSON.stringify(content) : undefined,
-              collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+              collectionId: this.collectionInfo.collectionId,
               rarity: ins.sat_rarity,
               properties: propertiesMap
             };
 
             params.updateItem(this.chain, parsedNft, ins.address);
 
-            if (!collectionMap[ORDINAL_COLLECTION_INFO.collectionId]) {
+            if (!collectionMap[this.collectionInfo.collectionId]) {
               const parsedCollection: NftCollection = {
-                collectionId: ORDINAL_COLLECTION_INFO.collectionId,
+                collectionId: this.collectionInfo.collectionId,
                 chain: this.chain,
-                collectionName: ORDINAL_COLLECTION_INFO.collectionName,
-                image: ORDINAL_COLLECTION_INFO.image
+                collectionName: this.collectionInfo.collectionName,
+                image: this.collectionInfo.image
               };
 
-              collectionMap[ORDINAL_COLLECTION_INFO.collectionId] = parsedCollection;
+              collectionMap[this.collectionInfo.collectionId] = parsedCollection;
               params.updateCollection(this.chain, parsedCollection);
             }
           }
+
+          // handle all inscriptions has text content
+          await this.updateTextInscription(textIns, params, collectionMap);
         }
       }));
     } catch (error) {

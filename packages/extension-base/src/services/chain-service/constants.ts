@@ -65,7 +65,8 @@ export const _NFT_CHAIN_GROUP = {
   unique_network: ['unique_network', 'quartz', 'opal'],
   bitcountry: ['bitcountry', 'pioneer', 'continuum_network'],
   vara: ['vara_network'],
-  bitcoin: ['bitcoin']
+  bitcoin: ['bitcoin'],
+  bitcoinTest: ['bitcoinTestnet']
 };
 
 // Staking--------------------------------------------------------------------------------------------------------------
@@ -258,7 +259,8 @@ export const _ALWAYS_ACTIVE_CHAINS: string[] = [
 export const EVM_PASS_CONNECT_STATUS: Record<string, string[]> = {
   arbitrum_one: ['*'],
   okxTest: ['*'],
-  merlinEvm: ['*']
+  merlinEvm: ['*'],
+  layerEdge_testnet: ['*']
 };
 
 export const EVM_REFORMAT_DECIMALS = {

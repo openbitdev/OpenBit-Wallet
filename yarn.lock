@@ -6241,14 +6241,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subwallet/chain-list@npm:0.2.68-beta.1":
-  version: 0.2.68-beta.1
-  resolution: "@subwallet/chain-list@npm:0.2.68-beta.1"
+"@subwallet/chain-list@npm:0.2.71-beta.0":
+  version: 0.2.71-beta.0
+  resolution: "@subwallet/chain-list@npm:0.2.71-beta.0"
   dependencies:
     "@polkadot/dev": 0.67.167
     "@polkadot/util": ^12.5.1
     eventemitter3: ^5.0.1
-  checksum: d34f43df3a6ebd3b83bde7d4bcf73966b156c1b5d166c1cceae415c1c1363e4c4a0b933d9c9649907ae2c2aadb612cc52ed4f966a01cd75164e115c8c3cc41d0
+  checksum: 811e36c63651b798ccb260bf29bbf4847900bafc9c2cce2ad547ab85123a41756fcb4bb276d98f7d59548771ad00b72e56b0b0ba4c3fbd610ae28cbb9e112fb9
   languageName: node
   linkType: hard
 
@@ -6423,7 +6423,7 @@ __metadata:
     "@subwallet/extension-inject": ^1.1.45-2
     "@subwallet/extension-mocks": ^1.1.45-2
     "@subwallet/keyring": 0.1.5-beta.0
-    "@subwallet/react-ui": 5.1.2-b74
+    "@subwallet/react-ui": 5.1.2-b79
     "@subwallet/ui-keyring": 0.1.5-beta.0
     "@types/bn.js": ^5.1.1
     "@types/enzyme": ^3.10.12
@@ -6720,6 +6720,84 @@ __metadata:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
   checksum: 79dea64af58ca3abe8056b72e54e21c39f7490c04aef79678a4facbc51c1ecb4e37088116b66c0633a15d05d66ff26867fa6fc5c88f153c6c65bc9c1c5ab787d
+  languageName: node
+  linkType: hard
+
+"@subwallet/react-ui@npm:5.1.2-b79":
+  version: 5.1.2-b79
+  resolution: "@subwallet/react-ui@npm:5.1.2-b79"
+  dependencies:
+    "@ant-design/colors": ^6.0.0
+    "@ant-design/cssinjs": ^1.5.6
+    "@ant-design/icons": ^4.8.0
+    "@ant-design/react-slick": ~1.0.0
+    "@babel/runtime": ^7.23.2
+    "@ctrl/tinycolor": ^3.4.0
+    "@fortawesome/fontawesome-svg-core": ^6.2.1
+    "@fortawesome/free-regular-svg-icons": ^6.2.1
+    "@fortawesome/free-solid-svg-icons": ^6.2.1
+    "@fortawesome/react-fontawesome": ^0.2.0
+    "@polkadot/react-identicon": ^3.6.3
+    "@polkadot/util-crypto": ^12.5.1
+    "@polkadot/wasm-crypto": ^7.2.2
+    "@rc-component/tour": ~1.1.0
+    "@zxing/browser": 0.1.1
+    "@zxing/library": 0.19.1
+    bignumber.js: ^9.1.1
+    boring-avatars: ^1.7.0
+    classnames: ^2.2.6
+    copy-to-clipboard: ^3.2.0
+    dayjs: ^1.11.1
+    flatlist-react: ^1.5.14
+    jsqr: ^1.4.0
+    patch-package: ^6.5.1
+    phosphor-react: ^1.4.1
+    qrcode.react: ^3.1.0
+    rc-cascader: ~3.8.0
+    rc-checkbox: ~2.3.0
+    rc-collapse: ~3.4.2
+    rc-dialog: ~9.0.2
+    rc-drawer: ~6.1.1
+    rc-dropdown: ~4.0.0
+    rc-field-form: ~1.27.0
+    rc-image: ~5.13.0
+    rc-input: ~0.1.4
+    rc-input-number: ~7.4.0
+    rc-mentions: ~1.13.1
+    rc-menu: ~9.8.2
+    rc-motion: ^2.6.1
+    rc-notification: ~5.0.0
+    rc-pagination: ~3.2.0
+    rc-picker: ~3.1.1
+    rc-progress: ~3.4.1
+    rc-rate: ~2.9.0
+    rc-resize-observer: ^1.2.0
+    rc-segmented: ~2.1.0
+    rc-select: ~14.2.0
+    rc-slider: ~10.0.0
+    rc-steps: ~6.0.0
+    rc-switch: ~4.0.0
+    rc-table: ~7.29.1
+    rc-tabs: ~12.5.1
+    rc-textarea: ~0.4.5
+    rc-tooltip: ~5.2.0
+    rc-tree: ~5.7.0
+    rc-tree-select: ~5.6.0
+    rc-trigger: ^5.2.10
+    rc-upload: ~4.3.0
+    rc-util: ^5.27.1
+    react-copy-to-clipboard: ^5.1.0
+    react-pin-input: 1.3.0
+    react-qrcode-logo: ^2.9.0
+    react-superellipse: ^0.0.6
+    react-toastify: ^9.1.1
+    scroll-into-view-if-needed: ^3.0.3
+    three: ^0.151.2
+    throttle-debounce: ^5.0.0
+  peerDependencies:
+    react: ">=16.9.0"
+    react-dom: ">=16.9.0"
+  checksum: ceff0237b3f27641b0f070684ca66267c19c8952e7f40679648a98ee0590036bf764c936afda1e57c07499914d4bc929299d39c15c66e47bab53737c8ae65818
   languageName: node
   linkType: hard
 

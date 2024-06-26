@@ -48,12 +48,18 @@ function createSubstrateNftApi (chain: string, substrateApi: _SubstrateApi | nul
 }
 
 function createBitcoinInscriptionApi (chain: string, addresses: string[]) {
-  const filteredAddresses = addresses.filter((a) => {
+  const mainnetAddresses = addresses.filter((a) => {
     return getKeypairTypeByAddress(a) === 'bitcoin-86';
   });
 
+  const testnetAddresses = addresses.filter((a) => {
+    return getKeypairTypeByAddress(a) === 'bittest-86';
+  });
+
   if (_NFT_CHAIN_GROUP.bitcoin.includes(chain)) {
-    return new InscriptionApi(chain, filteredAddresses);
+    return new InscriptionApi(chain, mainnetAddresses);
+  } else if (_NFT_CHAIN_GROUP.bitcoinTest.includes(chain)) {
+    return new InscriptionApi(chain, testnetAddresses);
   } else {
     return null;
   }
@@ -75,7 +81,7 @@ const createOrdinalApi = (chain: string, subscanChain: string, addresses: string
   return new OrdinalNftApi(addresses, chain, subscanChain);
 };
 
-export class NftHandler {
+export class NftService {
   // General settings
   chainInfoMap: Record<string, _ChainInfo> = {};
   addresses: string[] = [];
@@ -210,6 +216,22 @@ export class NftHandler {
       await handler.fetchNfts({
         updateItem,
         updateCollection
+      });
+    }));
+  }
+
+  public async loadMoreNfts (
+    updateItem: (chain: string, data: NftItem, owner: string) => void,
+    updateCollection: (chain: string, data: NftCollection) => void,
+    getOffset?: (address: string, chain: string) => Promise<number>
+  ) {
+    const inscriptionApiHandlers = this.handlers.filter((handler) => handler instanceof InscriptionApi);
+
+    await Promise.all(inscriptionApiHandlers.map(async (handler) => {
+      await handler.fetchNfts({
+        updateItem,
+        updateCollection,
+        getOffset
       });
     }));
   }

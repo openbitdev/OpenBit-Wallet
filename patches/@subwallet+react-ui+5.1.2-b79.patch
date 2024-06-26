@@ -1,0 +1,37 @@
+diff --git a/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js b/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js
+index 1e4a5c2..8e4cf50 100644
+--- a/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js
++++ b/node_modules/@subwallet/react-ui/es/theme/themes/dark/colors.js
+@@ -43,9 +43,9 @@ export const generateNeutralColorPalettes = (bgBaseColor, textBaseColor) => {
+     colorBgSpotlight: getSolidColor(colorBgBase, 26),
+     colorBorder: getSolidColor(colorBgBase, 26),
+     colorBorderSecondary: getSolidColor(colorBgBase, 19),
+-    colorBgDefault: '#0C0C0C',
+-    colorBgSecondary: '#1A1A1A',
+-    colorBgInput: '#252525',
++    colorBgDefault: '#121317',
++    colorBgSecondary: '#1B1D24',
++    colorBgInput: '#2A2E3C',
+     colorBgBorder: '#212121',
+     colorBgDivider: 'rgba(33, 33, 33, 0.8)',
+     colorTextLight1: colorLightBase,
+diff --git a/node_modules/@subwallet/react-ui/es/theme/themes/shared/genColorMapToken.js b/node_modules/@subwallet/react-ui/es/theme/themes/shared/genColorMapToken.js
+index 54d952c..2653a14 100644
+--- a/node_modules/@subwallet/react-ui/es/theme/themes/shared/genColorMapToken.js
++++ b/node_modules/@subwallet/react-ui/es/theme/themes/shared/genColorMapToken.js
+@@ -17,10 +17,15 @@ export default function genColorMapToken(seed, _ref) {
+   const primaryColors = generateColorPalettes(colorPrimaryBase);
+   primaryColors[6] = colorPrimaryBase;
+   const secondaryColors = generateColorPalettes(colorSecondaryBase);
++  secondaryColors[6] = colorSecondaryBase;
+   const successColors = generateColorPalettes(colorSuccessBase);
++  successColors[6] = colorSuccessBase;
+   const warningColors = generateColorPalettes(colorWarningBase);
++  warningColors[6] = colorWarningBase;
+   const errorColors = generateColorPalettes(colorErrorBase);
++  errorColors[6] = colorErrorBase;
+   const infoColors = generateColorPalettes(colorInfoBase);
++  infoColors[6] = colorInfoBase;
+   const neutralColors = generateNeutralColorPalettes(colorBgBase, colorTextBase);
+   return Object.assign(Object.assign({}, neutralColors), {
+     colorPrimaryBg: primaryColors[1],

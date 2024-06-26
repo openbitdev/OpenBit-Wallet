@@ -2135,6 +2135,10 @@ export default class KoniExtension {
     });
   }
 
+  private loadMoreInscription () {
+    this.#koniState.loadMoreInscription();
+  }
+
   private async evmNftSubmitTransaction (inputData: NftTransactionRequest): Promise<SWTransactionResponse> {
     const { networkKey, params, recipientAddress, senderAddress } = inputData;
     const contractAddress = params.contractAddress as string;
@@ -5372,6 +5376,10 @@ export default class KoniExtension {
 
       case 'pri(accounts.get.meta)':
         return this.getAccountMeta(request as RequestAccountMeta);
+
+      // Load more Inscriptions
+      case 'pri(inscription.loadMoreInscription)':
+        return this.loadMoreInscription();
 
       /// Send NFT
       case 'pri(evmNft.submitTransaction)':
