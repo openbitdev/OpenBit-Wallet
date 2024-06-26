@@ -90,7 +90,7 @@ Store is used to persist data into local storage. Stores is defined in folder `p
   ```
 
 ## Add a message handle
-Subwallet extension use message passing concept via browser API to interact between Background - Extensions - Chrome Tabs.
+Openbit extension use message passing concept via browser API to interact between Background - Extensions - Chrome Tabs.
 - Extension or Chrome Tabs send a message with id and type to Background
 - Background handle message by id and type and response data.
 - There are 2 message type:
@@ -138,7 +138,7 @@ Cronjob is define in folder `packages/extension-koni-base/src/cron`.
   - messaging.ts: Send to background and handle return message.
 
 ### Add new redux store
-- Subwallet extension use [redux-tookit](https://redux-toolkit.js.org/) to generate store.
+- Openbit extension use [redux-tookit](https://redux-toolkit.js.org/) to generate store.
 - Define redux store reducers and state into separate file by method `createSlice` of redux toolkit.
 - Map reducer into root store in file index.ts
 
@@ -149,7 +149,7 @@ Read "Add a message handle"
 Extension auto validate code with eslint. Please setup eslint in editor and run `yarn lint` before commit code.
 
 ## Write test
-Subwallet run test with [jest](https://jestjs.io/). Create new file with name `filename.spec.ts` to write test.
+Openbit run test with [jest](https://jestjs.io/). Create new file with name `filename.spec.ts` to write test.
 
 ## Commit and Build
 - Please run `yarn lint` and `yarn test`
