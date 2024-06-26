@@ -2,6 +2,8 @@
 
 One-stop-shop multichain wallet for the Bitcoin ecosystem
 
+![OpenBit Beta launch annoucement](https://github.com/openbitdev/OpenBit-Wallet/assets/2582652/6bfcfc27-f471-481c-a58e-ca31174f3fe6)
+
 As the first Bitcoin multichain wallet and super dApp, OpenBit provides a one-stop-shop that allows users to connect to and explore diverse use cases on Bitcoin, Bitcoin L2s and Multichain on one single interface. With the mission of onboarding multichain users to the Bitcoin ecosystem and driving the Bitcoin economy forward, OpenBit serves as a crucial gateway through which users can navigate the multi-VM Bitcoin ecosystem with utmost ease and absolute security. 
 
 **Attention**: OpenBit is in beta version, so use it at your own risk. We recommend only using testnets to try out features at the moment.
