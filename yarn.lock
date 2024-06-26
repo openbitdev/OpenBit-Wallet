@@ -6444,7 +6444,6 @@ __metadata:
     "@polkadot/x-global": ^12.6.1
     "@reduxjs/toolkit": ^1.9.1
     "@sora-substrate/type-definitions": ^1.17.7
-    "@stacks/connect": ^7.7.1
     "@substrate/connect": ^0.7.26
     "@subwallet/chain-list": 0.2.43
     "@subwallet/extension-base": ^1.1.44-0
@@ -6547,6 +6546,7 @@ __metadata:
     "@polkadot/util": ^12.6.2
     "@polkadot/util-crypto": ^12.6.2
     "@polkadot/x-global": ^12.2.1
+    "@stacks/connect": ^7.7.1
     "@subwallet/keyring": 0.1.5-beta.0
     "@types/chrome": ^0.0.254
     "@types/firefox-webext-browser": ^120.0.0
