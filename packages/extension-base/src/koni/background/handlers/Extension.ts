@@ -1940,7 +1940,8 @@ export default class KoniExtension {
           network
         });
 
-        console.log('getBitcoinTransactionObject', transaction);
+        console.log('[i] Bitcoin Transaction Object:', transaction);
+        console.log('[i] Transfer Amount:', transferAmount.value);
       } else {
         const substrateApi = this.#koniState.getSubstrateApi(chain);
 
