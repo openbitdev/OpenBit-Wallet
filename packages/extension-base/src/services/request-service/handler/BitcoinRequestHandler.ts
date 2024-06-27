@@ -285,8 +285,9 @@ export default class BitcoinRequestHandler {
       keyring.unlockPair(pair.address);
     }
 
-    const signAtIndexGenerate = signAtIndex ? (isArray(signAtIndex) ? signAtIndex : [signAtIndex]) : [psbt.inputCount];
+    const signAtIndexGenerate = signAtIndex ? (isArray(signAtIndex) ? signAtIndex : [signAtIndex]) : [...(Array(psbt.inputCount) as number[])].map((_, i) => i);
 
+    console.log(signAtIndexGenerate);
     // Sign the Psbt using the pair's bitcoin object
     const psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
 
