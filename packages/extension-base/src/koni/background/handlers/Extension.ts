@@ -39,40 +39,7 @@ import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/servi
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
-import {
-  BalanceJson,
-  BitcoinFeeInfo,
-  BitcoinFeeRate,
-  BuyServiceInfo,
-  BuyTokenInfo,
-  DetermineUtxosForSpendArgs,
-  EarningRewardJson,
-  EvmEIP1995FeeOption,
-  EvmFeeInfo,
-  FeeChainType,
-  FeeDetail,
-  FeeInfo,
-  GetFeeFunction,
-  NominationPoolInfo,
-  OptimalYieldPathParams,
-  RequestEarlyValidateYield,
-  RequestGetYieldPoolTargets,
-  RequestStakeCancelWithdrawal,
-  RequestStakeClaimReward,
-  RequestSubmitTransfer, RequestSubmitTransferWithId,
-  RequestSubscribeTransfer,
-  RequestUnlockDotCheckCanMint,
-  RequestUnlockDotSubscribeMintedData,
-  RequestYieldLeave,
-  RequestYieldStepSubmit,
-  RequestYieldWithdrawal,
-  ResponseGetYieldPoolTargets,
-  ResponseSubmitTransferWithId,
-  ResponseSubscribeTransfer,
-  SubstrateFeeInfo,
-  ValidateYieldProcessParams,
-  YieldPoolType
-} from '@subwallet/extension-base/types';
+import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
 import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isAddressValidWithAuthType, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
@@ -2072,7 +2039,7 @@ export default class KoniExtension {
   }
 
   private async makeTransferAfterConfirmation (inputData: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
-    const { chain, feeCustom, feeOption, from, to, tokenSlug, transferAll, value, id } = inputData;
+    const { chain, feeCustom, feeOption, from, id, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
 
     const warnings: TransactionWarning[] = [];
