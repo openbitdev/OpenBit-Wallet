@@ -253,7 +253,7 @@ const Component: React.FC<Props> = (props: Props) => {
         {t('Cancel')}
       </Button>
       <Button
-        disabled={!(canSign && payload.payload.canSign)}
+        disabled={!(canSign === undefined ? payload.payload.canSign : canSign && payload.payload.canSign)}
         icon={(
           <Icon
             phosphorIcon={approveIcon}
