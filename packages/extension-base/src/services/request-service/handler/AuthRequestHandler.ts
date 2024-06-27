@@ -13,6 +13,7 @@ import { AuthUrls } from '@subwallet/extension-base/services/request-service/typ
 import AuthorizeStore from '@subwallet/extension-base/stores/Authorize';
 import { createPromiseHandler, getDomainFromUrl, PromiseHandler, stripUrl } from '@subwallet/extension-base/utils';
 import { getId } from '@subwallet/extension-base/utils/getId';
+import { isBitcoinAddress } from '@subwallet/keyring';
 import { BehaviorSubject } from 'rxjs';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
@@ -299,13 +300,13 @@ export default class AuthRequestHandler {
         .map(([address, allowed]) => (allowed ? address : ''))
         .filter((item) => (item !== ''));
 
-      const allowedListByRequestType = [...request.allowedAccounts];
+      let allowedListByRequestType = [...request.allowedAccounts];
 
-      // if (accountAuthType === 'evm') {
-      //   allowedListByRequestType = allowedListByRequestType.filter((a) => isEthereumAddress(a));
-      // } else if (accountAuthType === 'substrate') {
-      //   allowedListByRequestType = allowedListByRequestType.filter((a) => !isEthereumAddress(a));
-      // }
+      if (accountAuthType === 'evm') {
+        allowedListByRequestType = allowedListByRequestType.filter((a) => isEthereumAddress(a));
+      } else if (accountAuthType === 'bitcoin') {
+        allowedListByRequestType = allowedListByRequestType.filter((a) => isBitcoinAddress(a));
+      }
 
       if (!confirmAnotherType && !request.reConfirm && allowedListByRequestType.length !== 0) {
         // Prevent appear confirmation popup

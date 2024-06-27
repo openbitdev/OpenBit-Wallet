@@ -113,7 +113,7 @@ const getAuthAddresses = (addresses: string[]) => {
         }
 
         if (['bitcoin-84', 'bittest-84'].includes(keypairType)) {
-          return 'p2sh';
+          return 'p2wpkh';
         }
 
         return 'unknown';
