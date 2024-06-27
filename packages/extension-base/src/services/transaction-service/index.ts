@@ -1130,7 +1130,6 @@ export default class TransactionService {
     // Add start info
     emitter.emit('send', eventData);
 
-    console.log(chain, payload);
     const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
 
     event.on('extrinsicHash', (txHash) => {

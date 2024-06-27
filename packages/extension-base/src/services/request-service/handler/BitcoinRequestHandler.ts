@@ -11,6 +11,7 @@ import RequestService from '@subwallet/extension-base/services/request-service';
 import TransactionService from '@subwallet/extension-base/services/transaction-service';
 import { TransactionEventResponse } from '@subwallet/extension-base/services/transaction-service/types';
 import { GetFeeFunction } from '@subwallet/extension-base/types';
+import { createPromiseHandler } from '@subwallet/extension-base/utils';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
 import keyring from '@subwallet/ui-keyring';
 import { Psbt } from 'bitcoinjs-lib';
@@ -264,7 +265,21 @@ export default class BitcoinRequestHandler {
 
     this.#transactionService.emitterEventTransaction(emitterTransaction, eventData, chainInfo.slug, signature);
 
-    return signature;
+    const { promise, reject, resolve } = createPromiseHandler<string>();
+
+    emitterTransaction.on('extrinsicHash', (data) => {
+      if (!data.extrinsicHash) {
+        reject(BitcoinProviderErrorType.INTERNAL_ERROR);
+      } else {
+        resolve(data.extrinsicHash);
+      }
+    });
+
+    emitterTransaction.on('error', (error) => {
+      reject(error);
+    });
+
+    return promise;
   }
 
   private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
