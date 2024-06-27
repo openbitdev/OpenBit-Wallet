@@ -1,16 +1,16 @@
-    2444	AnhMTV                        	Release version 1.1.44
+    2455	AnhMTV                        	Release version 1.1.45
     2171	Nam Phạm                      	[Issue 2717] change XCM ref map
     2001	S2kael                        	[Issue-193] Add re-scan BTC transaction have no block_time
-     757	lw-cdm                        	[UI] Update fee selector logic
+     764	lw-cdm                        	[Issue-214] Fix UI issue related to currency symbol
      465	Jaco                          	0.42.5 (#969)
      185	quangdo                       	
-     156	nguyentiendung                	[Issue-44] hotfix to resetForm case change contractAddress
-     144	bluezdot                      	Revert "[Issue-189] optimize speed get bitcoin balance"
+     164	bluezdot                      	
+     159	nguyentiendung                	[Issue-183] Merge openbit-dev into issue-183 and resolve conflicts.
      104	khainh                        	predefine metadata for Polkadot & Kusama chains
       99	lw-cdm                        	
       88	dominhquang                   	[Issue-2649] Add send crash log feature
+      87	Hieu Dao                      	Update README.md
       85	leewong                       	Update color
-      83	Hieu Dao                      	Update README.md
       82	Thibaut Sardan                	Add account filtering feature (#832)
       63	Roman                         	fix ui issues
       53	Dominhquangdev                	update Bridge code
