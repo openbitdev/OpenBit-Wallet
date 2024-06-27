@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 1.1.46
+Build date: Jun 27, 2024.
+
+Features & Updates:
+- Add support Ordinal with video format (#202)
+- Add support for ORDINALS•RUNES token (#212)
+
+
 ## 1.1.45
 Build date: Jun 26, 2024.
 
