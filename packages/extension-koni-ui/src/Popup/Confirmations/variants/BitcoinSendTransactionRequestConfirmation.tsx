@@ -35,7 +35,7 @@ const convertToBigN = (num: BitcoinSendTransactionRequest['value']): string | nu
 };
 
 function Component ({ className, request, type }: Props) {
-  const { id, payload: { account, fee, inputs, networkKey, outputs, to, tokenSlug, value } } = request;
+  const { id, payload: { account, fee, networkKey, to, tokenSlug, value } } = request;
   const { t } = useTranslation();
 
   const [transactionInfo, setTransactionInfo] = useState<RequestSubmitTransferWithId>({
@@ -54,7 +54,6 @@ function Component ({ className, request, type }: Props) {
     feeOption: fee?.options.default
   });
 
-  const chainInfoMap = useSelector((root: RootState) => root.chainStore.chainInfoMap);
   const assetRegistry = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
 
   const transferAmountValue = value?.toString() as string;
@@ -63,18 +62,10 @@ function Component ({ className, request, type }: Props) {
   const chainValue = networkKey as string;
   const assetValue = tokenSlug as string;
 
-  console.log(request);
-
-  const chainInfo = useMemo(
-    () => chainInfoMap[networkKey as string],
-    [chainInfoMap, networkKey]
-  );
-
   const assetInfo: _ChainAsset | undefined = useMemo(() => {
     return assetRegistry[assetValue];
   }, [assetRegistry, assetValue]);
 
-  console.log(assetInfo);
   const recipient = useGetAccountByAddress(toValue);
 
   // console.log(transactionRequest);

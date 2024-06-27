@@ -357,8 +357,6 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     setLoading(true);
     const { asset, chain, destChain, from: _from, to, value } = values;
 
-    console.log(value, 'value');
-
     let sendPromise: Promise<SWTransactionResponse>;
 
     const account = findAccountByAddress(accounts, _from);
@@ -430,17 +428,17 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       });
     }
 
-    // setTimeout(() => {
-    //   // Handle transfer action
-    //   sendPromise
-    //     .then(onSuccess)
-    //     .catch(onError)
-    //     .finally(() => {
-    //       setLoading(false);
-    //     })
-    //   ;
-    // }, 300);
-  }, [accounts, chainInfoMap, assetRegistry, notification, t, isTransferAll, transactionFeeInfo]);
+    setTimeout(() => {
+      // Handle transfer action
+      sendPromise
+        .then(onSuccess)
+        .catch(onError)
+        .finally(() => {
+          setLoading(false);
+        })
+      ;
+    }, 300);
+  }, [accounts, chainInfoMap, assetRegistry, notification, t, isTransferAll, onSuccess, onError, transactionFeeInfo]);
 
   const onSetMaxTransferable = useCallback((value: boolean) => {
     const bnMaxTransfer = new BigN(transferInfo?.maxTransferable || '0');
