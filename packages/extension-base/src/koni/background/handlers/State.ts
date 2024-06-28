@@ -1278,7 +1278,9 @@ export default class KoniState {
 
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
-    const psbtGenerate = bitcoin.Psbt.fromHex(psbt);
+    const psbtGenerate = bitcoin.Psbt.fromHex(psbt, {
+      network: network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+    });
     const psbtTxInputs = psbtGenerate.txInputs;
     const psbtTxOutputs = psbtGenerate.txOutputs;
 

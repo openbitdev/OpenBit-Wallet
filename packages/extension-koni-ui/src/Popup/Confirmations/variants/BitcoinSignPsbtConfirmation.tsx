@@ -64,12 +64,14 @@ function Component ({ className, request, type }: Props) {
       <BaseDetailModal
         title={t('Message details')}
       >
-        <MetaInfo.Data>
-          {JSON.stringify(request.payload.payload.txInput)}
-        </MetaInfo.Data>
-        <MetaInfo.Data>
-          {JSON.stringify(request.payload.payload.txOutput)}
-        </MetaInfo.Data>
+        <MetaInfo>
+          <MetaInfo.Data label={t('Input')}>
+            {JSON.stringify(request.payload.payload.txInput)}
+          </MetaInfo.Data>
+          <MetaInfo.Data label={t('Output')}>
+            {JSON.stringify(request.payload.payload.txOutput)}
+          </MetaInfo.Data>
+        </MetaInfo>
       </BaseDetailModal>
     </>
   );
