@@ -371,6 +371,8 @@ export default class TransactionService {
   private async sendTransaction (transaction: SWTransaction): Promise<TransactionEmitter> {
     let emitter: TransactionEmitter;
 
+    console.log('[i] Transaction', transaction);
+
     if (transaction.chainType === 'substrate') {
       emitter = this.signAndSendSubstrateTransaction(transaction);
     } else if (transaction.chainType === 'evm') {
@@ -976,6 +978,8 @@ export default class TransactionService {
       id
     };
 
+    console.log('[i] Payload:', payload);
+
     const emitter = new EventEmitter<TransactionEventMap>();
 
     const eventData: TransactionEventResponse = {
@@ -1030,8 +1034,11 @@ export default class TransactionService {
       //     emitter.emit('error', eventData);
       //   });
     } else {
-      this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinSendTransactionRequest', payload, {})
+      this.state.requestService.addConfirmationBitcoin(id, url || EXTENSION_REQUEST_URL, 'bitcoinSendTransactionRequest', payload, {}) //
         .then(({ isApproved, payload }) => {
+          console.log('[i] Is Approved?', isApproved);
+          console.log('[i] Raw transaction', payload);
+
           if (isApproved) {
             if (!payload) {
               throw new Error('Bad signature');
@@ -1041,25 +1048,25 @@ export default class TransactionService {
             emitter.emit('signed', eventData);
             // Add start info
             emitter.emit('send', eventData);
-            const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
+            // const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
 
-            event.on('extrinsicHash', (txHash) => {
-              eventData.extrinsicHash = txHash;
-              emitter.emit('extrinsicHash', eventData);
-            });
-
-            event.on('success', (transactionStatus) => {
-              console.log(transactionStatus);
-              eventData.blockHash = transactionStatus.block_hash || undefined;
-              eventData.blockNumber = transactionStatus.block_height || undefined;
-              eventData.blockTime = transactionStatus.block_time ? (transactionStatus.block_time * 1000) : undefined;
-              emitter.emit('success', eventData);
-            });
-
-            event.on('error', (error) => {
-              eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, error));
-              emitter.emit('error', eventData);
-            });
+            // event.on('extrinsicHash', (txHash) => {
+            //   eventData.extrinsicHash = txHash;
+            //   emitter.emit('extrinsicHash', eventData);
+            // });
+            //
+            // event.on('success', (transactionStatus) => {
+            //   console.log(transactionStatus);
+            //   eventData.blockHash = transactionStatus.block_hash || undefined;
+            //   eventData.blockNumber = transactionStatus.block_height || undefined;
+            //   eventData.blockTime = transactionStatus.block_time ? (transactionStatus.block_time * 1000) : undefined;
+            //   emitter.emit('success', eventData);
+            // });
+            //
+            // event.on('error', (error) => {
+            //   eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, error));
+            //   emitter.emit('error', eventData);
+            // });
           } else {
             this.removeTransaction(id);
             eventData.errors.push(new TransactionError(BasicTxErrorType.USER_REJECT_REQUEST));
