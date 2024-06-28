@@ -33,8 +33,6 @@ export function filterUneconomicalUtxos ({ feeRate,
   return filteredAndSortUtxos.reduce((utxos, utxo, currentIndex) => {
     const utxosWithout = utxos.filter((u) => u.txid !== utxo.txid);
 
-    console.log(currentIndex);
-
     const { fee: feeWithout, spendableAmount: spendableAmountWithout } = getSpendableAmount({
       utxos: utxosWithout,
       feeRate,

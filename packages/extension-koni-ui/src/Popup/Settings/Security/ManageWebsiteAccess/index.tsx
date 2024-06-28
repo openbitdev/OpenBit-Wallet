@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
+import { isAccountAll } from '@subwallet/extension-base/utils';
 import { ActionItemType, ActionModal, EmptyList, FilterModal, PageWrapper, WebsiteAccessItem } from '@subwallet/extension-koni-ui/components';
 import { useDefaultNavigate, useFilterModal } from '@subwallet/extension-koni-ui/hooks';
 import { changeAuthorizationAll, forgetAllSite } from '@subwallet/extension-koni-ui/messaging';
@@ -16,26 +18,26 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
-import { isEthereumAddress } from '@polkadot/util-crypto';
-
 type Props = ThemeProps;
 
 function getWebsiteItems (authUrlMap: Record<string, AuthUrlInfo>): AuthUrlInfo[] {
   return Object.values(authUrlMap);
 }
 
-function getAccountCount (item: AuthUrlInfo): number {
-  const authType = item.accountAuthType;
+function getAccountCount (item: AuthUrlInfo, accountProxies: AccountProxy[]): number {
+  let result = 0;
 
-  if (authType === 'evm') {
-    return item.isAllowedMap ? Object.entries(item.isAllowedMap).filter(([address, rs]) => rs && isEthereumAddress(address)).length : 0;
-  }
+  accountProxies.forEach((ap) => {
+    if (isAccountAll(ap.proxyId) || ap.isReadOnly) {
+      return;
+    }
 
-  if (authType === 'substrate') {
-    return item.isAllowedMap ? Object.entries(item.isAllowedMap).filter(([address, rs]) => rs && !isEthereumAddress(address)).length : 0;
-  }
+    if (ap.accounts.some((a) => item.isAllowedMap[a.address])) {
+      ++result;
+    }
+  });
 
-  return Object.values(item.isAllowedMap).filter((i) => i).length;
+  return result;
 }
 
 const ACTION_MODAL_ID = 'actionModalId';
@@ -43,6 +45,7 @@ const FILTER_MODAL_ID = 'manage-website-access-filter-id';
 
 enum FilterValue {
   SUBSTRATE = 'substrate',
+  BITCOIN = 'bitcoin',
   ETHEREUM = 'ethereum',
   BLOCKED = 'blocked',
   Connected = 'connected',
@@ -50,6 +53,7 @@ enum FilterValue {
 
 function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const authUrlMap = useSelector((state: RootState) => state.settings.authUrls);
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -63,8 +67,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       }
 
       for (const filter of selectedFilters) {
-        if (filter === FilterValue.SUBSTRATE) {
-          if (item.accountAuthType === 'substrate' || item.accountAuthType === 'both') {
+        if (filter === FilterValue.BITCOIN) {
+          if (item.accountAuthType === 'bitcoin' || item.accountAuthType === 'both') {
             return true;
           }
         } else if (filter === FilterValue.ETHEREUM) {
@@ -92,7 +96,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
   const filterOptions = useMemo(() => {
     return [
-      { label: t('Substrate dApp'), value: FilterValue.SUBSTRATE },
+      { label: t('Bitcoin dApp'), value: FilterValue.BITCOIN },
       { label: t('Ethereum dApp'), value: FilterValue.ETHEREUM },
       { label: t('Blocked dApp'), value: FilterValue.BLOCKED },
       { label: t('Connected dApp'), value: FilterValue.Connected }
@@ -100,8 +104,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   }, [t]);
 
   const websiteAccessItems = useMemo<AuthUrlInfo[]>(() => {
-    console.log('authUrlMap', authUrlMap);
-
     return getWebsiteItems(authUrlMap);
   }, [authUrlMap]);
 
@@ -162,7 +164,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     (item: AuthUrlInfo) => {
       return (
         <WebsiteAccessItem
-          accountCount={getAccountCount(item)}
+          accountCount={getAccountCount(item, accountProxies)}
           className={'__item'}
           domain={item.id}
           key={item.id}
@@ -171,7 +173,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         />
       );
     },
-    [onClickItem]
+    [accountProxies, onClickItem]
   );
 
   const renderEmptyList = useCallback(() => {

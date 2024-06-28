@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
-import { AccountJson } from '@subwallet/extension-base/background/types';
-import { AccountItemWithName, EmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
+import { AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
+import { AccountProxyItem, EmptyList, Layout, PageWrapper } from '@subwallet/extension-koni-ui/components';
 import { ActionItemType, ActionModal } from '@subwallet/extension-koni-ui/components/Modal/ActionModal';
 import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDefaultNavigate';
-import { changeAuthorization, changeAuthorizationPerAccount, forgetSite, toggleAuthorization } from '@subwallet/extension-koni-ui/messaging';
+import { changeAuthorization, changeAuthorizationPerAccountProxy, forgetSite, toggleAuthorization } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { updateAuthUrls } from '@subwallet/extension-koni-ui/stores/utils';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -19,8 +19,6 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
-import { isEthereumAddress } from '@polkadot/util-crypto';
-
 type Props = ThemeProps & ManageWebsiteAccessDetailParam & {
   authInfo: AuthUrlInfo;
   goBack: () => void
@@ -31,23 +29,16 @@ type WrapperProps = ThemeProps;
 const ActionModalId = 'actionModalId';
 // const FilterModalId = 'filterModalId';
 
-function Component ({ accountAuthType, authInfo, className = '', goBack, origin, siteName }: Props): React.ReactElement<Props> {
-  const accounts = useSelector((state: RootState) => state.accountState.accounts);
+function Component ({ authInfo, className = '', goBack, origin, siteName }: Props): React.ReactElement<Props> {
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
   const [pendingMap, setPendingMap] = useState<Record<string, boolean>>({});
   const { activeModal, inactiveModal } = useContext(ModalContext);
   const { t } = useTranslation();
   const { token } = useTheme() as Theme;
-  const accountItems = useMemo(() => {
-    const accountListWithoutAll = accounts.filter((opt) => opt.address !== 'ALL');
 
-    if (accountAuthType === 'substrate') {
-      return accountListWithoutAll.filter((acc) => !isEthereumAddress(acc.address));
-    } else if (accountAuthType === 'evm') {
-      return accountListWithoutAll.filter((acc) => isEthereumAddress(acc.address));
-    } else {
-      return accountListWithoutAll;
-    }
-  }, [accountAuthType, accounts]);
+  const accountProxyItems = useMemo(() => {
+    return accountProxies.filter((opt) => opt.proxyId !== 'ALL' && !opt.isReadOnly);
+  }, [accountProxies]);
 
   const onOpenActionModal = useCallback(() => {
     activeModal(ActionModalId);
@@ -115,23 +106,23 @@ function Component ({ accountAuthType, authInfo, className = '', goBack, origin,
     return result;
   }, [authInfo.isAllowed, onCloseActionModal, origin, t, token]);
 
-  const renderItem = useCallback((item: AccountJson) => {
-    const isEnabled: boolean = authInfo.isAllowedMap[item.address];
+  const renderItem = useCallback((item: AccountProxy) => {
+    const isEnabled: boolean = item.accounts.some((a) => authInfo.isAllowedMap[a.address]);
 
     const onClick = () => {
       setPendingMap((prevMap) => {
         return {
           ...prevMap,
-          [item.address]: !isEnabled
+          [item.proxyId]: !isEnabled
         };
       });
-      changeAuthorizationPerAccount(item.address, !isEnabled, origin, updateAuthUrls)
+      changeAuthorizationPerAccountProxy(item.proxyId, !isEnabled, origin, updateAuthUrls)
         .catch(console.log)
         .finally(() => {
           setPendingMap((prevMap) => {
             const newMap = { ...prevMap };
 
-            delete newMap[item.address];
+            delete newMap[item.proxyId];
 
             return newMap;
           });
@@ -139,22 +130,21 @@ function Component ({ accountAuthType, authInfo, className = '', goBack, origin,
     };
 
     return (
-      <AccountItemWithName
-        accountName={item.name}
-        address={item.address}
-        avatarSize={token.sizeLG}
-        key={item.address}
-        rightItem={(
+      <AccountProxyItem
+        accountProxy={item}
+        className={'account-proxy-item'}
+        key={item.proxyId}
+        rightPartNode={(
           <Switch
-            checked={pendingMap[item.address] === undefined ? isEnabled : pendingMap[item.address]}
-            disabled={!authInfo.isAllowed || pendingMap[item.address] !== undefined}
+            checked={pendingMap[item.proxyId] === undefined ? isEnabled : pendingMap[item.proxyId]}
+            disabled={!authInfo.isAllowed || pendingMap[item.proxyId] !== undefined}
             {...{ onClick }}
             style={{ marginRight: 8 }}
           />
         )}
       />
     );
-  }, [authInfo.isAllowed, authInfo.isAllowedMap, origin, pendingMap, token.sizeLG]);
+  }, [authInfo.isAllowed, authInfo.isAllowedMap, origin, pendingMap]);
 
   const searchFunc = useCallback((item: AccountJson, searchText: string) => {
     const searchTextLowerCase = searchText.toLowerCase();
@@ -207,12 +197,10 @@ function Component ({ accountAuthType, authInfo, className = '', goBack, origin,
         title={siteName || authInfo.id}
       >
         <SwList.Section
-          displayRow
           enableSearchInput
-          list={accountItems}
+          list={accountProxyItems}
           renderItem={renderItem}
           renderWhenEmpty={renderEmptyList}
-          rowGap = {'8px'}
           searchFunction={searchFunc}
           searchMinCharactersCount={2}
           searchPlaceholder={t<string>('Search account')}
@@ -269,6 +257,10 @@ const ManageWebsiteAccessDetail = styled(WrapperComponent)<Props>(({ theme: { to
 
     '.ant-sw-screen-layout-body': {
       paddingTop: token.paddingSM
+    },
+
+    '.account-proxy-item': {
+      marginBottom: token.marginXS
     },
 
     '&.action-modal': {

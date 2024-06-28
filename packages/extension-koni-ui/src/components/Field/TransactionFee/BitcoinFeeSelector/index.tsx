@@ -16,18 +16,31 @@ import styled from 'styled-components';
 
 import { BitcoinFeeEditorModal } from './BitcoinFeeEditorModal';
 
+export type RenderFieldNodeParams = {
+  isLoading: boolean;
+  feeInfo: {
+    decimals: number,
+    symbol: string,
+    value: BigN,
+    convertedValue: BigN
+  },
+  disableEdit: boolean,
+  onClickEdit: VoidFunction
+}
+
 type Props = ThemeProps & {
   feeDetail: BitcoinFeeDetail | undefined;
   onSelect: (transactionFee: TransactionFee) => void;
   isLoading?: boolean;
   tokenSlug: string;
   resetTrigger?: unknown;
+  renderFieldNode?: (params: RenderFieldNodeParams) => React.ReactNode;
 };
 
 // todo: will update dynamic later
 const modalId = 'BitcoinFeeSelectorId';
 
-const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, tokenSlug }: Props): React.ReactElement<Props> => {
+const Component = ({ className, feeDetail, isLoading, onSelect, renderFieldNode, resetTrigger, tokenSlug }: Props): React.ReactElement<Props> => {
   const { t } = useTranslation();
   const { activeModal } = useContext(ModalContext);
   const assetRegistry = useSelector((root) => root.assetRegistry.assetRegistry);
@@ -79,7 +92,7 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
 
   const feeValue = useMemo(() => {
     if (!selectedOption || !feeDetail) {
-      return '0';
+      return BN_ZERO;
     }
 
     if (selectedOption.option === 'custom') {
@@ -106,52 +119,70 @@ const Component = ({ className, feeDetail, isLoading, onSelect, resetTrigger, to
 
   return (
     <>
-      <Field
-        className={className}
-        content={(
-          <div>
-            {isLoading || !feeDetail || !selectedOption
-              ? (
-                <ActivityIndicator size={20} />
-              )
-              : (
+      {
+        renderFieldNode?.({
+          isLoading: isLoading || !feeDetail || !selectedOption,
+          feeInfo: {
+            decimals,
+            symbol,
+            value: feeValue,
+            convertedValue: tokenFeePriceValue
+          },
+          disableEdit: isLoading || !feeDetail || !selectedOption,
+          onClickEdit
+        })
+      }
+
+      {
+        !renderFieldNode && (
+          <Field
+            className={className}
+            content={(
+              <div>
+                {isLoading || !feeDetail || !selectedOption
+                  ? (
+                    <ActivityIndicator size={20} />
+                  )
+                  : (
+                    <Number
+                      className={'__fee-token-value'}
+                      decimal={decimals}
+                      size={14}
+                      suffix={symbol}
+                      value={feeValue}
+                    />
+                  )}
+              </div>
+            )}
+            label={'Transaction fee'}
+            placeholder={t('Network name')}
+            suffix={(
+              <div className={'__right-button'}>
                 <Number
-                  className={'__fee-token-value'}
-                  decimal={decimals}
+                  className={'__fee-price-value'}
+                  decimal={0}
+                  prefix={'$'}
                   size={14}
-                  suffix={symbol}
-                  value={feeValue}
+                  value={tokenFeePriceValue}
                 />
-              )}
-          </div>
-        )}
-        label={'Transaction fee'}
-        placeholder={t('Network name')}
-        suffix={(
-          <div className={'__right-button'}>
-            <Number
-              className={'__fee-price-value'}
-              decimal={0}
-              prefix={'$'}
-              size={14}
-              value={tokenFeePriceValue}
-            />
-            <Button
-              disabled={isLoading || !feeDetail || !selectedOption}
-              icon={
-                <Icon
-                  phosphorIcon={PencilSimpleLine}
-                  size='sm'
+                <Button
+                  disabled={isLoading || !feeDetail || !selectedOption}
+                  icon={
+                    <Icon
+                      phosphorIcon={PencilSimpleLine}
+                      size='sm'
+                    />
+                  }
+                  onClick={onClickEdit}
+                  size='xs'
+                  type='ghost'
                 />
-              }
-              onClick={onClickEdit}
-              size='xs'
-              type='ghost'
-            />
-          </div>
-        )}
-        tooltipPlacement='topLeft'
-      />
+              </div>
+            )}
+            tooltipPlacement='topLeft'
+          />
+        )
+      }
 
       {
         feeDetail && selectedOption && (

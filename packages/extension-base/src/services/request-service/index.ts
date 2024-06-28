@@ -4,8 +4,10 @@
 import { AuthRequestV2, ConfirmationDefinitions, ConfirmationDefinitionsBitcoin, ConfirmationsQueue, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationType, ConfirmationTypeBitcoin, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AccountJson, AuthorizeRequest, MetadataRequest, RequestAuthorizeTab, RequestSign, ResponseSigning, SigningRequest } from '@subwallet/extension-base/background/types';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
+import FeeService from '@subwallet/extension-base/services/fee-service/service';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import SettingService from '@subwallet/extension-base/services/setting-service/SettingService';
+import TransactionService from '@subwallet/extension-base/services/transaction-service';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { MetadataDef } from '@subwallet/extension-inject/types';
 import { BehaviorSubject } from 'rxjs';
@@ -31,7 +33,7 @@ export default class RequestService {
   readonly #notSupportWCRequestHandler: NotSupportWCRequestHandler;
 
   // Common
-  constructor (chainService: ChainService, settingService: SettingService, keyringService: KeyringService) {
+  constructor (chainService: ChainService, settingService: SettingService, keyringService: KeyringService, feeService: FeeService, transactionService: TransactionService) {
     this.#chainService = chainService;
     this.settingService = settingService;
     this.keyringService = keyringService;
@@ -40,7 +42,7 @@ export default class RequestService {
     this.#authRequestHandler = new AuthRequestHandler(this, this.#chainService, this.keyringService);
     this.#substrateRequestHandler = new SubstrateRequestHandler(this);
     this.#evmRequestHandler = new EvmRequestHandler(this);
-    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this);
+    this.#bitcoinRequestHandler = new BitcoinRequestHandler(this, this.#chainService, feeService, transactionService);
     this.#connectWCRequestHandler = new ConnectWCRequestHandler(this);
     this.#notSupportWCRequestHandler = new NotSupportWCRequestHandler(this);
 

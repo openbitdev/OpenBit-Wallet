@@ -1,21 +1,25 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import type { Psbt, PsbtTxInput, PsbtTxOutput } from 'bitcoinjs-lib';
+
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { AuthUrls, Resolver } from '@subwallet/extension-base/background/handlers/State';
 import { AccountAuthType, AccountJson, AccountProxy, AddressJson, AuthorizeRequest, ConfirmationRequestBase, RequestAccountList, RequestAccountProxy, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeCancel, RequestAuthorizeReject, RequestAuthorizeSubscribe, RequestAuthorizeTab, RequestCurrentAccountAddress, ResponseAuthorizeList, ResponseJsonGetAccountInfo, SeedLengths } from '@subwallet/extension-base/background/types';
+import { BitcoinApiStrategy } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/types';
 import { _CHAIN_VALIDATION_ERROR } from '@subwallet/extension-base/services/chain-service/handler/types';
 import { _BitcoinApi, _ChainState, _EvmApi, _NetworkUpsertParams, _SubstrateApi, _ValidateCustomAssetRequest, _ValidateCustomAssetResponse, _ValidateCustomBrc20Request, _ValidateCustomBrc20Response, _ValidateCustomRuneRequest, _ValidateCustomRuneResponse, EnableChainParams, EnableMultiChainParams } from '@subwallet/extension-base/services/chain-service/types';
 import { CrowdloanContributionsResponse } from '@subwallet/extension-base/services/subscan-service/types';
-import { SWTransactionResponse, SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
+import { BitcoinTransactionData, SWTransactionResponse, SWTransactionResult } from '@subwallet/extension-base/services/transaction-service/types';
 import { WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
-import { BalanceJson, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
+import { BalanceJson, BitcoinFeeDetail, BuyServiceInfo, BuyTokenInfo, EarningRewardHistoryItem, EarningRewardJson, EarningStatus, HandleYieldStepParams, LeavePoolAdditionalData, NominationPoolInfo, OptimalYieldPath, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseEarlyValidateYield, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubmitYieldStepData, TokenApproveData, UnlockDotTransactionNft, UnstakingStatus, UtxoResponseItem, ValidateYieldProcessParams, YieldPoolInfo, YieldPositionInfo, YieldValidationStatus } from '@subwallet/extension-base/types';
 import { InjectedAccount, InjectedAccountWithMeta, MetadataDefBase } from '@subwallet/extension-inject/types';
 import { KeypairType, KeyringPair$Json, KeyringPair$Meta } from '@subwallet/keyring/types';
 import { KeyringOptions } from '@subwallet/ui-keyring/options/types';
 import { KeyringAddress, KeyringPairs$Json } from '@subwallet/ui-keyring/types';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
+import BN from 'bn.js';
 import { DexieExportJsonStructure } from 'dexie-export-import';
 import Web3 from 'web3';
 import { RequestArguments, TransactionConfig } from 'web3-core';
@@ -98,6 +102,10 @@ export interface RequestAuthorization extends RequestAuthorizationAll {
 
 export interface RequestAuthorizationPerAccount extends RequestAuthorization {
   address: string;
+}
+
+export interface RequestAuthorizationPerAccountProxy extends RequestAuthorization {
+  proxyId: string;
 }
 
 // Manage single site with multi account
@@ -1287,6 +1295,16 @@ export enum EvmProviderErrorType {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
 }
 
+export enum BitcoinProviderErrorType {
+  USER_REJECTED_REQUEST = 'USER_REJECTED_REQUEST',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  UNSUPPORTED_METHOD = 'UNSUPPORTED_METHOD',
+  DISCONNECTED = 'DISCONNECTED',
+  CHAIN_DISCONNECTED = 'CHAIN_DISCONNECTED',
+  INVALID_PARAMS = 'INVALID_PARAMS',
+  INTERNAL_ERROR = 'INTERNAL_ERROR',
+}
+
 export interface EvmSendTransactionParams {
   from: string;
   to?: string;
@@ -1315,6 +1333,40 @@ export interface BitcoinSignRequest {
   canSign: boolean;
 }
 
+export interface BitcoinRecipientTransactionParams{
+  address: string;
+  amount: string;
+}
+
+export interface BitcoinSendTransactionParams {
+  account: string;
+  network: 'mainnet' | 'testnet';
+  recipients: BitcoinRecipientTransactionParams[]
+}
+
+export interface BitcoinSignPsbtPayload extends Omit<BitcoinSignPsbtRawRequest, 'psbt'>{
+  txInput: PsbtTxInput[];
+  txOutput: PsbtTxOutput[];
+  psbt: Psbt
+}
+
+enum SignatureHash {
+  DEFAULT = 0,
+  ALL = 1,
+  NONE = 2,
+  SINGLE = 3,
+  ANYONECANPAY = 128
+}
+
+export interface BitcoinSignPsbtRawRequest {
+  psbt: string;
+  allowedSighash?: SignatureHash[];
+  signAtIndex?: number | number[];
+  broadcast?: boolean;
+  network: 'mainnet' | 'testnet';
+  account: string;
+}
+
 export interface EvmSignatureRequest extends EvmSignRequest {
   id: string;
   type: string;
@@ -1326,21 +1378,60 @@ export interface BitcoinSignatureRequest extends BitcoinSignRequest {
   payloadJson: any;
 }
 
+export interface BitcoinAppState {
+  networkKey?: string,
+  isConnected?: boolean,
+  strategy?: BitcoinApiStrategy,
+  listenEvents?: string[]
+}
+
 export interface EvmSendTransactionRequest extends TransactionConfig, EvmSignRequest {
   estimateGas: string;
   parseData: EvmTransactionData;
   isToContract: boolean;
 }
 
-export type BitcoinSendTransactionRequest = BitcoinSignRequest
+export interface BitcoinSendTransactionRequest extends BitcoinSignRequest, BitcoinTransactionConfig {
+  outputs?: BitcoinOutputUtox[],
+  inputs?: UtxoResponseItem[],
+}
 
 export type EvmWatchTransactionRequest = EvmSendTransactionRequest;
 export type BitcoinWatchTransactionRequest = BitcoinSendTransactionRequest;
+export type BitcoinSignPsbtRequest = BitcoinSignRequest & {
+  payload: BitcoinSignPsbtPayload;
+};
 
 export interface ConfirmationsQueueItemOptions {
   requiredPassword?: boolean;
   address?: string;
   networkKey?: string;
+}
+
+export interface BitcoinOutputUtox {
+  address: string;
+  value: number;
+}
+
+export interface BitcoinTransactionConfig{
+  id?: string,
+  from?: string | number;
+  to?: string;
+  value?: number | string | BN;
+  networkKey?: string;
+  tokenSlug?: string;
+  fee?: BitcoinFeeDetail;
+}
+
+export interface SignMessageBitcoinResult {
+  signature: string;
+  message: string;
+  address: string;
+}
+
+export interface SignPsbtBitcoinResult {
+  psbt: string;
+  txid?: string
 }
 
 export interface ConfirmationsQueueItem<T> extends ConfirmationsQueueItemOptions, ConfirmationRequestBase {
@@ -1407,9 +1498,11 @@ export interface ConfirmationDefinitions {
 }
 
 export interface ConfirmationDefinitionsBitcoin {
-  bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<string>],
+  bitcoinSignatureRequest: [ConfirmationsQueueItem<BitcoinSignatureRequest>, ConfirmationResult<SignMessageBitcoinResult>],
   bitcoinSendTransactionRequest: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
-  bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>]
+  bitcoinSendTransactionRequestAfterConfirmation: [ConfirmationsQueueItem<BitcoinSendTransactionRequest>, ConfirmationResult<string>],
+  bitcoinWatchTransactionRequest: [ConfirmationsQueueItem<BitcoinWatchTransactionRequest>, ConfirmationResult<string>],
+  bitcoinSignPsbtRequest: [ConfirmationsQueueItem<BitcoinSignPsbtRequest>, ConfirmationResult<SignPsbtBitcoinResult>],
 }
 
 export type ConfirmationType = keyof ConfirmationDefinitions;
@@ -2327,6 +2420,7 @@ export interface KoniRequestSignatures {
   'pri(authorize.changeSiteAll)': [RequestAuthorizationAll, boolean, AuthUrls];
   'pri(authorize.changeSite)': [RequestAuthorization, boolean, AuthUrls];
   'pri(authorize.changeSitePerAccount)': [RequestAuthorizationPerAccount, boolean, AuthUrls];
+  'pri(authorize.changeSitePerAccountProxy)': [RequestAuthorizationPerAccountProxy, boolean, AuthUrls];
   'pri(authorize.changeSitePerSite)': [RequestAuthorizationPerSite, boolean];
   'pri(authorize.changeSiteBlock)': [RequestAuthorizationBlock, boolean];
   'pri(authorize.forgetSite)': [RequestForgetSite, boolean, AuthUrls];
@@ -2476,6 +2570,8 @@ export interface KoniRequestSignatures {
   // Transfer
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ValidateTransactionResponse];
   'pri(accounts.transfer)': [RequestSubmitTransfer, SWTransactionResponse];
+  'pri(accounts.transfer.after.confirmation)': [RequestSubmitTransferWithId, SWTransactionResponse];
+  'pri(accounts.getBitcoinTransactionData)': [RequestSubmitTransfer, BitcoinTransactionData];
 
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ValidateTransactionResponse];
   'pri(accounts.crossChainTransfer)': [RequestCrossChainTransfer, SWTransactionResponse];
@@ -2503,6 +2599,8 @@ export interface KoniRequestSignatures {
   // External account request
   'pri(account.external.reject)': [RequestRejectExternalRequest, ResponseRejectExternalRequest];
   'pri(account.external.resolve)': [RequestResolveExternalRequest, ResponseResolveExternalRequest];
+
+  'bitcoin(request)': [RequestArguments, unknown];
 
   // Evm
   'evm(events.subscribe)': [RequestEvmEvents, boolean, EvmEvent];

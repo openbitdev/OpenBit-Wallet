@@ -1,10 +1,12 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinSignatureRequest, ConfirmationDefinitionsBitcoin, ConfirmationResult, EvmSendTransactionRequest, ExtrinsicType } from '@subwallet/extension-base/background/KoniTypes';
+import { RequestSubmitTransferWithId } from '@subwallet/extension-base/types';
+import { wait } from '@subwallet/extension-base/utils';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useGetChainInfoByChainId, useLedger, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { completeConfirmationBitcoin } from '@subwallet/extension-koni-ui/messaging';
+import { completeConfirmationBitcoin, makeTransferAfterConfirmation } from '@subwallet/extension-koni-ui/messaging';
 import { AccountSignMode, BitcoinSignatureSupportType, PhosphorIcon, SigData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { getSignMode, isBitcoinMessage, removeTransactionPersist } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
@@ -23,6 +25,8 @@ interface Props extends ThemeProps {
   type: BitcoinSignatureSupportType;
   payload: ConfirmationDefinitionsBitcoin[BitcoinSignatureSupportType][0];
   extrinsicType?: ExtrinsicType;
+  editedPayload?: RequestSubmitTransferWithId;
+  canSign?: boolean;
 }
 
 const handleConfirm = async (type: BitcoinSignatureSupportType, id: string, payload: string) => {
@@ -49,8 +53,9 @@ const handleSignature = async (type: BitcoinSignatureSupportType, id: string, si
 };
 
 const Component: React.FC<Props> = (props: Props) => {
-  const { className, extrinsicType, id, payload, type } = props;
-  const { payload: { account, canSign, hashPayload } } = payload;
+  const { canSign, className, editedPayload, extrinsicType, id, payload, type } = props;
+  const { payload: { hashPayload } } = payload;
+  const account = (payload.payload as BitcoinSignatureRequest).account;
   const chainId = (payload.payload as EvmSendTransactionRequest)?.chainId || 1;
 
   const { t } = useTranslation();
@@ -105,12 +110,15 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const onApprovePassword = useCallback(() => {
     setLoading(true);
-    setTimeout(() => {
-      handleConfirm(type, id, '').finally(() => {
-        setLoading(false);
-      });
-    }, 1000);
-  }, [id, type]);
+    (type === 'bitcoinSendTransactionRequestAfterConfirmation' && editedPayload ? makeTransferAfterConfirmation(editedPayload) : wait(1000))
+      .then(() => {
+        console.log('complete', type, id);
+        handleConfirm(type, id, '').finally(() => {
+          setLoading(false);
+        });
+      })
+      .catch(console.error);
+  }, [editedPayload, id, type]);
 
   const onApproveSignature = useCallback((signature: SigData) => {
     setLoading(true);
@@ -144,7 +152,7 @@ const Component: React.FC<Props> = (props: Props) => {
     setLoading(true);
 
     setTimeout(() => {
-      const signPromise = isMessage ? ledgerSignMessage(u8aToU8a(hashPayload), account.accountIndex, account.addressOffset) : ledgerSignTransaction(hexToU8a(hashPayload), account.accountIndex, account.addressOffset);
+      const signPromise = isMessage ? ledgerSignMessage(u8aToU8a(hashPayload), account?.accountIndex, account?.addressOffset) : ledgerSignTransaction(hexToU8a(hashPayload), account?.accountIndex, account?.addressOffset);
 
       signPromise
         .then(({ signature }) => {
@@ -155,7 +163,7 @@ const Component: React.FC<Props> = (props: Props) => {
           setLoading(false);
         });
     });
-  }, [account.accountIndex, account.addressOffset, hashPayload, isLedgerConnected, isMessage, ledger, ledgerSignMessage, ledgerSignTransaction, onApproveSignature, refreshLedger]);
+  }, [account?.accountIndex, account?.addressOffset, hashPayload, isLedgerConnected, isMessage, ledger, ledgerSignMessage, ledgerSignTransaction, onApproveSignature, refreshLedger]);
 
   const onConfirmInject = useCallback(() => {
     console.error('Not implemented yet');
@@ -249,7 +257,7 @@ const Component: React.FC<Props> = (props: Props) => {
         {t('Cancel')}
       </Button>
       <Button
-        disabled={!canSign}
+        disabled={!(canSign === undefined ? payload.payload.canSign : canSign && payload.payload.canSign)}
         icon={(
           <Icon
             phosphorIcon={approveIcon}

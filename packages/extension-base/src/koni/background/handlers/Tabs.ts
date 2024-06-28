@@ -4,11 +4,12 @@
 import type { InjectedAccount } from '@subwallet/extension-inject/types';
 
 import { _AssetType } from '@subwallet/chain-list/types';
+import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
 import { createSubscription, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AddNetworkRequestExternal, AddTokenRequestExternal, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
+import { AddNetworkRequestExternal, AddTokenRequestExternal, BitcoinAppState, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSignPsbtRawRequest, EvmAppState, EvmEventType, EvmProviderErrorType, EvmSendTransactionParams, PassPhishing, RequestAddPspToken, RequestEvmProviderSend, RequestSettingsType, ValidateNetworkResponse } from '@subwallet/extension-base/background/KoniTypes';
 import RequestBytesSign from '@subwallet/extension-base/background/RequestBytesSign';
 import RequestExtrinsicSign from '@subwallet/extension-base/background/RequestExtrinsicSign';
 import { AccountAuthType, MessageTypes, RequestAccountList, RequestAccountSubscribe, RequestAccountUnsubscribe, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestTypes, ResponseRpcListProviders, ResponseSigning, ResponseTypes, SubscriptionMessageTypes } from '@subwallet/extension-base/background/types';
@@ -20,8 +21,10 @@ import { _NetworkUpsertParams } from '@subwallet/extension-base/services/chain-s
 import { _generateCustomProviderKey } from '@subwallet/extension-base/services/chain-service/utils';
 import { AuthUrls } from '@subwallet/extension-base/services/request-service/types';
 import { DEFAULT_CHAIN_PATROL_ENABLE } from '@subwallet/extension-base/services/setting-service/constants';
+import { AuthAddress, RequestAddressesResult, Response } from '@subwallet/extension-base/types/dApp';
 import { canDerive, getEVMChainInfo, stripUrl } from '@subwallet/extension-base/utils';
 import { InjectedMetadataKnown, MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
+import { getDerivePath, getKeypairTypeByAddress } from '@subwallet/keyring';
 import { KeypairType, KeyringPair } from '@subwallet/keyring/types';
 import keyring from '@subwallet/ui-keyring';
 import { SingleAddress, SubjectInfo } from '@subwallet/ui-keyring/observable/types';
@@ -35,7 +38,8 @@ import { JsonRpcPayload } from 'web3-core-helpers';
 import { checkIfDenied } from '@polkadot/phishing';
 import { JsonRpcResponse } from '@polkadot/rpc-provider/types';
 import { SignerPayloadJSON, SignerPayloadRaw } from '@polkadot/types/types';
-import { assert, isNumber } from '@polkadot/util';
+import { assert, hexStripPrefix, isNumber, u8aToHex } from '@polkadot/util';
+import { isEthereumAddress } from '@polkadot/util-crypto';
 
 interface AccountSub {
   subscription: Subscription;
@@ -60,6 +64,8 @@ function transformAccountsV2 (accounts: SubjectInfo, anyType = false, authInfo?:
     keyringTypes = ['ed25519', 'sr25519', 'ecdsa'];
   } else if (accountAuthType === 'evm') {
     keyringTypes = ['ethereum'];
+  } else if (accountAuthType === 'bitcoin') {
+    keyringTypes = ['bitcoin-84', 'bitcoin-86', 'bittest-84', 'bittest-86'];
   }
 
   const authTypeFilter = ({ type }: SingleAddress) => (!!type && keyringTypes.includes(type));
@@ -78,6 +84,61 @@ function transformAccountsV2 (accounts: SubjectInfo, anyType = false, authInfo?:
       type
     }));
 }
+
+const getAuthAddresses = (addresses: string[]) => {
+  const result: AuthAddress[] = [];
+
+  addresses.forEach((address) => {
+    const keypairType = getKeypairTypeByAddress(address);
+
+    if (!['ethereum', 'bitcoin-84', 'bitcoin-86', 'bittest-84', 'bittest-86'].includes(keypairType)) {
+      return;
+    }
+
+    const pair = keyring.getPair(address);
+
+    if (pair.meta.isReadOnly) {
+      return;
+    }
+
+    const item: AuthAddress = {
+      address,
+      type: (() => {
+        if (keypairType === 'ethereum') {
+          return 'ethereum';
+        }
+
+        if (['bitcoin-86', 'bittest-86'].includes(keypairType)) {
+          return 'p2tr';
+        }
+
+        if (['bitcoin-84', 'bittest-84'].includes(keypairType)) {
+          return 'p2wpkh';
+        }
+
+        return 'unknown';
+      })()
+    };
+
+    if (['bittest-84', 'bittest-86'].includes(keypairType)) {
+      item.isTestnet = true;
+    }
+
+    const deriFunc = getDerivePath(keypairType);
+    const index = parseInt((pair.meta.suri as string)?.split('//')[1]) || 0;
+
+    item.derivationPath = deriFunc(index);
+    item.publicKey = hexStripPrefix(u8aToHex(pair.publicKey));
+
+    if (pair.publicKey.length !== 32) {
+      item.tweakedPublicKey = hexStripPrefix(u8aToHex(pair.publicKey.slice(1, 33)));
+    }
+
+    result.push(item);
+  });
+
+  return result;
+};
 
 interface ChainPatrolResponse {
   reason: string;
@@ -819,6 +880,39 @@ export default class KoniTabs {
     return true;
   }
 
+  private async getBitcoinState (url?: string, defaultChain?: string): Promise<BitcoinAppState> {
+    let autoActiveChain = false;
+
+    if (url) {
+      const authInfo = await this.getAuthInfo(url);
+
+      if (authInfo?.isAllowed) {
+        autoActiveChain = true;
+      }
+    }
+
+    const currentBitcoinNetwork = this.#koniState.requestService.getDAppChainInfo({
+      autoActive: autoActiveChain,
+      accessType: 'bitcoin',
+      defaultChain: defaultChain === 'mainnet' ? 'bitcoin' : 'bitcoinTestnet',
+      url
+    });
+
+    if (currentBitcoinNetwork) {
+      const { slug } = currentBitcoinNetwork;
+      const bitcoinApi = this.#koniState.getBitcoinApi(slug);
+      const bitcoinApiStrategy = bitcoinApi?.api;
+
+      return {
+        networkKey: slug,
+        strategy: bitcoinApiStrategy,
+        listenEvents: []
+      };
+    } else {
+      return {};
+    }
+  }
+
   private checkAndHandleProviderStatus (provider: WebsocketProvider | HttpProvider | undefined) {
     if ((!provider || !provider?.connected) && provider?.supportsSubscriptions()) { // excludes HttpProvider
       Object.values(this.evmEventEmitterMap).forEach((m) => {
@@ -1058,25 +1152,219 @@ export default class KoniTabs {
     return await this.#koniState.addTokenConfirm(id, url, tokenInfo);
   }
 
-  public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
-    console.log('handle', type, request, url, port);
+  async bitcoinGetAddresses (url: string, request: RequestArguments): Promise<Response<RequestAddressesResult>> {
+    try {
+      await this.#koniState.authorizeUrlV2(url, {
+        origin: '',
+        accountAuthType: 'bitcoin'
+      });
 
-    if (type === 'pub(phishing.redirectIfDenied)') {
-      return this.redirectIfPhishing(url);
+      const authInfo = await this.getAuthInfo(url);
+
+      if (!authInfo) {
+        return {
+          result: {
+            addresses: []
+          }
+        };
+      }
+
+      const { proxyId: currentAccountProxy } = this.#koniState.keyringService.currentAccountProxy;
+
+      const addressesAllowed =
+        getAuthAddresses(Object.keys(authInfo.isAllowedMap)
+          .filter((k) => authInfo.isAllowedMap[k]))
+          .filter(({ address }) => !isEthereumAddress(address))
+          .reduce((listSorted, account) => {
+            const pair = keyring.getPair(account.address);
+
+            console.log(pair.meta.proxyId, currentAccountProxy, account.address);
+
+            if (pair.meta.proxyId === currentAccountProxy) {
+              listSorted.unshift(account);
+            } else {
+              listSorted.push(account);
+            }
+
+            return listSorted;
+          }, [] as AuthAddress[]);
+
+      return {
+        result: {
+          addresses: addressesAllowed
+        }
+      };
+    } catch (e) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+    }
+  }
+
+  private async getBitcoinCurrentAccount (url: string): Promise<string[]> {
+    return await new Promise((resolve) => {
+      this.getAuthInfo(url).then((authInfo) => {
+        const allAccounts = this.#koniState.keyringService.accounts;
+        const accountList = transformAccountsV2(allAccounts, false, authInfo, 'bitcoin').map((a) => a.address);
+        let accounts: string[] = [];
+
+        const address = this.#koniState.keyringService.currentAccount.address;
+
+        if (address === ALL_ACCOUNT_KEY || !address) {
+          accounts = accountList;
+        } else {
+          if (accountList.includes(address)) {
+            const result = accountList.filter((adr) => adr !== address);
+
+            result.unshift(address);
+            accounts = result;
+          } else {
+            accounts = accountList;
+          }
+        }
+
+        resolve(accounts);
+      }).catch(console.error);
+    });
+  }
+
+  private async bitcoinSign (id: string, url: string, { method, params }: RequestArguments) {
+    const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
+
+    const signResult = await this.#koniState.bitcoinSign(id, url, method, params as Record<string, string>, allowedAccounts);
+
+    if (signResult) {
+      return signResult;
+    } else {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Failed to sign message');
+    }
+  }
+
+  private async bitcoinSignPspt (id: string, url: string, { method, params }: RequestArguments) {
+    const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
+
+    const signResult = await this.#koniState.bitcoinSignPspt(id, url, method, params as BitcoinSignPsbtRawRequest, allowedAccounts);
+
+    if (signResult) {
+      return signResult;
+    } else {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Failed to sign message');
+    }
+  }
+
+  private async bitcoinSendTransfer (id: string, url: string, { params }: RequestArguments) {
+    const transactionParams = params as BitcoinSendTransactionParams;
+    const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url);
+    const bitcoinState = await this.getBitcoinState(url, transactionParams.network);
+    const networkKey = bitcoinState.networkKey;
+
+    if (!canUseAccount) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
     }
 
-    // Wait for account ready and chain ready
-    await Promise.all([this.#koniState.eventService.waitAccountReady, this.#koniState.eventService.waitChainReady]);
+    if (!networkKey) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network unavailable. Please switch network or manually add network to wallet'));
+    }
 
-    if (type !== 'pub(authorize.tabV2)' && !this.isEvmPublicRequest(type, request as RequestArguments)) {
+    const senderAccountType = getKeypairTypeByAddress(transactionParams.account);
+
+    if ((transactionParams.network === 'mainnet' && senderAccountType !== 'bitcoin-84') || (transactionParams.network === 'testnet' && senderAccountType !== 'bittest-84')) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('The account or the network is incorrect'));
+    }
+
+    if (!networkKey) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network unavailable. Please switch network or manually add network to wallet'));
+    }
+
+    if (!transactionParams.recipients?.length) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Please provide the recipient and the amount'));
+    }
+
+    if (transactionParams.recipients?.length > 1) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("We don't support multiple recipients yet. Please provide only one for now."));
+    }
+
+    if (transactionParams.account === transactionParams.recipients[0].address) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("The recipient address cannot be the same as the sender's"));
+    }
+
+    const recipientAccountType = getKeypairTypeByAddress(transactionParams.recipients[0].address);
+
+    if (senderAccountType !== recipientAccountType) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("The recipient address type must be the same as the sender's"));
+    }
+
+    const allowedAccounts = await this.getBitcoinCurrentAccount(url);
+    const transactionHash = await this.#koniState.bitcoinSendTransaction(id, url, networkKey, allowedAccounts, transactionParams);
+
+    if (!transactionHash) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+    }
+
+    return transactionHash;
+  }
+
+  private async handleBitcoinRequest (id: string, url: string, request: RequestArguments, port: chrome.runtime.Port): Promise<unknown> {
+    const { method } = request;
+
+    try {
+      switch (method) {
+        case 'getAddresses':
+          return await this.bitcoinGetAddresses(url, request);
+
+        case 'signMessage':
+          return await this.bitcoinSign(id, url, request);
+
+        case 'signPsbt':
+          return await this.bitcoinSignPspt(id, url, request);
+
+        case 'sendTransfer':
+          return await this.bitcoinSendTransfer(id, url, request);
+
+        default:
+          return this.performWeb3Method(id, url, request);
+      }
+    } catch (e) {
+      // @ts-ignore
+      if (e.code) {
+        throw e;
+      } else {
+        console.error(e);
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR, e?.toString());
+      }
+    }
+  }
+
+  public async handleBitcoin<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    switch (type) {
+      case 'bitcoin(request)':
+        return await this.handleBitcoinRequest(id, url, request as RequestArguments, port);
+      default:
+        throw new Error(`Unable to handle message of type ${type}`);
+    }
+  }
+
+  public async handleEvm<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    if (!this.isEvmPublicRequest(type, request as RequestArguments)) {
       await this.#koniState.ensureUrlAuthorizedV2(url)
         .catch((e: Error) => {
-          if (type.startsWith('evm')) {
-            throw new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR, e.message);
-          } else {
-            throw e;
-          }
+          throw new EvmProviderError(EvmProviderErrorType.INTERNAL_ERROR, e.message);
         });
+    }
+
+    switch (type) {
+      case 'evm(events.subscribe)':
+        return await this.evmSubscribeEvents(url, id, port);
+      case 'evm(request)':
+        return await this.handleEvmRequest(id, url, request as RequestArguments);
+      case 'evm(provider.send)':
+        return await this.handleEvmSend(id, url, port, request as RequestEvmProviderSend);
+      default:
+        throw new Error(`Unable to handle message of type ${type}`);
+    }
+  }
+
+  public async handleSubstrate<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    if (type !== 'pub(authorize.tabV2)' && !this.isEvmPublicRequest(type, request as RequestArguments)) {
+      await this.#koniState.ensureUrlAuthorizedV2(url);
     }
 
     switch (type) {
@@ -1117,23 +1405,39 @@ export default class KoniTabs {
       case 'pub(token.add)':
         return this.addPspToken(id, url, request as RequestAddPspToken);
 
-      ///
       case 'pub(authorize.tabV2)':
         return this.authorizeV2(url, request as RequestAuthorizeTab);
+
       case 'pub(accounts.listV2)':
         return this.accountsListV2(url, request as RequestAccountList);
+
       case 'pub(accounts.subscribeV2)':
         return this.accountsSubscribeV2(url, request as RequestAccountSubscribe, id, port);
+
       case 'pub(accounts.unsubscribe)':
         return this.accountsUnsubscribe(url, request as RequestAccountUnsubscribe);
-      case 'evm(events.subscribe)':
-        return await this.evmSubscribeEvents(url, id, port);
-      case 'evm(request)':
-        return await this.handleEvmRequest(id, url, request as RequestArguments);
-      case 'evm(provider.send)':
-        return await this.handleEvmSend(id, url, port, request as RequestEvmProviderSend);
+
       default:
         throw new Error(`Unable to handle message of type ${type}`);
+    }
+  }
+
+  public async handle<TMessageType extends MessageTypes> (id: string, type: TMessageType, request: RequestTypes[TMessageType], url: string, port: chrome.runtime.Port): Promise<ResponseTypes[keyof ResponseTypes]> {
+    if (type === 'pub(phishing.redirectIfDenied)') {
+      return this.redirectIfPhishing(url);
+    }
+
+    // Wait for account ready and chain ready
+    await Promise.all([this.#koniState.eventService.waitAccountReady, this.#koniState.eventService.waitChainReady]);
+
+    if (type.startsWith('bitcoin(')) {
+      return this.handleBitcoin(id, type, request, url, port);
+    } else if (type.startsWith('evm(')) {
+      return this.handleEvm(id, type, request, url, port);
+    } else if (type.startsWith('pub(')) {
+      return this.handleSubstrate(id, type, request, url, port);
+    } else {
+      throw new Error(`Unable to handle message of type ${type}`);
     }
   }
 }
