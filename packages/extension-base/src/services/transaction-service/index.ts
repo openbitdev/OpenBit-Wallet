@@ -368,6 +368,56 @@ export default class TransactionService {
     return validatedTransaction;
   }
 
+  public async handleTransactionAfterConfirmation (transaction: SWTransactionInput): Promise<SWTransactionResponse> {
+    const validatedTransaction = await this.generalValidate(transaction);
+    const stopByErrors = validatedTransaction.errors.length > 0;
+    const stopByWarnings = validatedTransaction.warnings.length > 0 && !validatedTransaction.ignoreWarnings;
+
+    if (stopByErrors || stopByWarnings) {
+      // @ts-ignore
+      'transaction' in validatedTransaction && delete validatedTransaction.transaction;
+      'additionalValidator' in validatedTransaction && delete validatedTransaction.additionalValidator;
+      'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
+
+      return validatedTransaction;
+    }
+
+    validatedTransaction.warnings = [];
+
+    const transactionsSubject = this.transactions;
+    const emitter = new EventEmitter<TransactionEventMap>();
+
+    // Fill transaction default info
+    const transactionUpdated = this.fillTransactionDefaultInfo(transaction);
+
+    // Add Transaction
+    transactionsSubject[transactionUpdated.id] = { ...transactionUpdated, emitterTransaction: emitter };
+    this.transactionSubject.next({ ...transactionsSubject });
+
+    emitter.on('success', (data: TransactionEventResponse) => {
+      validatedTransaction.id = data.id;
+      validatedTransaction.extrinsicHash = data.extrinsicHash;
+    });
+
+    emitter.on('signed', (data: TransactionEventResponse) => {
+      validatedTransaction.id = data.id;
+      validatedTransaction.extrinsicHash = data.extrinsicHash;
+    });
+
+    emitter.on('error', (data: TransactionEventResponse) => {
+      if (data.errors.length > 0) {
+        validatedTransaction.errors.push(...data.errors);
+      }
+    });
+
+    // @ts-ignore
+    'transaction' in validatedTransaction && delete validatedTransaction.transaction;
+    'additionalValidator' in validatedTransaction && delete validatedTransaction.additionalValidator;
+    'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
+
+    return { ...validatedTransaction };
+  }
+
   private async sendTransaction (transaction: SWTransaction): Promise<TransactionEmitter> {
     let emitter: TransactionEmitter;
 
@@ -1075,6 +1125,33 @@ export default class TransactionService {
 
     return emitter;
   }
+
+  public emitterEventTransaction = (emitter: TransactionEmitter, eventData: TransactionEventResponse, chain: string, payload: string) => {
+    // Emit signed event
+    emitter.emit('signed', eventData);
+    // Add start info
+    emitter.emit('send', eventData);
+
+    const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
+
+    event.on('extrinsicHash', (txHash) => {
+      eventData.extrinsicHash = txHash;
+      emitter.emit('extrinsicHash', eventData);
+    });
+
+    event.on('success', (transactionStatus) => {
+      console.log(transactionStatus);
+      eventData.blockHash = transactionStatus.block_hash || undefined;
+      eventData.blockNumber = transactionStatus.block_height || undefined;
+      eventData.blockTime = transactionStatus.block_time ? (transactionStatus.block_time * 1000) : undefined;
+      emitter.emit('success', eventData);
+    });
+
+    event.on('error', (error) => {
+      eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, error));
+      emitter.emit('error', eventData);
+    });
+  };
 
   private async signAndSendEvmTransaction ({ address,
     chain,

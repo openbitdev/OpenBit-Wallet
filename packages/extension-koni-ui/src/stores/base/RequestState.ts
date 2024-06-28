@@ -30,6 +30,8 @@ const initialState: RequestState = {
   bitcoinSignatureRequest: {},
   bitcoinSendTransactionRequest: {},
   bitcoinWatchTransactionRequest: {},
+  bitcoinSendTransactionRequestAfterConfirmation: {},
+  bitcoinSignPsbtRequest: {},
 
   // Summary Info
   reduxStatus: ReduxStatus.INIT,
@@ -51,6 +53,8 @@ export const CONFIRMATIONS_FIELDS: Array<keyof RequestState> = [
   'bitcoinSignatureRequest',
   'bitcoinSendTransactionRequest',
   'bitcoinWatchTransactionRequest',
+  'bitcoinSendTransactionRequestAfterConfirmation',
+  'bitcoinSignPsbtRequest',
   'connectWCRequest',
   'notSupportWCRequest'
 ];
@@ -101,27 +105,27 @@ const requestStateSlice = createSlice({
     updateAuthorizeRequests (state, { payload }: PayloadAction<Record<string, AuthorizeRequest>>) {
       state.authorizeRequest = payload;
       readyMap.updateAuthorizeRequests = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     },
     updateMetadataRequests (state, { payload }: PayloadAction<Record<string, MetadataRequest>>) {
       state.metadataRequest = payload;
       readyMap.updateMetadataRequests = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     },
     updateSigningRequests (state, { payload }: PayloadAction<Record<string, SigningRequest>>) {
       state.signingRequest = payload;
       readyMap.updateSigningRequests = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     },
     updateConfirmationRequests (state, action: PayloadAction<Partial<ConfirmationsQueue>>) {
       Object.assign(state, action.payload);
       readyMap.updateConfirmationRequests = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     },
     updateBitcoinConfirmationRequests (state, action: PayloadAction<Partial<ConfirmationsQueueBitcoin>>) {
       Object.assign(state, action.payload);
       readyMap.updateConfirmationRequests = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     },
     updateTransactionRequests (state, { payload }: PayloadAction<Record<string, SWTransactionResult>>) {
       state.transactionRequest = payload;
@@ -129,13 +133,13 @@ const requestStateSlice = createSlice({
     updateConnectWCRequests (state, { payload }: PayloadAction<Record<string, WalletConnectSessionRequest>>) {
       state.connectWCRequest = payload;
       readyMap.updateConnectWalletConnect = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     },
 
     updateWCNotSupportRequests (state, { payload }: PayloadAction<Record<string, WalletConnectNotSupportRequest>>) {
       state.notSupportWCRequest = payload;
       readyMap.updateNotSupportWalletConnect = true;
-      computeStateSummary(state);
+      computeStateSummary(state as RequestState);
     }
   }
 });

@@ -31,3 +31,7 @@ export interface RequestSubmitTransfer extends BaseRequestSign, TransactionFee {
   transferAll: boolean;
   value: string;
 }
+
+export interface RequestSubmitTransferWithId extends RequestSubmitTransfer{
+  id?: string;
+}

@@ -89,9 +89,11 @@
     "web3-core-subscriptions": "1.10.0",
     "web3-eth": "1.10.0",
     "web3-eth-contract": "^1.10.0",
-    "web3-utils": "^1.10.0"
+    "web3-utils": "^1.10.0",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@btckit/types": "^0.0.19",
     "@types/uuid": "^9.0.1"
   }
 }

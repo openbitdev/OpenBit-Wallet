@@ -5,7 +5,7 @@ import { _ChainInfo } from '@subwallet/chain-list/types';
 import { AuthRequestV2, ResultResolver } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountAuthType, AuthorizeRequest, RequestAuthorizeTab, Resolver } from '@subwallet/extension-base/background/types';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
-import { _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
+import { _isChainBitcoinCompatible, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
 import { KeyringService } from '@subwallet/extension-base/services/keyring-service';
 import RequestService from '@subwallet/extension-base/services/request-service';
 import { PREDEFINED_CHAIN_DAPP_CHAIN_MAP, WEB_APP_URL } from '@subwallet/extension-base/services/request-service/constants';
@@ -13,6 +13,7 @@ import { AuthUrls } from '@subwallet/extension-base/services/request-service/typ
 import AuthorizeStore from '@subwallet/extension-base/stores/Authorize';
 import { createPromiseHandler, getDomainFromUrl, PromiseHandler, stripUrl } from '@subwallet/extension-base/utils';
 import { getId } from '@subwallet/extension-base/utils/getId';
+import { isBitcoinAddress } from '@subwallet/keyring';
 import { BehaviorSubject } from 'rxjs';
 
 import { isEthereumAddress } from '@polkadot/util-crypto';
@@ -108,6 +109,18 @@ export default class AuthRequestHandler {
       const evmChains = Object.values(chainInfoMaps).filter(_isChainEvmCompatible);
 
       chainInfo = (defaultChain ? chainInfoMaps[defaultChain] : evmChains.find((chain) => chainStateMap[chain.slug]?.active)) || evmChains[0];
+
+      if (options.autoActive) {
+        if (!needEnableChains.includes(chainInfo?.slug)) {
+          needEnableChains.push(chainInfo?.slug);
+        }
+      }
+    }
+
+    if (['bitcoin'].includes(options.accessType)) {
+      const bitcoinChains = Object.values(chainInfoMaps).filter(_isChainBitcoinCompatible);
+
+      chainInfo = (defaultChain ? chainInfoMaps[defaultChain] : bitcoinChains.find((chain) => chainStateMap[chain.slug]?.active)) || bitcoinChains[0];
 
       if (options.autoActive) {
         if (!needEnableChains.includes(chainInfo?.slug)) {
@@ -214,7 +227,7 @@ export default class AuthRequestHandler {
   private authorizePromiseMap: Record<string, PromiseHandler<boolean>> = {};
   public async authorizeUrlV2 (url: string, request: RequestAuthorizeTab): Promise<boolean> {
     let authList = await this.getAuthList();
-    let accountAuthType = request.accountAuthType || 'substrate';
+    let accountAuthType = request.accountAuthType || 'both';
 
     request.accountAuthType = accountAuthType;
 
@@ -291,8 +304,8 @@ export default class AuthRequestHandler {
 
       if (accountAuthType === 'evm') {
         allowedListByRequestType = allowedListByRequestType.filter((a) => isEthereumAddress(a));
-      } else if (accountAuthType === 'substrate') {
-        allowedListByRequestType = allowedListByRequestType.filter((a) => !isEthereumAddress(a));
+      } else if (accountAuthType === 'bitcoin') {
+        allowedListByRequestType = allowedListByRequestType.filter((a) => isBitcoinAddress(a));
       }
 
       if (!confirmAnotherType && !request.reConfirm && allowedListByRequestType.length !== 0) {

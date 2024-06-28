@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from '@subwallet/chain-list/types';
+import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinOutputUtox, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { NftService } from '@subwallet/extension-base/koni/api/nft';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
+import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
 import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
@@ -38,15 +40,17 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
-import { BalanceItem, BalanceMap, EvmFeeInfo } from '@subwallet/extension-base/types';
-import { isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
+import { BalanceItem, BalanceMap, DetermineUtxosForSpendArgs, EvmFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
+import { determineUtxosForSpend, filterUneconomicalUtxos, getSizeInfo, isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
+import { isBitcoinAddress } from '@subwallet/keyring';
 import { decodePair } from '@subwallet/keyring/pair/decode';
 import { KeypairType } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
+import * as bitcoin from 'bitcoinjs-lib';
 import BN from 'bn.js';
 import SimpleKeyring from 'eth-simple-keyring';
 import { t } from 'i18next';
@@ -55,7 +59,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { TransactionConfig } from 'web3-core';
 
 import { JsonRpcResponse, ProviderInterface, ProviderInterfaceCallback } from '@polkadot/rpc-provider/types';
-import { assert, hexStripPrefix, hexToU8a, isHex, logger as createLogger, u8aToHex } from '@polkadot/util';
+import { assert, hexStripPrefix, hexToU8a, isArray, isHex, logger as createLogger, u8aToHex } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 import { base64Decode, isEthereumAddress, keyExtractSuri } from '@polkadot/util-crypto';
 
@@ -155,17 +159,19 @@ export default class KoniState {
     this.chainService = new ChainService(this.dbService, this.eventService, this.keyringService);
     this.subscanService = SubscanService.getInstance();
     this.settingService = new SettingService();
-    this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService);
+    this.feeService = new FeeService(this);
+
     this.priceService = new PriceService(this.dbService, this.eventService, this.chainService);
     this.balanceService = new BalanceService(this);
     this.historyService = new HistoryService(this.dbService, this.chainService, this.eventService, this.keyringService);
     this.mintCampaignService = new MintCampaignService(this);
-    this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.migrationService = new MigrationService(this, this.eventService);
 
     this.campaignService = new CampaignService(this);
     this.buyService = new BuyService(this);
     this.transactionService = new TransactionService(this);
+    this.requestService = new RequestService(this.chainService, this.settingService, this.keyringService, this.feeService, this.transactionService);
+    this.walletConnectService = new WalletConnectService(this, this.requestService);
     this.earningService = new EarningService(this);
     this.feeService = new FeeService(this);
     this.nftService = new NftService();
@@ -1175,6 +1181,324 @@ export default class KoniState {
       evm: this.chainService.getEvmApiMap(),
       bitcoin: this.chainService.getBitcoinApiMap()
     } as ApiMap;
+  }
+
+  public async bitcoinSign (id: string, url: string, method: string, params: Record<string, string>, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult> {
+    const { address, message } = params;
+
+    if (address === '' || !message) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found address or payload to sign'));
+    }
+
+    if (!isBitcoinAddress(address)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Invalid bitcoin address'));
+    }
+
+    // Check sign abiblity
+    if (!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()))) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
+    }
+
+    const pair = keyring.getPair(address);
+
+    if (!pair) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
+    }
+
+    const account: AccountJson = { address: pair.address, ...pair.meta };
+
+    const hashPayload = '';
+    const canSign = !account.isExternal;
+
+    const signPayload: BitcoinSignatureRequest = {
+      account: account,
+      payload: message as unknown,
+      payloadJson: message,
+      hashPayload,
+      canSign,
+      id
+    };
+
+    return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSignatureRequest', signPayload, {
+      requiredPassword: false,
+      address
+    })
+      .then(({ isApproved, payload }) => {
+        if (isApproved) {
+          if (payload) {
+            return payload;
+          } else {
+            throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found signature'));
+          }
+        } else {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+        }
+      });
+  }
+
+  public async bitcoinSignPspt (id: string, url: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
+    const { account: address, allowedSighash, broadcast, network, psbt, signAtIndex } = params;
+
+    if (!psbt || !address) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found payload to sign'));
+    }
+
+    if (!isHex(`0x${psbt}`)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Psbt to be signed must be hex-encoded'));
+    }
+
+    if (!(network === 'mainnet' || network === 'testnet')) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network to try this request is must be mainnet or testnet'));
+    }
+
+    if (!isBitcoinAddress(address)) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found address'));
+    }
+
+    // Check sign abiblity
+    if (!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()))) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
+    }
+
+    const pair = keyring.getPair(address);
+
+    if (!pair) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
+    }
+
+    if (network === 'mainnet') {
+      if (!['bitcoin-86', 'bitcoin-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the mainnet network'));
+      }
+    } else if (network === 'testnet') {
+      if (!['bittest-86', 'bittest-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the testnet network'));
+      }
+    }
+
+    const account: AccountJson = { address: pair.address, ...pair.meta };
+
+    const psbtGenerate = bitcoin.Psbt.fromHex(psbt, {
+      network: network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+    });
+    const psbtTxInputs = psbtGenerate.txInputs;
+    const psbtTxOutputs = psbtGenerate.txOutputs;
+
+    const payload: BitcoinSignPsbtPayload = {
+      psbt: psbtGenerate,
+      broadcast: !!broadcast,
+      network,
+      signAtIndex: isArray(signAtIndex) && signAtIndex.length === 0 ? undefined : signAtIndex,
+      account: account.address,
+      allowedSighash,
+      txInput: psbtTxInputs,
+      txOutput: psbtTxOutputs
+    };
+    const hashPayload = '';
+    const canSign = !account.isExternal;
+
+    const signPayload: BitcoinSignPsbtRequest = {
+      account,
+      payload,
+      hashPayload,
+      canSign
+    };
+
+    return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSignPsbtRequest', signPayload, {
+      requiredPassword: false
+    })
+      .then(({ isApproved, payload }) => {
+        if (isApproved) {
+          if (payload) {
+            return payload;
+          } else {
+            throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found signature'));
+          }
+        } else {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+        }
+      });
+  }
+
+  public async bitcoinSendTransaction (id: string, url: string, networkKey: string, allowedAccounts: string[], transactionParams: BitcoinSendTransactionParams): Promise<string | undefined> {
+    const bitcoinApi = this.getBitcoinApi(networkKey);
+    const apiStrategy = bitcoinApi.api;
+
+    const autoFormatNumber = (val?: string | number): string | undefined => {
+      if (typeof val === 'string' && val.startsWith('0x')) {
+        return new BigN(val.replace('0x', ''), 16).toString();
+      } else if (typeof val === 'number') {
+        return val.toString();
+      }
+
+      return val;
+    };
+
+    if (transactionParams.recipients.length !== 1) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Receiving address must be a single account'));
+    }
+
+    if (transactionParams.account === transactionParams.recipients[0].address) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Receiving address must be different from sending address'));
+    }
+
+    const tokenInfo = this.getNativeTokenInfo(networkKey);
+
+    const transaction: BitcoinTransactionConfig = {
+      id,
+      from: transactionParams.account,
+      to: transactionParams.recipients[0].address,
+      value: autoFormatNumber(transactionParams.recipients[0].amount),
+      tokenSlug: tokenInfo.slug,
+      networkKey: transactionParams.network === 'testnet' ? 'bitcoinTestnet' : 'bitcoin'
+    };
+
+    // Address is validated in before step
+    const fromAddress = allowedAccounts.find((account) => (account.toLowerCase() === (transaction.from as string).toLowerCase()));
+
+    if (!fromAddress) {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
+    }
+
+    const pair = keyring.getPair(fromAddress);
+
+    if (!pair) {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
+    }
+
+    if (networkKey === 'mainnet') {
+      if (!['bitcoin-86', 'bitcoin-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the mainnet network'));
+      }
+    } else if (networkKey === 'testnet') {
+      if (!['bittest-86', 'bittest-84'].includes(pair.type)) {
+        throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the testnet network'));
+      }
+    }
+
+    const account: AccountJson = { address: pair.address, ...pair.meta };
+
+    // Calculate transaction data
+    const [feeOptions_, utxos] = await Promise.all([
+      apiStrategy.getRecommendedFeeRate(),
+      getTransferableBitcoinUtxos(bitcoinApi, fromAddress)
+    ]);
+
+    const optionDefault = feeOptions_.options.default;
+    let feeOptions = null;
+    const determineUtxosArgs: DetermineUtxosForSpendArgs = {
+      amount: parseInt(transaction.value as string || '0'),
+      feeRate: feeOptions_.options[optionDefault].feeRate,
+      recipient: transaction.to as string,
+      sender: account.address,
+      utxos
+    };
+
+    if (!transaction.to) {
+      throw new Error();
+    }
+
+    const fallbackCalculate = (recipients: string[]) => {
+      const utxos = filterUneconomicalUtxos({
+        utxos: determineUtxosArgs.utxos,
+        feeRate: determineUtxosArgs.feeRate,
+        recipients,
+        sender: determineUtxosArgs.sender
+      });
+
+      const { txVBytes: vSize } = getSizeInfo({
+        inputLength: utxos.length || 1,
+        sender: fromAddress,
+        recipients
+      });
+
+      return {
+        vSize,
+        maxTransferable: utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0)),
+        estimatedFee: Math.ceil(determineUtxosArgs.feeRate * vSize).toString()
+      };
+    };
+
+    const getBalance = async (senderAddress: string) => {
+      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, senderAddress);
+
+      let balanceValue = new BigN(0);
+
+      filteredUtxos.forEach((utxo) => {
+        balanceValue = balanceValue.plus(utxo.value);
+      });
+
+      return balanceValue;
+    };
+
+    let maxTransferable = new BigN('0');
+    let estimatedFee = '0';
+    let inputs: UtxoResponseItem[] = [];
+    let outputs: BitcoinOutputUtox[] = [];
+
+    try {
+      const { fee: _estimatedFee, inputs: inputsRs, outputs: outputRs } = determineUtxosForSpend(determineUtxosArgs);
+
+      const { txVBytes: vSize } = getSizeInfo({
+        inputLength: inputs.length,
+        sender: fromAddress,
+        recipients: [transaction.to]
+      });
+
+      inputs = [...inputsRs];
+      outputs = [...outputRs];
+      estimatedFee = new BigN(_estimatedFee).toFixed(0);
+      feeOptions = {
+        ...feeOptions_,
+        estimatedFee,
+        vSize
+      };
+    } catch (_e) {
+      if (!feeOptions) {
+        const fb = fallbackCalculate([transaction.to, transaction.to]);
+
+        estimatedFee = fb.estimatedFee;
+
+        feeOptions = {
+          ...feeOptions_,
+          estimatedFee,
+          vSize: fb.vSize
+        };
+      }
+    }
+
+    maxTransferable = await getBalance(fromAddress);
+
+    // Validate balance
+    if (maxTransferable.lt(new BigN(estimatedFee).plus(new BigN(autoFormatNumber(transactionParams.recipients[0].amount) || '0')))) {
+      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
+    }
+
+    const requestPayload: BitcoinSendTransactionRequest = {
+      ...transaction,
+      hashPayload: JSON.stringify(transaction),
+      fee: feeOptions,
+      inputs,
+      canSign: true,
+      outputs,
+      account: account
+    };
+
+    // Custom handle this instead of general handler transaction
+    return this.requestService.addConfirmationBitcoin(id, url, 'bitcoinSendTransactionRequestAfterConfirmation', requestPayload, {
+      requiredPassword: false
+    })
+      .then(({ isApproved, payload }) => {
+        if (isApproved) {
+          if (payload) {
+            return payload;
+          } else {
+            throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found signature'));
+          }
+        } else {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.USER_REJECTED_REQUEST);
+        }
+      });
   }
 
   public refreshSubstrateApi (key: string) {

@@ -195,7 +195,7 @@ export interface TransportRequestMessage<TMessageType extends MessageTypes> {
   request: RequestTypes[TMessageType];
 }
 
-export type AccountAuthType = 'substrate' | 'evm' | 'both';
+export type AccountAuthType = 'substrate' | 'evm' | 'both' | 'bitcoin';
 
 export interface RequestAuthorizeTab {
   origin: string;

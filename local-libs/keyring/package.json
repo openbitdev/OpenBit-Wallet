@@ -205,6 +205,7 @@
     "@polkadot/util-crypto": "^12.2.1",
     "bcryptjs": "^2.4.3",
     "bignumber.js": "^9.1.2",
+    "bip322-js": "^2.0.0",
     "bitcoinjs-lib": "^6.1.5",
     "bitcoinjs-message": "^2.2.0",
     "ecpair": "^2.1.0",
