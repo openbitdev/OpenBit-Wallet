@@ -107,7 +107,6 @@ export default class BitcoinRequestHandler {
       };
     });
 
-    console.log(confirmations, 'bg');
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
 
     if (!isInternal) {
@@ -153,7 +152,6 @@ export default class BitcoinRequestHandler {
   }
 
   signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): SignMessageBitcoinResult {
-    console.log('papapapa');
     const { account, payload } = confirmation.payload;
     const address = account.address;
     const pair = keyring.getPair(address);
