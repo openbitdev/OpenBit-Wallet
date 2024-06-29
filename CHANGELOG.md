@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.1.47
+Build date: Jun 29, 2024.
+
+Features & Updates:
+- Support dApp Providers (Bitcoin Provider) (#85)
+- Add "Beta" for OpenBit version (#199)
+- Update chainlist (#225) :
+  - Add support for more tokens on BounceBit (#251)
+  - Add support for Ethereum Sepolia network (#249)
+
+
 ## 1.1.46
 Build date: Jun 27, 2024.
 
