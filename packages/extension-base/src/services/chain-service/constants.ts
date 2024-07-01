@@ -284,3 +284,5 @@ export const _BITCOIN_TESTNET_CHAIN_SLUG = 'bitcoinTestnet';
 export const _BITCOIN_NAME = 'Bitcoin';
 export const _BITCOIN_TESTNET_NAME = 'Bitcoin Testnet';
 export const _BEAR_TOKEN = 'aHR0cHM6Ly9xdWFuZ3RydW5nLXNvZnR3YXJlLnZuL2FwaS9tYXN0ZXIvYXBpLXB1YmxpYw=='; // Public for now. Change and hide later.
+export const OPENBIT_API_DEV_MAINNET = 'https://api-dev.openbit.app';
+export const OPENBIT_API_DEV_TESTNET = 'https://api-dev-testnet.openbit.app';
