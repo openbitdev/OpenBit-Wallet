@@ -397,17 +397,34 @@ export default class TransactionService {
     emitter.on('success', (data: TransactionEventResponse) => {
       validatedTransaction.id = data.id;
       validatedTransaction.extrinsicHash = data.extrinsicHash;
+      this.handlePostProcessing(data.id);
+      this.onSuccess(data);
     });
 
     emitter.on('signed', (data: TransactionEventResponse) => {
       validatedTransaction.id = data.id;
       validatedTransaction.extrinsicHash = data.extrinsicHash;
+      this.onSigned(data);
     });
 
     emitter.on('error', (data: TransactionEventResponse) => {
       if (data.errors.length > 0) {
         validatedTransaction.errors.push(...data.errors);
       }
+
+      this.onFailed({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.INTERNAL_ERROR)] });
+    });
+
+    emitter.on('send', (data: TransactionEventResponse) => {
+      this.onSend(data);
+    });
+
+    emitter.on('extrinsicHash', (data: TransactionEventResponse) => {
+      this.onHasTransactionHash(data);
+    });
+
+    emitter.on('timeout', (data: TransactionEventResponse) => {
+      this.onTimeOut({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.TIMEOUT)] });
     });
 
     // @ts-ignore

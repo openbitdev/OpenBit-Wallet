@@ -982,7 +982,7 @@ export default class KoniTabs {
 
   public async evmSendTransaction (id: string, url: string, { params }: RequestArguments) {
     const transactionParams = (params as EvmSendTransactionParams[])[0];
-    const canUseAccount = transactionParams.from && this.canUseAccount(transactionParams.from, url);
+    const canUseAccount = !!transactionParams.from && await this.canUseAccount(transactionParams.from, url);
     const evmState = await this.getEvmState(url);
     const networkKey = evmState.networkKey;
 
@@ -1259,9 +1259,11 @@ export default class KoniTabs {
 
   private async bitcoinSendTransfer (id: string, url: string, { params }: RequestArguments) {
     const transactionParams = params as BitcoinSendTransactionParams;
-    const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url, 'bitcoin');
+    const canUseAccount = !!transactionParams.account && await this.canUseAccount(transactionParams.account, url, 'bitcoin');
     const bitcoinState = await this.getBitcoinState(url, transactionParams.network);
     const networkKey = bitcoinState.networkKey;
+
+    console.log(canUseAccount, 'canUse');
 
     if (!canUseAccount) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('You have rescinded allowance for this account in wallet'));
