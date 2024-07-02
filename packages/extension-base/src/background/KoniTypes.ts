@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @polkadot/extension-koni authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import type { Psbt, PsbtTxInput, PsbtTxOutput } from 'bitcoinjs-lib';
+import type { Psbt } from 'bitcoinjs-lib';
 
 import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _FundStatus, _MultiChainAsset } from '@subwallet/chain-list/types';
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
@@ -1344,10 +1344,16 @@ export interface BitcoinSendTransactionParams {
   recipients: BitcoinRecipientTransactionParams[]
 }
 
+export interface PsbtTransactionArg {
+  address?: string;
+  amount?: string;
+}
+
 export interface BitcoinSignPsbtPayload extends Omit<BitcoinSignPsbtRawRequest, 'psbt'>{
-  txInput: PsbtTxInput[];
-  txOutput: PsbtTxOutput[];
-  psbt: Psbt
+  txInput: PsbtTransactionArg[];
+  txOutput: PsbtTransactionArg[];
+  psbt: Psbt;
+  tokenSlug: string;
 }
 
 enum SignatureHash {

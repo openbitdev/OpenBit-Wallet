@@ -1,15 +1,18 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { BitcoinSignPsbtRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
+import { _ChainAsset } from '@subwallet/chain-list/types';
+import { BitcoinSignPsbtRequest, ConfirmationsQueueItem, PsbtTransactionArg } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountItemWithName, ConfirmationGeneralInfo, MetaInfo, ViewDetailIcon } from '@subwallet/extension-koni-ui/components';
 import { useOpenDetailModal } from '@subwallet/extension-koni-ui/hooks';
 import { BitcoinSignArea } from '@subwallet/extension-koni-ui/Popup/Confirmations/parts';
+import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { BitcoinSignatureSupportType, ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { Button } from '@subwallet/react-ui';
+import { Button, Number } from '@subwallet/react-ui';
 import CN from 'classnames';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
 import { BaseDetailModal } from '../parts';
@@ -23,8 +26,35 @@ function Component ({ className, request, type }: Props) {
   const { id, payload } = request;
   const { t } = useTranslation();
   const { account } = payload;
-
+  const { tokenSlug, txInput, txOutput } = request.payload.payload;
+  const assetRegistry = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
   const onClickDetail = useOpenDetailModal();
+
+  const assetInfo: _ChainAsset | undefined = useMemo(() => {
+    return assetRegistry[tokenSlug];
+  }, [assetRegistry, tokenSlug]);
+  const renderAccount = useCallback((accounts: PsbtTransactionArg[]) => {
+    return (
+      <>
+        {
+          accounts.map(({ address, amount }) =>
+            <AccountItemWithName
+              address={address || ''}
+              key={address}
+              rightItem={amount
+                ? <Number
+                  decimal={assetInfo.decimals || 0}
+                  suffix={assetInfo.symbol || ''}
+                  value={amount}
+                />
+                : <></>}
+            />
+          )
+        }
+
+      </>
+    );
+  }, [assetInfo.decimals, assetInfo.symbol]);
 
   return (
     <>
@@ -66,11 +96,12 @@ function Component ({ className, request, type }: Props) {
       >
         <MetaInfo>
           <MetaInfo.Data label={t('Input')}>
-            {JSON.stringify(request.payload.payload.txInput)}
+            {renderAccount(txInput)}
           </MetaInfo.Data>
           <MetaInfo.Data label={t('Output')}>
-            {JSON.stringify(request.payload.payload.txOutput)}
+            {renderAccount(txOutput)}
           </MetaInfo.Data>
+
         </MetaInfo>
       </BaseDetailModal>
     </>

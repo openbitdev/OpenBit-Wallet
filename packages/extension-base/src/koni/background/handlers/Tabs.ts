@@ -963,8 +963,8 @@ export default class KoniTabs {
     });
   }
 
-  public async canUseAccount (address: string, url: string) {
-    const allowedAccounts = await this.getEvmCurrentAccount(url);
+  public async canUseAccount (address: string, url: string, type?: string) {
+    const allowedAccounts = await (type === 'bitcoin' ? this.getBitcoinCurrentAccount(url) : this.getEvmCurrentAccount(url));
 
     return !!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()));
   }
@@ -1240,8 +1240,15 @@ export default class KoniTabs {
 
   private async bitcoinSignPspt (id: string, url: string, { method, params }: RequestArguments) {
     const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
+    const psbtParams = params as BitcoinSignPsbtRawRequest;
+    const bitcoinState = await this.getBitcoinState(url, psbtParams.network);
+    const networkKey = bitcoinState.networkKey;
 
-    const signResult = await this.#koniState.bitcoinSignPspt(id, url, method, params as BitcoinSignPsbtRawRequest, allowedAccounts);
+    if (!networkKey) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network unavailable. Please switch network or manually add network to wallet'));
+    }
+
+    const signResult = await this.#koniState.bitcoinSignPspt(id, url, networkKey, method, psbtParams, allowedAccounts);
 
     if (signResult) {
       return signResult;
@@ -1252,7 +1259,7 @@ export default class KoniTabs {
 
   private async bitcoinSendTransfer (id: string, url: string, { params }: RequestArguments) {
     const transactionParams = params as BitcoinSendTransactionParams;
-    const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url);
+    const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url, 'bitcoin');
     const bitcoinState = await this.getBitcoinState(url, transactionParams.network);
     const networkKey = bitcoinState.networkKey;
 

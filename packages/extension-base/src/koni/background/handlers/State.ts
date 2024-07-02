@@ -6,7 +6,7 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinOutputUtox, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinOutputUtox, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, PsbtTransactionArg, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { NftService } from '@subwallet/extension-base/koni/api/nft';
@@ -1236,7 +1236,7 @@ export default class KoniState {
       });
   }
 
-  public async bitcoinSignPspt (id: string, url: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
+  public async bitcoinSignPspt (id: string, url: string, networkKey: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
     const { account: address, allowedSighash, broadcast, network, psbt, signAtIndex } = params;
 
     if (!psbt || !address) {
@@ -1281,8 +1281,32 @@ export default class KoniState {
     const psbtGenerate = bitcoin.Psbt.fromHex(psbt, {
       network: network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
     });
-    const psbtTxInputs = psbtGenerate.txInputs;
-    const psbtTxOutputs = psbtGenerate.txOutputs;
+
+    const network_ = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+    const tokenInfo = this.getNativeTokenInfo(networkKey);
+
+    const psbtInputData = psbtGenerate.data.inputs.map(({ witnessUtxo }) => {
+      if (!witnessUtxo) {
+        return {};
+      }
+
+      const address = bitcoin.address.fromOutputScript(witnessUtxo?.script, network_);
+
+      return {
+        address,
+        amount: witnessUtxo.value.toString()
+      } as PsbtTransactionArg;
+    });
+
+    const psbtOutputData = psbtGenerate.txOutputs.map((output) => {
+      const address = output.address || bitcoin.address.fromOutputScript(output.script, network_);
+
+      return {
+        address,
+        amount: output.value.toString()
+      } as PsbtTransactionArg;
+    });
 
     const payload: BitcoinSignPsbtPayload = {
       psbt: psbtGenerate,
@@ -1291,8 +1315,9 @@ export default class KoniState {
       signAtIndex: isArray(signAtIndex) && signAtIndex.length === 0 ? undefined : signAtIndex,
       account: account.address,
       allowedSighash,
-      txInput: psbtTxInputs,
-      txOutput: psbtTxOutputs
+      tokenSlug: tokenInfo.slug,
+      txInput: psbtInputData,
+      txOutput: psbtOutputData
     };
     const hashPayload = '';
     const canSign = !account.isExternal;
