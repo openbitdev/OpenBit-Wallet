@@ -59,7 +59,9 @@ const openbitChainInfoMap = (() => {
     'bounceBitEvmTest',
     'layerEdge_testnet',
     'bevm_testnet',
-    'sepolia_ethereum'
+    'sepolia_ethereum',
+    'syscoin_evm',
+    'rollux_evm'
   ];
   const enableList = nativeList.concat(bitcoinL2List);
 
