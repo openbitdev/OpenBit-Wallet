@@ -111,6 +111,10 @@ export const TokenBalanceDetailItem = styled(Component)<Props>(({ theme: { token
       padding: 12
     },
 
+    '.-sub-logo .ant-image-img': {
+      boxShadow: '-2px 0px 4px 0px rgba(0, 0, 0, .45)'
+    },
+
     '.ant-number .ant-typography': {
       fontSize: 'inherit !important',
       lineHeight: 'inherit'
