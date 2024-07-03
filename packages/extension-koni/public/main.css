@@ -34,6 +34,13 @@ body {
   position: relative;
 }
 
+@media (max-height: 600px) {
+  html {
+    align-items: flex-start;
+    overflow: hidden;
+  }
+}
+
 [tabindex='-1']:focus {
   outline: none;
 }
