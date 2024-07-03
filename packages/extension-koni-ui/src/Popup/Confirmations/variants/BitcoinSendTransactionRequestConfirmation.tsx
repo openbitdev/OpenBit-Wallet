@@ -7,8 +7,8 @@ import { BitcoinFeeDetail, RequestSubmitTransferWithId, ResponseSubscribeTransfe
 import { BN_ZERO, getDomainFromUrl } from '@subwallet/extension-base/utils';
 import { BitcoinFeeSelector, MetaInfo } from '@subwallet/extension-koni-ui/components';
 import { RenderFieldNodeParams } from '@subwallet/extension-koni-ui/components/Field/TransactionFee/BitcoinFeeSelector';
-import { useGetAccountByAddress } from '@subwallet/extension-koni-ui/hooks';
-import { cancelSubscription, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
+import { useGetAccountByAddress, useNotification } from '@subwallet/extension-koni-ui/hooks';
+import { cancelSubscription, subscribeTransferWhenConfirmation } from '@subwallet/extension-koni-ui/messaging';
 import { BitcoinSignArea } from '@subwallet/extension-koni-ui/Popup/Confirmations/parts';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { BitcoinSignatureSupportType, ThemeProps } from '@subwallet/extension-koni-ui/types';
@@ -35,14 +35,19 @@ const convertToBigN = (num: BitcoinSendTransactionRequest['value']): string | nu
 };
 
 function Component ({ className, request, type }: Props) {
-  const { id, payload: { account, fee, networkKey, to, tokenSlug, value } } = request;
+  const { id, payload: { account, networkKey, to, tokenSlug, value } } = request;
   const { t } = useTranslation();
+  const transferAmountValue = useMemo(() => value?.toString() as string, [value]);
+  const fromValue = useMemo(() => account.address, [account.address]);
+  const toValue = useMemo(() => to ? to[0].address : '', [to]);
+  const chainValue = useMemo(() => networkKey as string, [networkKey]);
+  const assetValue = useMemo(() => tokenSlug as string, [tokenSlug]);
 
   const [transactionInfo, setTransactionInfo] = useState<RequestSubmitTransferWithId>({
     id,
     chain: networkKey as string,
     from: account.address,
-    to: to as string,
+    to: toValue,
     tokenSlug: tokenSlug as string,
     transferAll: false,
     value: value?.toString() || '0'
@@ -50,17 +55,10 @@ function Component ({ className, request, type }: Props) {
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
   const [isTransferAll, setIsTransferAll] = useState(false);
   const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransfer | undefined>();
-  const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>({
-    feeOption: fee?.options.default
-  });
-
+  const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>(undefined);
+  const [isErrorTransaction, setIsErrorTransaction] = useState(false);
+  const notify = useNotification();
   const assetRegistry = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
-
-  const transferAmountValue = value?.toString() as string;
-  const fromValue = account.address;
-  const toValue = to as string;
-  const chainValue = networkKey as string;
-  const assetValue = tokenSlug as string;
 
   const assetInfo: _ChainAsset | undefined = useMemo(() => {
     return assetRegistry[assetValue];
@@ -143,11 +141,10 @@ function Component ({ className, request, type }: Props) {
 
     if (fromValue && assetValue) {
       timeout = setTimeout(() => {
-        subscribeMaxTransfer({
+        subscribeTransferWhenConfirmation({
           address: fromValue,
           chain: chainValue,
           token: assetValue,
-          isXcmTransfer: false,
           destChain: chainValue,
           feeOption: transactionFeeInfo?.feeOption,
           feeCustom: transactionFeeInfo?.feeCustom,
@@ -158,7 +155,12 @@ function Component ({ className, request, type }: Props) {
           .then(callback)
           .catch((e) => {
             console.error(e);
-
+            notify({
+              message: t(e),
+              type: 'error',
+              duration: 8
+            });
+            setIsErrorTransaction(true);
             setTransferInfo(undefined);
           })
           .finally(() => {
@@ -172,7 +174,7 @@ function Component ({ className, request, type }: Props) {
       clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, fromValue, toValue, transactionFeeInfo, transferAmountValue, isTransferAll]);
+  }, [assetRegistry, assetValue, chainValue, fromValue, toValue, transactionFeeInfo, transferAmountValue, isTransferAll, notify, t]);
 
   return (
     <>
@@ -206,14 +208,14 @@ function Component ({ className, request, type }: Props) {
             value={amount}
           />
 
-          <BitcoinFeeSelector
+          {!isErrorTransaction && <BitcoinFeeSelector
             className={'__bitcoin-fee-selector'}
             feeDetail={transferInfo?.feeOptions as BitcoinFeeDetail | undefined}
             isLoading={isFetchingInfo}
             onSelect={setTransactionFeeInfo}
             renderFieldNode={renderFeeSelectorNode}
             tokenSlug={assetValue}
-          />
+          />}
         </MetaInfo>
 
         {/* {!!transaction.estimateFee?.tooHigh && ( */}
@@ -226,7 +228,7 @@ function Component ({ className, request, type }: Props) {
         {/* )} */}
       </div>
       <BitcoinSignArea
-        canSign={!isFetchingInfo}
+        canSign={!isFetchingInfo && !isErrorTransaction}
         editedPayload={transactionInfo}
         id={id}
         payload={request}

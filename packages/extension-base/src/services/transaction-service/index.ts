@@ -175,7 +175,7 @@ export default class TransactionService {
             if (!web3) {
               validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
             } else {
-              const gasLimit = await web3.api.eth.estimateGas(transaction);
+              const gasLimit = await web3.api.eth.estimateGas(transaction as TransactionConfig);
 
               const feeInfo = await this.state.feeService.subscribeChainFee(id, chain, 'evm') as EvmFeeInfo;
               const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom as EvmEIP1995FeeOption);

@@ -42,3 +42,7 @@ export async function getMaxTransfer (request: RequestMaxTransferable): Promise<
 export async function subscribeMaxTransfer (request: RequestSubscribeTransfer, callback: (data: ResponseSubscribeTransfer) => void): Promise<ResponseSubscribeTransfer> {
   return sendMessage('pri(transfer.subscribe)', request, callback);
 }
+
+export async function subscribeTransferWhenConfirmation (request: RequestSubscribeTransfer, callback: (data: ResponseSubscribeTransfer) => void): Promise<ResponseSubscribeTransfer> {
+  return sendMessage('pri(transfer.confirmation.subscribe)', request, callback);
+}
