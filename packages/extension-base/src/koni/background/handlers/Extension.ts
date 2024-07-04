@@ -40,7 +40,7 @@ import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/servi
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
-import { BalanceJson, BitcoinFeeDetail, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
+import { BalanceJson, BitcoinFeeDetail, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeCustom, FeeDetail, FeeInfo, FeeOption, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, ResponseSubscribeTransferConfirmation, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
 import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isAddressValidWithAuthType, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
@@ -2806,91 +2806,70 @@ export default class KoniExtension {
     return convertData(freeBalance, fee);
   }
 
-  private async subscribeTransferableWhenConfirmation ({ address, chain, feeCustom, feeOption: _feeOptions, to, token, transferAll, value }: RequestSubscribeTransfer, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeTransfer> {
+  private async subscribeTransferableWhenConfirmation ({ address, chain, feeCustom, feeOption: _feeOptions, to, token, value }: RequestSubscribeTransfer, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeTransferConfirmation> {
     const cb = createSubscription<'pri(transfer.confirmation.subscribe)'>(id, port);
-
-    const tokenInfo = token ? this.#koniState.chainService.getAssetBySlug(token) : this.#koniState.chainService.getNativeTokenInfo(chain);
     const freeBalanceSubject = new Subject<AmountData>();
     const feeSubject = new Subject<BitcoinFeeInfo>();
     const feeType: FeeChainType = 'bitcoin';
 
-    const convertData = async (freeBalance: AmountData, fee: BitcoinFeeInfo): Promise<ResponseSubscribeTransfer> => {
-      let estimatedFee = '0';
+    const convertData = async (freeBalance: AmountData, fee: BitcoinFeeInfo, feeOption?: FeeOption, feeCustom?: FeeCustom): Promise<ResponseSubscribeTransferConfirmation> => {
+      const estimatedFee = '0';
       let feeOptions: BitcoinFeeDetail | null = null;
       const amount = parseInt(value || '0');
-      let maxTransferable = new BigN(freeBalance.value);
+      const neededUtxos = [];
+      let sum = new BigN(0);
+      let sizeInfo = null;
 
       try {
         const _fee = fee;
         const _feeCustom = feeCustom as BitcoinFeeRate;
         const combineFee = combineBitcoinFee(_fee, _feeOptions, _feeCustom);
         const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
-        const utxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
-        const determineUtxosArgs: DetermineUtxosForSpendArgs = {
-          amount,
+        let utxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
+
+        const recipients = [address, to || address];
+
+        utxos = utxos.sort((a, b) => b.value - a.value);
+        const filteredUtxos = filterUneconomicalUtxos({
+          utxos,
           feeRate: combineFee.feeRate,
-          recipient: to || address,
-          sender: address,
-          utxos
-        };
+          recipients,
+          sender: address
+        });
 
-        const recipients = transferAll ? [address] : [address, to || address];
-
-        const fallbackCalculate = (recipients: string[]) => {
-          const utxos = filterUneconomicalUtxos({
-            utxos: determineUtxosArgs.utxos,
-            feeRate: determineUtxosArgs.feeRate,
-            recipients,
-            sender: determineUtxosArgs.sender
-          });
-
-          const { txVBytes: vSize } = getSizeInfo({
-            inputLength: utxos.length || 1,
+        for (const utxo of filteredUtxos) {
+          sizeInfo = getSizeInfo({
+            inputLength: neededUtxos.length,
             sender: address,
             recipients
           });
 
-          return {
-            vSize,
-            maxTransferable: utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0)),
-            estimatedFee: Math.ceil(determineUtxosArgs.feeRate * vSize).toString()
-          };
-        };
+          const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * combineFee.feeRate));
 
-        try {
-          const { fee: _estimatedFee, inputs } = transferAll ? determineUtxosForSpendAll(determineUtxosArgs) : determineUtxosForSpend(determineUtxosArgs);
-
-          maxTransferable = inputs.reduce((previous, input) => previous.plus(input.value), new BigN(0));
-
-          const { txVBytes: vSize } = getSizeInfo({
-            inputLength: inputs.length,
-            sender: address,
-            recipients
-          });
-
-          estimatedFee = new BigN(_estimatedFee).toFixed(0);
-          feeOptions = {
-            ..._fee,
-            estimatedFee,
-            vSize
-          };
-        } catch (_e) {
-          const fb = fallbackCalculate([to || address]);
-
-          maxTransferable = fb.maxTransferable;
-
-          if (!feeOptions) {
-            const fb = fallbackCalculate([address, to || address]);
-
-            estimatedFee = fb.estimatedFee;
-
-            feeOptions = {
-              ..._fee,
-              estimatedFee,
-              vSize: fb.vSize
-            };
+          if (sum.gte(currentValue)) {
+            break;
           }
+
+          sum = sum.plus(utxo.value);
+          neededUtxos.push(utxo);
         }
+
+        // re calculate
+        sizeInfo = getSizeInfo({
+          inputLength: neededUtxos.length,
+          sender: address,
+          recipients
+        });
+
+        if (!sizeInfo) {
+          throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+        }
+
+        feeOptions = {
+          ...fee,
+          vSize: sizeInfo.txVBytes,
+          estimatedFee: Math.ceil(combineFee.feeRate * sizeInfo.txVBytes).toFixed(0)
+        };
       } catch (e) {
         feeOptions = {
           ...fee,
@@ -2901,17 +2880,11 @@ export default class KoniExtension {
         console.warn('Unable to estimate fee', e);
       }
 
-      if (maxTransferable.lt(new BigN(estimatedFee).plus(new BigN(amount)))) {
+      if (new BigN(freeBalance.value).lt(new BigN(estimatedFee).plus(new BigN(amount)))) {
         throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
       }
 
-      maxTransferable = maxTransferable
-        .minus(new BigN(estimatedFee));
-
       return {
-        maxTransferable: !_isNativeToken(tokenInfo)
-          ? freeBalance.value
-          : maxTransferable.gt(BN_ZERO) ? (maxTransferable.toFixed(0) || '0') : '0',
         feeOptions: feeOptions as FeeDetail,
         feeType,
         id
@@ -2924,7 +2897,7 @@ export default class KoniExtension {
     })
       .subscribe({
         next: ({ fee, freeBalance }) => {
-          convertData(freeBalance, fee)
+          convertData(freeBalance, fee, _feeOptions, feeCustom)
             .then(cb)
             .catch(console.error);
         }
@@ -2953,7 +2926,7 @@ export default class KoniExtension {
       this.cancelSubscription(id);
     });
 
-    return convertData(freeBalance, fee as BitcoinFeeInfo);
+    return convertData(freeBalance, fee as BitcoinFeeInfo, _feeOptions, feeCustom);
   }
 
   private async subscribeAddressFreeBalance ({ address, networkKey, token }: RequestFreeBalance, id: string, port: chrome.runtime.Port): Promise<AmountData> {

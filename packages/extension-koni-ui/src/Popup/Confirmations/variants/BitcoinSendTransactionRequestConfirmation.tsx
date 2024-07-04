@@ -3,8 +3,8 @@
 
 import { _ChainAsset } from '@subwallet/chain-list/types';
 import { BitcoinSendTransactionRequest, ConfirmationsQueueItem } from '@subwallet/extension-base/background/KoniTypes';
-import { BitcoinFeeDetail, RequestSubmitTransferWithId, ResponseSubscribeTransfer, TransactionFee } from '@subwallet/extension-base/types';
-import { BN_ZERO, getDomainFromUrl } from '@subwallet/extension-base/utils';
+import { BitcoinFeeDetail, RequestSubmitTransferWithId, ResponseSubscribeTransferConfirmation, TransactionFee } from '@subwallet/extension-base/types';
+import { getDomainFromUrl } from '@subwallet/extension-base/utils';
 import { BitcoinFeeSelector, MetaInfo } from '@subwallet/extension-koni-ui/components';
 import { RenderFieldNodeParams } from '@subwallet/extension-koni-ui/components/Field/TransactionFee/BitcoinFeeSelector';
 import { useGetAccountByAddress, useNotification } from '@subwallet/extension-koni-ui/hooks';
@@ -53,8 +53,7 @@ function Component ({ className, request, type }: Props) {
     value: value?.toString() || '0'
   });
   const [isFetchingInfo, setIsFetchingInfo] = useState(false);
-  const [isTransferAll, setIsTransferAll] = useState(false);
-  const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransfer | undefined>();
+  const [transferInfo, setTransferInfo] = useState<ResponseSubscribeTransferConfirmation | undefined>();
   const [transactionFeeInfo, setTransactionFeeInfo] = useState<TransactionFee | undefined>(undefined);
   const [isErrorTransaction, setIsErrorTransaction] = useState(false);
   const notify = useNotification();
@@ -115,22 +114,13 @@ function Component ({ className, request, type }: Props) {
   }, [transactionFeeInfo]);
 
   useEffect(() => {
-    const bnTransferAmount = new BigN(transferAmountValue || '0');
-    const bnMaxTransfer = new BigN(transferInfo?.maxTransferable || '0');
-
-    if (bnTransferAmount.gt(BN_ZERO) && bnTransferAmount.eq(bnMaxTransfer)) {
-      setIsTransferAll(true);
-    }
-  }, [transferInfo, transferAmountValue]);
-
-  useEffect(() => {
     let cancel = false;
     let id = '';
     let timeout: NodeJS.Timeout;
 
     setIsFetchingInfo(true);
 
-    const callback = (transferInfo: ResponseSubscribeTransfer) => {
+    const callback = (transferInfo: ResponseSubscribeTransferConfirmation) => {
       if (!cancel) {
         setTransferInfo(transferInfo);
         id = transferInfo.id;
@@ -149,7 +139,7 @@ function Component ({ className, request, type }: Props) {
           feeOption: transactionFeeInfo?.feeOption,
           feeCustom: transactionFeeInfo?.feeCustom,
           value: transferAmountValue || '0',
-          transferAll: isTransferAll,
+          transferAll: false,
           to: toValue
         }, callback)
           .then(callback)
@@ -174,7 +164,7 @@ function Component ({ className, request, type }: Props) {
       clearTimeout(timeout);
       id && cancelSubscription(id).catch(console.error);
     };
-  }, [assetRegistry, assetValue, chainValue, fromValue, toValue, transactionFeeInfo, transferAmountValue, isTransferAll, notify, t]);
+  }, [assetRegistry, assetValue, chainValue, fromValue, toValue, transactionFeeInfo, transferAmountValue, notify, t]);
 
   return (
     <>

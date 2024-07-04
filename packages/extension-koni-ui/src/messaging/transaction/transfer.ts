@@ -3,7 +3,7 @@
 
 import { AmountData, RequestCrossChainTransfer, RequestMaxTransferable, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, SupportTransferResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { BitcoinTransactionData, SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
-import { RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, ResponseSubscribeTransfer } from '@subwallet/extension-base/types';
+import { RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, ResponseSubscribeTransfer, ResponseSubscribeTransferConfirmation } from '@subwallet/extension-base/types';
 
 import { sendMessage } from '../base';
 
@@ -43,6 +43,6 @@ export async function subscribeMaxTransfer (request: RequestSubscribeTransfer, c
   return sendMessage('pri(transfer.subscribe)', request, callback);
 }
 
-export async function subscribeTransferWhenConfirmation (request: RequestSubscribeTransfer, callback: (data: ResponseSubscribeTransfer) => void): Promise<ResponseSubscribeTransfer> {
+export async function subscribeTransferWhenConfirmation (request: RequestSubscribeTransfer, callback: (data: ResponseSubscribeTransferConfirmation) => void): Promise<ResponseSubscribeTransferConfirmation> {
   return sendMessage('pri(transfer.confirmation.subscribe)', request, callback);
 }
