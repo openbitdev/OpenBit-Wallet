@@ -2813,7 +2813,7 @@ export default class KoniExtension {
     let error: string | undefined;
 
     const convertData = async (freeBalance: AmountData, fee: BitcoinFeeInfo, feeOption?: FeeOption, feeCustom?: FeeCustom): Promise<ResponseSubscribeTransferConfirmation> => {
-      const estimatedFee = '0';
+      let estimatedFee = '0';
       let feeOptions: BitcoinFeeDetail | null = null;
       const amount = parseInt(value || '0');
       const neededUtxos = [];
@@ -2827,81 +2827,61 @@ export default class KoniExtension {
         const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
         let utxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
 
-        const fallbackCalculate = (recipients: string[]) => {
-          utxos = filterUneconomicalUtxos({
-            utxos,
-            feeRate: combineFee.feeRate,
-            recipients,
-            sender: address
-          });
-
-          const { txVBytes: vSize } = getSizeInfo({
-            inputLength: utxos.length || 1,
-            sender: address,
-            recipients
-          });
-
-          return {
-            vSize,
-            estimatedFee: Math.ceil(combineFee.feeRate * vSize).toString()
-          };
-        };
-
         const recipients = [address, to || address];
 
-        try {
-          utxos = utxos.sort((a, b) => b.value - a.value);
-          const filteredUtxos = filterUneconomicalUtxos({
-            utxos,
-            feeRate: combineFee.feeRate,
-            recipients,
-            sender: address
-          });
+        utxos = utxos.sort((a, b) => b.value - a.value);
+        const filteredUtxos = filterUneconomicalUtxos({
+          utxos,
+          feeRate: combineFee.feeRate,
+          recipients,
+          sender: address
+        });
 
-          for (const utxo of filteredUtxos) {
-            sizeInfo = getSizeInfo({
-              inputLength: neededUtxos.length,
-              sender: address,
-              recipients
-            });
-
-            const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * combineFee.feeRate));
-
-            if (sum.gte(currentValue)) {
-              break;
-            }
-
-            sum = sum.plus(utxo.value);
-            neededUtxos.push(utxo);
-          }
-
-          // re calculate
+        for (const utxo of filteredUtxos) {
           sizeInfo = getSizeInfo({
             inputLength: neededUtxos.length,
             sender: address,
             recipients
           });
 
-          if (!sizeInfo) {
-            throw new Error('Insufficient funds');
+          const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * combineFee.feeRate));
+
+          if (sum.gte(currentValue)) {
+            break;
           }
 
-          feeOptions = {
-            ...fee,
-            vSize: sizeInfo.txVBytes,
-            estimatedFee: Math.ceil(combineFee.feeRate * sizeInfo.txVBytes).toFixed(0)
-          };
-        } catch (e) {
-          if (!feeOptions) {
-            const fb = fallbackCalculate(recipients);
-
-            feeOptions = {
-              ..._fee,
-              estimatedFee: fb.estimatedFee,
-              vSize: fb.vSize
-            };
-          }
+          sum = sum.plus(utxo.value);
+          neededUtxos.push(utxo);
         }
+
+        // re calculate
+        sizeInfo = getSizeInfo({
+          inputLength: neededUtxos.length,
+          sender: address,
+          recipients
+        });
+
+        if (!sizeInfo) {
+          sizeInfo = getSizeInfo({
+            inputLength: utxos.length || 1,
+            sender: address,
+            recipients
+          });
+        }
+
+        estimatedFee = Math.ceil(sizeInfo.txVBytes * combineFee.feeRate).toString();
+
+        const amountLeft = sum.minus(amount).minus(new BigN(estimatedFee));
+
+        if (amountLeft.lte(0)) {
+          error = 'Insufficient balance';
+        }
+
+        feeOptions = {
+          ...fee,
+          vSize: sizeInfo.txVBytes,
+          estimatedFee
+        };
       } catch (e) {
         feeOptions = {
           ...fee,
@@ -2911,10 +2891,6 @@ export default class KoniExtension {
 
         error = (e as Error).message || e as string;
         console.warn('Unable to estimate fee', e);
-      }
-
-      if (new BigN(freeBalance.value).lt(new BigN(estimatedFee).plus(new BigN(amount)))) {
-        error = t('Insufficient balance');
       }
 
       return {
