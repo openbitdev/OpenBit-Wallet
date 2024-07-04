@@ -23,7 +23,9 @@ export interface ResponseSubscribeTransfer {
   feeType: FeeChainType;
 }
 
-export type ResponseSubscribeTransferConfirmation = Omit<ResponseSubscribeTransfer, 'maxTransferable'>;
+export interface ResponseSubscribeTransferConfirmation extends Omit<ResponseSubscribeTransfer, 'maxTransferable'> {
+  error?: string;
+}
 
 export interface RequestSubmitTransfer extends BaseRequestSign, TransactionFee {
   chain: string;

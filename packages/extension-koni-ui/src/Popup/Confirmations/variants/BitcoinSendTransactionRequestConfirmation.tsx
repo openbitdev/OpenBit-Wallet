@@ -121,7 +121,14 @@ function Component ({ className, request, type }: Props) {
     setIsFetchingInfo(true);
 
     const callback = (transferInfo: ResponseSubscribeTransferConfirmation) => {
-      if (!cancel) {
+      if (transferInfo.error) {
+        notify({
+          message: t(transferInfo.error),
+          type: 'error',
+          duration: 8
+        });
+        setIsErrorTransaction(true);
+      } else if (!cancel) {
         setTransferInfo(transferInfo);
         id = transferInfo.id;
       } else {
