@@ -104,6 +104,7 @@ export default class TransactionService {
       address,
       chain,
       edAsWarning,
+      estimateFee: estimateFee_,
       extrinsicType,
       feeCustom,
       feeOption,
@@ -130,7 +131,7 @@ export default class TransactionService {
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
 
     // Estimate fee
-    const estimateFee: FeeData = {
+    const estimateFee: FeeData = estimateFee_ || {
       symbol: '',
       decimals: 0,
       value: '',
@@ -147,7 +148,7 @@ export default class TransactionService {
 
       const id = getId();
 
-      if (transaction) {
+      if (transaction && !estimateFee_) {
         try {
           if (isSubstrateTransaction(transaction)) {
             estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
@@ -388,7 +389,7 @@ export default class TransactionService {
     const emitter = new EventEmitter<TransactionEventMap>();
 
     // Fill transaction default info
-    const transactionUpdated = this.fillTransactionDefaultInfo(transaction);
+    const transactionUpdated = this.fillTransactionDefaultInfo(validatedTransaction);
 
     // Add Transaction
     transactionsSubject[transactionUpdated.id] = { ...transactionUpdated, emitterTransaction: emitter };

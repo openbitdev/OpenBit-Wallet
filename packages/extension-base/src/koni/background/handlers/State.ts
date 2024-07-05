@@ -40,7 +40,7 @@ import WalletConnectService from '@subwallet/extension-base/services/wallet-conn
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
 import { BalanceItem, BalanceMap, EvmFeeInfo } from '@subwallet/extension-base/types';
-import { isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
+import { isAccountAll, isSameAddress, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -50,6 +50,7 @@ import { KeypairType } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
 import * as bitcoin from 'bitcoinjs-lib';
+import { Psbt } from 'bitcoinjs-lib';
 import BN from 'bn.js';
 import SimpleKeyring from 'eth-simple-keyring';
 import { t } from 'i18next';
@@ -1236,7 +1237,7 @@ export default class KoniState {
   }
 
   public async bitcoinSignPspt (id: string, url: string, networkKey: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
-    const { account: address, allowedSighash, broadcast, network, psbt, signAtIndex } = params;
+    const { account: address, allowedSighash, broadcast, psbt, signAtIndex } = params;
 
     if (!psbt || !address) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found payload to sign'));
@@ -1275,27 +1276,45 @@ export default class KoniState {
 
     const network_ = networkKey === 'bitcoinTestnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
-    const psbtGenerate = bitcoin.Psbt.fromHex(psbt, {
+    const psbtGenerate = Psbt.fromHex(psbt, {
       network: network_
     });
 
-    const tokenInfo = this.getNativeTokenInfo(networkKey);
+    const isExistedInput = (inputs: PsbtTransactionArg[], address: string) => inputs.findIndex(({ address: address_ }) => isSameAddress(address, address_ || ''));
 
-    const psbtInputData = psbtGenerate.data.inputs.map(({ witnessUtxo }) => {
+    const tokenInfo = this.getNativeTokenInfo(networkKey);
+    let to = '';
+    let value = new BigN(0);
+    const psbtInputData = psbtGenerate.data.inputs.reduce((inputs, { witnessUtxo }) => {
       if (!witnessUtxo) {
-        return {};
+        return inputs;
       }
 
       const address = bitcoin.address.fromOutputScript(witnessUtxo?.script, network_);
+      const existedInput = isExistedInput(inputs, address);
 
-      return {
-        address,
-        amount: witnessUtxo.value.toString()
-      } as PsbtTransactionArg;
-    });
+      if (existedInput === -1) {
+        inputs.push({
+          address,
+          amount: witnessUtxo.value.toString()
+        });
+      } else {
+        inputs[existedInput] = {
+          ...inputs[existedInput],
+          amount: new BigN(inputs[existedInput].amount || 0).plus(new BigN(witnessUtxo.value.toString())).toString()
+        };
+      }
+
+      return inputs;
+    }, [] as PsbtTransactionArg[]);
 
     const psbtOutputData = psbtGenerate.txOutputs.map((output) => {
       const address = output.address || bitcoin.address.fromOutputScript(output.script, network_);
+
+      if (isExistedInput(psbtInputData, address) === -1) {
+        to = address;
+        value = value.plus(new BigN(output.value));
+      }
 
       return {
         address,
@@ -1306,7 +1325,9 @@ export default class KoniState {
     const payload: BitcoinSignPsbtPayload = {
       psbt: psbtGenerate,
       broadcast: !!broadcast,
-      network,
+      value: value.toString(),
+      to,
+      network: networkKey,
       signAtIndex: isArray(signAtIndex) && signAtIndex.length === 0 ? undefined : signAtIndex,
       account: account.address,
       allowedSighash,

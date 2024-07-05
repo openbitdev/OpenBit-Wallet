@@ -8,6 +8,7 @@ import { useOpenDetailModal } from '@subwallet/extension-koni-ui/hooks';
 import { BitcoinSignArea } from '@subwallet/extension-koni-ui/Popup/Confirmations/parts';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { BitcoinSignatureSupportType, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { findAccountByAddress } from '@subwallet/extension-koni-ui/utils';
 import { Button, Number } from '@subwallet/react-ui';
 import CN from 'classnames';
 import React, { useCallback, useMemo } from 'react';
@@ -27,18 +28,22 @@ function Component ({ className, request, type }: Props) {
   const { t } = useTranslation();
   const { account } = payload;
   const { tokenSlug, txInput, txOutput } = request.payload.payload;
+  const accounts = useSelector((state: RootState) => state.accountState.accounts);
   const assetRegistry = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
   const onClickDetail = useOpenDetailModal();
 
   const assetInfo: _ChainAsset | undefined = useMemo(() => {
     return assetRegistry[tokenSlug];
   }, [assetRegistry, tokenSlug]);
-  const renderAccount = useCallback((accounts: PsbtTransactionArg[]) => {
+  const renderAccount = useCallback((accountsPsbt: PsbtTransactionArg[]) => {
     return (
-      <>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {
-          accounts.map(({ address, amount }) =>
-            <AccountItemWithName
+          accountsPsbt.map(({ address, amount }) => {
+            const account = findAccountByAddress(accounts, address);
+
+            return (<AccountItemWithName
+              accountName={account?.name}
               address={address || ''}
               key={address}
               rightItem={amount
@@ -48,13 +53,14 @@ function Component ({ className, request, type }: Props) {
                   value={amount}
                 />
                 : <></>}
-            />
+            />);
+          }
           )
         }
 
-      </>
+      </div>
     );
-  }, [assetInfo.decimals, assetInfo.symbol]);
+  }, [accounts, assetInfo.decimals, assetInfo.symbol]);
 
   return (
     <>

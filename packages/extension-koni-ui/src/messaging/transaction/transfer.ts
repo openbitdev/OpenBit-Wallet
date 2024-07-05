@@ -3,7 +3,7 @@
 
 import { AmountData, RequestCrossChainTransfer, RequestMaxTransferable, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, SupportTransferResponse } from '@subwallet/extension-base/background/KoniTypes';
 import { BitcoinTransactionData, SWTransactionResponse } from '@subwallet/extension-base/services/transaction-service/types';
-import { RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, ResponseSubscribeTransfer, ResponseSubscribeTransferConfirmation } from '@subwallet/extension-base/types';
+import { RequestSubmitSignPsbtTransfer, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, ResponseSubscribeTransfer, ResponseSubscribeTransferConfirmation } from '@subwallet/extension-base/types';
 
 import { sendMessage } from '../base';
 
@@ -13,6 +13,10 @@ export async function makeTransfer (request: RequestSubmitTransfer): Promise<SWT
 
 export async function makeTransferAfterConfirmation (request: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
   return sendMessage('pri(accounts.transfer.after.confirmation)', request);
+}
+
+export async function makePSBTTransferAfterConfirmation (request: RequestSubmitSignPsbtTransfer): Promise<SWTransactionResponse> {
+  return sendMessage('pri(accounts.psbt.transfer.after.confirmation)', request);
 }
 
 export async function makeCrossChainTransfer (request: RequestCrossChainTransfer): Promise<SWTransactionResponse> {

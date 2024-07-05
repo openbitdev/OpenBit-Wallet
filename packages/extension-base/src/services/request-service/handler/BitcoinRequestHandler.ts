@@ -283,7 +283,7 @@ export default class BitcoinRequestHandler {
   private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
     // Extract necessary information from the BitcoinSendTransactionRequest
     const { account, payload } = request.payload;
-    const { allowedSighash, broadcast, network, psbt, signAtIndex } = payload;
+    const { allowedSighash, broadcast, psbt, signAtIndex } = payload;
 
     // todo: validate type of the account
 
@@ -299,8 +299,6 @@ export default class BitcoinRequestHandler {
     }
 
     const signAtIndexGenerate = signAtIndex ? (isArray(signAtIndex) ? signAtIndex : [signAtIndex]) : [...(Array(psbt.inputCount) as number[])].map((_, i) => i);
-
-    console.log(signAtIndexGenerate);
     // Sign the Psbt using the pair's bitcoin object
     const psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
 
@@ -314,18 +312,45 @@ export default class BitcoinRequestHandler {
       };
     }
 
+    const transaction = this.#transactionService.getTransaction(request.id);
+
+    console.log(transaction);
+    const { chain, emitterTransaction, id } = transaction;
+    const chainInfo = this.#chainService.getChainInfoByKey(chain);
+    const eventData: TransactionEventResponse = {
+      id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: id
+    };
+
+    if (!emitterTransaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+    }
+
     psptSignedTransaction.finalizeAllInputs();
 
-    const chain = network === 'mainnet' ? 'bitcoin' : 'bitcoinTestnet';
+    const hexTransaction = psptSignedTransaction.extractTransaction().toHex();
 
-    const txid = await this.#chainService.getBitcoinApi(chain).api.simpleSendRawTransaction(psptSignedTransaction.extractTransaction().toHex());
+    this.#transactionService.emitterEventTransaction(emitterTransaction, eventData, chainInfo.slug, hexTransaction);
+    const { promise, reject, resolve } = createPromiseHandler<SignPsbtBitcoinResult>();
 
-    console.log('TXID', txid);
+    emitterTransaction.on('extrinsicHash', (data) => {
+      if (!data.extrinsicHash) {
+        reject(BitcoinProviderErrorType.INTERNAL_ERROR);
+      } else {
+        resolve({
+          psbt: psptSignedTransaction.toHex(),
+          txid: data.extrinsicHash
+        });
+      }
+    });
 
-    return {
-      psbt: psptSignedTransaction.toHex(),
-      txid
-    };
+    emitterTransaction.on('error', (error) => {
+      reject(error);
+    });
+
+    return promise;
   }
 
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
