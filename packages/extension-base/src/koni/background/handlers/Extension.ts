@@ -1868,6 +1868,7 @@ export default class KoniExtension {
     const evmApiMap = this.#koniState.getEvmApiMap();
 
     const chainInfo = this.#koniState.getChainInfo(chain);
+    const isTestnet = chainInfo.isTestnet;
     const nativeTokenInfo = this.#koniState.getNativeTokenInfo(chain);
     const nativeTokenSlug: string = nativeTokenInfo.slug;
     const isTransferNativeToken = nativeTokenSlug === tokenSlug;
@@ -1881,8 +1882,8 @@ export default class KoniExtension {
     // Get native token amount
     const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
 
-    const getChainFee: GetFeeFunction = (id, chain, type) => {
-      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+    const getChainFee: GetFeeFunction = (id, chain, type, isTestnet) => {
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type, isTestnet);
     };
 
     const txVal: string = transferAll ? freeBalance.value : (value || '0');
@@ -1907,7 +1908,8 @@ export default class KoniExtension {
             getChainFee,
             to,
             transferAll,
-            value: txVal
+            value: txVal,
+            isTestnet
           });
         } else {
           [
@@ -1922,7 +1924,8 @@ export default class KoniExtension {
             getChainFee,
             to,
             transferAll,
-            value: txVal
+            value: txVal,
+            isTestnet
           });
         }
       } else if (_isMantaZkAsset(tokenInfo)) { // TODO
@@ -2045,6 +2048,7 @@ export default class KoniExtension {
     const warnings: TransactionWarning[] = [];
 
     const chainInfo = this.#koniState.getChainInfo(chain);
+    const isTesnet = chainInfo.isTestnet;
     const nativeTokenInfo = this.#koniState.getNativeTokenInfo(chain);
     const nativeTokenSlug: string = nativeTokenInfo.slug;
     const isTransferNativeToken = nativeTokenSlug === tokenSlug;
@@ -2059,7 +2063,7 @@ export default class KoniExtension {
     const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
 
     const getChainFee: GetFeeFunction = (id, chain, type) => {
-      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type, isTesnet);
     };
 
     const txVal: string = transferAll ? freeBalance.value : (value || '0');
@@ -2122,11 +2126,12 @@ export default class KoniExtension {
     const { chain, feeCustom, feeOption, from, to, transferAll, value } = inputData;
 
     const chainInfo = this.#koniState.getChainInfo(chain);
+    const isTestnet = chainInfo.isTestnet;
     const bitcoinApi = this.#koniState.getBitcoinApi(chain); // Get Bitcoin API map
     const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
 
     const getChainFee: GetFeeFunction = (id, chain, type) => {
-      return this.#koniState.feeService.subscribeChainFee(id, chain, type);
+      return this.#koniState.feeService.subscribeChainFee(id, chain, type, isTestnet);
     };
 
     const [
@@ -2783,7 +2788,7 @@ export default class KoniExtension {
       freeBalanceSubject.next(data); // Must be called after subscription
     });
 
-    const fee = await this.#koniState.feeService.subscribeChainFee(id, chain, feeChainType, (data) => {
+    const fee = await this.#koniState.feeService.subscribeChainFee(id, chain, feeChainType, undefined, (data) => {
       feeSubject.next(data); // Must be called after subscription
     });
 

@@ -10,6 +10,7 @@ import BigN from 'bignumber.js';
 const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 const INFURA_API_KEY_SECRET = process.env.INFURA_API_KEY_SECRET || '';
 const INFURA_AUTH = 'Basic ' + Buffer.from(INFURA_API_KEY + ':' + INFURA_API_KEY_SECRET).toString('base64');
+const EIP1559_MIN_PRIORITY_FEE = '1';
 
 export const parseInfuraFee = (info: InfuraFeeInfo, threshold: InfuraThresholdInfo): EvmFeeInfo => {
   const base = new BigN(info.estimatedBaseFee).multipliedBy(BN_WEI);
@@ -122,7 +123,7 @@ export const getEIP1559GasFee = (
   return { maxFeePerGas: maxFee.toFixed(0), maxPriorityFeePerGas: maxPriorityFee.toFixed(0), time };
 };
 
-export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, useOnline = false, useInfura = false): Promise<EvmFeeInfo> => {
+export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, useOnline = false, useInfura = false, isTestnet?: boolean): Promise<EvmFeeInfo> => {
   if (useOnline) {
     try {
       const chainId = await web3.api.eth.getChainId();
@@ -167,15 +168,19 @@ export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, u
     const averagePriorityFee = history.reward.reduce((previous, rewards) => previous.plus(rewards[1]), BN_ZERO).dividedBy(numBlock).decimalPlaces(0);
     const fastPriorityFee = history.reward.reduce((previous, rewards) => previous.plus(rewards[2]), BN_ZERO).dividedBy(numBlock).decimalPlaces(0);
 
+    const slowFee = enforceMinOneTip(getEIP1559GasFee(baseGasFee, slowPriorityFee, 30000), isTestnet);
+    const averageFee = enforceMinOneTip(getEIP1559GasFee(baseGasFee, averagePriorityFee, 45000), isTestnet);
+    const fastFee = enforceMinOneTip(getEIP1559GasFee(baseGasFee, fastPriorityFee, 60000), isTestnet);
+
     return {
       type: 'evm',
       gasPrice: undefined,
       baseGasFee: baseGasFee.toString(),
       busyNetwork,
       options: {
-        slow: getEIP1559GasFee(baseGasFee, slowPriorityFee, 30000),
-        average: getEIP1559GasFee(baseGasFee, averagePriorityFee, 45000),
-        fast: getEIP1559GasFee(baseGasFee, fastPriorityFee, 60000),
+        slow: slowFee,
+        average: averageFee,
+        fast: fastFee,
         default: busyNetwork ? 'average' : 'slow'
       }
     };
@@ -191,4 +196,14 @@ export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, u
       options: undefined
     };
   }
+};
+
+const enforceMinOneTip = (feeOptionDetail: EvmEIP1995FeeOptionDetail, isTestnet?: boolean): EvmEIP1995FeeOptionDetail => {
+  if (isTestnet && feeOptionDetail.maxPriorityFeePerGas === '0') {
+    feeOptionDetail.maxPriorityFeePerGas = EIP1559_MIN_PRIORITY_FEE;
+
+    return feeOptionDetail;
+  }
+
+  return feeOptionDetail;
 };

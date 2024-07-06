@@ -87,7 +87,7 @@ export default class FeeService {
     };
   }
 
-  public subscribeChainFee (id: string, chain: string, type: FeeChainType, callback?: (data: FeeInfo) => void) {
+  public subscribeChainFee (id: string, chain: string, type: FeeChainType, isTestnet = true, callback?: (data: FeeInfo) => void) {
     return new Promise<FeeInfo>((resolve) => {
       const _callback = (value: FeeInfo | undefined) => {
         console.log(id, this.chainFeeSubscriptionMap);
@@ -134,7 +134,7 @@ export default class FeeService {
             if (type === 'evm') {
               const api = this.state.getEvmApi(chain);
 
-              calculateGasFeeParams(api, chain)
+              calculateGasFeeParams(api, chain, false, false, isTestnet)
                 .then((info) => {
                   observer.next(info);
                 })

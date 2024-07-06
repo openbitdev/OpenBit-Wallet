@@ -18,4 +18,4 @@ export interface FeeSubscription {
   unsubscribe: VoidFunction;
 }
 
-export type GetFeeFunction = (id: string, chain: string, type: FeeChainType) => Promise<FeeInfo>;
+export type GetFeeFunction = (id: string, chain: string, type: FeeChainType, isTestnet?: boolean) => Promise<FeeInfo>;
