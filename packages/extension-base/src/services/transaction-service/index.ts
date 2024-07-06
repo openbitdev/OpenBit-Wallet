@@ -371,6 +371,8 @@ export default class TransactionService {
 
   public async handleTransactionAfterConfirmation (transaction: SWTransactionInput): Promise<SWTransactionResponse> {
     const validatedTransaction = await this.generalValidate(transaction);
+
+    console.log(validatedTransaction, '123123');
     const stopByErrors = validatedTransaction.errors.length > 0;
     const stopByWarnings = validatedTransaction.warnings.length > 0 && !validatedTransaction.ignoreWarnings;
 
@@ -390,6 +392,8 @@ export default class TransactionService {
 
     // Fill transaction default info
     const transactionUpdated = this.fillTransactionDefaultInfo(validatedTransaction);
+
+    console.log(transactionUpdated, 'uopdate');
 
     // Add Transaction
     transactionsSubject[transactionUpdated.id] = { ...transactionUpdated, emitterTransaction: emitter };
@@ -938,7 +942,10 @@ export default class TransactionService {
     const transaction = this.getTransaction(id);
     const nextStatus = ExtrinsicStatus.FAIL;
 
+    console.log('failed');
+
     if (transaction) {
+      console.log('failed', transaction);
       this.updateTransaction(id, { status: nextStatus, errors, extrinsicHash });
 
       // Write failed transaction history

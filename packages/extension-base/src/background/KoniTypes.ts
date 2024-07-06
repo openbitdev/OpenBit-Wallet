@@ -2575,8 +2575,8 @@ export interface KoniRequestSignatures {
   // Transfer
   'pri(accounts.checkTransfer)': [RequestCheckTransfer, ValidateTransactionResponse];
   'pri(accounts.transfer)': [RequestSubmitTransfer, SWTransactionResponse];
-  'pri(accounts.transfer.after.confirmation)': [RequestSubmitTransferWithId, SWTransactionResponse];
-  'pri(accounts.psbt.transfer.after.confirmation)': [RequestSubmitSignPsbtTransfer, SWTransactionResponse];
+  'pri(accounts.bitcoin.dapp.transfer.confirmation)': [RequestSubmitTransferWithId, SWTransactionResponse];
+  'pri(accounts.psbt.transfer.confirmation)': [RequestSubmitSignPsbtTransfer, SWTransactionResponse];
   'pri(accounts.getBitcoinTransactionData)': [RequestSubmitTransfer, BitcoinTransactionData];
 
   'pri(accounts.checkCrossChainTransfer)': [RequestCheckCrossChainTransfer, ValidateTransactionResponse];

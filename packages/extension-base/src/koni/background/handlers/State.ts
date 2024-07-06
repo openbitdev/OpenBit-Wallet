@@ -1285,31 +1285,41 @@ export default class KoniState {
     const tokenInfo = this.getNativeTokenInfo(networkKey);
     let to = '';
     let value = new BigN(0);
-    const psbtInputData = psbtGenerate.data.inputs.reduce((inputs, { witnessUtxo }) => {
-      if (!witnessUtxo) {
-        return inputs;
-      }
+    const psbtInputData = psbtGenerate.data.inputs.reduce((inputs, { nonWitnessUtxo, witnessUtxo }, inputIndex) => {
+      let inputData: PsbtTransactionArg | null = null;
 
-      const address = bitcoin.address.fromOutputScript(witnessUtxo?.script, network_);
-      const existedInput = isExistedInput(inputs, address);
-
-      if (existedInput === -1) {
-        inputs.push({
-          address,
+      if (witnessUtxo) {
+        inputData = {
+          address: bitcoin.address.fromOutputScript(witnessUtxo?.script, network_),
           amount: witnessUtxo.value.toString()
-        });
-      } else {
-        inputs[existedInput] = {
-          ...inputs[existedInput],
-          amount: new BigN(inputs[existedInput].amount || 0).plus(new BigN(witnessUtxo.value.toString())).toString()
+        };
+      } else if (nonWitnessUtxo) {
+        const txin = psbtGenerate.txInputs[inputIndex];
+        const txout = bitcoin.Transaction.fromBuffer(nonWitnessUtxo).outs[txin.index];
+
+        inputData = {
+          address: bitcoin.address.fromOutputScript(txout.script, network_),
+          amount: txout.value.toString()
         };
       }
+
+      inputData && inputs.push(inputData);
 
       return inputs;
     }, [] as PsbtTransactionArg[]);
 
     const psbtOutputData = psbtGenerate.txOutputs.map((output) => {
-      const address = output.address || bitcoin.address.fromOutputScript(output.script, network_);
+      let address = '';
+
+      try {
+        address = output.address || bitcoin.address.fromOutputScript(output.script, network_);
+      } catch (e) {
+        if (output.script.includes(bitcoin.opcodes.OP_RETURN)) {
+          address = 'OP_RETURN';
+        } else {
+          address = 'Unknown';
+        }
+      }
 
       if (isExistedInput(psbtInputData, address) === -1) {
         to = address;

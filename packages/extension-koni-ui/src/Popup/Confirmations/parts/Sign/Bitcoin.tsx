@@ -6,7 +6,7 @@ import { RequestSubmitTransferWithId } from '@subwallet/extension-base/types';
 import { wait } from '@subwallet/extension-base/utils';
 import { CONFIRMATION_QR_MODAL } from '@subwallet/extension-koni-ui/constants';
 import { useGetChainInfoByChainId, useLedger, useNotification, useUnlockChecker } from '@subwallet/extension-koni-ui/hooks';
-import { completeConfirmationBitcoin, makePSBTTransferAfterConfirmation, makeTransferAfterConfirmation } from '@subwallet/extension-koni-ui/messaging';
+import { completeConfirmationBitcoin, makeBitcoinDappTransferConfirmation, makePSBTTransferAfterConfirmation } from '@subwallet/extension-koni-ui/messaging';
 import { AccountSignMode, BitcoinSignatureSupportType, PhosphorIcon, SigData, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { getSignMode, isBitcoinMessage, removeTransactionPersist } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon, ModalContext } from '@subwallet/react-ui';
@@ -65,7 +65,6 @@ const Component: React.FC<Props> = (props: Props) => {
 
   const chain = useGetChainInfoByChainId(chainId);
   const checkUnlock = useUnlockChecker();
-
   const signMode = useMemo(() => getSignMode(account), [account]);
   const isLedger = useMemo(() => signMode === AccountSignMode.LEDGER, [signMode]);
   const isMessage = isBitcoinMessage(payload);
@@ -113,7 +112,7 @@ const Component: React.FC<Props> = (props: Props) => {
 
     const promise = async () => {
       if (type === 'bitcoinSendTransactionRequestAfterConfirmation' && editedPayload) {
-        await makeTransferAfterConfirmation(editedPayload);
+        await makeBitcoinDappTransferConfirmation(editedPayload);
       } else if (type === 'bitcoinSignPsbtRequest') {
         const { payload: { account, broadcast, network, psbt, to, tokenSlug, txInput, txOutput, value } } = payload.payload as BitcoinSignPsbtRequest;
 
@@ -133,8 +132,18 @@ const Component: React.FC<Props> = (props: Props) => {
         setLoading(false);
       });
     })
-      .catch(console.error);
-  }, [editedPayload, id, payload.payload, type]);
+      .catch((error) => {
+        console.error(error);
+        notify({
+          message: t((error as Error).message),
+          type: 'error',
+          duration: 8
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [editedPayload, id, notify, payload.payload, t, type]);
 
   const onApproveSignature = useCallback((signature: SigData) => {
     setLoading(true);

@@ -11,12 +11,12 @@ export async function makeTransfer (request: RequestSubmitTransfer): Promise<SWT
   return sendMessage('pri(accounts.transfer)', request);
 }
 
-export async function makeTransferAfterConfirmation (request: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
-  return sendMessage('pri(accounts.transfer.after.confirmation)', request);
+export async function makeBitcoinDappTransferConfirmation (request: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
+  return sendMessage('pri(accounts.bitcoin.dapp.transfer.confirmation)', request);
 }
 
 export async function makePSBTTransferAfterConfirmation (request: RequestSubmitSignPsbtTransfer): Promise<SWTransactionResponse> {
-  return sendMessage('pri(accounts.psbt.transfer.after.confirmation)', request);
+  return sendMessage('pri(accounts.psbt.transfer.confirmation)', request);
 }
 
 export async function makeCrossChainTransfer (request: RequestCrossChainTransfer): Promise<SWTransactionResponse> {

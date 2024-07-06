@@ -31,7 +31,6 @@ function Component ({ className, request, type }: Props) {
   const accounts = useSelector((state: RootState) => state.accountState.accounts);
   const assetRegistry = useSelector((root: RootState) => root.assetRegistry.assetRegistry);
   const onClickDetail = useOpenDetailModal();
-
   const assetInfo: _ChainAsset | undefined = useMemo(() => {
     return assetRegistry[tokenSlug];
   }, [assetRegistry, tokenSlug]);

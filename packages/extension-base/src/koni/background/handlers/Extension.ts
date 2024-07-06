@@ -2038,7 +2038,7 @@ export default class KoniExtension {
     });
   }
 
-  private async makeTransferAfterConfirmation (inputData: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
+  private async makeBitcoinDappTransferConfirmation (inputData: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
     const { chain, feeCustom, feeOption, from, id, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
 
@@ -2167,7 +2167,9 @@ export default class KoniExtension {
     // Get native token amount
     const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
 
-    if (new BigN(freeBalance.value).lte(inputAmount)) {
+    console.log(freeBalance, inputAmount.toString(), '123123');
+
+    if (new BigN(freeBalance.value).lt(inputAmount)) {
       throw new Error(t('Insufficient balance'));
     }
 
@@ -5722,9 +5724,9 @@ export default class KoniExtension {
       /// Transfer
       case 'pri(accounts.transfer)':
         return await this.makeTransfer(request as RequestSubmitTransfer);
-      case 'pri(accounts.transfer.after.confirmation)':
-        return await this.makeTransferAfterConfirmation(request as RequestSubmitTransfer);
-      case 'pri(accounts.psbt.transfer.after.confirmation)':
+      case 'pri(accounts.bitcoin.dapp.transfer.confirmation)':
+        return await this.makeBitcoinDappTransferConfirmation(request as RequestSubmitTransfer);
+      case 'pri(accounts.psbt.transfer.confirmation)':
         return await this.makePsbtTransferAfterConfirmation(request as RequestSubmitSignPsbtTransfer);
       case 'pri(accounts.crossChainTransfer)':
         return await this.makeCrossChainTransfer(request as RequestCrossChainTransfer);
