@@ -963,8 +963,8 @@ export default class KoniTabs {
     });
   }
 
-  public async canUseAccount (address: string, url: string) {
-    const allowedAccounts = await this.getEvmCurrentAccount(url);
+  public async canUseAccount (address: string, url: string, type?: string) {
+    const allowedAccounts = await (type === 'bitcoin' ? this.getBitcoinCurrentAccount(url) : this.getEvmCurrentAccount(url));
 
     return !!allowedAccounts.find((acc) => (acc.toLowerCase() === address.toLowerCase()));
   }
@@ -982,7 +982,7 @@ export default class KoniTabs {
 
   public async evmSendTransaction (id: string, url: string, { params }: RequestArguments) {
     const transactionParams = (params as EvmSendTransactionParams[])[0];
-    const canUseAccount = transactionParams.from && this.canUseAccount(transactionParams.from, url);
+    const canUseAccount = !!transactionParams.from && await this.canUseAccount(transactionParams.from, url);
     const evmState = await this.getEvmState(url);
     const networkKey = evmState.networkKey;
 
@@ -1240,8 +1240,21 @@ export default class KoniTabs {
 
   private async bitcoinSignPspt (id: string, url: string, { method, params }: RequestArguments) {
     const allowedAccounts = (await this.getBitcoinCurrentAccount(url));
+    const psbtParams = params as BitcoinSignPsbtRawRequest;
 
-    const signResult = await this.#koniState.bitcoinSignPspt(id, url, method, params as BitcoinSignPsbtRawRequest, allowedAccounts);
+    if (!(psbtParams.network === 'mainnet' || psbtParams.network === 'testnet')) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network to try this request is must be mainnet or testnet'));
+    }
+
+    const bitcoinState = await this.getBitcoinState(url, psbtParams.network);
+
+    const networkKey = bitcoinState.networkKey;
+
+    if (!networkKey) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network unavailable. Please switch network or manually add network to wallet'));
+    }
+
+    const signResult = await this.#koniState.bitcoinSignPspt(id, url, networkKey, method, psbtParams, allowedAccounts);
 
     if (signResult) {
       return signResult;
@@ -1252,7 +1265,7 @@ export default class KoniTabs {
 
   private async bitcoinSendTransfer (id: string, url: string, { params }: RequestArguments) {
     const transactionParams = params as BitcoinSendTransactionParams;
-    const canUseAccount = transactionParams.account && this.canUseAccount(transactionParams.account, url);
+    const canUseAccount = !!transactionParams.account && await this.canUseAccount(transactionParams.account, url, 'bitcoin');
     const bitcoinState = await this.getBitcoinState(url, transactionParams.network);
     const networkKey = bitcoinState.networkKey;
 
@@ -1266,7 +1279,7 @@ export default class KoniTabs {
 
     const senderAccountType = getKeypairTypeByAddress(transactionParams.account);
 
-    if ((transactionParams.network === 'mainnet' && senderAccountType !== 'bitcoin-84') || (transactionParams.network === 'testnet' && senderAccountType !== 'bittest-84')) {
+    if ((networkKey === 'bitcoin' && senderAccountType !== 'bitcoin-84') || (networkKey === 'bitcoinTestnet' && senderAccountType !== 'bittest-84')) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('The account or the network is incorrect'));
     }
 
@@ -1282,14 +1295,18 @@ export default class KoniTabs {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("We don't support multiple recipients yet. Please provide only one for now."));
     }
 
+    if (transactionParams.recipients.filter(({ address, amount }) => !address || !amount).length > 0) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS);
+    }
+
     if (transactionParams.account === transactionParams.recipients[0].address) {
-      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("The recipient address cannot be the same as the sender's"));
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("The recipient address cannot be the same as the sender's address"));
     }
 
     const recipientAccountType = getKeypairTypeByAddress(transactionParams.recipients[0].address);
 
     if (senderAccountType !== recipientAccountType) {
-      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("The recipient address type must be the same as the sender's"));
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t("The type of the recipient's address must match the type of the sender's address"));
     }
 
     const allowedAccounts = await this.getBitcoinCurrentAccount(url);

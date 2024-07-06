@@ -64,6 +64,10 @@ const BaseDetailModal = styled(Component)<Props>(({ theme: { token } }: Props) =
 
     '.__label': {
       textTransform: 'capitalize'
+    },
+
+    '.ant-web3-block-right-item': {
+      marginRight: 0
     }
   };
 });
