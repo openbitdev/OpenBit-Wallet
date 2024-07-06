@@ -1239,10 +1239,10 @@
   "The account or the network is incorrect": "",
   "Please provide the recipient and the amount": "",
   "We don't support multiple recipients yet. Please provide only one for now.": "",
-  "The recipient address cannot be the same as the sender's": "",
-  "The recipient address type must be the same as the sender's": "",
   "Sign PSBT request": "",
   "Input": "",
   "Output": "",
-  "Bitcoin dApp": ""
+  "Bitcoin dApp": "",
+  "The recipient address cannot be the same as the sender's address": "",
+  "The type of the recipient's address must match the type of the sender's address": ""
 }

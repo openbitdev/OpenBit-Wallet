@@ -1,11 +1,11 @@
-    2467	AnhMTV                        	Release version 1.1.47
+    2473	AnhMTV                        	
     2171	Nam Phạm                      	[Issue 2717] change XCM ref map
     2001	S2kael                        	[Issue-193] Add re-scan BTC transaction have no block_time
-     798	lw-cdm                        	Fix issue related to send fund
+     799	lw-cdm                        	Fix UI issues
      465	Jaco                          	0.42.5 (#969)
      185	quangdo                       	
-     168	nguyentiendung                	[Issue-202] Add support video for ordinals
-     167	bluezdot                      	[Issue-225] Update chainlist
+     177	bluezdot                      	remove log
+     172	nguyentiendung                	[Issue-222] Improve UI for sub-logo
      104	khainh                        	predefine metadata for Polkadot & Kusama chains
       99	lw-cdm                        	
       88	dominhquang                   	[Issue-2649] Add send crash log feature
@@ -13,8 +13,8 @@
       85	leewong                       	Update color
       82	Thibaut Sardan                	Add account filtering feature (#832)
       63	Roman                         	fix ui issues
+      63	Thiendekaco                   	[Issue 228] [fix] - eslint issue
       53	Dominhquangdev                	update Bridge code
-      53	Thiendekaco                   	fix: transaction response for dapp
       48	bluedot                       	[Runes] Merge openbit-dev--migrate-code
       29	Automation Bot                	[CI Skip] Auto increase webapp build number
       26	S2kael                        	
