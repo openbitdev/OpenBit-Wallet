@@ -172,8 +172,6 @@ export const calculateGasFeeParams = async (web3: _EvmApi, networkKey: string, u
     const averageFee = enforceMinOneTip(getEIP1559GasFee(baseGasFee, averagePriorityFee, 45000), web3.isTestnet);
     const fastFee = enforceMinOneTip(getEIP1559GasFee(baseGasFee, fastPriorityFee, 60000), web3.isTestnet);
 
-    console.log('slowFee', web3.isTestnet, slowFee, averageFee, fastFee);
-
     return {
       type: 'evm',
       gasPrice: undefined,
