@@ -357,6 +357,7 @@ export default class BitcoinRequestHandler {
       psptSignedTransaction.finalizeAllInputs();
     } catch (e) {
       emitterTransaction.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)] });
+      throw new Error((e as Error).message);
     }
 
     const hexTransaction = psptSignedTransaction.extractTransaction().toHex();

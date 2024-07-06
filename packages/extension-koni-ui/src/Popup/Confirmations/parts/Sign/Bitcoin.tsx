@@ -127,7 +127,6 @@ const Component: React.FC<Props> = (props: Props) => {
     };
 
     promise().then(() => {
-      console.log('complete', type, id);
       handleConfirm(type, id, '').finally(() => {
         setLoading(false);
       });
