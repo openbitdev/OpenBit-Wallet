@@ -7,7 +7,7 @@ import { _AssetRef, _AssetType, _ChainAsset, _ChainInfo, _MultiChainAsset } from
 import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { createSubscription } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountExternalError, AccountExternalErrorCode, AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountMeta, RequestAccountProxyCreateSuri, RequestAccountProxyEdit, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerAccountProxy, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountExternalError, AccountExternalErrorCode, AccountProxiesWithCurrentProxy, AccountsWithCurrentAddress, AddressBookInfo, AmountData, AmountDataWithId, AssetSetting, AssetSettingUpdateReq, BasicTxErrorType, BasicTxWarningCode, BondingOptionParams, BrowserConfirmationType, CampaignBanner, CampaignData, CampaignDataType, ChainType, CreateDeriveAccountInfo, CronReloadRequest, CrowdloanJson, CurrentAccountInfo, DeriveAccountInfo, ExternalRequestPromiseStatus, ExtrinsicType, FeeData, KeyringState, MantaPayEnableMessage, MantaPayEnableParams, MantaPayEnableResponse, MantaPaySyncState, NftCollection, NftJson, NftTransactionRequest, NftTransactionResponse, OptionInputAddress, PriceJson, RequestAccountCreateExternalV2, RequestAccountCreateHardwareMultiple, RequestAccountCreateHardwareV2, RequestAccountCreateSuriV2, RequestAccountCreateWithSecretKey, RequestAccountExportPrivateKey, RequestAccountMeta, RequestAccountProxyCreateSuri, RequestAccountProxyEdit, RequestAddInjectedAccounts, RequestApproveConnectWalletSession, RequestApproveWalletConnectNotSupport, RequestAuthorization, RequestAuthorizationBlock, RequestAuthorizationPerAccount, RequestAuthorizationPerAccountProxy, RequestAuthorizationPerSite, RequestAuthorizeApproveV2, RequestBatchRestoreV2, RequestBondingSubmit, RequestCameraSettings, RequestCampaignBannerComplete, RequestChangeEnableChainPatrol, RequestChangeLanguage, RequestChangeMasterPassword, RequestChangeShowBalance, RequestChangeShowZeroBalance, RequestChangeTimeAutoLock, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestConnectWalletConnect, RequestCrossChainTransfer, RequestCrowdloanContributions, RequestDeleteContactAccount, RequestDeriveCreateMultiple, RequestDeriveCreateV2, RequestDeriveCreateV3, RequestDeriveValidateV2, RequestDisconnectWalletConnectSession, RequestEditContactAccount, RequestFindRawMetadata, RequestForgetSite, RequestFreeBalance, RequestGetDeriveAccounts, RequestGetTransaction, RequestJsonRestoreV2, RequestKeyringExportAccountProxyMnemonic, RequestKeyringExportMnemonic, RequestMaxTransferable, RequestMigratePassword, RequestParseEvmContractInput, RequestParseTransactionSubstrate, RequestPassPhishingPage, RequestQrParseRLP, RequestQrSignEvm, RequestQrSignSubstrate, RequestRejectConnectWalletSession, RequestRejectExternalRequest, RequestRejectWalletConnectNotSupport, RequestRemoveInjectedAccounts, RequestResetWallet, RequestResolveExternalRequest, RequestSaveRecentAccount, RequestSeedCreateV2, RequestSeedValidateV2, RequestSettingsType, RequestSigningApprovePasswordV2, RequestStakePoolingBonding, RequestStakePoolingUnbonding, RequestSubscribeHistory, RequestSubstrateNftSubmitTransaction, RequestTransferCheckReferenceCount, RequestTransferCheckSupporting, RequestTransferExistentialDeposit, RequestTuringCancelStakeCompound, RequestTuringStakeCompound, RequestUnbondingSubmit, RequestUnlockKeyring, RequestUnlockType, ResolveAddressToDomainRequest, ResolveDomainRequest, ResponseAccountCreateSuriV2, ResponseAccountCreateWithSecretKey, ResponseAccountExportPrivateKey, ResponseAccountMeta, ResponseChangeMasterPassword, ResponseCheckPublicAndSecretKey, ResponseDeriveValidateV2, ResponseFindRawMetadata, ResponseGetDeriveAccounts, ResponseKeyringExportMnemonic, ResponseMigratePassword, ResponseParseEvmContractInput, ResponseParseTransactionSubstrate, ResponsePrivateKeyValidateV2, ResponseQrParseRLP, ResponseQrSignEvm, ResponseQrSignSubstrate, ResponseRejectExternalRequest, ResponseResetWallet, ResponseResolveExternalRequest, ResponseSeedCreateV2, ResponseSeedValidateV2, ResponseSubscribeHistory, ResponseUnlockKeyring, StakingJson, StakingRewardJson, StakingTxErrorType, StakingType, SupportTransferResponse, ThemeNames, TransactionHistoryItem, TransactionResponse, TransferTxErrorType, ValidateNetworkRequest, ValidateNetworkResponse, ValidatorInfo } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, AccountProxy, AuthorizeRequest, MessageTypes, MetadataRequest, RequestAccountChangePassword, RequestAccountCreateExternal, RequestAccountCreateHardware, RequestAccountCreateSuri, RequestAccountEdit, RequestAccountExport, RequestAccountForget, RequestAccountProxy, RequestAccountShow, RequestAccountTie, RequestAccountValidate, RequestAuthorizeCancel, RequestAuthorizeReject, RequestBatchRestore, RequestCurrentAccountAddress, RequestDeriveCreate, RequestDeriveValidate, RequestJsonRestore, RequestMetadataApprove, RequestMetadataReject, RequestSeedCreate, RequestSeedValidate, RequestSigningApproveSignature, RequestSigningCancel, RequestTypes, ResponseAccountExport, ResponseAuthorizeList, ResponseDeriveValidate, ResponseJsonGetAccountInfo, ResponseSeedCreate, ResponseSeedValidate, ResponseType, SigningRequest, WindowOpenParams } from '@subwallet/extension-base/background/types';
 import { TransactionWarning } from '@subwallet/extension-base/background/warnings/TransactionWarning';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, BTC_DUST_AMOUNT, SUPPORT_KEYPAIR_TYPES, XCM_FEE_RATIO, XCM_MIN_AMOUNT_RATIO } from '@subwallet/extension-base/constants';
@@ -39,7 +39,7 @@ import { WALLET_CONNECT_EIP155_NAMESPACE } from '@subwallet/extension-base/servi
 import { isProposalExpired, isSupportWalletConnectChain, isSupportWalletConnectNamespace } from '@subwallet/extension-base/services/wallet-connect-service/helpers';
 import { ResultApproveWalletConnectSession, WalletConnectNotSupportRequest, WalletConnectSessionRequest } from '@subwallet/extension-base/services/wallet-connect-service/types';
 import { AccountsStore } from '@subwallet/extension-base/stores';
-import { BalanceJson, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeDetail, FeeInfo, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
+import { BalanceJson, BitcoinFeeDetail, BitcoinFeeInfo, BitcoinFeeRate, BuyServiceInfo, BuyTokenInfo, DetermineUtxosForSpendArgs, EarningRewardJson, EvmEIP1995FeeOption, EvmFeeInfo, FeeChainType, FeeCustom, FeeDetail, FeeInfo, FeeOption, GetFeeFunction, NominationPoolInfo, OptimalYieldPathParams, RequestEarlyValidateYield, RequestGetYieldPoolTargets, RequestStakeCancelWithdrawal, RequestStakeClaimReward, RequestSubmitSignPsbtTransfer, RequestSubmitTransfer, RequestSubmitTransferWithId, RequestSubscribeTransfer, RequestUnlockDotCheckCanMint, RequestUnlockDotSubscribeMintedData, RequestYieldLeave, RequestYieldStepSubmit, RequestYieldWithdrawal, ResponseGetYieldPoolTargets, ResponseSubscribeTransfer, ResponseSubscribeTransferConfirmation, SubstrateFeeInfo, ValidateYieldProcessParams, YieldPoolType } from '@subwallet/extension-base/types';
 import { combineBitcoinFee, combineEthFee, convertSubjectInfoToAddresses, createTransactionFromRLP, determineUtxosForSpend, determineUtxosForSpendAll, filterUneconomicalUtxos, generateAccountProxyId, getSizeInfo, isAddressValidWithAuthType, isSameAddress, keyringGetAccounts, reformatAddress, signatureToHex, Transaction as QrTransaction, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { parseContractInput, parseEvmRlp } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { balanceFormatter, BN_ZERO, formatNumber } from '@subwallet/extension-base/utils/number';
@@ -2038,7 +2038,7 @@ export default class KoniExtension {
     });
   }
 
-  private async makeTransferAfterConfirmation (inputData: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
+  private async makeBitcoinDappTransferConfirmation (inputData: RequestSubmitTransferWithId): Promise<SWTransactionResponse> {
     const { chain, feeCustom, feeOption, from, id, to, tokenSlug, transferAll, value } = inputData;
     const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, to, value, transferAll);
 
@@ -2048,7 +2048,7 @@ export default class KoniExtension {
     const nativeTokenInfo = this.#koniState.getNativeTokenInfo(chain);
     const nativeTokenSlug: string = nativeTokenInfo.slug;
     const isTransferNativeToken = nativeTokenSlug === tokenSlug;
-    let chainType = ChainType.SUBSTRATE;
+    let chainType = ChainType.BITCOIN;
 
     const tokenBaseAmount: AmountData = { value: '0', symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
     const transferAmount: AmountData = { ...tokenBaseAmount };
@@ -2114,6 +2114,81 @@ export default class KoniExtension {
       extrinsicType: isTransferNativeToken ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.TRANSFER_TOKEN,
       ignoreWarnings: transferAll,
       isTransferAll: isTransferNativeToken ? transferAll : false,
+      edAsWarning: isTransferNativeToken
+    });
+  }
+
+  private async makePsbtTransferAfterConfirmation (inputData_: RequestSubmitSignPsbtTransfer): Promise<SWTransactionResponse> {
+    const { chain, from, id, psbt, tokenSlug, txInput, txOutput, value } = inputData_;
+    let inputAmount = new BigN(0);
+
+    const totalUtxoInput = txInput.reduce((total, { address, amount }) => {
+      if (!address || !amount) {
+        return total;
+      }
+
+      if (isSameAddress(address, from)) {
+        inputAmount = new BigN(amount);
+      }
+
+      return total.plus(new BigN(amount || 0));
+    }, new BigN(0));
+
+    const totalUtxoOutput = txOutput.reduce((total, { address, amount }) => {
+      if (!address || !amount) {
+        return total;
+      }
+
+      return total.plus(new BigN(amount));
+    }, new BigN(0));
+
+    const estimateFeeValue = totalUtxoInput.minus(totalUtxoOutput).toString();
+    const [errors, , , tokenInfo] = this.validateTransfer(tokenSlug, from, txOutput[0]?.address || '', value, false);
+
+    const warnings: TransactionWarning[] = [];
+
+    const chainInfo = this.#koniState.getChainInfo(chain);
+    const { decimals, symbol } = _getChainNativeTokenBasicInfo(chainInfo);
+    const estimateFee: FeeData = {
+      symbol,
+      decimals,
+      value: estimateFeeValue,
+      tooHigh: false
+    };
+
+    const nativeTokenInfo = this.#koniState.getNativeTokenInfo(chain);
+    const nativeTokenSlug: string = nativeTokenInfo.slug;
+    const isTransferNativeToken = nativeTokenSlug === tokenSlug;
+    const chainType = ChainType.BITCOIN;
+
+    const tokenBaseAmount: AmountData = { value: inputData_.value, symbol: tokenInfo.symbol, decimals: tokenInfo.decimals || 0 };
+    const transferAmount: AmountData = { ...tokenBaseAmount };
+
+    // Get native token amount
+    const freeBalance = await this.getAddressFreeBalance({ address: from, networkKey: chain, token: tokenSlug });
+
+    console.log(freeBalance, inputAmount.toString(), '123123');
+
+    if (new BigN(freeBalance.value).lt(inputAmount)) {
+      throw new Error(t('Insufficient balance'));
+    }
+
+    const transferNativeAmount = isTransferNativeToken ? transferAmount.value : '0';
+
+    return this.#koniState.transactionService.handleTransactionAfterConfirmation({
+      id,
+      errors,
+      warnings,
+      address: from,
+      chain: chain,
+      estimateFee,
+      chainType,
+      transferNativeAmount,
+      transaction: psbt,
+      data: inputData_,
+      extrinsicType: isTransferNativeToken ? ExtrinsicType.TRANSFER_BALANCE : ExtrinsicType.TRANSFER_TOKEN,
+      ignoreWarnings: false,
+      isTransferAll: false,
       edAsWarning: isTransferNativeToken
     });
   }
@@ -2803,6 +2878,140 @@ export default class KoniExtension {
     });
 
     return convertData(freeBalance, fee);
+  }
+
+  private async subscribeTransferableWhenConfirmation ({ address, chain, feeCustom, feeOption: _feeOptions, to, token, value }: RequestSubscribeTransfer, id: string, port: chrome.runtime.Port): Promise<ResponseSubscribeTransferConfirmation> {
+    const cb = createSubscription<'pri(transfer.confirmation.subscribe)'>(id, port);
+    const freeBalanceSubject = new Subject<AmountData>();
+    const feeSubject = new Subject<BitcoinFeeInfo>();
+    const feeType: FeeChainType = 'bitcoin';
+    let error: string | undefined;
+
+    const convertData = async (freeBalance: AmountData, fee: BitcoinFeeInfo, feeOption?: FeeOption, feeCustom?: FeeCustom): Promise<ResponseSubscribeTransferConfirmation> => {
+      let estimatedFee = '0';
+      let feeOptions: BitcoinFeeDetail | null = null;
+      const amount = parseInt(value || '0');
+      const neededUtxos = [];
+      let sum = new BigN(0);
+      let sizeInfo = null;
+
+      try {
+        const _fee = fee;
+        const _feeCustom = feeCustom as BitcoinFeeRate;
+        const combineFee = combineBitcoinFee(_fee, _feeOptions, _feeCustom);
+        const bitcoinApi = this.#koniState.chainService.getBitcoinApi(chain);
+        let utxos = await getTransferableBitcoinUtxos(bitcoinApi, address);
+
+        const recipients = [address, to || address];
+
+        utxos = utxos.sort((a, b) => b.value - a.value);
+        const filteredUtxos = filterUneconomicalUtxos({
+          utxos,
+          feeRate: combineFee.feeRate,
+          recipients,
+          sender: address
+        });
+
+        for (const utxo of filteredUtxos) {
+          sizeInfo = getSizeInfo({
+            inputLength: neededUtxos.length,
+            sender: address,
+            recipients
+          });
+
+          const currentValue = new BigN(amount).plus(Math.ceil(sizeInfo.txVBytes * combineFee.feeRate));
+
+          if (sum.gte(currentValue)) {
+            break;
+          }
+
+          sum = sum.plus(utxo.value);
+          neededUtxos.push(utxo);
+        }
+
+        // re calculate
+        sizeInfo = getSizeInfo({
+          inputLength: neededUtxos.length,
+          sender: address,
+          recipients
+        });
+
+        if (!sizeInfo) {
+          sizeInfo = getSizeInfo({
+            inputLength: utxos.length || 1,
+            sender: address,
+            recipients
+          });
+        }
+
+        estimatedFee = Math.ceil(sizeInfo.txVBytes * combineFee.feeRate).toString();
+
+        const amountLeft = sum.minus(amount).minus(new BigN(estimatedFee));
+
+        if (amountLeft.lte(0)) {
+          error = 'Insufficient balance';
+        }
+
+        feeOptions = {
+          ...fee,
+          vSize: sizeInfo.txVBytes,
+          estimatedFee
+        };
+      } catch (e) {
+        feeOptions = {
+          ...fee,
+          estimatedFee,
+          vSize: 0
+        };
+
+        error = (e as Error).message || e as string;
+        console.warn('Unable to estimate fee', e);
+      }
+
+      return {
+        feeOptions: feeOptions as FeeDetail,
+        feeType,
+        error,
+        id
+      };
+    };
+
+    const subscription = combineLatest({
+      freeBalance: freeBalanceSubject,
+      fee: feeSubject
+    })
+      .subscribe({
+        next: ({ fee, freeBalance }) => {
+          convertData(freeBalance, fee, _feeOptions, feeCustom)
+            .then(cb)
+            .catch(console.error);
+        }
+      });
+
+    const [unsubBalance, freeBalance] = await this.#koniState.balanceService.subscribeTokenFreeBalance(address, chain, token, (data) => {
+      freeBalanceSubject.next(data); // Must be called after subscription
+    });
+
+    const fee = await this.#koniState.feeService.subscribeChainFee(id, chain, feeType, (data) => {
+      feeSubject.next(data as BitcoinFeeInfo); // Must be called after subscription
+    });
+
+    const unsub = () => {
+      subscription.unsubscribe();
+      unsubBalance();
+      this.#koniState.feeService.unsubscribeChainFee(id, chain, feeType);
+    };
+
+    this.createUnsubscriptionHandle(
+      id,
+      unsub
+    );
+
+    port.onDisconnect.addListener((): void => {
+      this.cancelSubscription(id);
+    });
+
+    return convertData(freeBalance, fee as BitcoinFeeInfo, _feeOptions, feeCustom);
   }
 
   private async subscribeAddressFreeBalance ({ address, networkKey, token }: RequestFreeBalance, id: string, port: chrome.runtime.Port): Promise<AmountData> {
@@ -5488,6 +5697,8 @@ export default class KoniExtension {
         return this.transferGetMaxTransferable(request as RequestMaxTransferable);
       case 'pri(transfer.subscribe)':
         return this.subscribeMaxTransferable(request as RequestSubscribeTransfer, id, port);
+      case 'pri(transfer.confirmation.subscribe)':
+        return this.subscribeTransferableWhenConfirmation(request as RequestSubscribeTransfer, id, port);
       case 'pri(freeBalance.get)':
         return this.getAddressFreeBalance(request as RequestFreeBalance);
       case 'pri(freeBalance.subscribe)':
@@ -5513,8 +5724,10 @@ export default class KoniExtension {
       /// Transfer
       case 'pri(accounts.transfer)':
         return await this.makeTransfer(request as RequestSubmitTransfer);
-      case 'pri(accounts.transfer.after.confirmation)':
-        return await this.makeTransferAfterConfirmation(request as RequestSubmitTransfer);
+      case 'pri(accounts.bitcoin.dapp.transfer.confirmation)':
+        return await this.makeBitcoinDappTransferConfirmation(request as RequestSubmitTransfer);
+      case 'pri(accounts.psbt.transfer.confirmation)':
+        return await this.makePsbtTransferAfterConfirmation(request as RequestSubmitSignPsbtTransfer);
       case 'pri(accounts.crossChainTransfer)':
         return await this.makeCrossChainTransfer(request as RequestCrossChainTransfer);
       case 'pri(accounts.getBitcoinTransactionData)':

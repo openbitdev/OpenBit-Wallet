@@ -40,7 +40,7 @@ export class EvmChainHandler extends AbstractChainHandler {
     this.evmApiMap[chainSlug] = evmApi;
   }
 
-  public async initApi (chainSlug: string, apiUrl: string, { onUpdateStatus, providerName }: Omit<_ApiOptions, 'metadata'> = {}) {
+  public async initApi (chainSlug: string, apiUrl: string, { isTestnet, onUpdateStatus, providerName }: Omit<_ApiOptions, 'metadata'> = {}) {
     const existed = this.getEvmApiByChain(chainSlug);
 
     if (existed) {
@@ -53,7 +53,7 @@ export class EvmChainHandler extends AbstractChainHandler {
       return existed;
     }
 
-    const apiObject = new EvmApi(chainSlug, apiUrl, { providerName });
+    const apiObject = new EvmApi(chainSlug, apiUrl, { isTestnet, providerName });
 
     apiObject.connectionStatusSubject.subscribe(this.handleConnection.bind(this, chainSlug));
     apiObject.connectionStatusSubject.subscribe(onUpdateStatus);

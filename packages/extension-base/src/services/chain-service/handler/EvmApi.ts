@@ -16,6 +16,7 @@ export class EvmApi implements _EvmApi {
   api: Web3;
   apiUrl: string;
   provider: HttpProvider | WebsocketProvider;
+  isTestnet?: boolean;
   apiError?: string;
   apiRetry = 0;
   public readonly isApiConnectedSubject = new BehaviorSubject(false);
@@ -77,11 +78,12 @@ export class EvmApi implements _EvmApi {
     }
   }
 
-  constructor (chainSlug: string, apiUrl: string, { providerName }: _ApiOptions = {}) {
+  constructor (chainSlug: string, apiUrl: string, { isTestnet, providerName }: _ApiOptions = {}) {
     this.chainSlug = chainSlug;
     this.apiUrl = apiUrl;
     this.providerName = providerName || 'unknown';
     this.provider = this.createProvider(apiUrl);
+    this.isTestnet = isTestnet;
     this.api = new Web3(this.provider);
     this.isReadyHandler = createPromiseHandler<_EvmApi>();
 

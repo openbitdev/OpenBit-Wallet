@@ -6,12 +6,11 @@ import { BitcoinProviderError } from '@subwallet/extension-base/background/error
 import { EvmProviderError } from '@subwallet/extension-base/background/errors/EvmProviderError';
 import { withErrorLog } from '@subwallet/extension-base/background/handlers/helpers';
 import { isSubscriptionRunning, unsubscribe } from '@subwallet/extension-base/background/handlers/subscriptions';
-import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinOutputUtox, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
+import { AccountRefMap, AddTokenRequestExternal, AmountData, APIItemState, ApiMap, AuthRequestV2, BasicTxErrorType, BitcoinProviderErrorType, BitcoinSendTransactionParams, BitcoinSendTransactionRequest, BitcoinSignatureRequest, BitcoinSignPsbtPayload, BitcoinSignPsbtRawRequest, BitcoinSignPsbtRequest, BitcoinTransactionConfig, ChainStakingMetadata, ChainType, ConfirmationsQueue, CrowdloanItem, CrowdloanJson, CurrentAccountInfo, CurrentAccountProxyInfo, EvmProviderErrorType, EvmSendTransactionParams, EvmSendTransactionRequest, EvmSignatureRequest, ExternalRequestPromise, ExternalRequestPromiseStatus, ExtrinsicType, MantaAuthorizationContext, MantaPayConfig, MantaPaySyncState, NftCollection, NftItem, NftJson, NominatorMetadata, PsbtTransactionArg, RequestAccountExportPrivateKey, RequestCheckPublicAndSecretKey, RequestConfirmationComplete, RequestConfirmationCompleteBitcoin, RequestCrowdloanContributions, RequestSettingsType, ResponseAccountExportPrivateKey, ResponseCheckPublicAndSecretKey, ServiceInfo, SignMessageBitcoinResult, SignPsbtBitcoinResult, SingleModeJson, StakingItem, StakingJson, StakingRewardItem, StakingRewardJson, StakingType, UiSettings } from '@subwallet/extension-base/background/KoniTypes';
 import { AccountJson, RequestAuthorizeTab, RequestRpcSend, RequestRpcSubscribe, RequestRpcUnsubscribe, RequestSign, ResponseRpcListProviders, ResponseSigning } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY, ALL_GENESIS_HASH, MANTA_PAY_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { NftService } from '@subwallet/extension-base/koni/api/nft';
 import { BalanceService } from '@subwallet/extension-base/services/balance-service';
-import { getTransferableBitcoinUtxos } from '@subwallet/extension-base/services/balance-service/helpers/balance/bitcoin';
 import { ServiceStatus } from '@subwallet/extension-base/services/base/types';
 import BuyService from '@subwallet/extension-base/services/buy-service';
 import CampaignService from '@subwallet/extension-base/services/campaign-service';
@@ -40,8 +39,8 @@ import { TransactionEventResponse } from '@subwallet/extension-base/services/tra
 import WalletConnectService from '@subwallet/extension-base/services/wallet-connect-service';
 import { SWStorage } from '@subwallet/extension-base/storage';
 import AccountRefStore from '@subwallet/extension-base/stores/AccountRef';
-import { BalanceItem, BalanceMap, DetermineUtxosForSpendArgs, EvmFeeInfo, UtxoResponseItem } from '@subwallet/extension-base/types';
-import { determineUtxosForSpend, filterUneconomicalUtxos, getSizeInfo, isAccountAll, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
+import { BalanceItem, BalanceMap, EvmFeeInfo } from '@subwallet/extension-base/types';
+import { isAccountAll, isSameAddress, keyringGetAccounts, stripUrl, targetIsWeb } from '@subwallet/extension-base/utils';
 import { isContractAddress, parseContractInput } from '@subwallet/extension-base/utils/eth/parseTransaction';
 import { createPromiseHandler } from '@subwallet/extension-base/utils/promise';
 import { MetadataDef, ProviderMeta } from '@subwallet/extension-inject/types';
@@ -51,6 +50,7 @@ import { KeypairType } from '@subwallet/keyring/types';
 import { keyring } from '@subwallet/ui-keyring';
 import BigN from 'bignumber.js';
 import * as bitcoin from 'bitcoinjs-lib';
+import { Psbt } from 'bitcoinjs-lib';
 import BN from 'bn.js';
 import SimpleKeyring from 'eth-simple-keyring';
 import { t } from 'i18next';
@@ -1236,8 +1236,8 @@ export default class KoniState {
       });
   }
 
-  public async bitcoinSignPspt (id: string, url: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
-    const { account: address, allowedSighash, broadcast, network, psbt, signAtIndex } = params;
+  public async bitcoinSignPspt (id: string, url: string, networkKey: string, method: string, params: BitcoinSignPsbtRawRequest, allowedAccounts: string[]): Promise<string | undefined | SignMessageBitcoinResult | SignPsbtBitcoinResult> {
+    const { account: address, allowedSighash, broadcast, psbt, signAtIndex } = params;
 
     if (!psbt || !address) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Not found payload to sign'));
@@ -1245,10 +1245,6 @@ export default class KoniState {
 
     if (!isHex(`0x${psbt}`)) {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Psbt to be signed must be hex-encoded'));
-    }
-
-    if (!(network === 'mainnet' || network === 'testnet')) {
-      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Network to try this request is must be mainnet or testnet'));
     }
 
     if (!isBitcoinAddress(address)) {
@@ -1266,11 +1262,11 @@ export default class KoniState {
       throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
     }
 
-    if (network === 'mainnet') {
+    if (networkKey === 'bitcoin') {
       if (!['bitcoin-86', 'bitcoin-84'].includes(pair.type)) {
         throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the mainnet network'));
       }
-    } else if (network === 'testnet') {
+    } else if (networkKey === 'bitcoinTestnet') {
       if (!['bittest-86', 'bittest-84'].includes(pair.type)) {
         throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the testnet network'));
       }
@@ -1278,21 +1274,76 @@ export default class KoniState {
 
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
-    const psbtGenerate = bitcoin.Psbt.fromHex(psbt, {
-      network: network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+    const network_ = networkKey === 'bitcoinTestnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+    const psbtGenerate = Psbt.fromHex(psbt, {
+      network: network_
     });
-    const psbtTxInputs = psbtGenerate.txInputs;
-    const psbtTxOutputs = psbtGenerate.txOutputs;
+
+    const isExistedInput = (inputs: PsbtTransactionArg[], address: string) => inputs.findIndex(({ address: address_ }) => isSameAddress(address, address_ || ''));
+
+    const tokenInfo = this.getNativeTokenInfo(networkKey);
+    let to = '';
+    let value = new BigN(0);
+    const psbtInputData = psbtGenerate.data.inputs.reduce((inputs, { nonWitnessUtxo, witnessUtxo }, inputIndex) => {
+      let inputData: PsbtTransactionArg | null = null;
+
+      if (witnessUtxo) {
+        inputData = {
+          address: bitcoin.address.fromOutputScript(witnessUtxo?.script, network_),
+          amount: witnessUtxo.value.toString()
+        };
+      } else if (nonWitnessUtxo) {
+        const txin = psbtGenerate.txInputs[inputIndex];
+        const txout = bitcoin.Transaction.fromBuffer(nonWitnessUtxo).outs[txin.index];
+
+        inputData = {
+          address: bitcoin.address.fromOutputScript(txout.script, network_),
+          amount: txout.value.toString()
+        };
+      }
+
+      inputData && inputs.push(inputData);
+
+      return inputs;
+    }, [] as PsbtTransactionArg[]);
+
+    const psbtOutputData = psbtGenerate.txOutputs.map((output) => {
+      let address = '';
+
+      try {
+        address = output.address || bitcoin.address.fromOutputScript(output.script, network_);
+      } catch (e) {
+        if (output.script.includes(bitcoin.opcodes.OP_RETURN)) {
+          address = 'OP_RETURN';
+        } else {
+          address = 'Unknown';
+        }
+      }
+
+      if (isExistedInput(psbtInputData, address) === -1) {
+        to = address;
+        value = value.plus(new BigN(output.value));
+      }
+
+      return {
+        address,
+        amount: output.value.toString()
+      } as PsbtTransactionArg;
+    });
 
     const payload: BitcoinSignPsbtPayload = {
       psbt: psbtGenerate,
       broadcast: !!broadcast,
-      network,
+      value: value.toString(),
+      to,
+      network: networkKey,
       signAtIndex: isArray(signAtIndex) && signAtIndex.length === 0 ? undefined : signAtIndex,
       account: account.address,
       allowedSighash,
-      txInput: psbtTxInputs,
-      txOutput: psbtTxOutputs
+      tokenSlug: tokenInfo.slug,
+      txInput: psbtInputData,
+      txOutput: psbtOutputData
     };
     const hashPayload = '';
     const canSign = !account.isExternal;
@@ -1321,10 +1372,7 @@ export default class KoniState {
   }
 
   public async bitcoinSendTransaction (id: string, url: string, networkKey: string, allowedAccounts: string[], transactionParams: BitcoinSendTransactionParams): Promise<string | undefined> {
-    const bitcoinApi = this.getBitcoinApi(networkKey);
-    const apiStrategy = bitcoinApi.api;
-
-    const autoFormatNumber = (val?: string | number): string | undefined => {
+    const autoFormatNumber = (val: string | number): string => {
       if (typeof val === 'string' && val.startsWith('0x')) {
         return new BigN(val.replace('0x', ''), 16).toString();
       } else if (typeof val === 'number') {
@@ -1343,14 +1391,24 @@ export default class KoniState {
     }
 
     const tokenInfo = this.getNativeTokenInfo(networkKey);
+    let totalValue = new BigN('0');
+    const to = transactionParams.recipients.map((value) => {
+      const amount = autoFormatNumber(value.amount);
 
+      totalValue = totalValue.plus(amount);
+
+      return {
+        ...value,
+        amount
+      };
+    });
     const transaction: BitcoinTransactionConfig = {
       id,
       from: transactionParams.account,
-      to: transactionParams.recipients[0].address,
-      value: autoFormatNumber(transactionParams.recipients[0].amount),
+      to,
+      value: totalValue.toString(),
       tokenSlug: tokenInfo.slug,
-      networkKey: transactionParams.network === 'testnet' ? 'bitcoinTestnet' : 'bitcoin'
+      networkKey
     };
 
     // Address is validated in before step
@@ -1366,11 +1424,11 @@ export default class KoniState {
       throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Unable to find account'));
     }
 
-    if (networkKey === 'mainnet') {
+    if (networkKey === 'bitcoin') {
       if (!['bitcoin-86', 'bitcoin-84'].includes(pair.type)) {
         throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the mainnet network'));
       }
-    } else if (networkKey === 'testnet') {
+    } else if (networkKey === 'bitcoinTestnet') {
       if (!['bittest-86', 'bittest-84'].includes(pair.type)) {
         throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, t('Your address is not on the testnet network'));
       }
@@ -1378,109 +1436,10 @@ export default class KoniState {
 
     const account: AccountJson = { address: pair.address, ...pair.meta };
 
-    // Calculate transaction data
-    const [feeOptions_, utxos] = await Promise.all([
-      apiStrategy.getRecommendedFeeRate(),
-      getTransferableBitcoinUtxos(bitcoinApi, fromAddress)
-    ]);
-
-    const optionDefault = feeOptions_.options.default;
-    let feeOptions = null;
-    const determineUtxosArgs: DetermineUtxosForSpendArgs = {
-      amount: parseInt(transaction.value as string || '0'),
-      feeRate: feeOptions_.options[optionDefault].feeRate,
-      recipient: transaction.to as string,
-      sender: account.address,
-      utxos
-    };
-
-    if (!transaction.to) {
-      throw new Error();
-    }
-
-    const fallbackCalculate = (recipients: string[]) => {
-      const utxos = filterUneconomicalUtxos({
-        utxos: determineUtxosArgs.utxos,
-        feeRate: determineUtxosArgs.feeRate,
-        recipients,
-        sender: determineUtxosArgs.sender
-      });
-
-      const { txVBytes: vSize } = getSizeInfo({
-        inputLength: utxos.length || 1,
-        sender: fromAddress,
-        recipients
-      });
-
-      return {
-        vSize,
-        maxTransferable: utxos.reduce((previous, input) => previous.plus(input.value), new BigN(0)),
-        estimatedFee: Math.ceil(determineUtxosArgs.feeRate * vSize).toString()
-      };
-    };
-
-    const getBalance = async (senderAddress: string) => {
-      const filteredUtxos = await getTransferableBitcoinUtxos(bitcoinApi, senderAddress);
-
-      let balanceValue = new BigN(0);
-
-      filteredUtxos.forEach((utxo) => {
-        balanceValue = balanceValue.plus(utxo.value);
-      });
-
-      return balanceValue;
-    };
-
-    let maxTransferable = new BigN('0');
-    let estimatedFee = '0';
-    let inputs: UtxoResponseItem[] = [];
-    let outputs: BitcoinOutputUtox[] = [];
-
-    try {
-      const { fee: _estimatedFee, inputs: inputsRs, outputs: outputRs } = determineUtxosForSpend(determineUtxosArgs);
-
-      const { txVBytes: vSize } = getSizeInfo({
-        inputLength: inputs.length,
-        sender: fromAddress,
-        recipients: [transaction.to]
-      });
-
-      inputs = [...inputsRs];
-      outputs = [...outputRs];
-      estimatedFee = new BigN(_estimatedFee).toFixed(0);
-      feeOptions = {
-        ...feeOptions_,
-        estimatedFee,
-        vSize
-      };
-    } catch (_e) {
-      if (!feeOptions) {
-        const fb = fallbackCalculate([transaction.to, transaction.to]);
-
-        estimatedFee = fb.estimatedFee;
-
-        feeOptions = {
-          ...feeOptions_,
-          estimatedFee,
-          vSize: fb.vSize
-        };
-      }
-    }
-
-    maxTransferable = await getBalance(fromAddress);
-
-    // Validate balance
-    if (maxTransferable.lt(new BigN(estimatedFee).plus(new BigN(autoFormatNumber(transactionParams.recipients[0].amount) || '0')))) {
-      throw new EvmProviderError(EvmProviderErrorType.INVALID_PARAMS, t('Insufficient balance'));
-    }
-
     const requestPayload: BitcoinSendTransactionRequest = {
       ...transaction,
       hashPayload: JSON.stringify(transaction),
-      fee: feeOptions,
-      inputs,
       canSign: true,
-      outputs,
       account: account
     };
 

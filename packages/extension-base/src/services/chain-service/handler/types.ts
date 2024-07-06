@@ -26,6 +26,7 @@ export interface _SubstrateChainSpec {
 
 export interface _ApiOptions {
   providerName?: string,
+  isTestnet?: boolean,
   metadata?: MetadataItem,
   onUpdateStatus?: (status: _ChainConnectionStatus) => void,
   externalApiPromise?: ApiPromise

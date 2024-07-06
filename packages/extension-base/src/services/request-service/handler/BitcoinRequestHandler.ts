@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
-import { BitcoinProviderErrorType, ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, ExtrinsicDataTypeMap, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
+import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
+import { BasicTxErrorType, BitcoinProviderErrorType, ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, ExtrinsicDataTypeMap, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
 import { getBitcoinTransactionObject } from '@subwallet/extension-base/services/balance-service/helpers';
 import { ChainService } from '@subwallet/extension-base/services/chain-service';
@@ -283,7 +284,14 @@ export default class BitcoinRequestHandler {
   private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
     // Extract necessary information from the BitcoinSendTransactionRequest
     const { account, payload } = request.payload;
-    const { allowedSighash, broadcast, network, psbt, signAtIndex } = payload;
+    const { allowedSighash, broadcast, psbt, signAtIndex } = payload;
+    const transaction = this.#transactionService.getTransaction(request.id);
+    let eventData: TransactionEventResponse = {
+      id: request.id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: request.id
+    };
 
     // todo: validate type of the account
 
@@ -299,10 +307,22 @@ export default class BitcoinRequestHandler {
     }
 
     const signAtIndexGenerate = signAtIndex ? (isArray(signAtIndex) ? signAtIndex : [signAtIndex]) : [...(Array(psbt.inputCount) as number[])].map((_, i) => i);
+    let psptSignedTransaction: Psbt | null = null;
 
-    console.log(signAtIndexGenerate);
     // Sign the Psbt using the pair's bitcoin object
-    const psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
+    try {
+      psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
+    } catch (e) {
+      if (transaction) {
+        transaction.emitterTransaction?.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)], id: transaction.id, extrinsicHash: transaction.id });
+      }
+
+      throw new Error((e as Error).message);
+    }
+
+    if (!psptSignedTransaction) {
+      throw new Error('Unable to sign');
+    }
 
     if (!broadcast) {
       for (const index of signAtIndexGenerate) {
@@ -314,18 +334,53 @@ export default class BitcoinRequestHandler {
       };
     }
 
-    psptSignedTransaction.finalizeAllInputs();
+    if (!transaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+    }
 
-    const chain = network === 'mainnet' ? 'bitcoin' : 'bitcoinTestnet';
+    const { chain, emitterTransaction, id } = transaction;
 
-    const txid = await this.#chainService.getBitcoinApi(chain).api.simpleSendRawTransaction(psptSignedTransaction.extractTransaction().toHex());
-
-    console.log('TXID', txid);
-
-    return {
-      psbt: psptSignedTransaction.toHex(),
-      txid
+    eventData = {
+      id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: id
     };
+
+    if (!emitterTransaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+    }
+
+    const chainInfo = this.#chainService.getChainInfoByKey(chain);
+
+    try {
+      psptSignedTransaction.finalizeAllInputs();
+    } catch (e) {
+      emitterTransaction.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)] });
+      throw new Error((e as Error).message);
+    }
+
+    const hexTransaction = psptSignedTransaction.extractTransaction().toHex();
+
+    this.#transactionService.emitterEventTransaction(emitterTransaction, eventData, chainInfo.slug, hexTransaction);
+    const { promise, reject, resolve } = createPromiseHandler<SignPsbtBitcoinResult>();
+
+    emitterTransaction.on('extrinsicHash', (data) => {
+      if (!data.extrinsicHash || !psptSignedTransaction) {
+        reject(BitcoinProviderErrorType.INTERNAL_ERROR);
+      } else {
+        resolve({
+          psbt: psptSignedTransaction?.toHex(),
+          txid: data.extrinsicHash
+        });
+      }
+    });
+
+    emitterTransaction.on('error', (error) => {
+      reject(error);
+    });
+
+    return promise;
   }
 
   private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
