@@ -87,6 +87,7 @@ describe('test token transfer', () => {
 
     for (let i = start; i < start + count && i < chainList.length; i++) {
       const chain = chainList[i];
+      const isTestnet = chain.isTestnet;
       const networkKey = chain.slug;
 
       console.log('current', i);
@@ -117,7 +118,8 @@ describe('test token transfer', () => {
               getChainFee,
               to: '0x5e10e440FEce4dB0b16a6159A4536efb74d32E9b',
               transferAll: false,
-              value: '0'
+              value: '0',
+              isTestnet
             });
           } else {
             [transaction] = await getEVMTransactionObject({
@@ -127,7 +129,8 @@ describe('test token transfer', () => {
               getChainFee,
               to: '0x5e10e440FEce4dB0b16a6159A4536efb74d32E9b',
               transferAll: false,
-              value: '0'
+              value: '0',
+              isTestnet
             });
           }
 
