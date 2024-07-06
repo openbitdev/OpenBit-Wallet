@@ -56,7 +56,6 @@ interface TransferEvmProps extends TransactionFee {
   transferAll: boolean;
   value: string;
   evmApi: _EvmApi;
-  isTestnet: boolean
 }
 
 export async function getEVMTransactionObject ({ chain,
@@ -65,13 +64,13 @@ export async function getEVMTransactionObject ({ chain,
   feeOption,
   from,
   getChainFee,
-  isTestnet,
   to,
   transferAll,
   value }: TransferEvmProps): Promise<[TransactionConfig, string]> {
   const id = getId();
   const feeCustom = _feeCustom as EvmEIP1995FeeOption;
-  const feeInfo = await getChainFee(id, chain, 'evm', isTestnet) as EvmFeeInfo;
+  const feeInfo = await getChainFee(id, chain, 'evm') as EvmFeeInfo;
+
   const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom);
 
   const transactionObject = {
@@ -115,7 +114,6 @@ interface TransferERC20Props extends TransactionFee {
   to: string;
   transferAll: boolean;
   value: string;
-  isTestnet: boolean
 }
 
 export async function getERC20TransactionObject ({ assetAddress,
@@ -125,7 +123,6 @@ export async function getERC20TransactionObject ({ assetAddress,
   feeOption,
   from,
   getChainFee,
-  isTestnet,
   to,
   transferAll,
   value }: TransferERC20Props): Promise<[TransactionConfig, string]> {
@@ -154,7 +151,7 @@ export async function getERC20TransactionObject ({ assetAddress,
   const [gasLimit, _feeInfo] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
     erc20Contract.methods.transfer(to, transferValue).estimateGas({ from }) as number,
-    getChainFee(id, chain, 'evm', isTestnet)
+    getChainFee(id, chain, 'evm')
   ]);
 
   const feeInfo = _feeInfo as EvmFeeInfo;
