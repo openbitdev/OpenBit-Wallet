@@ -969,7 +969,8 @@ export class ChainService {
     }
 
     if (chainInfo.evmInfo !== null && chainInfo.evmInfo !== undefined) {
-      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
+      const isTestnet = chainInfo.isTestnet;
+      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { isTestnet, providerName, onUpdateStatus });
 
       this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi);
     }
