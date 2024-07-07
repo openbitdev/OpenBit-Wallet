@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 1.1.48
+Build date: Jul 07, 2024.
+
+Features & Updates:
+- Update chain-list (#229) :
+  - Add support for tshx and Cncl token (#248)
+  - Add support for more tokens on Bitlayer (#252)
+  - Update price for Rune and Ordinal popular (#181)
+  - Add support for Syscoin NEVM network (#257)
+  - Add support for Rollux network (#254)
+  - Add support for more tokens on BOB (#258)
+- Improve support dApp Providers (Bitcoin Provider) (Round2) (#228)
+- Remove the logic that differentiates between Native tokens and Local tokens in case show sub-logo (#222)
+- Update chain-list (#235)
+  - Add support for B² Network Testnet (#261)
+  - Add support for more tokens on B² Network (#262)
+
+Bug Fixes:
+- Evm, miner: fix enforcing the minimum miner tip 1 wei (#239)
+
+
 ## 1.1.47
 Build date: Jun 29, 2024.
 
