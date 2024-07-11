@@ -146,7 +146,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return false;
   }, [ordinalNftItem]);
 
-  const renderAppJsonContent = useCallback(() => {
+  const renderAppJsonContent = () => {
     const ordinalNftDescription = nftItem?.description && isValidJson(nftItem.description)
       ? JSON.parse(nftItem.description) as Record<string, unknown>
       : undefined;
@@ -164,9 +164,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         </pre>
       </div>
     );
-  }, [nftItem.description]);
+  };
 
-  const renderNftContent = useCallback(() => {
+  const renderNftContent = () => {
     const contentType = determineContentType(getContentType(nftItem.properties));
 
     switch (contentType) {
@@ -183,7 +183,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         );
 
       case ContentType.AppJson:
-        return renderAppJsonContent();
+        return renderAppJsonContent;
 
       case ContentType.TextHTML:
       case ContentType.ImageSVG:
@@ -214,7 +214,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
         return null;
     }
-  }, [isBRC20Inscription, nftItem, renderAppJsonContent, show3DModel, onImageClick]);
+  };
 
   return (
     <PageWrapper
@@ -232,13 +232,15 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       >
         <div className={'nft_item_detail__container'}>
           <div className={'nft_item_detail__nft_image'}>
-            {isBRC20Inscription && nftItem.description && (
-              <InscriptionImage
-                alone={true}
-                properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
-              />
-            )}
-            {renderNftContent()}
+            <>
+              {isBRC20Inscription && nftItem.description && (
+                <InscriptionImage
+                  alone={true}
+                  properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
+                />
+              )}
+              {renderNftContent()}
+            </>
           </div>
 
           <div className={'nft_item_detail__info_container'}>
