@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftItem } from '@subwallet/extension-base/background/KoniTypes';
-import { ContentType, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts';
+import { ContentType, determineContentType, getContentType, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, NftItem as NftItem_ } from '@subwallet/react-ui';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 // @ts-ignore
 import { LazyLoadComponent, LazyLoadImage } from 'react-lazy-load-image-component';
 import styled, { useTheme } from 'styled-components';
@@ -49,57 +49,13 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
     );
   }, []);
 
-  const getContentType = useMemo(() => {
-    if (nftItem?.properties) {
-      const contentTypeEntry = Object.entries(nftItem.properties).find(([attName]) => attName === 'content_type');
-
-      if (contentTypeEntry) {
-        const { value: attValue } = contentTypeEntry[1] as Record<string, string>;
-
-        return attValue;
-      }
-    }
-
-    return '';
-  }, [nftItem]);
-
-  const determineContentType = useCallback((): ContentType | undefined => {
-    const contentType = getContentType;
-
-    if (contentType.includes(ContentType.Audio)) {
-      return ContentType.Audio;
-    }
-
-    if (contentType.includes(ContentType.TextHTML)) {
-      return ContentType.TextHTML;
-    }
-
-    if (contentType.includes(ContentType.ImageSVG)) {
-      return ContentType.ImageSVG;
-    }
-
-    if (contentType.includes(ContentType.Video)) {
-      return ContentType.Video;
-    }
-
-    if (contentType.includes(ContentType.Image)) {
-      return ContentType.Image;
-    }
-
-    if (contentType.includes(ContentType.AppJson)) {
-      return ContentType.AppJson;
-    }
-
-    return undefined;
-  }, [getContentType]);
-
-  const renderAppJsonContent = useCallback(() => {
+  const renderAppJsonContent = () => {
     const ordinalNftDescription = nftItem?.description && isValidJson(nftItem.description)
       ? JSON.parse(nftItem.description) as Record<string, unknown>
       : undefined;
 
     if (!ordinalNftDescription) {
-      return null;
+      return '';
     }
 
     return (
@@ -111,10 +67,10 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
         </pre>
       </div>
     );
-  }, [nftItem?.description]);
+  };
 
-  const getCollectionImageNode = useCallback(() => {
-    const contentType = determineContentType();
+  const getCollectionImageNode = () => {
+    const contentType = determineContentType(getContentType(nftItem?.properties));
 
     switch (contentType) {
       case ContentType.TextHTML:
@@ -154,7 +110,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
             >
               <source
                 src={getCollectionImage()}
-                type={getContentType}
+                type={getContentType(nftItem?.properties)}
               />
             </video>
           </LazyLoadComponent>
@@ -171,7 +127,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
               >
                 <source
                   src={getCollectionImage()}
-                  type={getContentType}
+                  type={getContentType(nftItem?.properties)}
                 />
               </audio>
             </div>
@@ -193,7 +149,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
           />
         );
     }
-  }, [determineContentType, extendToken.defaultImagePlaceholder, getCollectionImage, getContentType, loadingPlaceholder, renderAppJsonContent]);
+  };
 
   return (
     <NftItem_
