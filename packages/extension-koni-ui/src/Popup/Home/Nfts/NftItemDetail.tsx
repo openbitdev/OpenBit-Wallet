@@ -183,7 +183,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
         );
 
       case ContentType.AppJson:
-        return renderAppJsonContent;
+        return renderAppJsonContent();
 
       case ContentType.TextHTML:
       case ContentType.ImageSVG:
