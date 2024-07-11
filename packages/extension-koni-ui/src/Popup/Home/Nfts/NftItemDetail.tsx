@@ -13,7 +13,7 @@ import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDef
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/screen/common/useGetAccountInfoByAddress';
 import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
-import { INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { ContentType, determineContentType, getContentType, INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
@@ -146,22 +146,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return false;
   }, [ordinalNftItem]);
 
-  const getContentType = useMemo(() => {
-    let contentType = '';
-
-    if (nftItem?.properties) {
-      Object.entries(nftItem.properties).forEach(([attName, attValueObj]) => {
-        const { value: attValue } = attValueObj as Record<string, string>;
-
-        if (attName === 'content_type') {
-          contentType = attValue;
-        }
-      });
-    }
-
-    return contentType;
-  }, [nftItem?.properties]);
-
   const renderAppJsonContent = useCallback(() => {
     const ordinalNftDescription = nftItem?.description && isValidJson(nftItem.description)
       ? JSON.parse(nftItem.description) as Record<string, unknown>
@@ -173,24 +157,64 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     return (
       <div className='nft-container'>
-        {Object.entries(ordinalNftDescription).map(([key, value]) => (
-          <div
-            className={'__nft-item'}
-            key={key}
-          >{key}: <div className={'__nft-item-value'}>{String(value)}</div></div>
-        ))}
+        <pre>
+          <code>
+            {JSON.stringify(ordinalNftDescription, null, 2)}
+          </code>
+        </pre>
       </div>
     );
   }, [nftItem.description]);
 
-  const checkContentType = useCallback((type: string): boolean => getContentType.includes(type), [getContentType]);
+  const renderNftContent = useCallback(() => {
+    const contentType = determineContentType(getContentType(nftItem.properties));
 
-  const isAudioInscriptions = useMemo(() => checkContentType('audio'), [checkContentType]);
+    switch (contentType) {
+      case ContentType.Audio:
+        return (
+          <div className='-nft-audio'>
+            <audio controls>
+              <source
+                src={nftItem.image}
+                type={getContentType(nftItem?.properties)}
+              />
+            </audio>
+          </div>
+        );
 
-  const isTextHTMLInscriptions = useMemo(() => checkContentType('text/html'), [checkContentType]);
+      case ContentType.AppJson:
+        return renderAppJsonContent();
 
-  const isSVGInscriptions = useMemo(() => checkContentType('image/svg'), [checkContentType]);
-  const isAppJsonInscriptions = useMemo(() => checkContentType('application/json'), [checkContentType]);
+      case ContentType.TextHTML:
+      case ContentType.ImageSVG:
+        return (
+          <div className='-nft-text-html-wrapper'>
+            <iframe
+              className='-nft-text-html'
+              src={nftItem.image}
+              title='HTML Inscription Content'
+            />
+          </div>
+        );
+
+      default:
+        if (!isBRC20Inscription) {
+          return (
+            <Image
+              className={CN({ clickable: nftItem.externalUrl })}
+              fallbackSrc={DefaultLogosMap.default_placeholder}
+              height={358}
+              modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
+              onClick={onImageClick}
+              src={nftItem.image || DefaultLogosMap.default_placeholder}
+              width={show3DModel ? 358 : undefined}
+            />
+          );
+        }
+
+        return null;
+    }
+  }, [isBRC20Inscription, nftItem, renderAppJsonContent, show3DModel, onImageClick]);
 
   return (
     <PageWrapper
@@ -214,39 +238,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
               />
             )}
-            {isAudioInscriptions &&
-                <div className={'-nft-audio'}>
-                  <audio controls>
-                    <source
-                      src={nftItem.image}
-                      type={getContentType}
-                    />
-                  </audio>
-                </div>
-            }
-            {isAppJsonInscriptions &&
-              renderAppJsonContent()
-            }
-            {(isTextHTMLInscriptions || isSVGInscriptions) &&
-              <div className={'-nft-text-html-wrapper'}>
-                <iframe
-                  className={'-nft-text-html'}
-                  src={nftItem.image}
-                  title={'HTML Inscription Content'}
-                />
-              </div>
-            }
-            {!isBRC20Inscription && !isAudioInscriptions && !isTextHTMLInscriptions && !isSVGInscriptions && !isAppJsonInscriptions && (
-              <Image
-                className={CN({ clickable: nftItem.externalUrl })}
-                fallbackSrc={DefaultLogosMap.default_placeholder}
-                height={358}
-                modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
-                onClick={onImageClick}
-                src={nftItem.image || DefaultLogosMap.default_placeholder}
-                width={show3DModel ? 358 : undefined}
-              />
-            )}
+            {renderNftContent()}
           </div>
 
           <div className={'nft_item_detail__info_container'}>
@@ -401,7 +393,7 @@ const NftItemDetail = styled(Component)<Props>(({ theme: { token } }: Props) => 
       color: token.colorTextDark1,
       justifyContent: 'space-between',
       display: 'flex',
-      gap: 4,
+      gap: 4
 
     },
     '.__nft-item-value': {

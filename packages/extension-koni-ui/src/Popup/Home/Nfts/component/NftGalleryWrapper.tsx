@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { NftItem } from '@subwallet/extension-base/background/KoniTypes';
-import { isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts';
+import { ContentType, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, NftItem as NftItem_ } from '@subwallet/react-ui';
 import React, { useCallback, useMemo } from 'react';
@@ -50,31 +50,48 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
   }, []);
 
   const getContentType = useMemo(() => {
-    let contentType = '';
-
     if (nftItem?.properties) {
-      Object.entries(nftItem.properties).forEach(([attName, attValueObj]) => {
-        const { value: attValue } = attValueObj as Record<string, string>;
+      const contentTypeEntry = Object.entries(nftItem.properties).find(([attName]) => attName === 'content_type');
 
-        if (attName === 'content_type') {
-          contentType = attValue;
-        }
-      });
+      if (contentTypeEntry) {
+        const { value: attValue } = contentTypeEntry[1] as Record<string, string>;
+
+        return attValue;
+      }
     }
 
-    return contentType;
-  }, [nftItem?.properties]);
+    return '';
+  }, [nftItem]);
 
-  const checkContentType = useCallback((type: string): boolean => getContentType.includes(type), [getContentType]);
+  const determineContentType = useCallback((): ContentType | undefined => {
+    const contentType = getContentType;
 
-  const isAudioInscriptions = useMemo(() => checkContentType('audio'), [checkContentType]);
+    if (contentType.includes(ContentType.Audio)) {
+      return ContentType.Audio;
+    }
 
-  const isTextHTMLInscriptions = useMemo(() => checkContentType('text/html'), [checkContentType]);
+    if (contentType.includes(ContentType.TextHTML)) {
+      return ContentType.TextHTML;
+    }
 
-  const isSVGInscriptions = useMemo(() => checkContentType('image/svg'), [checkContentType]);
-  const isVideoInscriptions = useMemo(() => checkContentType('video'), [checkContentType]);
-  const isImageCommonInscriptions = useMemo(() => checkContentType('image'), [checkContentType]);
-  const isAppJsonInscriptions = useMemo(() => checkContentType('application/json'), [checkContentType]);
+    if (contentType.includes(ContentType.ImageSVG)) {
+      return ContentType.ImageSVG;
+    }
+
+    if (contentType.includes(ContentType.Video)) {
+      return ContentType.Video;
+    }
+
+    if (contentType.includes(ContentType.Image)) {
+      return ContentType.Image;
+    }
+
+    if (contentType.includes(ContentType.AppJson)) {
+      return ContentType.AppJson;
+    }
+
+    return undefined;
+  }, [getContentType]);
 
   const renderAppJsonContent = useCallback(() => {
     const ordinalNftDescription = nftItem?.description && isValidJson(nftItem.description)
@@ -87,92 +104,96 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
 
     return (
       <div className='nft-container'>
-        {Object.entries(ordinalNftDescription).map(([key, value]) => (
-          <div
-            className={'__nft-item'}
-            key={key}
-          >{key}: <div className={'__nft-item-value'}>{String(value)}</div></div>
-        ))}
+        <pre>
+          <code>
+            {JSON.stringify(ordinalNftDescription, null, 2)}
+          </code>
+        </pre>
       </div>
     );
   }, [nftItem?.description]);
 
   const getCollectionImageNode = useCallback(() => {
-    if (isTextHTMLInscriptions || isSVGInscriptions) {
-      return (
-        <LazyLoadComponent>
-          <div className={'-nft-text-html-wrapper'}>
-            <iframe
-              className={'-nft-text-html'}
-              src={getCollectionImage()}
-              title={'HTML Inscription Content'}
-            />
-          </div>
-        </LazyLoadComponent>
-      );
-    }
+    const contentType = determineContentType();
 
-    if (isImageCommonInscriptions) {
-      return (
-        <LazyLoadImage
-          delayTime={10000}
-          height={'100%'}
-          placeholder={loadingPlaceholder()}
-          src={getCollectionImage()}
-          width={'100%'}
-        />
-      );
-    }
+    switch (contentType) {
+      case ContentType.TextHTML:
+      case ContentType.ImageSVG:
+        return (
+          <LazyLoadComponent>
+            <div className='-nft-text-html-wrapper'>
+              <iframe
+                className='-nft-text-html'
+                src={getCollectionImage()}
+                title='HTML Inscription Content'
+              />
+            </div>
+          </LazyLoadComponent>
+        );
 
-    if (isVideoInscriptions) {
-      return (
-        <LazyLoadComponent>
-          <video
-            autoPlay
-            height={'100%'}
-            loop={true}
-            muted
-            width={'100%'}
-          >
-            <source
-              src={getCollectionImage()}
-              type={getContentType}
-            />
-          </video>
-        </LazyLoadComponent>
-      );
-    }
+      case ContentType.Image:
+        return (
+          <LazyLoadImage
+            delayTime={10000}
+            height='100%'
+            placeholder={loadingPlaceholder()}
+            src={getCollectionImage()}
+            width='100%'
+          />
+        );
 
-    if (isAudioInscriptions) {
-      return (
-        <LazyLoadComponent>
-          <div className={'nft_gallery_wrapper__audio'}>
-            <audio controls>
+      case ContentType.Video:
+        return (
+          <LazyLoadComponent>
+            <video
+              autoPlay
+              height='100%'
+              loop={true}
+              muted
+              width='100%'
+            >
               <source
                 src={getCollectionImage()}
                 type={getContentType}
               />
-            </audio>
-          </div>
-        </LazyLoadComponent>
-      );
-    }
+            </video>
+          </LazyLoadComponent>
+        );
 
-    if (isAppJsonInscriptions) {
-      return (
-        <LazyLoadComponent>
-          {renderAppJsonContent()};
-        </LazyLoadComponent>
-      );
-    }
+      case ContentType.Audio:
+        return (
+          <LazyLoadComponent>
+            <div className='nft_gallery_wrapper__audio'>
+              <audio
+                autoPlay={false}
+                controls
+                muted
+              >
+                <source
+                  src={getCollectionImage()}
+                  type={getContentType}
+                />
+              </audio>
+            </div>
+          </LazyLoadComponent>
+        );
 
-    return (
-      <LazyLoadImage
-        src={extendToken.defaultImagePlaceholder}
-        visibleByDefault={true}
-      />
-    );
-  }, [extendToken.defaultImagePlaceholder, getCollectionImage, getContentType, isAppJsonInscriptions, isAudioInscriptions, isImageCommonInscriptions, isSVGInscriptions, isTextHTMLInscriptions, isVideoInscriptions, loadingPlaceholder, renderAppJsonContent]);
+      case ContentType.AppJson:
+        return (
+          <LazyLoadComponent>
+            {renderAppJsonContent()}
+          </LazyLoadComponent>
+        );
+
+      default:
+        return (
+          <LazyLoadImage
+            src={extendToken.defaultImagePlaceholder}
+            visibleByDefault={true}
+          />
+        );
+    }
+  }, [determineContentType, extendToken.defaultImagePlaceholder, getCollectionImage, getContentType, loadingPlaceholder, renderAppJsonContent]);
 
   return (
     <NftItem_
@@ -224,7 +245,7 @@ export const NftGalleryWrapper = styled(Component)<Props>(({ theme: { token } }:
       color: token.colorTextDark1,
       justifyContent: 'space-between',
       display: 'flex',
-      gap: 2,
+      gap: 2
 
     },
     '.__nft-item-value': {
