@@ -146,6 +146,52 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     return false;
   }, [ordinalNftItem]);
 
+  const getContentType = useMemo(() => {
+    let contentType = '';
+
+    if (nftItem?.properties) {
+      Object.entries(nftItem.properties).forEach(([attName, attValueObj]) => {
+        const { value: attValue } = attValueObj as Record<string, string>;
+
+        if (attName === 'content_type') {
+          contentType = attValue;
+        }
+      });
+    }
+
+    return contentType;
+  }, [nftItem?.properties]);
+
+  const renderAppJsonContent = useCallback(() => {
+    const ordinalNftDescription = nftItem?.description && isValidJson(nftItem.description)
+      ? JSON.parse(nftItem.description) as Record<string, unknown>
+      : undefined;
+
+    if (!ordinalNftDescription) {
+      return null;
+    }
+
+    return (
+      <div className='nft-container'>
+        {Object.entries(ordinalNftDescription).map(([key, value]) => (
+          <div
+            className={'__nft-item'}
+            key={key}
+          >{key}: <div className={'__nft-item-value'}>{String(value)}</div></div>
+        ))}
+      </div>
+    );
+  }, [nftItem.description]);
+
+  const checkContentType = useCallback((type: string): boolean => getContentType.includes(type), [getContentType]);
+
+  const isAudioInscriptions = useMemo(() => checkContentType('audio'), [checkContentType]);
+
+  const isTextHTMLInscriptions = useMemo(() => checkContentType('text/html'), [checkContentType]);
+
+  const isSVGInscriptions = useMemo(() => checkContentType('image/svg'), [checkContentType]);
+  const isAppJsonInscriptions = useMemo(() => checkContentType('application/json'), [checkContentType]);
+
   return (
     <PageWrapper
       className={`${className}`}
@@ -168,7 +214,29 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
               />
             )}
-            {!isBRC20Inscription && (
+            {isAudioInscriptions &&
+                <div className={'-nft-audio'}>
+                  <audio controls>
+                    <source
+                      src={nftItem.image}
+                      type={getContentType}
+                    />
+                  </audio>
+                </div>
+            }
+            {isAppJsonInscriptions &&
+              renderAppJsonContent()
+            }
+            {(isTextHTMLInscriptions || isSVGInscriptions) &&
+              <div className={'-nft-text-html-wrapper'}>
+                <iframe
+                  className={'-nft-text-html'}
+                  src={nftItem.image}
+                  title={'HTML Inscription Content'}
+                />
+              </div>
+            }
+            {!isBRC20Inscription && !isAudioInscriptions && !isTextHTMLInscriptions && !isSVGInscriptions && !isAppJsonInscriptions && (
               <Image
                 className={CN({ clickable: nftItem.externalUrl })}
                 fallbackSrc={DefaultLogosMap.default_placeholder}
@@ -306,6 +374,40 @@ const NftItemDetail = styled(Component)<Props>(({ theme: { token } }: Props) => 
 
     '.clickable': {
       cursor: 'pointer'
+    },
+    '.-nft-audio': {
+      display: 'flex',
+      alignItems: 'center'
+    },
+    '.-nft-text-html': {
+      width: 358,
+      height: 358,
+      border: 'none',
+      overflow: 'hidden'
+    },
+    '.nft-container': {
+      width: 358,
+      height: 358,
+      backgroundColor: token.colorTextTertiary,
+      padding: token.padding,
+      gap: 8,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    },
+    '.__nft-item': {
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
+      color: token.colorTextDark1,
+      justifyContent: 'space-between',
+      display: 'flex',
+      gap: 4,
+
+    },
+    '.__nft-item-value': {
+      color: token.colorTextDark4,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     },
 
     '.nft_item_detail__info_container': {

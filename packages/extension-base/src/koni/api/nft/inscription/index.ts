@@ -50,11 +50,11 @@ export class InscriptionApi extends BaseNftApi {
   }
 
   private parseInsUrl (id: string, type: string) {
-    if (type.startsWith('audio/') || type.startsWith('text/html') || type.startsWith('image/svg') || type.startsWith('model/gltf')) {
+    if (type.startsWith('image/svg') || type.startsWith('model/gltf')) {
       return this.createIframePreviewUrl(id);
     }
 
-    if (type.startsWith('video/')) {
+    if (type.startsWith('video/') || type.startsWith('audio/') || type.startsWith('text/html')) {
       return `https://ordinals.com/content/${id}`;
     }
 
