@@ -1,4 +1,4 @@
-    2474	AnhMTV                        	Release version 1.1.48
+    2476	AnhMTV                        	
     2171	Nam Phạm                      	[Issue 2717] change XCM ref map
     2001	S2kael                        	[Issue-193] Add re-scan BTC transaction have no block_time
      799	lw-cdm                        	Fix UI issues
@@ -15,7 +15,7 @@
       63	Roman                         	fix ui issues
       63	Thiendekaco                   	[Issue 228] [fix] - eslint issue
       53	Dominhquangdev                	update Bridge code
-      48	bluedot                       	[Runes] Merge openbit-dev--migrate-code
+      52	bluedot                       	Update explorer Bool test
       29	Automation Bot                	[CI Skip] Auto increase webapp build number
       26	S2kael                        	
       10	louisdangw3                   	Check logic of transaction-service and request-serivce
