@@ -80,6 +80,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
     switch (contentType) {
       case ContentType.TextHTML:
       case ContentType.ImageSVG:
+      case ContentType.ImageGIF:
         return (
           <LazyLoadComponent>
             <div className='-nft-text-html-wrapper'>
@@ -149,7 +150,8 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
       default:
         return (
           <LazyLoadImage
-            src={extendToken.defaultImagePlaceholder}
+            className={'__item-lazzad'}
+            src={getCollectionImage()}
             visibleByDefault={true}
           />
         );
