@@ -54,8 +54,13 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
       ? JSON.parse(nftItem.description) as Record<string, unknown>
       : undefined;
 
-    if (!ordinalNftDescription) {
-      return '';
+    if (!ordinalNftDescription || Object.keys(ordinalNftDescription).length === 0) {
+      return (
+        <LazyLoadImage
+          src={extendToken.defaultImagePlaceholder}
+          visibleByDefault={true}
+        />
+      );
     }
 
     return (

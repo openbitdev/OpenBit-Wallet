@@ -50,7 +50,7 @@ export class InscriptionApi extends BaseNftApi {
   }
 
   private parseInsUrl (id: string, type: string) {
-    if (type.startsWith('image/svg') || type.startsWith('model/gltf')) {
+    if (type.startsWith('image/svg') || type.startsWith('model/gltf') || type.startsWith('image/gif')) {
       return this.createIframePreviewUrl(id);
     }
 
@@ -62,10 +62,10 @@ export class InscriptionApi extends BaseNftApi {
       return undefined;
     }
 
-    if (type.startsWith('image/')) {
-      return `${HIRO_API.list_of_incriptions}/${id}/content`;
-      // return getPreviewUrl(id);
-    }
+    // if (type.startsWith('image/')) {
+    //   return `${HIRO_API.list_of_incriptions}/${id}/content`;
+    //   // return getPreviewUrl(id);
+    // }
 
     return undefined;
   }

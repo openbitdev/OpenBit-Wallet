@@ -19,6 +19,7 @@ export enum ContentType {
   Audio = 'audio',
   TextHTML = 'text/html',
   ImageSVG = 'image/svg',
+  ImageGIF = 'image/gif',
   Video = 'video',
   Image = 'image',
   AppJson = 'application/json'
@@ -109,6 +110,10 @@ export const determineContentType = (contentType: string): ContentType | undefin
 
   if (contentType.includes(ContentType.ImageSVG)) {
     return ContentType.ImageSVG;
+  }
+
+  if (contentType.includes(ContentType.ImageGIF)) {
+    return ContentType.ImageGIF;
   }
 
   if (contentType.includes(ContentType.Video)) {

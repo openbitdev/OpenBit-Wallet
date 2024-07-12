@@ -151,8 +151,18 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       ? JSON.parse(nftItem.description) as Record<string, unknown>
       : undefined;
 
-    if (!ordinalNftDescription) {
-      return null;
+    if (!ordinalNftDescription || Object.keys(ordinalNftDescription).length === 0) {
+      return (
+        <Image
+          className={CN({ clickable: nftItem.externalUrl })}
+          fallbackSrc={DefaultLogosMap.default_placeholder}
+          height={358}
+          modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
+          onClick={onImageClick}
+          src={nftItem.image || DefaultLogosMap.default_placeholder}
+          width={show3DModel ? 358 : undefined}
+        />
+      );
     }
 
     return (
@@ -187,6 +197,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
       case ContentType.TextHTML:
       case ContentType.ImageSVG:
+      case ContentType.ImageGIF:
         return (
           <div className='-nft-text-html-wrapper'>
             <iframe
