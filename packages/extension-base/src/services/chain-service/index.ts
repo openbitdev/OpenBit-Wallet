@@ -62,7 +62,10 @@ const openbitChainInfoMap = (() => {
     'sepolia_ethereum',
     'syscoin_evm',
     'rollux_evm',
-    'b2_testnet'
+    'b2_testnet',
+    'boolBeta_testnet',
+    'rollux_testnet',
+    'syscoin_evm_testnet'
   ];
   const enableList = nativeList.concat(bitcoinL2List);
 
