@@ -7,7 +7,7 @@ import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useGetNftByAccount, useNotification, useSetCurrentPage, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { reloadCron } from '@subwallet/extension-koni-ui/messaging';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
-import { getTotalCollectionItems, INftCollectionDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { ContentType, determineContentType, getContentType, getTotalCollectionItems, INftCollectionDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, ButtonProps, Icon, SwList } from '@subwallet/react-ui';
@@ -93,7 +93,9 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     let fallbackImage: string | undefined;
 
     for (const nft of nftList) { // fallback to any nft image
-      if (nft.image) {
+      const contentType = determineContentType(getContentType(nft?.properties));
+
+      if (nft.image && contentType === ContentType.Image) {
         fallbackImage = nft.image;
         break;
       }
