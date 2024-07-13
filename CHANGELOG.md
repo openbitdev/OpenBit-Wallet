@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.1.49
+Build date: Jul 13, 2024.
+
+Features & Updates:
+- Update chain-list (#242):
+ - Add support for Bool Beta Testnet network (#274)
+ - Add support for Rollux Testnet network (#265)
+ - Add support for Syscoin NEVM Testnet network (#266)
+ - Change symbol of LayerEdge native token to LBTC
+
+
 ## 1.1.48
 Build date: Jul 07, 2024.
 
