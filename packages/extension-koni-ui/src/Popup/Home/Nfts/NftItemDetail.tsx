@@ -197,13 +197,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
       case ContentType.TextHTML:
       case ContentType.ImageSVG:
+      case ContentType.ModelGltf:
       case ContentType.ImageGIF:
         return (
           <div className='-nft-text-html-wrapper'>
             <iframe
               className='-nft-text-html'
               src={nftItem.image}
-              title='HTML Inscription Content'
             />
           </div>
         );

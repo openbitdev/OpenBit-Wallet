@@ -22,7 +22,8 @@ export enum ContentType {
   ImageGIF = 'image/gif',
   Video = 'video',
   Image = 'image',
-  AppJson = 'application/json'
+  AppJson = 'application/json',
+  ModelGltf = 'model/gltf'
 }
 interface NftItemProperties {
   [key: string]: unknown;
@@ -126,6 +127,10 @@ export const determineContentType = (contentType: string): ContentType | undefin
 
   if (contentType.includes(ContentType.AppJson)) {
     return ContentType.AppJson;
+  }
+
+  if (contentType.includes(ContentType.ModelGltf)) {
+    return ContentType.ModelGltf;
   }
 
   return undefined;

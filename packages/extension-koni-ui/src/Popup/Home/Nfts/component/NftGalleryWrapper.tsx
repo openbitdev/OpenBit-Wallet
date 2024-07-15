@@ -14,7 +14,7 @@ interface Props extends ThemeProps {
   title: string;
   nftItem?: NftItem;
   image: string | undefined;
-  fallbackImage?: string | undefined;
+  fallbackImage?: { image: string; contentType?: ContentType } | undefined;
   itemCount?: number;
   handleOnClick?: (params?: any) => void;
   routingParams?: any;
@@ -32,7 +32,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
     if (image) {
       return image;
     } else if (fallbackImage) {
-      return fallbackImage;
+      return fallbackImage.image;
     }
 
     return extendToken.defaultImagePlaceholder;
@@ -75,12 +75,18 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
   };
 
   const getCollectionImageNode = () => {
-    const contentType = determineContentType(getContentType(nftItem?.properties));
+    let contentType = determineContentType(getContentType(nftItem?.properties));
+    const fallbackContentType = fallbackImage?.contentType;
+
+    if (!contentType) {
+      contentType = fallbackContentType;
+    }
 
     switch (contentType) {
       case ContentType.TextHTML:
       case ContentType.ImageSVG:
       case ContentType.ImageGIF:
+      case ContentType.ModelGltf:
         return (
           <LazyLoadComponent>
             <div className='-nft-text-html-wrapper'>
@@ -150,7 +156,6 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
       default:
         return (
           <LazyLoadImage
-            className={'__item-lazzad'}
             src={getCollectionImage()}
             visibleByDefault={true}
           />

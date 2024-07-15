@@ -90,13 +90,13 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const renderNftCollection = useCallback((nftCollection: NftCollection) => {
     const nftList = getNftsByCollection(nftCollection);
 
-    let fallbackImage: string | undefined;
+    let fallbackImage: { image: string; contentType?: ContentType } | undefined;
 
     for (const nft of nftList) { // fallback to any nft image
       const contentType = determineContentType(getContentType(nft?.properties));
 
-      if (nft.image && contentType === ContentType.Image) {
-        fallbackImage = nft.image;
+      if (nft.image) {
+        fallbackImage = { image: nft.image, contentType: contentType };
         break;
       }
     }
