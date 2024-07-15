@@ -14,7 +14,7 @@ interface Props extends ThemeProps {
   title: string;
   nftItem?: NftItem;
   image: string | undefined;
-  fallbackImage?: { image: string; contentType?: ContentType } | undefined;
+  fallbackImage?: { image?: string; contentType?: ContentType } | undefined;
   itemCount?: number;
   handleOnClick?: (params?: any) => void;
   routingParams?: any;
