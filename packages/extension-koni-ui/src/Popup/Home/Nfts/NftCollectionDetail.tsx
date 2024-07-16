@@ -120,7 +120,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     return (
       <NftGalleryWrapper
-        fallbackImage={{image: collectionInfo.image}}
+        fallbackImage={{ image: collectionInfo.image }}
         handleOnClick={handleOnClickNft}
         have3dViewer={SHOW_3D_MODELS_CHAIN.includes(nftItem.chain)}
         image={nftItem.image}
