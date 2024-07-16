@@ -29,6 +29,10 @@ function getBlockExplorerAccountRoute (explorerLink: string) {
     return 'account';
   }
 
+  if (explorerLink.includes('beta-testnet.boolscan')) {
+    return 'address';
+  }
+
   return 'address';
 }
 

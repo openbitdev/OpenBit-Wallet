@@ -18,7 +18,7 @@ interface Props extends ThemeProps {
   have3dViewer?: boolean;
 }
 
-function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer, image, itemCount, routingParams, title }: Props): React.ReactElement<Props> {
+function Component ({ className = '', fallbackImage, handleOnClick, image, itemCount, routingParams, title }: Props): React.ReactElement<Props> {
   const { extendToken } = useTheme() as Theme;
 
   const [showImage, setShowImage] = useState(true);
@@ -98,7 +98,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, have3dViewer
         visibleByDefault={true}
       />
     );
-  }, [showImage, showVideo, extendToken.defaultImagePlaceholder, handleImageError, loadingPlaceholder, getCollectionImage, handleVideoError]);
+  }, [extendToken.defaultImagePlaceholder, getCollectionImage, handleImageError, handleVideoError, loadingPlaceholder, showImage, showVideo]);
 
   return (
     <NftItem_

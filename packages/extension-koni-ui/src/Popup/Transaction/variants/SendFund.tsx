@@ -11,7 +11,7 @@ import { BN_ZERO, detectTranslate } from '@subwallet/extension-base/utils';
 import { AccountSelector, AddressInput, AlertBox, AlertModal, AmountInput, BitcoinFeeSelector, HiddenInput, TokenItemType, TokenSelector } from '@subwallet/extension-koni-ui/components';
 import { BITCOIN_CHAINS } from '@subwallet/extension-koni-ui/constants';
 import { useAlert, useFetchChainAssetInfo, useGetChainPrefixBySlug, useHandleSubmitTransaction, useInitValidateTransaction, useNotification, usePreCheckAction, useRestoreTransaction, useSelector, useSetCurrentPage, useTransactionContext, useWatchTransaction } from '@subwallet/extension-koni-ui/hooks';
-import { cancelSubscription, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
+import { cancelSubscription, getBitcoinTransactionData, makeCrossChainTransfer, makeTransfer, subscribeMaxTransfer } from '@subwallet/extension-koni-ui/messaging';
 import { FreeBalance } from '@subwallet/extension-koni-ui/Popup/Transaction/parts';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { FormCallbacks, Theme, ThemeProps, TransferParams } from '@subwallet/extension-koni-ui/types';
@@ -622,6 +622,25 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
     return accounts.filter(accountsFilter);
   }, [accounts, accountsFilter]);
 
+  const getTransactionData = useCallback(() => {
+    const { asset, chain, from, to, value } = form.getFieldsValue();
+
+    getBitcoinTransactionData({
+      from,
+      chain,
+      to: to,
+      tokenSlug: asset,
+      value: value,
+      transferAll: false,
+      feeOption: transactionFeeInfo?.feeOption,
+      feeCustom: transactionFeeInfo?.feeCustom
+    }).then((rs) => {
+      console.log('getBitcoinTransactionData', rs);
+    }).catch((e) => {
+      console.log('getBitcoinTransactionData E', e);
+    });
+  }, [form, transactionFeeInfo?.feeCustom, transactionFeeInfo?.feeOption]);
+
   useEffect(() => {
     const bnTransferAmount = new BigN(transferAmountValue || '0');
     const bnMaxTransfer = new BigN(transferInfo?.maxTransferable || '0');
@@ -813,6 +832,18 @@ const _SendFund = ({ className = '' }: Props): React.ReactElement<Props> => {
       <TransactionFooter
         className={`${className} -transaction-footer`}
       >
+        {
+          BITCOIN_CHAINS.includes(chainValue) && (
+            <Button
+              className={'hidden'}
+              disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}
+              onClick={getTransactionData}
+            >
+              Get transaction data
+            </Button>
+          )
+        }
+
         <Button
           className={'__transfer-button'}
           disabled={!fromValue || isFetchingInfo || !isBalanceReady || !transferInfo}

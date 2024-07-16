@@ -205,7 +205,7 @@ runCheck();
 runBuild();
 runBuildWebRunner();
 
-// gitPush();
+gitPush();
 // try {
 //   loopFunc(npmPublish);
 // } catch (e) {

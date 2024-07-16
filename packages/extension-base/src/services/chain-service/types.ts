@@ -50,6 +50,7 @@ export interface _ChainBaseApi {
   chainSlug: string;
   apiUrl: string;
   providerName?: string;
+  isTestnet?: boolean;
 
   apiError?: string;
   apiRetry?: number;

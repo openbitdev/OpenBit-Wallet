@@ -58,7 +58,14 @@ const openbitChainInfoMap = (() => {
     'bounceBitEvm',
     'bounceBitEvmTest',
     'layerEdge_testnet',
-    'bevm_testnet'
+    'bevm_testnet',
+    'sepolia_ethereum',
+    'syscoin_evm',
+    'rollux_evm',
+    'b2_testnet',
+    'boolBeta_testnet',
+    'rollux_testnet',
+    'syscoin_evm_testnet'
   ];
   const enableList = nativeList.concat(bitcoinL2List);
 
@@ -965,7 +972,8 @@ export class ChainService {
     }
 
     if (chainInfo.evmInfo !== null && chainInfo.evmInfo !== undefined) {
-      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
+      const isTestnet = chainInfo.isTestnet;
+      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { isTestnet, providerName, onUpdateStatus });
 
       this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi);
     }

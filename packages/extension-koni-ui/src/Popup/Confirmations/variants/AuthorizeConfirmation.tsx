@@ -1,23 +1,19 @@
 // Copyright 2019-2022 @subwallet/extension-koni-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { AccountAuthType, AccountJson, AuthorizeRequest } from '@subwallet/extension-base/background/types';
+import { AuthorizeRequest } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
-import { AccountItemWithName, ConfirmationGeneralInfo } from '@subwallet/extension-koni-ui/components';
-import { DEFAULT_ACCOUNT_TYPES, EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants';
-import { useSetSelectedAccountTypes } from '@subwallet/extension-koni-ui/hooks';
+import { AccountProxyAvatarGroup, AccountProxyItem, ConfirmationGeneralInfo } from '@subwallet/extension-koni-ui/components';
 import { approveAuthRequestV2, cancelAuthRequestV2, rejectAuthRequestV2 } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
-import { isAccountAll, isNoAccount } from '@subwallet/extension-koni-ui/utils';
-import { KeypairType } from '@subwallet/keyring/types';
+import { isAccountAll } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon } from '@subwallet/react-ui';
 import CN from 'classnames';
-import { PlusCircle, ShieldSlash, XCircle } from 'phosphor-react';
+import { ShieldSlash } from 'phosphor-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 interface Props extends ThemeProps {
@@ -36,66 +32,23 @@ async function handleBlock ({ id }: AuthorizeRequest) {
   return await rejectAuthRequestV2(id);
 }
 
-export const filterAuthorizeAccounts = (accounts: AccountJson[], accountAuthType: AccountAuthType) => {
-  let rs = [...accounts];
-
-  // rs = rs.filter((acc) => acc.isReadOnly !== true);
-
-  if (accountAuthType === 'evm') {
-    rs = rs.filter((acc) => (!isAccountAll(acc.address) && acc.type === 'ethereum'));
-  } else if (accountAuthType === 'substrate') {
-    rs = rs.filter((acc) => (!isAccountAll(acc.address) && acc.type !== 'ethereum'));
-  } else {
-    rs = rs.filter((acc) => !isAccountAll(acc.address));
-  }
-
-  if (isNoAccount(rs)) {
-    return [];
-  }
-
-  return rs;
-};
-
 function Component ({ className, request }: Props) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const { accountAuthType, allowedAccounts } = request.request;
-  const accounts = useSelector((state: RootState) => state.accountState.accounts);
-  const navigate = useNavigate();
-  const setSelectedAccountTypes = useSetSelectedAccountTypes(true);
+  const { allowedAccounts } = request.request;
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
 
-  // List all of all accounts by auth type
-  const visibleAccounts = useMemo(() => (filterAuthorizeAccounts(accounts, accountAuthType || 'both')),
-    [accountAuthType, accounts]);
+  const visibleAccountProxies = useMemo(() => {
+    return accountProxies.filter((ap) => !isAccountAll(ap.proxyId) && !ap.isReadOnly);
+  },
+  [accountProxies]);
 
   // Selected map with default values is map of all accounts
   const [selectedMap, setSelectedMap] = useState<Record<string, boolean>>({});
 
   const isDisableConnect = useMemo(() => {
-    return !visibleAccounts.filter(({ address }) => !!selectedMap[address]).length;
-  }, [selectedMap, visibleAccounts]);
-
-  const noAvailableTitle = useMemo(() => {
-    switch (accountAuthType) {
-      case 'substrate':
-        return t('No available Substrate account');
-      case 'evm':
-        return t('No available EVM account');
-      default:
-        return t('No available account');
-    }
-  }, [accountAuthType, t]);
-
-  const noAvailableDescription = useMemo(() => {
-    switch (accountAuthType) {
-      case 'substrate':
-        return t("You don't have any Substrate account to connect. Please create one or skip this step by hitting Cancel.");
-      case 'evm':
-        return t("You don't have any EVM account to connect. Please create one or skip this step by hitting Cancel.");
-      default:
-        return t("You don't have any account to connect. Please create one or skip this step by hitting Cancel.");
-    }
-  }, [accountAuthType, t]);
+    return !visibleAccountProxies.filter((ap) => selectedMap[ap.proxyId]).length;
+  }, [selectedMap, visibleAccountProxies]);
 
   // Handle buttons actions
   const onBlock = useCallback(() => {
@@ -114,36 +67,28 @@ function Component ({ className, request }: Props) {
 
   const onConfirm = useCallback(() => {
     setLoading(true);
-    const selectedAccounts = Object.keys(selectedMap).filter((key) => selectedMap[key]);
+    const selectedAccountProxies = Object.keys(selectedMap).filter((key) => !isAccountAll(key) && selectedMap[key]);
+
+    const selectedAccounts: string[] = [];
+
+    visibleAccountProxies.forEach((ap) => {
+      if (selectedAccountProxies.includes(ap.proxyId)) {
+        ap.accounts.forEach((a) => {
+          selectedAccounts.push(a.address);
+        });
+      }
+    });
 
     handleConfirm(request, selectedAccounts).finally(() => {
       setLoading(false);
     });
-  }, [request, selectedMap]);
-
-  const onAddAccount = useCallback(() => {
-    let types: KeypairType[];
-
-    switch (accountAuthType) {
-      case 'substrate':
-        types = [SUBSTRATE_ACCOUNT_TYPE];
-        break;
-      case 'evm':
-        types = [EVM_ACCOUNT_TYPE];
-        break;
-      default:
-        types = DEFAULT_ACCOUNT_TYPES;
-    }
-
-    setSelectedAccountTypes(types);
-    navigate('/accounts/new-seed-phrase', { state: { useGoBack: true } });
-  }, [accountAuthType, setSelectedAccountTypes, navigate]);
+  }, [request, selectedMap, visibleAccountProxies]);
 
   const onAccountSelect = useCallback((address: string) => {
     const isAll = isAccountAll(address);
 
     return () => {
-      const visibleAddresses = visibleAccounts.map((item) => item.address);
+      const visibleAPs = visibleAccountProxies.map((item) => item.proxyId);
 
       setSelectedMap((map) => {
         const isChecked = !map[address];
@@ -151,14 +96,14 @@ function Component ({ className, request }: Props) {
 
         if (isAll) {
           // Select/deselect all accounts
-          visibleAddresses.forEach((key) => {
+          visibleAPs.forEach((key) => {
             newMap[key] = isChecked;
           });
           newMap[ALL_ACCOUNT_KEY] = isChecked;
         } else {
           // Select/deselect single account and trigger all account
           newMap[address] = isChecked;
-          newMap[ALL_ACCOUNT_KEY] = visibleAddresses
+          newMap[ALL_ACCOUNT_KEY] = visibleAPs
             .filter((i) => !isAccountAll(i))
             .every((item) => newMap[item]);
         }
@@ -166,24 +111,24 @@ function Component ({ className, request }: Props) {
         return newMap;
       });
     };
-  }, [visibleAccounts]);
+  }, [visibleAccountProxies]);
 
   // Create selected map by default
   useEffect(() => {
     setSelectedMap((map) => {
       const existedKey = Object.keys(map);
 
-      accounts.forEach((item) => {
-        if (!existedKey.includes(item.address)) {
-          map[item.address] = (allowedAccounts || []).includes(item.address);
+      accountProxies.forEach((item) => {
+        if (!existedKey.includes(item.proxyId)) {
+          map[item.proxyId] = item.accounts.some((a) => allowedAccounts && allowedAccounts.includes(a.address));
         }
       });
 
-      map[ALL_ACCOUNT_KEY] = visibleAccounts.every((item) => map[item.address]);
+      map[ALL_ACCOUNT_KEY] = visibleAccountProxies.every((item) => map[item.proxyId]);
 
       return { ...map };
     });
-  }, [accounts, allowedAccounts, visibleAccounts]);
+  }, [accountProxies, allowedAccounts, visibleAccountProxies]);
 
   return (
     <>
@@ -193,42 +138,43 @@ function Component ({ className, request }: Props) {
           className={CN(
             'title',
             {
-              'sub-title': visibleAccounts.length > 0
+              'sub-title': visibleAccountProxies.length > 0
             }
           )}
         >
           {
-            visibleAccounts.length === 0
-              ? noAvailableTitle
+            visibleAccountProxies.length === 0
+              ? t('No available account')
               : t('Choose the account(s) you’d like to connect')
           }
         </div>
         {
-          !!visibleAccounts.length && (
+          !!visibleAccountProxies.length && (
             <div className='account-list'>
               {
-                visibleAccounts.length > 1 &&
+                visibleAccountProxies.length > 1 &&
                   (
-                    <AccountItemWithName
-                      accountName={'All account'}
-                      accounts={visibleAccounts}
-                      address={ALL_ACCOUNT_KEY}
-                      avatarSize={24}
+                    <AccountProxyItem
+                      accountProxy={{
+                        accounts: [],
+                        name: t('All accounts'),
+                        proxyId: ALL_ACCOUNT_KEY
+                      }}
                       isSelected={selectedMap[ALL_ACCOUNT_KEY]}
+                      leftPartNode={
+                        <AccountProxyAvatarGroup accountProxies={visibleAccountProxies} />
+                      }
                       onClick={onAccountSelect(ALL_ACCOUNT_KEY)}
                       showUnselectIcon
                     />
                   )
               }
-              {visibleAccounts.map((item) => (
-                <AccountItemWithName
-                  accountName={item.name}
-                  address={item.address}
-                  avatarSize={24}
-                  genesisHash={item.genesisHash}
-                  isSelected={selectedMap[item.address]}
-                  key={item.address}
-                  onClick={onAccountSelect(item.address)}
+              {visibleAccountProxies.map((item) => (
+                <AccountProxyItem
+                  accountProxy={item}
+                  isSelected={selectedMap[item.proxyId]}
+                  key={item.proxyId}
+                  onClick={onAccountSelect(item.proxyId)}
                   showUnselectIcon
                 />
               ))}
@@ -237,15 +183,15 @@ function Component ({ className, request }: Props) {
         }
         <div className='description'>
           {
-            visibleAccounts.length === 0
-              ? noAvailableDescription
+            visibleAccountProxies.length === 0
+              ? t("You don't have any account to connect. Please create one or skip this step by hitting Cancel.")
               : t('Make sure you trust this site before connecting')
           }
         </div>
       </div>
       <div className='confirmation-footer'>
         {
-          visibleAccounts.length > 0 &&
+          visibleAccountProxies.length > 0 &&
           (
             <>
               <Button
@@ -271,38 +217,6 @@ function Component ({ className, request }: Props) {
               </Button>
             </>
           )
-        }
-        {
-          visibleAccounts.length === 0 &&
-            (
-              <>
-                <Button
-                  disabled={loading}
-                  icon={(
-                    <Icon
-                      phosphorIcon={XCircle}
-                      weight='fill'
-                    />
-                  )}
-                  onClick={onCancel}
-                  schema={'secondary'}
-                >
-                  {t('Cancel')}
-                </Button>
-                <Button
-                  disabled={loading}
-                  icon={(
-                    <Icon
-                      phosphorIcon={PlusCircle}
-                      weight='fill'
-                    />
-                  )}
-                  onClick={onAddAccount}
-                >
-                  {t('Create one')}
-                </Button>
-              </>
-            )
         }
       </div>
     </>

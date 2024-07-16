@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { InjectedMetadata, InjectedMetadataKnown, MetadataDef } from '@subwallet/extension-inject/types';
-import type { SendRequest } from './types';
 
 import { RequestAddPspToken } from '@subwallet/extension-base/background/KoniTypes';
+import { SendRequest } from '@subwallet/extension-base/page/types';
 
 // External to class, this.# is not private enough (yet)
 let sendRequest: SendRequest;

@@ -1,31 +1,49 @@
 // Copyright 2019-2022 @subwallet/extension-base authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, RequestConfirmationCompleteBitcoin } from '@subwallet/extension-base/background/KoniTypes';
+import { BitcoinProviderError } from '@subwallet/extension-base/background/errors/BitcoinProviderError';
+import { TransactionError } from '@subwallet/extension-base/background/errors/TransactionError';
+import { BasicTxErrorType, BitcoinProviderErrorType, ConfirmationDefinitionsBitcoin, ConfirmationsQueueBitcoin, ConfirmationsQueueItemOptions, ConfirmationTypeBitcoin, ExtrinsicDataTypeMap, RequestConfirmationCompleteBitcoin, SignMessageBitcoinResult, SignPsbtBitcoinResult } from '@subwallet/extension-base/background/KoniTypes';
 import { ConfirmationRequestBase, Resolver } from '@subwallet/extension-base/background/types';
+import { getBitcoinTransactionObject } from '@subwallet/extension-base/services/balance-service/helpers';
+import { ChainService } from '@subwallet/extension-base/services/chain-service';
+import FeeService from '@subwallet/extension-base/services/fee-service/service';
 import RequestService from '@subwallet/extension-base/services/request-service';
+import TransactionService from '@subwallet/extension-base/services/transaction-service';
+import { TransactionEventResponse } from '@subwallet/extension-base/services/transaction-service/types';
+import { GetFeeFunction } from '@subwallet/extension-base/types';
+import { createPromiseHandler } from '@subwallet/extension-base/utils';
 import { isInternalRequest } from '@subwallet/extension-base/utils/request';
 import keyring from '@subwallet/ui-keyring';
 import { Psbt } from 'bitcoinjs-lib';
+import * as bitcoin from 'bitcoinjs-lib';
 import { t } from 'i18next';
 import { BehaviorSubject } from 'rxjs';
 
-import { logger as createLogger } from '@polkadot/util';
+import { isArray, logger as createLogger } from '@polkadot/util';
 import { Logger } from '@polkadot/util/types';
 
 export default class BitcoinRequestHandler {
   readonly #requestService: RequestService;
+  readonly #chainService: ChainService;
+  readonly #transactionService: TransactionService;
+  readonly #feeService: FeeService;
   readonly #logger: Logger;
   private readonly confirmationsQueueSubjectBitcoin = new BehaviorSubject<ConfirmationsQueueBitcoin>({
     bitcoinSignatureRequest: {},
     bitcoinSendTransactionRequest: {},
-    bitcoinWatchTransactionRequest: {}
+    bitcoinWatchTransactionRequest: {},
+    bitcoinSendTransactionRequestAfterConfirmation: {},
+    bitcoinSignPsbtRequest: {}
   });
 
   private readonly confirmationsPromiseMap: Record<string, { resolver: Resolver<any>, validator?: (rs: any) => Error | undefined }> = {};
 
-  constructor (requestService: RequestService) {
+  constructor (requestService: RequestService, chainService: ChainService, feeService: FeeService, transactionService: TransactionService) {
     this.#requestService = requestService;
+    this.#chainService = chainService;
+    this.#feeService = feeService;
+    this.#transactionService = transactionService;
     this.#logger = createLogger('BitcoinRequestHandler');
   }
 
@@ -56,7 +74,7 @@ export default class BitcoinRequestHandler {
     const payloadJson = JSON.stringify(payload);
     const isInternal = isInternalRequest(url);
 
-    if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest'].includes(type)) {
+    if (['bitcoinSignatureRequest', 'bitcoinSendTransactionRequest', 'bitcoinSendTransactionRequestAfterConfirmation'].includes(type)) {
       const isAlwaysRequired = await this.#requestService.settingService.isAlwaysRequired;
 
       if (isAlwaysRequired) {
@@ -134,7 +152,7 @@ export default class BitcoinRequestHandler {
     this.confirmationsQueueSubjectBitcoin.next(confirmations);
   }
 
-  signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): string {
+  signMessageBitcoin (confirmation: ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]): SignMessageBitcoinResult {
     const { account, payload } = confirmation.payload;
     const address = account.address;
     const pair = keyring.getPair(address);
@@ -146,13 +164,21 @@ export default class BitcoinRequestHandler {
     // Check if payload is a string
     if (typeof payload === 'string') {
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-      return pair.bitcoin.signMessage(payload, false); // Assuming compressed = false
+      return {
+        signature: pair.bitcoin.signMessage(payload),
+        message: payload,
+        address
+      }; // Assuming compressed = false
     } else if (payload instanceof Uint8Array) { // Check if payload is a byte array (Uint8Array)
       // Convert Uint8Array to string
       const payloadString = Buffer.from(payload).toString('hex');
 
       // Assume BitcoinSigner is an instance that implements the BitcoinSigner interface
-      return pair.bitcoin.signMessage(payloadString, false); // Assuming compressed = false
+      return {
+        signature: pair.bitcoin.signMessage(payloadString),
+        message: payload.toString(),
+        address
+      }; // Assuming compressed = false
     } else {
       // Handle the case where payload is invalid
       throw new Error('Invalid payload type');
@@ -171,7 +197,6 @@ export default class BitcoinRequestHandler {
       keyring.unlockPair(pair.address);
     }
 
-    // Create a new Psbt object
     const psbt = Psbt.fromHex(hashPayload);
 
     // Finalize all inputs in the Psbt
@@ -184,20 +209,196 @@ export default class BitcoinRequestHandler {
     return signedTransaction.extractTransaction().toHex();
   }
 
-  private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
-    if (!result.payload) {
-      if (t === 'bitcoinSignatureRequest') {
-        result.payload = this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
-      } else if (t === 'bitcoinSendTransactionRequest') {
-        result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
+  private async signTransactionBitcoinWithPayload (request: ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequestAfterConfirmation'][0]): Promise<string> {
+    const transaction = this.#transactionService.getTransaction(request.id);
+    const { chain, emitterTransaction, feeCustom, feeOption, id } = transaction;
+    const { from, to, value } = transaction.data as ExtrinsicDataTypeMap['transfer.balance'];
+
+    if (!emitterTransaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+    }
+
+    const chainInfo = this.#chainService.getChainInfoByKey(chain);
+    const bitcoinApi = this.#chainService.getBitcoinApi(chain);
+    const eventData: TransactionEventResponse = {
+      id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: id
+    };
+
+    const network = chainInfo.isTestnet ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+
+    const getChainFee: GetFeeFunction = (id, chain, type) => {
+      return this.#feeService.subscribeChainFee(id, chain, type);
+    };
+
+    const [psbt] = await getBitcoinTransactionObject({
+      bitcoinApi,
+      from,
+      getChainFee,
+      chain: chain,
+      feeCustom,
+      feeOption,
+      transferAll: false,
+      value: value || '0',
+      to,
+      network
+    });
+
+    const pair = keyring.getPair(from);
+
+    // Unlock the pair if it is locked
+    if (pair.isLocked) {
+      keyring.unlockPair(pair.address);
+    }
+
+    // Finalize all inputs in the Psbt
+
+    // Sign the Psbt using the pair's bitcoin object
+    const signedTransaction = pair.bitcoin.signTransaction(psbt, psbt.txInputs.map((v, i) => i));
+
+    signedTransaction.finalizeAllInputs();
+
+    const signature = signedTransaction.extractTransaction().toHex();
+
+    this.#transactionService.emitterEventTransaction(emitterTransaction, eventData, chainInfo.slug, signature);
+
+    const { promise, reject, resolve } = createPromiseHandler<string>();
+
+    emitterTransaction.on('extrinsicHash', (data) => {
+      if (!data.extrinsicHash) {
+        reject(BitcoinProviderErrorType.INTERNAL_ERROR);
+      } else {
+        resolve(data.extrinsicHash);
+      }
+    });
+
+    emitterTransaction.on('error', (error) => {
+      reject(error);
+    });
+
+    return promise;
+  }
+
+  private async signPsbt (request: ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]): Promise<SignPsbtBitcoinResult> {
+    // Extract necessary information from the BitcoinSendTransactionRequest
+    const { account, payload } = request.payload;
+    const { allowedSighash, broadcast, psbt, signAtIndex } = payload;
+    const transaction = this.#transactionService.getTransaction(request.id);
+    let eventData: TransactionEventResponse = {
+      id: request.id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: request.id
+    };
+
+    // todo: validate type of the account
+
+    if (Object.keys(account).length === 0) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INVALID_PARAMS, 'Please connect to Wallet to try this request');
+    }
+
+    const pair = keyring.getPair(account.address);
+
+    // Unlock the pair if it is locked
+    if (pair.isLocked) {
+      keyring.unlockPair(pair.address);
+    }
+
+    const signAtIndexGenerate = signAtIndex ? (isArray(signAtIndex) ? signAtIndex : [signAtIndex]) : [...(Array(psbt.inputCount) as number[])].map((_, i) => i);
+    let psptSignedTransaction: Psbt | null = null;
+
+    // Sign the Psbt using the pair's bitcoin object
+    try {
+      psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
+    } catch (e) {
+      if (transaction) {
+        transaction.emitterTransaction?.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)], id: transaction.id, extrinsicHash: transaction.id });
       }
 
-      if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest') {
-        const isAlwaysRequired = await this.#requestService.settingService.isAlwaysRequired;
+      throw new Error((e as Error).message);
+    }
 
-        if (isAlwaysRequired) {
-          this.#requestService.keyringService.lock();
-        }
+    if (!psptSignedTransaction) {
+      throw new Error('Unable to sign');
+    }
+
+    if (!broadcast) {
+      for (const index of signAtIndexGenerate) {
+        psptSignedTransaction.finalizeInput(index);
+      }
+
+      return {
+        psbt: psptSignedTransaction.toHex()
+      };
+    }
+
+    if (!transaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+    }
+
+    const { chain, emitterTransaction, id } = transaction;
+
+    eventData = {
+      id,
+      errors: [],
+      warnings: [],
+      extrinsicHash: id
+    };
+
+    if (!emitterTransaction) {
+      throw new BitcoinProviderError(BitcoinProviderErrorType.INTERNAL_ERROR);
+    }
+
+    const chainInfo = this.#chainService.getChainInfoByKey(chain);
+
+    try {
+      psptSignedTransaction.finalizeAllInputs();
+    } catch (e) {
+      emitterTransaction.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)] });
+      throw new Error((e as Error).message);
+    }
+
+    const hexTransaction = psptSignedTransaction.extractTransaction().toHex();
+
+    this.#transactionService.emitterEventTransaction(emitterTransaction, eventData, chainInfo.slug, hexTransaction);
+    const { promise, reject, resolve } = createPromiseHandler<SignPsbtBitcoinResult>();
+
+    emitterTransaction.on('extrinsicHash', (data) => {
+      if (!data.extrinsicHash || !psptSignedTransaction) {
+        reject(BitcoinProviderErrorType.INTERNAL_ERROR);
+      } else {
+        resolve({
+          psbt: psptSignedTransaction?.toHex(),
+          txid: data.extrinsicHash
+        });
+      }
+    });
+
+    emitterTransaction.on('error', (error) => {
+      reject(error);
+    });
+
+    return promise;
+  }
+
+  private async decorateResultBitcoin<T extends ConfirmationTypeBitcoin> (t: T, request: ConfirmationDefinitionsBitcoin[T][0], result: ConfirmationDefinitionsBitcoin[T][1]) {
+    if (t === 'bitcoinSignatureRequest') {
+      result.payload = this.signMessageBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest'][0]);
+    } else if (t === 'bitcoinSendTransactionRequest') {
+      result.payload = this.signTransactionBitcoin(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequest'][0]);
+    } else if (t === 'bitcoinSignPsbtRequest') {
+      result.payload = await this.signPsbt(request as ConfirmationDefinitionsBitcoin['bitcoinSignPsbtRequest'][0]);
+    } else if (t === 'bitcoinSendTransactionRequestAfterConfirmation') {
+      result.payload = await this.signTransactionBitcoinWithPayload(request as ConfirmationDefinitionsBitcoin['bitcoinSendTransactionRequestAfterConfirmation'][0]);
+    }
+
+    if (t === 'bitcoinSignatureRequest' || t === 'bitcoinSendTransactionRequest' || t === 'bitcoinSignPsbtRequest' || t === 'bitcoinSendTransactionRequestAfterConfirmation') {
+      const isAlwaysRequired = await this.#requestService.settingService.isAlwaysRequired;
+
+      if (isAlwaysRequired) {
+        this.#requestService.keyringService.lock();
       }
     }
   }
@@ -208,6 +409,7 @@ export default class BitcoinRequestHandler {
     for (const ct in request) {
       const type = ct as ConfirmationTypeBitcoin;
       const result = request[type] as ConfirmationDefinitionsBitcoin[typeof type][1];
+
       const { id, isApproved } = result;
       const { resolver, validator } = this.confirmationsPromiseMap[id];
       const confirmation = confirmations[type][id];
@@ -218,12 +420,16 @@ export default class BitcoinRequestHandler {
       }
 
       if (isApproved) {
-        // Fill signature for some special type
-        await this.decorateResultBitcoin(type, confirmation, result);
-        const error = validator && validator(result);
+        try {
+          // Fill signature for some special type
+          await this.decorateResultBitcoin(type, confirmation, result);
+          const error = validator && validator(result);
 
-        if (error) {
-          resolver.reject(error);
+          if (error) {
+            resolver.reject(error);
+          }
+        } catch (e) {
+          resolver.reject(e as Error);
         }
       }
 

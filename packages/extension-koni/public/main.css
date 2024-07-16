@@ -34,6 +34,13 @@ body {
   position: relative;
 }
 
+@media (max-height: 600px) {
+  html {
+    align-items: flex-start;
+    overflow: hidden;
+  }
+}
+
 [tabindex='-1']:focus {
   outline: none;
 }
@@ -574,6 +581,25 @@ div#popup-container {
 
 .ant-notification-notice {
   max-width: calc(390px - 48px);
+}
+
+.ant-logo .-sub-logo {
+  right: 2.5%;
+  bottom: 0.5%;
+}
+
+.-sub-logo .ant-image {
+  box-shadow: -2px 0px 4px 0px rgba(0, 0, 0, .45);
+  border-radius: 100%;
+  overflow: hidden;
+  position: absolute;
+  right: -2.5%;
+  bottom: 0;
+}
+
+.-sub-logo .ant-image-img {
+  display: block;
+  transform: scale(1.08);
 }
 
 /* slick */

@@ -1,7 +1,7 @@
 // Copyright 2019-2022 @subwallet/extension-web-ui authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
-import { OpenBitEvmProvider } from '@subwallet/extension-base/page/SubWalleEvmProvider';
+import { OpenBitEvmProvider } from '@subwallet/extension-base/page/evm/OpenBitEvmProvider';
 import { addLazy, createPromiseHandler } from '@subwallet/extension-base/utils';
 import { Injected, InjectedAccountWithMeta, Unsubcall } from '@subwallet/extension-inject/types';
 import { DisconnectExtensionModal } from '@subwallet/extension-web-ui/components';

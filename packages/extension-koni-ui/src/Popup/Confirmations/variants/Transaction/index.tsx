@@ -141,11 +141,11 @@ const Component: React.FC<Props> = (props: Props) => {
         )
       }
       {
-        (type === 'bitcoinSignatureRequest' || type === 'bitcoinSendTransactionRequest' || type === 'bitcoinWatchTransactionRequest') && (
+        (type === 'bitcoinSignatureRequest' || type === 'bitcoinSendTransactionRequest' || type === 'bitcoinWatchTransactionRequest' || type === 'bitcoinSignPsbtRequest') && (
           <BitcoinSignArea
             extrinsicType={transaction.extrinsicType}
             id={item.id}
-            payload={(item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest'][0])}
+            payload={(item as ConfirmationDefinitionsBitcoin['bitcoinSignatureRequest' | 'bitcoinSendTransactionRequest' | 'bitcoinWatchTransactionRequest' | 'bitcoinSignPsbtRequest'][0])}
             type={type}
           />
         )
