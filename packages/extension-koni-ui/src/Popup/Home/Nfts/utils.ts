@@ -15,7 +15,19 @@ export interface INftItemDetail {
   collectionInfo: NftCollection,
   nftItem: NftItem
 }
-
+export enum ContentType {
+  Audio = 'audio',
+  TextHTML = 'text/html',
+  ImageSVG = 'image/svg',
+  ImageGIF = 'image/gif',
+  Video = 'video',
+  Image = 'image',
+  AppJson = 'application/json',
+  ModelGltf = 'model/gltf'
+}
+interface NftItemProperties {
+  [key: string]: unknown;
+}
 // might set perPage based on screen height
 export const NFT_PER_PAGE = 4;
 
@@ -72,4 +84,54 @@ export const isValidJson = (str: string): boolean => {
   } catch {
     return false;
   }
+};
+
+export const getContentType = (nftItemProperties: NftItemProperties | null | undefined): string => {
+  if (nftItemProperties) {
+    const contentTypeEntry = Object.entries(nftItemProperties).find(([attName]) => attName === 'content_type');
+
+    if (contentTypeEntry) {
+      const { value: attValue } = contentTypeEntry[1] as Record<string, string>;
+
+      return attValue;
+    }
+  }
+
+  return '';
+};
+
+export const determineContentType = (contentType: string): ContentType | undefined => {
+  if (contentType.includes(ContentType.Audio)) {
+    return ContentType.Audio;
+  }
+
+  if (contentType.includes(ContentType.TextHTML)) {
+    return ContentType.TextHTML;
+  }
+
+  if (contentType.includes(ContentType.ImageSVG)) {
+    return ContentType.ImageSVG;
+  }
+
+  if (contentType.includes(ContentType.ImageGIF)) {
+    return ContentType.ImageGIF;
+  }
+
+  if (contentType.includes(ContentType.Video)) {
+    return ContentType.Video;
+  }
+
+  if (contentType.includes(ContentType.Image)) {
+    return ContentType.Image;
+  }
+
+  if (contentType.includes(ContentType.AppJson)) {
+    return ContentType.AppJson;
+  }
+
+  if (contentType.includes(ContentType.ModelGltf)) {
+    return ContentType.ModelGltf;
+  }
+
+  return undefined;
 };
