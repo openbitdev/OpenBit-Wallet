@@ -31,7 +31,7 @@ function Component ({ className = '', fallbackImage, handleOnClick, image, itemC
   const getCollectionImage = useCallback(() => {
     if (image) {
       return image;
-    } else if (fallbackImage) {
+    } else if (fallbackImage && fallbackImage.image) {
       return fallbackImage.image;
     }
 
