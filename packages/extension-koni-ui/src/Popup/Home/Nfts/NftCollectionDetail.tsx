@@ -105,7 +105,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     if (nftItem.description && isValidJson(nftItem.description)) {
       const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
 
-      if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+      if (typeof ordinalNftItem === 'object' && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
         return (
           <InscriptionGalleryWrapper
             handleOnClick={handleOnClickNft}
