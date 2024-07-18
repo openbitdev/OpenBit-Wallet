@@ -139,7 +139,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
   const ordinalNftItem = nftItem.description && isValidJson(nftItem.description) && JSON.parse(nftItem.description) as OrdinalRemarkData;
   const isBRC20Inscription = useMemo(() => {
-    if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+    if (typeof ordinalNftItem === 'object' && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
       return true;
     }
 
