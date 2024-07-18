@@ -312,6 +312,14 @@ export default class BitcoinRequestHandler {
     // Sign the Psbt using the pair's bitcoin object
     try {
       psptSignedTransaction = pair.bitcoin.signTransaction(psbt, signAtIndexGenerate, allowedSighash);
+
+      if (!psptSignedTransaction) {
+        throw new Error('Unable to sign');
+      }
+
+      for (const index of signAtIndexGenerate) {
+        psptSignedTransaction.finalizeInput(index);
+      }
     } catch (e) {
       if (transaction) {
         transaction.emitterTransaction?.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)], id: transaction.id, extrinsicHash: transaction.id });
@@ -320,15 +328,7 @@ export default class BitcoinRequestHandler {
       throw new Error((e as Error).message);
     }
 
-    if (!psptSignedTransaction) {
-      throw new Error('Unable to sign');
-    }
-
     if (!broadcast) {
-      for (const index of signAtIndexGenerate) {
-        psptSignedTransaction.finalizeInput(index);
-      }
-
       return {
         psbt: psptSignedTransaction.toHex()
       };
@@ -352,13 +352,6 @@ export default class BitcoinRequestHandler {
     }
 
     const chainInfo = this.#chainService.getChainInfoByKey(chain);
-
-    try {
-      psptSignedTransaction.finalizeAllInputs();
-    } catch (e) {
-      emitterTransaction.emit('error', { ...eventData, errors: [new TransactionError(BasicTxErrorType.INVALID_PARAMS, (e as Error).message)] });
-      throw new Error((e as Error).message);
-    }
 
     const hexTransaction = psptSignedTransaction.extractTransaction().toHex();
 
