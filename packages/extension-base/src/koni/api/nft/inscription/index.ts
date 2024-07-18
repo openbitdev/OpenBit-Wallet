@@ -50,11 +50,11 @@ export class InscriptionApi extends BaseNftApi {
   }
 
   private parseInsUrl (id: string, type: string) {
-    if (type.startsWith('audio/') || type.startsWith('text/html') || type.startsWith('image/svg') || type.startsWith('model/gltf')) {
+    if (type.startsWith('image/svg') || type.startsWith('model/gltf') || type.startsWith('image/gif')) {
       return this.createIframePreviewUrl(id);
     }
 
-    if (type.startsWith('video/')) {
+    if (type.startsWith('video/') || type.startsWith('audio/') || type.startsWith('text/html') || type.startsWith('image/png') || type.startsWith('image/jpeg') || type.startsWith('image/webp') || type.startsWith('image/gif')) {
       return `https://ordinals.com/content/${id}`;
     }
 
@@ -63,8 +63,7 @@ export class InscriptionApi extends BaseNftApi {
     }
 
     if (type.startsWith('image/')) {
-      return `${HIRO_API.list_of_incriptions}/${id}/content`;
-      // return getPreviewUrl(id);
+      return `https://ordinals.com/content/${id}`;
     }
 
     return undefined;
