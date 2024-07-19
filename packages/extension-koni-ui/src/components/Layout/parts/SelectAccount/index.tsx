@@ -18,8 +18,6 @@ import { useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-import { isEthereumAddress } from '@polkadot/util-crypto';
-
 import { GeneralEmptyList } from '../../../EmptyList';
 import { ConnectWebsiteModal } from '../ConnectWebsiteModal';
 import SelectAccountFooter from '../SelectAccount/Footer';
@@ -193,31 +191,20 @@ function Component ({ className }: Props): React.ReactElement<Props> {
         setConnected(0);
         setConnectionState(ConnectionStatement.BLOCKED);
       } else {
-        const type = currentAuth.accountAuthType;
         const allowedMap = currentAuth.isAllowedMap;
 
-        const filterType = (address: string) => {
-          if (type === 'both') {
-            return true;
-          }
-
-          const _type = type || 'substrate';
-
-          return _type === 'substrate' ? !isEthereumAddress(address) : isEthereumAddress(address);
-        };
-
         if (!isAllAccount) {
-          const _allowedMap: Record<string, boolean> = {};
+          const isAllowed = (() => {
+            if (!currentAccountProxy) {
+              return undefined;
+            }
 
-          Object.entries(allowedMap)
-            .filter(([address]) => filterType(address))
-            .forEach(([address, value]) => {
-              _allowedMap[address] = value;
-            });
+            if (currentAccountProxy.isReadOnly) {
+              return false;
+            }
 
-          const evmAccount = currentAccountProxy?.accounts.find(({ address }) => isEthereumAddress(address));
-
-          const isAllowed = _allowedMap[evmAccount?.address || ''];
+            return currentAccountProxy.accounts.some((a) => allowedMap[a.address]);
+          })();
 
           setCanConnect(0);
           setConnected(0);
@@ -228,23 +215,25 @@ function Component ({ className }: Props): React.ReactElement<Props> {
             setConnectionState(isAllowed ? ConnectionStatement.CONNECTED : ConnectionStatement.DISCONNECTED);
           }
         } else {
-          const numberAccounts = noAllAccountProxies.reduce((numAccount, currentValue) => {
-            currentValue.accounts.find(({ address }) => filterType(address)) && numAccount++;
+          const numberAccountProxies = noAllAccountProxies.reduce((numAccountProxy, currentValue) => {
+            !currentValue.isReadOnly && numAccountProxy++;
 
-            return numAccount;
+            return numAccountProxy;
           }, 0);
-          const numberAllowedAccounts = Object.entries(allowedMap)
-            .filter(([address]) => filterType(address))
-            .filter(([, value]) => value)
-            .length;
+
+          const numberAllowedAccounts = noAllAccountProxies.reduce((numAccountProxy, currentValue) => {
+            !currentValue.isReadOnly && currentValue.accounts.some((a) => allowedMap[a.address]) && numAccountProxy++;
+
+            return numAccountProxy;
+          }, 0);
 
           setConnected(numberAllowedAccounts);
-          setCanConnect(numberAccounts);
+          setCanConnect(numberAccountProxies);
 
           if (numberAllowedAccounts === 0) {
             setConnectionState(ConnectionStatement.DISCONNECTED);
           } else {
-            if (numberAllowedAccounts > 0 && numberAllowedAccounts < numberAccounts) {
+            if (numberAllowedAccounts > 0 && numberAllowedAccounts < numberAccountProxies) {
               setConnectionState(ConnectionStatement.PARTIAL_CONNECTED);
             } else {
               setConnectionState(ConnectionStatement.CONNECTED);
@@ -257,7 +246,7 @@ function Component ({ className }: Props): React.ReactElement<Props> {
       setConnected(0);
       setConnectionState(ConnectionStatement.NOT_CONNECTED);
     }
-  }, [currentAccountProxy?.accounts, currentAuth, isAllAccount, noAllAccountProxies]);
+  }, [currentAccountProxy, currentAccountProxy?.accounts, currentAuth, isAllAccount, noAllAccountProxies]);
 
   const visibleText = useMemo((): string => {
     switch (connectionState) {

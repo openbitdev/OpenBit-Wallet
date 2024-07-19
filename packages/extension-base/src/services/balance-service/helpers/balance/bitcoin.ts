@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { _AssetType, _ChainAsset, _ChainInfo } from '@subwallet/chain-list/types';
-import { APIItemState } from '@subwallet/extension-base/background/KoniTypes';
+import { APIItemState, BitcoinBalanceMetadata } from '@subwallet/extension-base/background/KoniTypes';
 import { COMMON_REFRESH_BALANCE_INTERVAL } from '@subwallet/extension-base/constants';
 import { Brc20BalanceItem } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { _BitcoinApi } from '@subwallet/extension-base/services/chain-service/types';
@@ -160,13 +160,25 @@ export const getTransferableBitcoinUtxos = async (bitcoinApi: _BitcoinApi, addre
 async function getBitcoinBalance (bitcoinApi: _BitcoinApi, addresses: string[]) {
   return await Promise.all(addresses.map(async (address) => {
     try {
-      const addressInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
+      const addressSummaryInfo = await bitcoinApi.api.getAddressSummaryInfo(address);
 
-      return addressInfo.balance.toString();
+      const bitcoinBalanceMetadata = {
+        inscriptionCount: addressSummaryInfo.total_inscription
+      } as BitcoinBalanceMetadata;
+
+      return {
+        balance: addressSummaryInfo.balance.toString(),
+        bitcoinBalanceMetadata: bitcoinBalanceMetadata
+      };
     } catch (error) {
       console.log(`Error while fetching Bitcoin balances for address ${address}`, error);
 
-      return '0';
+      return {
+        balance: '0',
+        bitcoinBalanceMetadata: {
+          inscriptionCount: 0
+        }
+      };
     }
   }));
 }
@@ -177,13 +189,14 @@ export function subscribeBitcoinBalance (addresses: string[], chainInfo: _ChainI
   const getBalance = () => {
     getBitcoinBalance(bitcoinApi, addresses)
       .then((balances) => {
-        return balances.map((balance, index): BalanceItem => {
+        return balances.map(({ balance, bitcoinBalanceMetadata }, index): BalanceItem => {
           return {
             address: addresses[index],
             tokenSlug: nativeSlug,
             state: APIItemState.READY,
             free: balance,
-            locked: '0'
+            locked: '0',
+            metadata: bitcoinBalanceMetadata
           };
         });
       })

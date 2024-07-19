@@ -1,12 +1,12 @@
 // Copyright 2017-2022 @polkadot/keyring authors & contributors
 // SPDX-License-Identifier: Apache-2.0
 
+import { Signer } from 'bip322-js';
 import * as bitcoin from 'bitcoinjs-lib';
-import { sign as bitcoinSignMessage } from 'bitcoinjs-message';
 import { ECPairFactory } from 'ecpair';
 import SimpleKeyring from 'eth-simple-keyring';
 import * as ecc from 'tiny-secp256k1';
-import { hexAddPrefix, hexStripPrefix, objectSpread, u8aConcat, u8aEmpty, u8aEq, u8aToHex, u8aToU8a } from '@polkadot/util';
+import { hexAddPrefix, hexStripPrefix, objectSpread, u8aConcat, u8aEmpty, u8aEq, u8aToHex, u8aToString, u8aToU8a } from '@polkadot/util';
 import { blake2AsU8a, ethereumEncode, hdEthereum, keyExtractPath, mnemonicToLegacySeed, secp256k1Compress, signatureVerify, sr25519VrfSign, sr25519VrfVerify } from '@polkadot/util-crypto';
 import { entropyToMnemonic } from '@polkadot/util-crypto/mnemonic/bip39';
 import { getDerivePath, keyFromPath, TYPE_ADDRESS, TYPE_FROM_SEED, TYPE_PREFIX, TYPE_SIGNATURE } from "../utils/index.js";
@@ -94,13 +94,13 @@ export function createPair({
   const encodeAddress = () => {
     const raw = TYPE_ADDRESS[type](publicKey);
     const bitNetwork = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86'].includes(type) ? bitcoin.networks.bitcoin : ['bittest-44', 'bittest-84', 'bittest-86'].includes(type) ? bitcoin.networks.testnet : bitcoin.networks.regtest;
+    let dataKey;
 
     /**
      *  With bitcoin accounts, some attached account have no public key (only address).
      *  In this case, public key is the hash of result after decoded address.
      *  Add `noPublicKey` in metadata for this case.
      */
-    let dataKey;
     if (meta.noPublicKey) {
       dataKey = 'hash';
     } else {
@@ -301,21 +301,24 @@ export function createPair({
             type
           }, derived, meta, null);
         },
-        signMessage: (message, compressed, options) => {
+        signMessage: message => {
           if (isLocked(secretKey)) {
             throw new Error('Cannot encrypt with a locked key pair');
           }
-          const _message = typeof message === 'string' ? message : Buffer.from(message);
+          const _message = typeof message === 'string' ? message : u8aToString(message);
+          const address = encodeAddress();
+          const _pair = ECPair.fromPrivateKey(Buffer.from(secretKey));
+          const wif = _pair.toWIF();
 
           // Sign the message
-          const signature = bitcoinSignMessage(_message, Buffer.from(secretKey), compressed, options);
-          return signature.toString('base64');
+          const signature = Signer.sign(wif, address, _message);
+          return typeof signature === 'string' ? signature : signature.toString('base64');
         },
-        signTransaction: (transaction, indexes) => {
+        signTransaction: (psbt, indexes, sighashTypes, tapLeafHashToSign) => {
           if (isLocked(secretKey)) {
             throw new Error('Cannot encrypt with a locked key pair');
           }
-          if (!transaction) {
+          if (!psbt) {
             throw new Error('Not found sign method');
           }
           const pair = ECPair.fromPrivateKey(Buffer.from(secretKey));
@@ -323,12 +326,12 @@ export function createPair({
           for (const index of indexes) {
             if (isTaproot) {
               const tweakedSigner = pair.tweak(bitcoin.crypto.taggedHash('TapTweak', toXOnly(pair.publicKey)));
-              transaction.signTaprootInput(index, tweakedSigner);
+              psbt.signTaprootInput(index, tweakedSigner, tapLeafHashToSign, sighashTypes);
             } else {
-              transaction.signInput(index, pair);
+              psbt.signInput(index, pair, sighashTypes);
             }
           }
-          return transaction;
+          return psbt;
         },
         get output() {
           return output || Buffer.from([]);

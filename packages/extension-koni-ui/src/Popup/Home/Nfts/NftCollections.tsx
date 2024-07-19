@@ -7,12 +7,14 @@ import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
 import { useGetNftByAccount, useNotification, useSetCurrentPage, useTranslation } from '@subwallet/extension-koni-ui/hooks';
 import { reloadCron } from '@subwallet/extension-koni-ui/messaging';
 import { NftGalleryWrapper } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/NftGalleryWrapper';
-import { INftCollectionDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { ContentType, determineContentType, getContentType, getTotalCollectionItems, INftCollectionDetail } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { ActivityIndicator, ButtonProps, Icon, SwList } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { ArrowClockwise, Image } from 'phosphor-react';
 import React, { useCallback, useContext } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -31,6 +33,8 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const dataContext = useContext(DataContext);
   const { nftCollections, nftItems } = useGetNftByAccount();
   const [loading, setLoading] = React.useState<boolean>(false);
+  const balanceMap = useSelector((state: RootState) => state.balance.balanceMap);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   const notify = useNotification();
 
   const subHeaderButton: ButtonProps[] = [
@@ -86,29 +90,31 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const renderNftCollection = useCallback((nftCollection: NftCollection) => {
     const nftList = getNftsByCollection(nftCollection);
 
-    let fallbackImage: string | undefined;
+    let fallbackImage: { image: string; contentType?: ContentType } | undefined;
 
     for (const nft of nftList) { // fallback to any nft image
+      const contentType = determineContentType(getContentType(nft?.properties));
+
       if (nft.image) {
-        fallbackImage = nft.image;
+        fallbackImage = { image: nft.image, contentType: contentType };
         break;
       }
     }
 
-    const state: INftCollectionDetail = { collectionInfo: nftCollection, nftList };
+    const state: INftCollectionDetail = { collectionInfo: nftCollection };
 
     return (
       <NftGalleryWrapper
         fallbackImage={fallbackImage}
         handleOnClick={handleOnClickCollection}
         image={nftCollection.image}
-        itemCount={nftList.length}
+        itemCount={getTotalCollectionItems(nftCollection.collectionId, currentAccountProxy, balanceMap, nftList.length)}
         key={`${nftCollection.collectionId}_${nftCollection.chain}`}
         routingParams={state}
         title={nftCollection.collectionName || nftCollection.collectionId}
       />
     );
-  }, [getNftsByCollection, handleOnClickCollection]);
+  }, [balanceMap, currentAccountProxy, getNftsByCollection, handleOnClickCollection]);
 
   const emptyNft = useCallback(() => {
     return (
@@ -123,7 +129,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   return (
     <PageWrapper
       className={`nft_container ${className}`}
-      resolve={dataContext.awaitStores(['nft'])}
+      resolve={dataContext.awaitStores(['nft', 'balance'])}
     >
       <Layout.Base
         showSubHeader={true}

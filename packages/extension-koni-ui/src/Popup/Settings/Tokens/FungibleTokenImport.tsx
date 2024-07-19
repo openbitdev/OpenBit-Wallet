@@ -3,6 +3,8 @@
 
 import { _AssetType, _ChainInfo } from '@subwallet/chain-list/types';
 import { _getTokenTypesSupportedByChain, _isChainTestNet, _parseMetadataForBrc20Asset, _parseMetadataForRuneAsset, _parseMetadataForSmartContractAsset } from '@subwallet/extension-base/services/chain-service/utils';
+import { isValidBrc20Ticker } from '@subwallet/extension-base/services/hiro-service/utils';
+import { isValidRuneId } from '@subwallet/extension-base/services/rune-service/utils';
 import { isValidSubstrateAddress } from '@subwallet/extension-base/utils';
 import { AddressInput, ChainSelector, Layout, PageWrapper, TokenTypeSelector } from '@subwallet/extension-koni-ui/components';
 import { DataContext } from '@subwallet/extension-koni-ui/contexts/DataContext';
@@ -10,7 +12,6 @@ import { useChainChecker, useDefaultNavigate, useGetChainPrefixBySlug, useGetFun
 import { upsertCustomToken, validateCustomBrc20, validateCustomRune, validateCustomToken } from '@subwallet/extension-koni-ui/messaging';
 import { FormCallbacks, FormRule, Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { convertFieldToError, convertFieldToObject, reformatAddress, simpleCheckForm } from '@subwallet/extension-koni-ui/utils';
-import { isBitcoinAddress } from '@subwallet/keyring';
 import { Col, Field, Form, Icon, Input, Row } from '@subwallet/react-ui';
 import SwAvatar from '@subwallet/react-ui/es/sw-avatar';
 import { PlusCircle } from 'phosphor-react';
@@ -114,11 +115,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
             const selectedTokenType = getFieldValue('type') as _AssetType;
             const isValidEvmContract = [_AssetType.ERC20].includes(selectedTokenType) && isEthereumAddress(inputMetadata);
             const isValidWasmContract = [_AssetType.PSP22].includes(selectedTokenType) && isValidSubstrateAddress(inputMetadata);
-            const isValidRune = [_AssetType.RUNE].includes(selectedTokenType) && isBitcoinAddress(inputMetadata);
-            const isValidBrc20 = [_AssetType.BRC20].includes(selectedTokenType) && isBitcoinAddress(inputMetadata);
-            const reformattedContractAddress = reformatAddress(inputMetadata, chainNetworkPrefix);
+            const isValidRune = [_AssetType.RUNE].includes(selectedTokenType) && isValidRuneId(inputMetadata);
+            const isValidBrc20 = [_AssetType.BRC20].includes(selectedTokenType) && isValidBrc20Ticker(inputMetadata);
 
             if (isValidEvmContract || isValidWasmContract) {
+              const reformattedContractAddress = reformatAddress(inputMetadata, chainNetworkPrefix);
+
               setLoading(true);
               validateCustomToken({
                 contractAddress: reformattedContractAddress,
@@ -158,7 +160,6 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
                 type: selectedTokenType
               })
                 .then((validationResult) => {
-                  console.log('validationResult');
                   setLoading(false);
 
                   if (validationResult.isExist) {

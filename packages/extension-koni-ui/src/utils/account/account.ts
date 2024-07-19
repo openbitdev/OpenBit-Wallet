@@ -6,7 +6,7 @@ import { NetworkJson } from '@subwallet/extension-base/background/KoniTypes';
 import { AbstractAddressJson, AccountAuthType, AccountJson, AccountProxy } from '@subwallet/extension-base/background/types';
 import { ALL_ACCOUNT_KEY } from '@subwallet/extension-base/constants';
 import { _getChainSubstrateAddressPrefix, _isChainEvmCompatible } from '@subwallet/extension-base/services/chain-service/utils';
-import { isAccountAll, uniqueStringArray } from '@subwallet/extension-base/utils';
+import { isAccountAll, isAddressValidWithAuthType, uniqueStringArray } from '@subwallet/extension-base/utils';
 import { DEFAULT_ACCOUNT_TYPES, EVM_ACCOUNT_TYPE, SUBSTRATE_ACCOUNT_TYPE } from '@subwallet/extension-koni-ui/constants';
 import { MODE_CAN_SIGN } from '@subwallet/extension-koni-ui/constants/signing';
 import { AccountAddressType, AccountSignMode, AccountType } from '@subwallet/extension-koni-ui/types';
@@ -201,4 +201,8 @@ export const convertKeyTypes = (authTypes: AccountAuthType[]): KeypairType[] => 
   const _rs = uniqueStringArray(result) as KeypairType[];
 
   return _rs.length ? _rs : DEFAULT_ACCOUNT_TYPES;
+};
+
+export const accountByAuthTypeFilter = (address: string, authType: AccountAuthType = 'bitcoin') => {
+  return isAddressValidWithAuthType(address, authType);
 };

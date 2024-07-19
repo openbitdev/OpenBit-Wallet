@@ -231,6 +231,19 @@ export class BlockStreamRequestStrategy extends BaseApiRequestStrategy implement
     return eventEmitter;
   }
 
+  simpleSendRawTransaction (rawTransaction: string) {
+    return this.addRequest<string>(async (): Promise<string> => {
+      const _rs = await postRequest(this.getUrl('tx'), rawTransaction, this.headers, false);
+      const rs = await _rs.json() as OBResponse<string>;
+
+      if (rs.status_code !== 200) {
+        throw new SWError('BlockStreamRequestStrategy.simpleSendRawTransaction', rs.message);
+      }
+
+      return rs.result;
+    }, 0);
+  }
+
   async getRunes (address: string) {
     const runesFullList: RunesInfoByAddress[] = [];
     const pageSize = 60;

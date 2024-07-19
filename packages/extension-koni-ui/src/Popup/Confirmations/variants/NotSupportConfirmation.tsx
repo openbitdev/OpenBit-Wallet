@@ -6,8 +6,8 @@ import { AccountJson, ConfirmationRequestBase } from '@subwallet/extension-base/
 import { AccountItemWithName, ConfirmationGeneralInfo } from '@subwallet/extension-koni-ui/components';
 import { NEED_SIGN_CONFIRMATION } from '@subwallet/extension-koni-ui/constants';
 import { useGetAccountTitleByAddress } from '@subwallet/extension-koni-ui/hooks';
-import { cancelSignRequest, completeConfirmation } from '@subwallet/extension-koni-ui/messaging';
-import { EvmSignatureSupportType, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { cancelSignRequest, completeConfirmation, completeConfirmationBitcoin } from '@subwallet/extension-koni-ui/messaging';
+import { BitcoinSignatureSupportType, EvmSignatureSupportType, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { Button } from '@subwallet/react-ui';
 import CN from 'classnames';
 import React, { useCallback, useState } from 'react';
@@ -30,6 +30,13 @@ const handleCancelEvm = async (type: EvmSignatureSupportType, id: string) => {
 
 const handleCancelSubstrate = async (id: string) => await cancelSignRequest(id);
 
+const handleCancelBitcoin = async (type: BitcoinSignatureSupportType, id: string) => {
+  return await completeConfirmationBitcoin(type, {
+    id,
+    isApproved: false
+  } as ConfirmationResult<string>);
+};
+
 const Component: React.FC<Props> = (props: Props) => {
   const { account, className, isMessage, request, type } = props;
 
@@ -49,6 +56,9 @@ const Component: React.FC<Props> = (props: Props) => {
         break;
       case 'signingRequest':
         promise = () => handleCancelSubstrate(request.id);
+        break;
+      case 'bitcoinSignatureRequest':
+        promise = () => handleCancelBitcoin(type, request.id);
         break;
     }
 
@@ -82,6 +92,7 @@ const Component: React.FC<Props> = (props: Props) => {
           address={account?.address || ''}
           avatarSize={24}
           className='account-item'
+          proxyId={account?.proxyId}
           showUnselectIcon={true}
         />
       </div>

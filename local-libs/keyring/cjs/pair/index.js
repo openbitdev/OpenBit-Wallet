@@ -5,8 +5,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.createPair = createPair;
+var _bip322Js = require("bip322-js");
 var bitcoin = _interopRequireWildcard(require("bitcoinjs-lib"));
-var _bitcoinjsMessage = require("bitcoinjs-message");
 var _ecpair = require("ecpair");
 var _ethSimpleKeyring = _interopRequireDefault(require("eth-simple-keyring"));
 var ecc = _interopRequireWildcard(require("tiny-secp256k1"));
@@ -108,13 +108,13 @@ function createPair(_ref, _ref2) {
   const encodeAddress = () => {
     const raw = _utils.TYPE_ADDRESS[type](publicKey);
     const bitNetwork = ['bitcoin-44', 'bitcoin-84', 'bitcoin-86'].includes(type) ? bitcoin.networks.bitcoin : ['bittest-44', 'bittest-84', 'bittest-86'].includes(type) ? bitcoin.networks.testnet : bitcoin.networks.regtest;
+    let dataKey;
 
     /**
      *  With bitcoin accounts, some attached account have no public key (only address).
      *  In this case, public key is the hash of result after decoded address.
      *  Add `noPublicKey` in metadata for this case.
      */
-    let dataKey;
     if (meta.noPublicKey) {
       dataKey = 'hash';
     } else {
@@ -316,21 +316,24 @@ function createPair(_ref, _ref2) {
             type
           }, derived, meta, null);
         },
-        signMessage: (message, compressed, options) => {
+        signMessage: message => {
           if (isLocked(secretKey)) {
             throw new Error('Cannot encrypt with a locked key pair');
           }
-          const _message = typeof message === 'string' ? message : Buffer.from(message);
+          const _message = typeof message === 'string' ? message : (0, _util.u8aToString)(message);
+          const address = encodeAddress();
+          const _pair = ECPair.fromPrivateKey(Buffer.from(secretKey));
+          const wif = _pair.toWIF();
 
           // Sign the message
-          const signature = (0, _bitcoinjsMessage.sign)(_message, Buffer.from(secretKey), compressed, options);
-          return signature.toString('base64');
+          const signature = _bip322Js.Signer.sign(wif, address, _message);
+          return typeof signature === 'string' ? signature : signature.toString('base64');
         },
-        signTransaction: (transaction, indexes) => {
+        signTransaction: (psbt, indexes, sighashTypes, tapLeafHashToSign) => {
           if (isLocked(secretKey)) {
             throw new Error('Cannot encrypt with a locked key pair');
           }
-          if (!transaction) {
+          if (!psbt) {
             throw new Error('Not found sign method');
           }
           const pair = ECPair.fromPrivateKey(Buffer.from(secretKey));
@@ -338,12 +341,12 @@ function createPair(_ref, _ref2) {
           for (const index of indexes) {
             if (isTaproot) {
               const tweakedSigner = pair.tweak(bitcoin.crypto.taggedHash('TapTweak', toXOnly(pair.publicKey)));
-              transaction.signTaprootInput(index, tweakedSigner);
+              psbt.signTaprootInput(index, tweakedSigner, tapLeafHashToSign, sighashTypes);
             } else {
-              transaction.signInput(index, pair);
+              psbt.signInput(index, pair, sighashTypes);
             }
           }
-          return transaction;
+          return psbt;
         },
         get output() {
           return output || Buffer.from([]);

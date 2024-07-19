@@ -14,18 +14,22 @@ import styled, { ThemeContext } from 'styled-components';
 type Props = ThemeProps & {
   accountProxy: AccountProxy;
   isSelected?: boolean;
+  showUnselectIcon?: boolean;
   renderRightPart?: (existNode: React.ReactNode) => React.ReactNode;
+  rightPartNode?: React.ReactNode;
+  leftPartNode?: React.ReactNode;
   onClick?: VoidFunction;
+  accountProxyName?: string;
 };
 
 function Component (props: Props): React.ReactElement<Props> {
-  const { accountProxy, className, isSelected, onClick, renderRightPart } = props;
+  const { accountProxy, accountProxyName, className, isSelected, leftPartNode, onClick, renderRightPart, rightPartNode, showUnselectIcon } = props;
   const token = useContext<Theme>(ThemeContext as Context<Theme>).token;
 
-  const checkedIconNode = (isSelected && (
+  const checkedIconNode = ((showUnselectIcon || isSelected) && (
     <div className='__checked-icon-wrapper'>
       <Icon
-        iconColor={token.colorSuccess}
+        iconColor={isSelected ? token.colorSuccess : token.colorTextLight4}
         phosphorIcon={CheckCircle}
         size='sm'
         weight='fill'
@@ -39,16 +43,20 @@ function Component (props: Props): React.ReactElement<Props> {
       onClick={onClick}
     >
       <div className='__item-left-part'>
-        <AccountProxyAvatar
-          size={24}
-          value={accountProxy.proxyId}
-        />
+        {
+          leftPartNode || (
+            <AccountProxyAvatar
+              size={24}
+              value={accountProxy.proxyId}
+            />
+          )
+        }
       </div>
       <div className='__item-middle-part'>
-        {accountProxy.name}
+        {accountProxyName || accountProxy.name}
       </div>
       <div className='__item-right-part'>
-        {renderRightPart ? renderRightPart(checkedIconNode) : checkedIconNode}
+        {rightPartNode || (renderRightPart ? renderRightPart(checkedIconNode) : checkedIconNode)}
       </div>
     </div>
   );
@@ -69,7 +77,8 @@ const AccountProxyItem = styled(Component)<Props>(({ theme }) => {
     gap: token.sizeSM,
 
     '.__item-middle-part': {
-      flex: 1
+      flex: 1,
+      textAlign: 'left'
     },
 
     '.__item-right-part': {

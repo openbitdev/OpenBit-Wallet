@@ -4,7 +4,6 @@ import type { HexString } from '@polkadot/util/types';
 import type { EncryptedJson, Keypair, Prefix } from '@polkadot/util-crypto/types';
 import { TypedTransaction } from '@ethereumjs/tx';
 import { Psbt as BitcoinTransaction } from 'bitcoinjs-lib';
-import { SignatureOptions } from 'bitcoinjs-message';
 /**
  *
  *
@@ -58,8 +57,8 @@ export interface SubstrateSigner {
 }
 export interface BitcoinSigner {
     derive: (index: number, meta?: KeyringPair$Meta) => KeyringPair;
-    signMessage: (message: HexString | string | Uint8Array, compressed?: boolean, options?: SignatureOptions) => string;
-    signTransaction: (transaction: BitcoinTransaction, indexes: number[]) => BitcoinTransaction;
+    signMessage: (message: HexString | string | Uint8Array) => string;
+    signTransaction: (transaction: BitcoinTransaction, indexes: number[], sighashTypes?: number[], tapLeafHashToSign?: Buffer | undefined) => BitcoinTransaction;
     output: Buffer;
     internalPubkey: Buffer;
 }

@@ -380,7 +380,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
           </Button>
 
           <div className={'__version'}>
-          OpenBit v {EXTENSION_VERSION}
+          OpenBit v {EXTENSION_VERSION} (Beta)
           </div>
         </div>
         <Outlet />

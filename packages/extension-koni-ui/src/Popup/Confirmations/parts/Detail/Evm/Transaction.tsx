@@ -111,14 +111,19 @@ const Component: React.FC<Props> = (props: Props) => {
             )
             : null
       }
-      <MetaInfo.Transfer
-        recipientAddress={recipient?.address || request.to || ''}
-        recipientLabel={t('To')}
-        recipientName={recipient?.name || ''}
-        senderAddress={account.address}
-        senderLabel={t('From')}
-        senderName={account.name}
+
+      <MetaInfo.Account
+        address={account.address}
+        label={t('From')}
+        name={account.name}
       />
+
+      <MetaInfo.Account
+        address={recipient?.address || request.to || ''}
+        label={t('To')}
+        name={recipient?.name || ''}
+      />
+
       {
         (!request.isToContract || amount !== 0) &&
         (

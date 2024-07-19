@@ -51,11 +51,24 @@ const openbitChainInfoMap = (() => {
     'bitlayerTest',
     'bevm',
     'bevmTest',
+    'bevm_testnet',
     'b2',
+    'b2_testnet',
     'bobMainnet',
     'merlinEvm',
     'botanixEvmTest',
-    'bounceBitEvm'
+    'bounceBitEvm',
+    'bounceBitEvmTest',
+    'layerEdge_testnet',
+    'sepolia_ethereum',
+    'rollux_evm',
+    'rollux_testnet',
+    'boolBeta_testnet',
+    'syscoin_evm',
+    'syscoin_evm_testnet',
+    'satoshivm',
+    'satoshivm_testnet',
+    'core'
   ];
   const enableList = nativeList.concat(bitcoinL2List);
 
@@ -962,7 +975,8 @@ export class ChainService {
     }
 
     if (chainInfo.evmInfo !== null && chainInfo.evmInfo !== undefined) {
-      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { providerName, onUpdateStatus });
+      const isTestnet = chainInfo.isTestnet;
+      const chainApi = await this.evmChainHandler.initApi(chainInfo.slug, endpoint, { isTestnet, providerName, onUpdateStatus });
 
       this.evmChainHandler.setEvmApi(chainInfo.slug, chainApi);
     }
@@ -1924,9 +1938,7 @@ export class ChainService {
     let existedToken: _ChainAsset | undefined;
 
     for (const token of Object.values(assetRegistry)) {
-      const ticker = token?.slug;
-
-      if (ticker === data.ticker && token.assetType === data.type && token.originChain === data.originChain) {
+      if (token?.symbol === data.ticker && token?.assetType === data.type && token?.originChain === data.originChain) {
         existedToken = token;
         break;
       }

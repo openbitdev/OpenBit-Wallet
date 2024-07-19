@@ -104,6 +104,7 @@ export default class TransactionService {
       address,
       chain,
       edAsWarning,
+      estimateFee: estimateFee_,
       extrinsicType,
       feeCustom,
       feeOption,
@@ -130,7 +131,7 @@ export default class TransactionService {
     const chainInfo = this.state.chainService.getChainInfoByKey(chain);
 
     // Estimate fee
-    const estimateFee: FeeData = {
+    const estimateFee: FeeData = estimateFee_ || {
       symbol: '',
       decimals: 0,
       value: '',
@@ -147,7 +148,7 @@ export default class TransactionService {
 
       const id = getId();
 
-      if (transaction) {
+      if (transaction && !estimateFee_) {
         try {
           if (isSubstrateTransaction(transaction)) {
             estimateFee.value = (await transaction.paymentInfo(address)).partialFee.toString();
@@ -175,7 +176,7 @@ export default class TransactionService {
             if (!web3) {
               validationResponse.errors.push(new TransactionError(BasicTxErrorType.CHAIN_DISCONNECTED, undefined));
             } else {
-              const gasLimit = await web3.api.eth.estimateGas(transaction);
+              const gasLimit = await web3.api.eth.estimateGas(transaction as TransactionConfig);
 
               const feeInfo = await this.state.feeService.subscribeChainFee(id, chain, 'evm') as EvmFeeInfo;
               const feeCombine = combineEthFee(feeInfo, feeOption, feeCustom as EvmEIP1995FeeOption);
@@ -366,6 +367,74 @@ export default class TransactionService {
     'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
 
     return validatedTransaction;
+  }
+
+  public async handleTransactionAfterConfirmation (transaction: SWTransactionInput): Promise<SWTransactionResponse> {
+    const validatedTransaction = await this.generalValidate(transaction);
+
+    const stopByErrors = validatedTransaction.errors.length > 0;
+    const stopByWarnings = validatedTransaction.warnings.length > 0 && !validatedTransaction.ignoreWarnings;
+
+    if (stopByErrors || stopByWarnings) {
+      // @ts-ignore
+      'transaction' in validatedTransaction && delete validatedTransaction.transaction;
+      'additionalValidator' in validatedTransaction && delete validatedTransaction.additionalValidator;
+      'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
+
+      return validatedTransaction;
+    }
+
+    validatedTransaction.warnings = [];
+
+    const transactionsSubject = this.transactions;
+    const emitter = new EventEmitter<TransactionEventMap>();
+
+    // Fill transaction default info
+    const transactionUpdated = this.fillTransactionDefaultInfo(validatedTransaction);
+
+    // Add Transaction
+    transactionsSubject[transactionUpdated.id] = { ...transactionUpdated, emitterTransaction: emitter };
+    this.transactionSubject.next({ ...transactionsSubject });
+
+    emitter.on('success', (data: TransactionEventResponse) => {
+      validatedTransaction.id = data.id;
+      validatedTransaction.extrinsicHash = data.extrinsicHash;
+      this.handlePostProcessing(data.id);
+      this.onSuccess(data);
+    });
+
+    emitter.on('signed', (data: TransactionEventResponse) => {
+      validatedTransaction.id = data.id;
+      validatedTransaction.extrinsicHash = data.extrinsicHash;
+      this.onSigned(data);
+    });
+
+    emitter.on('error', (data: TransactionEventResponse) => {
+      if (data.errors.length > 0) {
+        validatedTransaction.errors.push(...data.errors);
+      }
+
+      this.onFailed({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.INTERNAL_ERROR)] });
+    });
+
+    emitter.on('send', (data: TransactionEventResponse) => {
+      this.onSend(data);
+    });
+
+    emitter.on('extrinsicHash', (data: TransactionEventResponse) => {
+      this.onHasTransactionHash(data);
+    });
+
+    emitter.on('timeout', (data: TransactionEventResponse) => {
+      this.onTimeOut({ ...data, errors: [...data.errors, new TransactionError(BasicTxErrorType.TIMEOUT)] });
+    });
+
+    // @ts-ignore
+    'transaction' in validatedTransaction && delete validatedTransaction.transaction;
+    'additionalValidator' in validatedTransaction && delete validatedTransaction.additionalValidator;
+    'eventsHandler' in validatedTransaction && delete validatedTransaction.eventsHandler;
+
+    return { ...validatedTransaction };
   }
 
   private async sendTransaction (transaction: SWTransaction): Promise<TransactionEmitter> {
@@ -1075,6 +1144,33 @@ export default class TransactionService {
 
     return emitter;
   }
+
+  public emitterEventTransaction = (emitter: TransactionEmitter, eventData: TransactionEventResponse, chain: string, payload: string) => {
+    // Emit signed event
+    emitter.emit('signed', eventData);
+    // Add start info
+    emitter.emit('send', eventData);
+
+    const event = this.chainService.getBitcoinApi(chain).api.sendRawTransaction(payload);
+
+    event.on('extrinsicHash', (txHash) => {
+      eventData.extrinsicHash = txHash;
+      emitter.emit('extrinsicHash', eventData);
+    });
+
+    event.on('success', (transactionStatus) => {
+      console.log(transactionStatus);
+      eventData.blockHash = transactionStatus.block_hash || undefined;
+      eventData.blockNumber = transactionStatus.block_height || undefined;
+      eventData.blockTime = transactionStatus.block_time ? (transactionStatus.block_time * 1000) : undefined;
+      emitter.emit('success', eventData);
+    });
+
+    event.on('error', (error) => {
+      eventData.errors.push(new TransactionError(BasicTxErrorType.UNABLE_TO_SEND, error));
+      emitter.emit('error', eventData);
+    });
+  };
 
   private async signAndSendEvmTransaction ({ address,
     chain,

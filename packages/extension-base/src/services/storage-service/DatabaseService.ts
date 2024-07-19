@@ -214,6 +214,10 @@ export default class DatabaseService {
     return this.stores.nft.cleanUpNfts(chain, reformatAddress(owner, 42), collectionIds, nftIds);
   }
 
+  async getAddressTotalInscriptions (addresses: string[], chain: string) {
+    return this.stores.nft.getAddressTotalInscriptions(addresses, chain);
+  }
+
   async getNft (addresses: string[], chainHashes?: string[]) {
     return this.stores.nft.getNft(addresses, chainHashes);
   }
@@ -230,8 +234,8 @@ export default class DatabaseService {
     return this.stores.nft.removeNfts(chain, address, collectionId, nftIds);
   }
 
-  removeNftsByAddress (address: string) {
-    return this.stores.nft.removeNftsByAddress([address]);
+  removeNftsByAddress (addresses: string[]) {
+    return this.stores.nft.removeNftsByAddress(addresses);
   }
 
   // Chain

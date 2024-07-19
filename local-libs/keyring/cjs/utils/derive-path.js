@@ -15,7 +15,7 @@ const getEvmDerivePath = index => {
   return emvPath.replace('{index}', index.toString());
 };
 exports.getEvmDerivePath = getEvmDerivePath;
-const getBitDerivePathFunction = (proposal, slip44) => {
+const getBitDerivePathFunction = (slip44, proposal) => {
   const path = bitPath.replace('{proposal}', proposal.toString()).replace('{slip44}', slip44.toString());
   return index => {
     return path.replace('{index}', index.toString());
@@ -27,17 +27,17 @@ const getDerivePath = type => {
     case 'ethereum':
       return getEvmDerivePath;
     case 'bitcoin-44':
-      return getBitDerivePathFunction(44, 0);
+      return getBitDerivePathFunction(0, 44);
     case 'bitcoin-84':
-      return getBitDerivePathFunction(84, 0);
+      return getBitDerivePathFunction(0, 84);
     case 'bitcoin-86':
-      return getBitDerivePathFunction(86, 0);
+      return getBitDerivePathFunction(0, 86);
     case 'bittest-44':
-      return getBitDerivePathFunction(44, 1);
+      return getBitDerivePathFunction(1, 44);
     case 'bittest-84':
-      return getBitDerivePathFunction(84, 1);
+      return getBitDerivePathFunction(1, 84);
     case 'bittest-86':
-      return getBitDerivePathFunction(86, 1);
+      return getBitDerivePathFunction(1, 86);
     default:
       return () => '';
   }

@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AuthUrlInfo } from '@subwallet/extension-base/background/handlers/State';
+import { AccountProxy } from '@subwallet/extension-base/background/types';
 import { isAccountAll } from '@subwallet/extension-base/utils';
-import AccountItemWithName from '@subwallet/extension-koni-ui/components/Account/Item/AccountItemWithName';
+import { AccountProxyItem } from '@subwallet/extension-koni-ui/components';
 import ConfirmationGeneralInfo from '@subwallet/extension-koni-ui/components/Confirmation/ConfirmationGeneralInfo';
 import { changeAuthorizationBlock, changeAuthorizationPerSite } from '@subwallet/extension-koni-ui/messaging';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
+import { accountByAuthTypeFilter } from '@subwallet/extension-koni-ui/utils';
 import { Button, Icon, SwModal } from '@subwallet/react-ui';
 import CN from 'classnames';
 import { CheckCircle, GlobeHemisphereWest, ShieldCheck, ShieldSlash, XCircle } from 'phosphor-react';
@@ -15,8 +17,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import styled, { useTheme } from 'styled-components';
-
-import { isEthereumAddress } from '@polkadot/util-crypto';
 
 type Props = ThemeProps & {
   id: string;
@@ -36,19 +36,26 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
   const { t } = useTranslation();
 
   const [allowedMap, setAllowedMap] = useState<Record<string, boolean>>(authInfo?.isAllowedMap || {});
-  const accounts = useSelector((state: RootState) => state.accountState.accounts);
-  const currentAccount = useSelector((state: RootState) => state.accountState.currentAccount);
+  const accountProxies = useSelector((state: RootState) => state.accountState.accountProxies);
+  const currentAccountProxy = useSelector((state: RootState) => state.accountState.currentAccountProxy);
   // const [oldConnected, setOldConnected] = useState(0);
   const [isSubmit, setIsSubmit] = useState(false);
   const { token } = useTheme() as Theme;
   const _isNotConnected = isNotConnected || !authInfo;
 
-  const handlerUpdateMap = useCallback((address: string, oldValue: boolean) => {
+  const handlerUpdateMap = useCallback((item: AccountProxy, oldValue: boolean) => {
     return () => {
-      setAllowedMap((values) => ({
-        ...values,
-        [address]: !oldValue
-      }));
+      setAllowedMap((values) => {
+        const result = {
+          ...values
+        };
+
+        item.accounts.forEach((a) => {
+          result[a.address] = !oldValue;
+        });
+
+        return result;
+      });
     };
   }, []);
 
@@ -83,20 +90,10 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
       const type = authInfo.accountAuthType;
       const allowedMap = authInfo.isAllowedMap;
 
-      const filterType = (address: string) => {
-        if (type === 'both') {
-          return true;
-        }
-
-        const _type = type || 'substrate';
-
-        return _type === 'substrate' ? !isEthereumAddress(address) : isEthereumAddress(address);
-      };
-
       const result: Record<string, boolean> = {};
 
       Object.entries(allowedMap)
-        .filter(([address]) => filterType(address))
+        .filter(([address]) => accountByAuthTypeFilter(address, type))
         .forEach(([address, value]) => {
           result[address] = value;
         });
@@ -246,9 +243,9 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
       );
     }
 
-    const list = Object.entries(allowedMap).map(([address, value]) => ({ address, value }));
+    const list = accountProxies.filter((ap) => !isAccountAll(ap.proxyId) && !ap.isReadOnly);
 
-    const current = list.find(({ address }) => address === currentAccount?.address);
+    const current = list.find(({ proxyId }) => proxyId === currentAccountProxy?.proxyId);
 
     if (current) {
       const idx = list.indexOf(current);
@@ -265,26 +262,19 @@ function Component ({ authInfo, className = '', id, isBlocked = true, isNotConne
 
         <div className={'__account-item-container'}>
           {
-            list.map(({ address, value }) => {
-              const account = accounts.find((acc) => acc.address === address);
-
-              if (!account || isAccountAll(account.address)) {
-                return null;
-              }
-
-              const isCurrent = account.address === currentAccount?.address;
+            list.map((item) => {
+              const isSelected = item.accounts.some((a) => allowedMap[a.address]);
+              const isCurrent = item.proxyId === currentAccountProxy?.proxyId;
 
               return (
-                <AccountItemWithName
-                  accountName={account.name}
-                  address={account.address}
-                  avatarSize={24}
-                  className={CN({
+                <AccountProxyItem
+                  accountProxy={item}
+                  className={CN('account-proxy-item', {
                     '-is-current': isCurrent
                   })}
-                  isSelected={value}
-                  key={account.address}
-                  onClick={handlerUpdateMap(address, value)}
+                  isSelected={isSelected}
+                  key={item.proxyId}
+                  onClick={handlerUpdateMap(item, isSelected)}
                   showUnselectIcon
                 />
               );
@@ -352,7 +342,7 @@ export const ConnectWebsiteModal = styled(Component)<Props>(({ theme: { token } 
       marginTop: token.margin
     },
 
-    '.account-item-with-name': {
+    '.account-proxy-item': {
       position: 'relative',
       cursor: 'pointer',
 
@@ -365,12 +355,12 @@ export const ConnectWebsiteModal = styled(Component)<Props>(({ theme: { token } 
         borderRadius: token.borderRadiusLG
       },
 
-      '&:-is-current:before': {
+      '&.-is-current:before': {
         borderColor: token.colorPrimary
       }
     },
 
-    '.account-item-with-name + .account-item-with-name': {
+    '.account-proxy-item + .account-proxy-item': {
       marginTop: token.marginSM
     },
 
