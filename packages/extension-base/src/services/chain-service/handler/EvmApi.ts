@@ -94,10 +94,13 @@ export class EvmApi implements _EvmApi {
 
   get ignoreNetListen (): boolean {
     const ignoreRpc: string[] | undefined = EVM_PASS_CONNECT_STATUS[this.chainSlug];
+    const isCustomRpc = this.chainSlug.startsWith('custom-');
 
-    return ignoreRpc
-      ? ignoreRpc.includes('*') || ignoreRpc.includes(this.apiUrl)
-      : false;
+    if (isCustomRpc) {
+      return true;
+    }
+
+    return !!ignoreRpc && (ignoreRpc.includes('*') || ignoreRpc.includes(this.apiUrl));
   }
 
   createIntervalCheckApi (): NodeJS.Timer {

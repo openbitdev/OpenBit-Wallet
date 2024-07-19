@@ -105,7 +105,7 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
     if (nftItem.description && isValidJson(nftItem.description)) {
       const ordinalNftItem = JSON.parse(nftItem.description) as OrdinalRemarkData;
 
-      if ('p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+      if (typeof ordinalNftItem === 'object' && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
         return (
           <InscriptionGalleryWrapper
             handleOnClick={handleOnClickNft}
@@ -120,11 +120,12 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
 
     return (
       <NftGalleryWrapper
-        fallbackImage={collectionInfo.image}
+        fallbackImage={{ image: collectionInfo.image }}
         handleOnClick={handleOnClickNft}
         have3dViewer={SHOW_3D_MODELS_CHAIN.includes(nftItem.chain)}
         image={nftItem.image}
         key={`${nftItem.chain}_${nftItem.collectionId}_${nftItem.id}`}
+        nftItem={nftItem}
         routingParams={routingParams}
         title={nftItem.name || nftItem.id}
       />

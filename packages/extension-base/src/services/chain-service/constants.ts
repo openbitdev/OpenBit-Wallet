@@ -260,7 +260,8 @@ export const EVM_PASS_CONNECT_STATUS: Record<string, string[]> = {
   arbitrum_one: ['*'],
   okxTest: ['*'],
   merlinEvm: ['*'],
-  layerEdge_testnet: ['*']
+  layerEdge_testnet: ['*'],
+  custom: ['*']
 };
 
 export const EVM_REFORMAT_DECIMALS = {

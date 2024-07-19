@@ -13,7 +13,7 @@ import useDefaultNavigate from '@subwallet/extension-koni-ui/hooks/router/useDef
 import useGetChainInfo from '@subwallet/extension-koni-ui/hooks/screen/common/useFetchChainInfo';
 import useGetAccountInfoByAddress from '@subwallet/extension-koni-ui/hooks/screen/common/useGetAccountInfoByAddress';
 import InscriptionImage from '@subwallet/extension-koni-ui/Popup/Home/Nfts/component/InscriptionImage';
-import { INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
+import { ContentType, determineContentType, getContentType, INftItemDetail, isValidJson } from '@subwallet/extension-koni-ui/Popup/Home/Nfts/utils';
 import { RootState } from '@subwallet/extension-koni-ui/stores';
 import { Theme, ThemeProps } from '@subwallet/extension-koni-ui/types';
 import { BackgroundIcon, Field, Icon, Image, Logo, ModalContext, SwModal } from '@subwallet/react-ui';
@@ -139,12 +139,93 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
   const show3DModel = SHOW_3D_MODELS_CHAIN.includes(nftItem.chain);
   const ordinalNftItem = nftItem.description && isValidJson(nftItem.description) && JSON.parse(nftItem.description) as OrdinalRemarkData;
   const isBRC20Inscription = useMemo(() => {
-    if (ordinalNftItem && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
+    if (typeof ordinalNftItem === 'object' && 'p' in ordinalNftItem && 'op' in ordinalNftItem && 'tick' in ordinalNftItem && 'amt' in ordinalNftItem) {
       return true;
     }
 
     return false;
   }, [ordinalNftItem]);
+
+  const renderAppJsonContent = () => {
+    const ordinalNftDescription = nftItem?.description && isValidJson(nftItem.description)
+      ? JSON.parse(nftItem.description) as Record<string, unknown>
+      : undefined;
+
+    if (!ordinalNftDescription || Object.keys(ordinalNftDescription).length === 0) {
+      return (
+        <Image
+          className={CN({ clickable: nftItem.externalUrl })}
+          fallbackSrc={DefaultLogosMap.default_placeholder}
+          height={358}
+          modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
+          onClick={onImageClick}
+          src={nftItem.image || DefaultLogosMap.default_placeholder}
+          width={show3DModel ? 358 : undefined}
+        />
+      );
+    }
+
+    return (
+      <div className='nft-container'>
+        <pre>
+          <code>
+            {JSON.stringify(ordinalNftDescription, null, 2)}
+          </code>
+        </pre>
+      </div>
+    );
+  };
+
+  const renderNftContent = () => {
+    const contentType = determineContentType(getContentType(nftItem.properties));
+
+    switch (contentType) {
+      case ContentType.Audio:
+        return (
+          <div className='-nft-audio'>
+            <audio controls>
+              <source
+                src={nftItem.image}
+                type={getContentType(nftItem?.properties)}
+              />
+            </audio>
+          </div>
+        );
+
+      case ContentType.AppJson:
+        return renderAppJsonContent();
+
+      case ContentType.TextHTML:
+      case ContentType.ImageSVG:
+      case ContentType.ModelGltf:
+      case ContentType.ImageGIF:
+        return (
+          <div className='-nft-text-html-wrapper'>
+            <iframe
+              className='-nft-text-html'
+              src={nftItem.image}
+            />
+          </div>
+        );
+
+      default:
+        if (!isBRC20Inscription) {
+          return (
+            <Image
+              className={CN({ clickable: nftItem.externalUrl })}
+              fallbackSrc={DefaultLogosMap.default_placeholder}
+              height={358}
+              modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
+              onClick={onImageClick}
+              src={nftItem.image || DefaultLogosMap.default_placeholder}
+              width={show3DModel ? 358 : undefined}
+            />
+          );
+        }
+
+        return null;
+    }
+  };
 
   return (
     <PageWrapper
@@ -162,23 +243,15 @@ function Component ({ className = '' }: Props): React.ReactElement<Props> {
       >
         <div className={'nft_item_detail__container'}>
           <div className={'nft_item_detail__nft_image'}>
-            {isBRC20Inscription && nftItem.description && (
-              <InscriptionImage
-                alone={true}
-                properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
-              />
-            )}
-            {!isBRC20Inscription && (
-              <Image
-                className={CN({ clickable: nftItem.externalUrl })}
-                fallbackSrc={DefaultLogosMap.default_placeholder}
-                height={358}
-                modelViewerProps={show3DModel ? { ...DEFAULT_MODEL_VIEWER_PROPS, ...CAMERA_CONTROLS_MODEL_VIEWER_PROPS } : undefined}
-                onClick={onImageClick}
-                src={nftItem.image || DefaultLogosMap.default_placeholder}
-                width={show3DModel ? 358 : undefined}
-              />
-            )}
+            <>
+              {isBRC20Inscription && nftItem.description && (
+                <InscriptionImage
+                  alone={true}
+                  properties={JSON.parse(nftItem.description) as OrdinalRemarkData}
+                />
+              )}
+              {renderNftContent()}
+            </>
           </div>
 
           <div className={'nft_item_detail__info_container'}>
@@ -306,6 +379,40 @@ const NftItemDetail = styled(Component)<Props>(({ theme: { token } }: Props) => 
 
     '.clickable': {
       cursor: 'pointer'
+    },
+    '.-nft-audio': {
+      display: 'flex',
+      alignItems: 'center'
+    },
+    '.-nft-text-html': {
+      width: 358,
+      height: 358,
+      border: 'none',
+      overflow: 'hidden'
+    },
+    '.nft-container': {
+      width: 358,
+      height: 358,
+      backgroundColor: token.colorTextTertiary,
+      padding: token.padding,
+      gap: 8,
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    },
+    '.__nft-item': {
+      fontSize: token.fontSize,
+      lineHeight: token.lineHeight,
+      color: token.colorTextDark1,
+      justifyContent: 'space-between',
+      display: 'flex',
+      gap: 4
+
+    },
+    '.__nft-item-value': {
+      color: token.colorTextDark4,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     },
 
     '.nft_item_detail__info_container': {
