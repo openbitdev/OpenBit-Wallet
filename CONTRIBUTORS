@@ -1,10 +1,10 @@
-    2477	AnhMTV                        	Release version 1.1.49
+    2482	AnhMTV                        	
     2171	Nam Phạm                      	[Issue 2717] change XCM ref map
     2001	S2kael                        	[Issue-193] Add re-scan BTC transaction have no block_time
      799	lw-cdm                        	Fix UI issues
      465	Jaco                          	0.42.5 (#969)
      185	quangdo                       	
-     177	bluezdot                      	remove log
+     179	bluezdot                      	[Issue-244] fix: fix bug rpc status
      172	nguyentiendung                	[Issue-222] Improve UI for sub-logo
      104	khainh                        	predefine metadata for Polkadot & Kusama chains
       99	lw-cdm                        	
@@ -14,10 +14,11 @@
       82	Thibaut Sardan                	Add account filtering feature (#832)
       63	Roman                         	fix ui issues
       63	Thiendekaco                   	[Issue 228] [fix] - eslint issue
+      53	bluedot                       	Update explorer Bool test
       53	Dominhquangdev                	update Bridge code
-      52	bluedot                       	Update explorer Bool test
       29	Automation Bot                	[CI Skip] Auto increase webapp build number
       26	S2kael                        	
+      14	Frenkie Nguyen                	[Issue: 251] Can't go to Collection detail when import account
       10	louisdangw3                   	Check logic of transaction-service and request-serivce
       10	Trang Trịnh                   	api get karura and acala nfts
        9	Minh Le                       	
