@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 1.1.50
+Build date: Jul 22, 2024.
+
+Features & Updates:
+- Update chain-list (#249) :
+   - Add support for Core Blockchain Mainnet network
+  - Add support for SatoshiVM Alpha Mainnet network
+  - Add support for SatoshiVM Testnet
+  - Add support for SAVM token on SatoshiVM Alpha Mainnet
+- Add support for Ordinals with some content type (#220)
+
+Bug Fixes:
+- Fix bug import custom EVM Rpc (#244)
+- Can't go to Collection detail when import account (#251)
+
 ## 1.1.49
 Build date: Jul 13, 2024.
 
