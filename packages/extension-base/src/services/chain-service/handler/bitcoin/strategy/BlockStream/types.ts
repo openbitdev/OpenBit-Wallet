@@ -247,22 +247,23 @@ export interface BlockStreamTransactionDetail {
 }
 
 export interface RuneUtxoResponse {
-  start: number,
-  total: number,
-  utxo: RuneUtxo[]
+  totalUtxo: number,
+  utxoItems: RuneUtxo[]
 }
 
 export interface RuneUtxo {
-  height: number,
-  confirmations: number,
-  address: string,
-  satoshi: number,
-  scriptPk: string,
+  value: number,
   txid: string,
   vout: number,
-  runes: RuneInject[]
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash: string;
+    block_time?: number;
+  }
 }
 
+// @ts-ignore
 interface RuneInject {
   rune: string,
   runeid: string,
