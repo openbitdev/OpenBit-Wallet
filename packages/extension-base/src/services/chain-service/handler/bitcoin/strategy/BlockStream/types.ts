@@ -34,6 +34,8 @@ export interface BitcoinAddressSummaryInfo {
     tx_count: number
   },
   balance: number,
+  balance_inscription: number,
+  balance_rune: number,
   total_inscription: number
 }
 
