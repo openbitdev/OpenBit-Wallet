@@ -2,15 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
+import { _BEAR_TOKEN, OPENBIT_API_DEV_MAINNET, OPENBIT_API_DEV_TESTNET } from '@subwallet/extension-base/services/chain-service/constants';
 import { Brc20BalanceFetchedData, Brc20MetadataFetchedData, InscriptionFetchedData } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
-
-const OPENBIT_URL = 'https://api.openbit.app';
-const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app';
 
 export class HiroService extends BaseApiRequestStrategy {
   baseUrl: string;
@@ -90,7 +87,7 @@ export class HiroService extends BaseApiRequestStrategy {
 
   // todo: handle token authen for url preview
   getPreviewUrl (inscriptionId: string) {
-    return `${OPENBIT_URL}/inscriptions/${inscriptionId}/content`;
+    return `${OPENBIT_API_DEV_MAINNET}/inscriptions/${inscriptionId}/content`;
   }
 
   // Singleton
@@ -100,13 +97,13 @@ export class HiroService extends BaseApiRequestStrategy {
   public static getInstance (isTestnet = false) {
     if (isTestnet) {
       if (!HiroService.testnet) {
-        HiroService.testnet = new HiroService(OPENBIT_URL_TEST);
+        HiroService.testnet = new HiroService(OPENBIT_API_DEV_TESTNET);
       }
 
       return HiroService.testnet;
     } else {
       if (!HiroService.mainnet) {
-        HiroService.mainnet = new HiroService(OPENBIT_URL);
+        HiroService.mainnet = new HiroService(OPENBIT_API_DEV_MAINNET);
       }
 
       return HiroService.mainnet;

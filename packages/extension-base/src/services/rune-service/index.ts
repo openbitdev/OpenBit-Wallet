@@ -2,15 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { SWError } from '@subwallet/extension-base/background/errors/SWError';
-import { _BEAR_TOKEN } from '@subwallet/extension-base/services/chain-service/constants';
+import { _BEAR_TOKEN, OPENBIT_API_DEV_MAINNET, OPENBIT_API_DEV_TESTNET } from '@subwallet/extension-base/services/chain-service/constants';
 import { RuneMetadata, RunesCollectionInfoResponse, RunesInfoByAddressFetchedData, RuneTxsResponse, RuneUtxoResponse } from '@subwallet/extension-base/services/chain-service/handler/bitcoin/strategy/BlockStream/types';
 import { OBResponse } from '@subwallet/extension-base/services/chain-service/types';
 import { BaseApiRequestStrategy } from '@subwallet/extension-base/strategy/api-request-strategy';
 import { BaseApiRequestContext } from '@subwallet/extension-base/strategy/api-request-strategy/contexts/base';
 import { getRequest } from '@subwallet/extension-base/strategy/api-request-strategy/utils';
-
-const OPENBIT_URL = 'https://api.openbit.app';
-const OPENBIT_URL_TEST = 'https://api-testnet.openbit.app';
 
 export class RunesService extends BaseApiRequestStrategy {
   baseUrl: string;
@@ -110,13 +107,13 @@ export class RunesService extends BaseApiRequestStrategy {
   public static getInstance (isTestnet = false) {
     if (isTestnet) {
       if (!RunesService.testnet) {
-        RunesService.testnet = new RunesService(OPENBIT_URL_TEST);
+        RunesService.testnet = new RunesService(OPENBIT_API_DEV_TESTNET);
       }
 
       return RunesService.testnet;
     } else {
       if (!RunesService.mainnet) {
-        RunesService.mainnet = new RunesService(OPENBIT_URL);
+        RunesService.mainnet = new RunesService(OPENBIT_API_DEV_MAINNET);
       }
 
       return RunesService.mainnet;
